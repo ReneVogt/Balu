@@ -41,7 +41,8 @@ sealed class Lexer
                 int index = position;
                 while (index < input.Length && char.IsDigit(input[index])) index++;
                 string text = input[position..index];
-                int.TryParse(text, out var value);
+                if (!int.TryParse(text, out var value))
+                    diagnostics.Add($"ERROR: The number '{text}' at position {position} is not a valid 32bit integer.");
                 yield return SyntaxToken.Number(value, position, text);
                 position = index;
                 continue;
