@@ -2,17 +2,37 @@
 using System.Linq;
 using Balu;
 
+bool showTree = true;
+
 while (true)
 {
     try
     {
         Console.Write("> ");
         var line = Console.ReadLine();
-        if (string.IsNullOrWhiteSpace(line)) return;
+        if (line == "#tree")
+        {
+            showTree = !showTree;
+            Console.WriteLine(showTree ? "Showing parse trees." : "Not showing parse trees.");
+            continue;
+        }
+
+        if (line == "#cls")
+        {
+            Console.Clear();
+            continue;
+        }
+
+        if (line is null || line == "#exit") return;
+
         var parser = new Parser(line);
         var syntaxTree = parser.Parse();
-        Console.ForegroundColor = ConsoleColor.DarkGray;
-        PrettyPrint(syntaxTree.Root);
+        if (showTree)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGray;
+            PrettyPrint(syntaxTree.Root);
+        }
+
         Console.ResetColor();
         if (syntaxTree.Diagnostics.Any())
         {
