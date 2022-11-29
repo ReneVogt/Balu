@@ -6,23 +6,33 @@ namespace Balu;
 /// <summary>
 /// A lexer for the Balu language.
 /// </summary>
-sealed class Lexer : ILexer
+sealed class Lexer
 {
     readonly string input;
+    readonly List<string> diagnostics = new();
+
+    /// <summary>
+    /// The list of error messages.
+    /// </summary>
+    public IEnumerable<string> Diagnostics => diagnostics;
 
     /// <summary>
     /// Creates a new <see cref="Lexer"/> instance.
     /// </summary>
     /// <param name="input">The input Balu code.</param>
     /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
-    public Lexer(string input)
+    internal Lexer(string input)
     {
         this.input = input ?? throw new ArgumentNullException(nameof(input));
     }
 
-    /// <inheritdoc/>
+    /// <summary>
+    /// Enumerates the <see cref="SyntaxToken">syntax tokens</see> from the input Balu code.
+    /// </summary>
+    /// <returns>A sequence of <see cref="SyntaxToken">syntax tokens</see>.</returns>
     public IEnumerable<SyntaxToken> GetTokens()
     {
+        diagnostics.Clear();
         int position = 0;
         while (position < input.Length)
         {
@@ -47,16 +57,31 @@ sealed class Lexer : ILexer
                 continue;
             }
 
-            yield return input[position] switch
+            switch(input[position])
             {
-                '+' => SyntaxToken.Plus(position),
-                '-' => SyntaxToken.Minus(position),
-                '*' => SyntaxToken.Star(position),
-                '/' => SyntaxToken.Slash(position),
-                '(' => SyntaxToken.OpenParenthesis(position),
-                ')' => SyntaxToken.ClosedParenthesis(position),
-                _ => SyntaxToken.Bad(position, input[position].ToString())
-            };
+                case '+':
+                    yield return SyntaxToken.Plus(position);
+                    break;
+                case '-':
+                    yield return SyntaxToken.Minus(position);
+                    break;
+                case '*':
+                    yield return SyntaxToken.Star(position);
+                    break;
+                    case '/':
+                        yield return SyntaxToken.Slash(position);
+                        break;
+                        case '(':
+                            yield return SyntaxToken.OpenParenthesis(position);
+                            break;
+                case ')':
+                    yield return SyntaxToken.ClosedParenthesis(position);
+                    break;
+                default:
+                    diagnostics.Add($"ERROR: Unexpected token at {position}: '{input[position]}'.");
+                    yield return SyntaxToken.Bad(position, input[position].ToString());
+                    break;
+            }
 
             position++;
 

@@ -1,5 +1,5 @@
 ﻿using Balu.Expressions;
-using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Balu;
@@ -7,46 +7,102 @@ namespace Balu;
 /// <summary>
 /// A parser for the Balu language.
 /// </summary>
-sealed class Parser : IParser
+sealed class Parser
 {
-    static readonly NumberExpressionSyntax dummyNumber = new NumberExpressionSyntax(SyntaxToken.Number(0, 0, string.Empty));
-    readonly ILexer lexer;
+    readonly List<string> diagnostics = new();
+    readonly List<SyntaxToken> tokens = new();
+    readonly string input;
 
+    int position;
 
+    /// <summary>
+    /// The sequence of error messages.
+    /// </summary>
+    public IEnumerable<string> Diagnostics => diagnostics;
+    
     /// <summary>
     /// Creates a new <see cref="Parser"/> for the given <paramref name="input"/> of Balu code.
     /// </summary>
     /// <param name="input">The input Balu code to parse.</param>
-    public Parser(string input) => lexer = new Lexer(input);
+    public Parser(string input) => this.input = input;
 
     /// <summary>
-    /// Creates a new <see cref="Parser"/> using the given <paramref name="lexer"/> implementation.
+    /// Parses the provided input into an <see cref="SyntaxTree"/>.
     /// </summary>
-    /// <param name="lexer">An <see cref="ILexer"/> implementation that can build <see cref="SyntaxToken">syntax tokens</see> from a given Balu code.</param>
-    public Parser(ILexer lexer) => this.lexer = lexer ?? throw new ArgumentNullException(nameof(lexer));
-
-    /// <inheritdoc/>
-    public ExpressionSyntax Parse()
+    /// <returns>The resulting <see cref="SyntaxTree"/> representing the input Balu code.</returns>
+    public SyntaxTree Parse()
     {
-        var tokens = lexer.GetTokens()
-                          .Where(token => token.Kind != SyntaxKind.BadToken && token.Kind != SyntaxKind.WhiteSpaceToken &&
-                                          token.Kind != SyntaxKind.EndOfFileToken)
-                          .ToArray();
+        diagnostics.Clear();
+        tokens.Clear();
+        position = 0;
 
-        if (tokens.Length == 0) return dummyNumber;
-        
-        int position = 0;
-        var left = ParseNumberExpression();
-        while (position < tokens.Length)
+        var lexer = new Lexer(input);
+        foreach (var token in lexer.GetTokens().Where(token => token.Kind != SyntaxKind.BadToken && token.Kind != SyntaxKind.WhiteSpaceToken))
         {
-            var operatorToken = tokens[position++];
-            var right = ParseNumberExpression();
-            left = ExpressionSyntax.Binary(left, operatorToken, right);
+            tokens.Add(token);
+            if (token.Kind == SyntaxKind.EndOfFileToken) break;
+        }
+        diagnostics.AddRange(lexer.Diagnostics);
+
+        var expresion = ParseTerm();
+        var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
+        return new (expresion, endOfFileToken, diagnostics);
+    }
+
+    SyntaxToken Current => position < tokens.Count ? tokens[position] : tokens[^1];
+    SyntaxToken NextToken()
+    {
+        var current = Current;
+        if (position < tokens.Count) position++;
+        return current;
+    }
+    ExpressionSyntax ParsePrimaryExpression()
+    {
+        if (Current.Kind == SyntaxKind.OpenParenthesisToken)
+        {
+            var left = NextToken();
+            var expression = ParseTerm();
+            var right = Match(SyntaxKind.ClosedParenthesisToken);
+            return new ParenthesizedExpressionSyntax(left, expression, right);
+        }
+
+        var numberToken = Match(SyntaxKind.NumberToken);
+        return new NumberExpressionSyntax(numberToken);
+    }
+    ExpressionSyntax ParseTerm()
+    {
+        var left = ParseFactor();
+
+        while (Current.Kind == SyntaxKind.PlusToken ||
+               Current.Kind == SyntaxKind.MinusToken)
+        {
+            var operatorToken = NextToken();
+            var right = ParseFactor();
+            left = new BinaryExpressionSyntax(left, operatorToken, right);
         }
 
         return left;
+    }
+    ExpressionSyntax ParseFactor()
+    {
+        var left = ParsePrimaryExpression();
 
-        ExpressionSyntax ParseNumberExpression() =>
-            position < tokens.Length && tokens[position].Kind == SyntaxKind.NumberToken ? new NumberExpressionSyntax(tokens[position++]) : dummyNumber;
+        while (Current.Kind == SyntaxKind.StarToken ||
+               Current.Kind == SyntaxKind.SlashToken)
+        {
+            var operatorToken = NextToken();
+            var right = ParsePrimaryExpression();
+            left = new BinaryExpressionSyntax(left, operatorToken, right);
+        }
+
+        return left;
+    }
+    SyntaxToken Match(SyntaxKind kind)
+    {
+        if (Current.Kind == kind)
+            return NextToken();
+
+        diagnostics.Add($"ERROR: Unexpected {Current.Kind} at {Current.Position} ('{Current.Text}'), expected a {kind}.");
+        return new (kind, Current.Position);
     }
 }

@@ -63,5 +63,10 @@ public enum SyntaxKind
     /// <summary>
     /// A binary expression.
     /// </summary>
-    BinaryExpression
+    BinaryExpression,
+
+    /// <summary>
+    /// A parenthesized expression.
+    /// </summary>
+    ParenthesizedExpression
 }
