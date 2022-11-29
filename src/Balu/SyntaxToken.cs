@@ -1,4 +1,7 @@
-﻿namespace Balu;
+﻿using System.Collections.Generic;
+using System.Linq;
+
+namespace Balu;
 
 /// <summary>
 /// Represents a syntax token in Balu code.
@@ -72,6 +75,9 @@ public sealed class SyntaxToken : SyntaxNode
 
     /// <inheritdoc/>
     public override SyntaxKind Kind { get; }
+    /// <inheritdoc/>
+    public override IEnumerable<SyntaxNode> Children => Enumerable.Empty<SyntaxNode>();
+
     /// <summary>
     /// The original text in the input code.
     /// </summary>

@@ -1,4 +1,7 @@
-﻿namespace Balu;
+﻿using System.Collections;
+using System.Collections.Generic;
+
+namespace Balu;
 
 /// <summary>
 /// A node of a <see cref="SyntaxTree"/>.
@@ -9,6 +12,11 @@ public abstract class SyntaxNode
     /// The <see cref="SyntaxKind"/> of this node.
     /// </summary>
     public abstract SyntaxKind Kind { get; }
+
+    /// <summary>
+    /// Enumerates the child nodes of this <see cref="SyntaxNode"/>.
+    /// </summary>
+    public abstract IEnumerable<SyntaxNode> Children { get; }
 
     /// <inheritdoc />
     public override string ToString() => $"{Kind}";
