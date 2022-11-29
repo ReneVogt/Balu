@@ -30,7 +30,7 @@ sealed class Lexer : ILexer
             {
                 int index = position;
                 while (index < input.Length && char.IsDigit(input[index])) index++;
-                string text = input.Substring(position, index - position);
+                string text = input[position..index];
                 int.TryParse(text, out var value);
                 yield return SyntaxToken.Number(value, position, text);
                 position = index;
@@ -41,7 +41,7 @@ sealed class Lexer : ILexer
             {
                 int index = position;
                 while (index < input.Length && char.IsWhiteSpace(input[index])) index++;
-                string text = input.Substring(position, index - position);
+                string text = input[position..index];
                 yield return SyntaxToken.WhiteSpace(position, text);
                 position = index;
                 continue;

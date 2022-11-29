@@ -53,5 +53,15 @@ public enum SyntaxKind
     /// <summary>
     /// A closed parenthesis token.
     /// </summary>
-    ClosedParenthesisToken
+    ClosedParenthesisToken,
+
+    /// <summary>
+    /// An integer expression.
+    /// </summary>
+    NumberExpression,
+    
+    /// <summary>
+    /// A binary expression.
+    /// </summary>
+    BinaryExpression
 }
