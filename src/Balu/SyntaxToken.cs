@@ -97,7 +97,7 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="kind">The <see cref="SyntaxKind"/> of this token.</param>
     /// <param name="position">The position of this token in the input stream.</param>
     /// <param name="text">The original text in the input code.</param>
-    SyntaxToken(SyntaxKind kind, int position = 0, string text = "", object? value = null) => (Kind, Text, Position, Value) = (kind, text, position, value);
+    public SyntaxToken(SyntaxKind kind, int position = 0, string text = "", object? value = null) => (Kind, Text, Position, Value) = (kind, text, position, value);
 
     /// <inheritdoc />
     public override string ToString() => $"{Position}: {Kind} \"{Text}\" ({Value})";
