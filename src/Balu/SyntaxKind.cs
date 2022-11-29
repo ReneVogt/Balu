@@ -13,7 +13,7 @@ public enum SyntaxKind
     /// <summary>
     /// A sequence of whitespaces.
     /// </summary>
-    WhitespaceToken,
+    WhiteSpaceToken,
 
     /// <summary>
     /// An invalid token in the source code.
@@ -36,14 +36,14 @@ public enum SyntaxKind
     MinusToken,
 
     /// <summary>
-    /// The slash (/) token.
-    /// </summary>
-    SlashToken,
-
-    /// <summary>
     /// The star (*) token.
     /// </summary>
     StarToken,
+
+    /// <summary>
+    /// The slash (/) token.
+    /// </summary>
+    SlashToken,
 
     /// <summary>
     /// An open parenthesis token.
