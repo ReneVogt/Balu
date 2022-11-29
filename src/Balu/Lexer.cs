@@ -8,8 +8,7 @@ namespace Balu;
 /// </summary>
 sealed class Lexer : ILexer
 {
-    string input;
-    int position;
+    readonly string input;
 
     /// <summary>
     /// Creates a new <see cref="Lexer"/> instance.
@@ -24,11 +23,45 @@ sealed class Lexer : ILexer
     /// <inheritdoc/>
     public IEnumerable<SyntaxToken> GetTokens()
     {
+        int position = 0;
         while (position < input.Length)
         {
+            if (char.IsDigit(input[position]))
+            {
+                int index = position;
+                while (index < input.Length && char.IsDigit(input[index])) index++;
+                string text = input.Substring(position, index - position);
+                int.TryParse(text, out var value);
+                yield return SyntaxToken.Number(value, position, text);
+                position = index;
+                continue;
+            }
+
+            if (char.IsWhiteSpace(input[position]))
+            {
+                int index = position;
+                while (index < input.Length && char.IsWhiteSpace(input[index])) index++;
+                string text = input.Substring(position, index - position);
+                yield return SyntaxToken.WhiteSpace(position, text);
+                position = index;
+                continue;
+            }
+
+            yield return input[position] switch
+            {
+                '+' => SyntaxToken.Plus(position),
+                '-' => SyntaxToken.Minus(position),
+                '*' => SyntaxToken.Star(position),
+                '/' => SyntaxToken.Slash(position),
+                '(' => SyntaxToken.OpenParenthesis(position),
+                ')' => SyntaxToken.ClosedParenthesis(position),
+                _ => SyntaxToken.Bad(position, input[position].ToString())
+            };
+
             position++;
+
         }
 
-        yield return new SyntaxToken(SyntaxKind.EndOfFileToken, position);
+        yield return SyntaxToken.EndOfFile(position);
     }
 }
