@@ -10,15 +10,18 @@ while (true)
         var line = Console.ReadLine();
         if (string.IsNullOrWhiteSpace(line)) return;
         var parser = new Parser(line);
-        var expression = parser.Parse();
+        var syntaxTree = parser.Parse();
         Console.ForegroundColor = ConsoleColor.DarkGray;
-        PrettyPrint(expression.Root);
-        if (parser.Diagnostics.Any())
+        PrettyPrint(syntaxTree.Root);
+        Console.ResetColor();
+        if (syntaxTree.Diagnostics.Any())
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.WriteLine(string.Join(Environment.NewLine, parser.Diagnostics));
             Console.ResetColor();
         }
+        else
+            Console.WriteLine(new Evaluator(syntaxTree.Root).Evaluate());
 
         Console.WriteLine();
 

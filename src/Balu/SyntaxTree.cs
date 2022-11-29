@@ -11,7 +11,7 @@ public sealed class SyntaxTree
 {
     public ExpressionSyntax Root { get; }
     public SyntaxToken EndOfFileToken { get; }
-    public IReadOnlyCollection<string> Diagnostics { get; }
+    public IReadOnlyList<string> Diagnostics { get; }
 
     internal SyntaxTree(ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<string> diagnostics) =>
         (Root, EndOfFileToken, Diagnostics) = (root, endOfFileToken, diagnostics.ToArray());
