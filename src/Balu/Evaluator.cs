@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Data;
-using Balu.Expressions;
+using Balu.Syntax;
 
 namespace Balu;
 

@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Balu;
+namespace Balu.Syntax;
 
 /// <summary>
 /// Represents a syntax token in Balu code.

@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 
-namespace Balu;
+namespace Balu.Syntax;
 
 /// <summary>
 /// A node of a <see cref="SyntaxTree"/>.
 /// </summary>
 public abstract class SyntaxNode
-{ 
+{
     /// <summary>
     /// The <see cref="SyntaxKind"/> of this node.
     /// </summary>

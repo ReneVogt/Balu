@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Balu;
+namespace Balu.Syntax;
 
 /// <summary>
 /// A lexer for the Balu language.
@@ -58,7 +58,7 @@ sealed class Lexer
                 continue;
             }
 
-            switch(input[position])
+            switch (input[position])
             {
                 case '+':
                     yield return SyntaxToken.Plus(position);
@@ -69,12 +69,12 @@ sealed class Lexer
                 case '*':
                     yield return SyntaxToken.Star(position);
                     break;
-                    case '/':
-                        yield return SyntaxToken.Slash(position);
-                        break;
-                        case '(':
-                            yield return SyntaxToken.OpenParenthesis(position);
-                            break;
+                case '/':
+                    yield return SyntaxToken.Slash(position);
+                    break;
+                case '(':
+                    yield return SyntaxToken.OpenParenthesis(position);
+                    break;
                 case ')':
                     yield return SyntaxToken.ClosedParenthesis(position);
                     break;

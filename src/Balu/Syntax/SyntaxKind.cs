@@ -1,4 +1,4 @@
-﻿namespace Balu;
+﻿namespace Balu.Syntax;
 
 /// <summary>
 /// The kind of a <see cref="SyntaxNode"/>.

@@ -1,8 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
-using Balu.Expressions;
 
-namespace Balu;
+namespace Balu.Syntax;
 
 /// <summary>
 /// A syntax tree representing a Balu code file.

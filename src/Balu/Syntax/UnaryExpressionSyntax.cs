@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Balu.Expressions;
+namespace Balu.Syntax;
 
 public sealed class UnaryExpressionSyntax : ExpressionSyntax
 {
