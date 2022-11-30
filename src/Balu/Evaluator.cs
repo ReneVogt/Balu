@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Data;
 using Balu.Expressions;
 
 namespace Balu;
@@ -22,6 +23,8 @@ public sealed class Evaluator
     static int Evaluate(ExpressionSyntax expression) => expression switch
     {
         LiteralExpressionSyntax { LiteralToken.Value: int number } => number,
+        UnaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.PlusToken, Expression: var operand } => Evaluate(operand),
+        UnaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.MinusToken, Expression: var operand } => -Evaluate(operand),
         BinaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.PlusToken, Left: var left, Right: var right } => Evaluate(left) + Evaluate(right),
         BinaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.MinusToken, Left: var left, Right: var right } => Evaluate(left) - Evaluate(right),
         BinaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.StarToken, Left: var left, Right: var right } => Evaluate(left) * Evaluate(right),

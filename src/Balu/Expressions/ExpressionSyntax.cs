@@ -12,7 +12,14 @@ public abstract class ExpressionSyntax : SyntaxNode
     /// <returns>The parsed <see cref="LiteralExpressionSyntax"/>.</returns>
     public static LiteralExpressionSyntax Number(SyntaxToken numberToken) => new(numberToken);
     /// <summary>
-    /// Creates a new <see cref="BinaryExpressionSyntax"/> from the given <paramref name="left"/> and <paramref name="right"/> <see cref="ExpressionSyntax"/> expressions
+    /// Creates a new <see cref="UnaryExpressionSyntax"/> from the given <paramref name="operatorToken"/> and <paramref name="expression"/>.
+    /// </summary>
+    /// <param name="operatorToken">The <see cref="SyntaxToken"/> representing the operator.</param>
+    /// <param name="expression">The <see cref="ExpressionSyntax"/> representing the operand expression.</param>
+    /// <returns>The <see cref="UnaryExpressionSyntax"/>.</returns>
+    public static UnaryExpressionSyntax Unary(SyntaxToken operatorToken, ExpressionSyntax expression) => new(operatorToken, expression);
+    /// <summary>
+    /// Creates a new <see cref="BinaryExpressionSyntax"/> from the given <paramref name="left"/> and <paramref name="right"/> <see cref="ExpressionSyntax"> expressions</see>
     /// and the given <paramref name="operatorToken"/> 
     /// </summary>
     /// <param name="left">The <see cref="ExpressionSyntax"/> representing the left operand.</param>
