@@ -23,4 +23,13 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 
     internal ParenthesizedExpressionSyntax(SyntaxToken openParenthesisToken, ExpressionSyntax expression, SyntaxToken closedParenthesisToken) =>
         (OpenParenthesisToken, Expression, ClosedParenthesisToken) = (openParenthesisToken, expression, closedParenthesisToken);
+
+    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    {
+        SyntaxToken open = (SyntaxToken)visitor.Visit(OpenParenthesisToken);
+        ExpressionSyntax expr = (ExpressionSyntax)visitor.Visit(Expression);
+        SyntaxToken close = (SyntaxToken)visitor.Visit(ClosedParenthesisToken);
+        return open != OpenParenthesisToken || expr != Expression || close != ClosedParenthesisToken ? Parenthesized(open, expr,close) : this;
+    }
+
 }
