@@ -56,9 +56,9 @@ public enum SyntaxKind
     ClosedParenthesisToken,
 
     /// <summary>
-    /// An integer expression.
+    /// A literal expression.
     /// </summary>
-    NumberExpression,
+    LiteralExpression,
     
     /// <summary>
     /// A binary expression.

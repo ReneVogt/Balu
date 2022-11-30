@@ -6,11 +6,11 @@
 public abstract class ExpressionSyntax : SyntaxNode
 {
     /// <summary>
-    /// Creates a new <see cref="NumberExpressionSyntax"/> from the given <see cref="SyntaxToken"/>.
+    /// Creates a new <see cref="LiteralExpressionSyntax"/> from the given <see cref="SyntaxToken"/>.
     /// </summary>
     /// <param name="numberToken">The <see cref="SyntaxToken"/> creating this expression.</param>
-    /// <returns>The parsed <see cref="NumberExpressionSyntax"/>.</returns>
-    public static NumberExpressionSyntax Number(SyntaxToken numberToken) => new(numberToken);
+    /// <returns>The parsed <see cref="LiteralExpressionSyntax"/>.</returns>
+    public static LiteralExpressionSyntax Number(SyntaxToken numberToken) => new(numberToken);
     /// <summary>
     /// Creates a new <see cref="BinaryExpressionSyntax"/> from the given <paramref name="left"/> and <paramref name="right"/> <see cref="ExpressionSyntax"/> expressions
     /// and the given <paramref name="operatorToken"/> 

@@ -52,7 +52,7 @@ while (true)
             Console.Write(marker);
             Console.WriteLine(node);
 
-            indent += last ? "    " : "│   ";
+            indent += last ? "   " : "│  ";
             var children = node.Children.ToArray();
             for(int i = 0; i<children.Length -1; i++)
                 PrettyPrint(children[i], indent, false);

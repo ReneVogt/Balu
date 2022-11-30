@@ -19,13 +19,13 @@ public sealed class Evaluator
 
     public int Evaluate() => Evaluate(root);
 
-    int Evaluate(ExpressionSyntax expression) => expression switch
+    static int Evaluate(ExpressionSyntax expression) => expression switch
     {
-        NumberExpressionSyntax { NumberToken: { Value: int number } } => number,
-        BinaryExpressionSyntax { OperatorToken: { Kind: SyntaxKind.PlusToken }, Left: var left, Right: var right } => Evaluate(left) + Evaluate(right),
-        BinaryExpressionSyntax { OperatorToken: { Kind: SyntaxKind.MinusToken}, Left: var left, Right: var right } => Evaluate(left) - Evaluate(right),
-        BinaryExpressionSyntax { OperatorToken: { Kind: SyntaxKind.StarToken }, Left: var left, Right: var right } => Evaluate(left) * Evaluate(right),
-        BinaryExpressionSyntax { OperatorToken: { Kind: SyntaxKind.SlashToken }, Left: var left, Right: var right } => Evaluate(left) / Evaluate(right),
+        LiteralExpressionSyntax { LiteralToken.Value: int number } => number,
+        BinaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.PlusToken, Left: var left, Right: var right } => Evaluate(left) + Evaluate(right),
+        BinaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.MinusToken, Left: var left, Right: var right } => Evaluate(left) - Evaluate(right),
+        BinaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.StarToken, Left: var left, Right: var right } => Evaluate(left) * Evaluate(right),
+        BinaryExpressionSyntax { OperatorToken.Kind: SyntaxKind.SlashToken, Left: var left, Right: var right } => Evaluate(left) / Evaluate(right),
         ParenthesizedExpressionSyntax { Expression: var innerExpression} => Evaluate(innerExpression),
         _ => throw new InvalidOperationException($"Expressions {expression} cannot be evaluated.")
     };
