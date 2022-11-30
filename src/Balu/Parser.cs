@@ -56,21 +56,12 @@ sealed class Parser
         if (position < tokens.Count) position++;
         return current;
     }
-
-    int GetOperatorPrecedence(SyntaxKind kind) => kind switch
-    {
-        SyntaxKind.PlusToken or
-            SyntaxKind.MinusToken => 1,
-        SyntaxKind.SlashToken or
-            SyntaxKind.StarToken => 2,
-        _ => 0
-    };
     ExpressionSyntax ParseExpression(int parentprecedence = 0)
     {
         var left = ParsePrimaryExpression();
         for (;;)
         {
-            var precedence = GetOperatorPrecedence(Current.Kind);
+            var precedence = Current.Kind.BinaryOperatorPrecedence();
             if (precedence <= parentprecedence) return left;
 
             var operatorToken = NextToken();
