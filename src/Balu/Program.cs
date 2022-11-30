@@ -23,7 +23,7 @@ while (true)
             continue;
         }
 
-        if (line is null || line == "#exit") return;
+        if (string.IsNullOrWhiteSpace(line) || line == "#exit") return;
 
         var parser = new Parser(line);
         var syntaxTree = parser.Parse();

@@ -30,7 +30,7 @@ sealed class Lexer
     /// Enumerates the <see cref="SyntaxToken">syntax tokens</see> from the input Balu code.
     /// </summary>
     /// <returns>A sequence of <see cref="SyntaxToken">syntax tokens</see>.</returns>
-    public IEnumerable<SyntaxToken> GetTokens()
+    public IEnumerable<SyntaxToken> Lex()
     {
         diagnostics.Clear();
         int position = 0;
