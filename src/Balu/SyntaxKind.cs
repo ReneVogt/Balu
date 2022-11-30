@@ -59,9 +59,14 @@ public enum SyntaxKind
     /// A literal expression.
     /// </summary>
     LiteralExpression,
-    
+
     /// <summary>
-    /// A binary expression.
+    /// A unary operator expression.
+    /// </summary>
+    UnaryExpression,
+
+    /// <summary>
+    /// A binary operator expression.
     /// </summary>
     BinaryExpression,
 
@@ -69,4 +74,5 @@ public enum SyntaxKind
     /// A parenthesized expression.
     /// </summary>
     ParenthesizedExpression
+
 }
