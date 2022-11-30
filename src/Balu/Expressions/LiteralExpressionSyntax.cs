@@ -2,22 +2,22 @@
 
 namespace Balu.Expressions;
 
-public sealed class NumberExpressionSyntax : ExpressionSyntax
+public sealed class LiteralExpressionSyntax : ExpressionSyntax
 {
     /// <summary>
     /// The <see cref="SyntaxToken"/> of this expression.
     /// </summary>
-    public SyntaxToken NumberToken { get; }
+    public SyntaxToken LiteralToken { get; }
     /// <inheritdoc/>
-    public override SyntaxKind Kind => SyntaxKind.NumberExpression;
+    public override SyntaxKind Kind => SyntaxKind.LiteralExpression;
     /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children 
     {
         get
         {
-            yield return NumberToken;
+            yield return LiteralToken;
         }
     }
 
-    internal NumberExpressionSyntax(SyntaxToken numberToken) => NumberToken = numberToken;
+    internal LiteralExpressionSyntax(SyntaxToken literalToken) => LiteralToken = literalToken;
 }
