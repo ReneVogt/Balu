@@ -8,9 +8,9 @@ public abstract class ExpressionSyntax : SyntaxNode
     /// <summary>
     /// Creates a new <see cref="LiteralExpressionSyntax"/> from the given <see cref="SyntaxToken"/>.
     /// </summary>
-    /// <param name="numberToken">The <see cref="SyntaxToken"/> creating this expression.</param>
+    /// <param name="literalToken">The <see cref="SyntaxToken"/> creating this expression.</param>
     /// <returns>The parsed <see cref="LiteralExpressionSyntax"/>.</returns>
-    public static LiteralExpressionSyntax Number(SyntaxToken numberToken) => new(numberToken);
+    public static LiteralExpressionSyntax Literal(SyntaxToken literalToken) => new(literalToken);
     /// <summary>
     /// Creates a new <see cref="UnaryExpressionSyntax"/> from the given <paramref name="operatorToken"/> and <paramref name="expression"/>.
     /// </summary>

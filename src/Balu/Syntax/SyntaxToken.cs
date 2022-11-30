@@ -99,6 +99,8 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="text">The original text in the input code.</param>
     public SyntaxToken(SyntaxKind kind, int position = 0, string text = "", object? value = null) => (Kind, Text, Position, Value) = (kind, text, position, value);
 
+    internal override SyntaxNode Accept(SyntaxVisitor visitor) => this;
+
     /// <inheritdoc />
     public override string ToString() => $"{Position}: {Kind} \"{Text}\" ({Value})";
 }

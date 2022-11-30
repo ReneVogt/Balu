@@ -22,4 +22,10 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
 
     internal UnaryExpressionSyntax(SyntaxToken operatorToken, ExpressionSyntax expression) =>
         (OperatorToken, Expression) = (operatorToken, expression);
+    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    {
+        SyntaxToken operatorToken = (SyntaxToken)visitor.Visit(OperatorToken);
+        ExpressionSyntax expression = (ExpressionSyntax)visitor.Visit(Expression);
+        return operatorToken != OperatorToken || expression != Expression ? Unary(operatorToken, expression) : this;
+    }
 }

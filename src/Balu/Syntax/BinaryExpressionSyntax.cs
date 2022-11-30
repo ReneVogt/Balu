@@ -23,4 +23,12 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
 
     internal BinaryExpressionSyntax(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right) =>
         (Left, OperatorToken, Right) = (left, operatorToken, right);
+
+    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    {
+        ExpressionSyntax left = (ExpressionSyntax)visitor.Visit(Left);
+        SyntaxToken operatorToken = (SyntaxToken)visitor.Visit(OperatorToken);
+        ExpressionSyntax right = (ExpressionSyntax)visitor.Visit(Right);
+        return left != Left || operatorToken != OperatorToken || right != Right ? Binary(left, operatorToken, right) : this;
+    }
 }

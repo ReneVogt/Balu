@@ -17,6 +17,8 @@ public abstract class SyntaxNode
     /// </summary>
     public abstract IEnumerable<SyntaxNode> Children { get; }
 
+    internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
+
     /// <inheritdoc />
     public override string ToString() => $"{Kind}";
 }
