@@ -1,4 +1,4 @@
-﻿namespace Balu;
+﻿namespace Balu.Syntax;
 static class SyntaxFacts
 {
     public static int UnaryOperatorPrecedence(this SyntaxKind kind) => kind switch

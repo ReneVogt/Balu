@@ -1,4 +1,4 @@
-﻿namespace Balu.Expressions;
+﻿namespace Balu.Syntax;
 
 /// <summary>
 /// The abstract base class for expresssion <see cref="SyntaxNode">syntax nodes</see>.

@@ -1,8 +1,7 @@
-﻿using Balu.Expressions;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Balu;
+namespace Balu.Syntax;
 
 /// <summary>
 /// A parser for the Balu language.
@@ -19,7 +18,7 @@ sealed class Parser
     /// The sequence of error messages.
     /// </summary>
     public IEnumerable<string> Diagnostics => diagnostics;
-    
+
     /// <summary>
     /// Creates a new <see cref="Parser"/> for the given <paramref name="input"/> of Balu code.
     /// </summary>
@@ -46,7 +45,7 @@ sealed class Parser
 
         var expresion = ParseExpression();
         var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
-        return new (expresion, endOfFileToken, diagnostics);
+        return new(expresion, endOfFileToken, diagnostics);
     }
 
     SyntaxToken Current => position < tokens.Count ? tokens[position] : tokens[^1];
@@ -62,7 +61,7 @@ sealed class Parser
         var left = unaryOperatorPrecedence > 0 && unaryOperatorPrecedence >= parentprecedence
                        ? ExpressionSyntax.Unary(NextToken(), ParseExpression(unaryOperatorPrecedence))
                        : ParsePrimaryExpression();
-        for (;;)
+        for (; ; )
         {
             var precedence = Current.Kind.BinaryOperatorPrecedence();
             if (precedence <= parentprecedence) return left;
@@ -91,6 +90,6 @@ sealed class Parser
             return NextToken();
 
         diagnostics.Add($"ERROR: Unexpected {Current.Kind} at {Current.Position} ('{Current.Text}'), expected a {kind}.");
-        return new (kind, Current.Position);
+        return new(kind, Current.Position);
     }
 }
