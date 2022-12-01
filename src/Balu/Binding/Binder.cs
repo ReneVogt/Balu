@@ -15,15 +15,10 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node)
     {
-        var operatorKind = node.OperatorToken.Kind switch
-        {
-            SyntaxKind.PlusToken => BoundUnaryOperatorKind.Identity,
-            SyntaxKind.MinusToken => BoundUnaryOperatorKind.Negation,
-            _ => throw new BindingException($"Cannot bind unary operator kind {node.OperatorToken.Kind}.")
-        };
+        var operatorKind = node.OperatorToken.Kind.UnaryOperatorKind(); 
         
         Visit(node.Expression);
-        if (expression!.Type != typeof(int))
+        if (!operatorKind.CanBeAppliedTo(expression!.Type))
             diagnostics.Add($"ERROR: Unary operator {operatorKind} cannot be applied to type {expression.Type}.");
         else
             expression = new BoundUnaryExpression(operatorKind, expression!);
@@ -31,20 +26,13 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
     {
-        var operatorKind = node.OperatorToken.Kind switch
-        {
-            SyntaxKind.PlusToken => BoundBinaryOperatorKind.Addition,
-            SyntaxKind.MinusToken => BoundBinaryOperatorKind.Substraction,
-            SyntaxKind.StarToken => BoundBinaryOperatorKind.Multiplication,
-            SyntaxKind.SlashToken => BoundBinaryOperatorKind.Division,
-            _ => throw new BindingException($"Cannot bind binary operator kind {node.OperatorToken.Kind}.")
-        };
+        var operatorKind = node.OperatorToken.Kind.BinaryOperatorKind(); 
         Visit(node.Left);
         var left = expression!;
         Visit(node.Right);
         var right = expression!;
 
-        if (left.Type != typeof(int) || right.Type != typeof(int))
+        if (!operatorKind.CanBeAppliedTo(left.Type, right.Type))
             diagnostics.Add($"ERROR: Binary operator {operatorKind} cannot be applied to types {left.Type} and {right.Type}.");
         else
             expression = new BoundBinaryExpression(left, operatorKind, right);
@@ -55,13 +43,13 @@ sealed class Binder : SyntaxVisitor
     {
         var binder = new Binder();
         binder.Visit(syntax);
-        return new BoundTree(binder.expression!, binder.diagnostics);
+        return new(binder.expression!, binder.diagnostics);
     }
     public static BoundTree Bind(SyntaxTree syntax)
     {
         var binder = new Binder();
         binder.diagnostics.AddRange(syntax.Diagnostics);
         binder.Visit(syntax.Root);
-        return new BoundTree(binder.expression!, binder.diagnostics);
+        return new(binder.expression!, binder.diagnostics);
     }
 }
