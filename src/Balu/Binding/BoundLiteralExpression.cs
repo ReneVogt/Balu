@@ -10,4 +10,6 @@ sealed class BoundLiteralExpression : BoundExpression
     public object Value { get; }
 
     public BoundLiteralExpression(object value) => Value = value;
+
+    internal override BoundExpression Accept(BoundExpressionVisitor visitor) => this;
 }

@@ -17,4 +17,11 @@ sealed class BoundBinaryExpression : BoundExpression
         OperatorKind = operatorKind;
         Right = right;
     }
+
+    internal override BoundExpression Accept(BoundExpressionVisitor visitor)
+    {
+        var left = visitor.Visit(Left);
+        var right = visitor.Visit(Right);
+        return left == Left && right == Right ? this : new BoundBinaryExpression(left, OperatorKind, right);
+    }
 }
