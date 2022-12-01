@@ -23,15 +23,15 @@ sealed class BoundBinaryOperator
     public BoundBinaryOperatorKind OperatorKind { get; }
     public Type LeftType { get; }
     public Type RightType { get; }
-    public Type ResultType { get; }
+    public Type Type { get; }
 
-    BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind operatorKind, Type leftType, Type rightType, Type resultType)
+    BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind operatorKind, Type leftType, Type rightType, Type type)
     {
         SyntaxKind = syntaxKind;
         OperatorKind = operatorKind;
         LeftType = leftType;
         RightType = rightType;
-        ResultType = resultType;
+        Type = type;
     }
 
     public static BoundBinaryOperator? Bind(SyntaxKind syntaxKind, Type leftType, Type rightType) =>

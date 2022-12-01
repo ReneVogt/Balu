@@ -5,7 +5,7 @@ namespace Balu.Binding;
 sealed class BoundUnaryExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
-    public override Type Type => Operator.ResultType;
+    public override Type Type => Operator.Type;
 
     public BoundUnaryOperator Operator { get; }
     public BoundExpression Operand { get; }
