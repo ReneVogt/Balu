@@ -3,25 +3,54 @@ using Balu.Binding;
 
 namespace Balu;
 
-sealed class Evaluator
+sealed class Evaluator : BoundExpressionVisitor
 {
-    readonly BoundExpression root;
+    public int Result { get; private set; }
 
-    Evaluator(BoundExpression root) => this.root = root ?? throw new ArgumentNullException(nameof(root));
+    Evaluator() {}
 
-    public int Evaluate() => EvaluateExpression(root);
-
-    static int EvaluateExpression(BoundExpression expression) => expression switch
+    protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
-        BoundLiteralExpression { Value: int number } => number,
-        BoundUnaryExpression { OperatorKind: BoundUnaryOperatorKind.Identity, Operand: var operand } => Evaluate(operand),
-        BoundUnaryExpression { OperatorKind: BoundUnaryOperatorKind.Negation, Operand: var operand } => -Evaluate(operand),
-        BoundBinaryExpression { OperatorKind: BoundBinaryOperatorKind.Addition, Left: var left, Right: var right } => Evaluate(left) + Evaluate(right),
-        BoundBinaryExpression { OperatorKind: BoundBinaryOperatorKind.Substraction, Left: var left, Right: var right } => Evaluate(left) - Evaluate(right),
-        BoundBinaryExpression { OperatorKind: BoundBinaryOperatorKind.Multiplication, Left: var left, Right: var right } => Evaluate(left) * Evaluate(right),
-        BoundBinaryExpression { OperatorKind: BoundBinaryOperatorKind.Division, Left: var left, Right: var right } => Evaluate(left) / Evaluate(right),
-        _ => throw new InvalidOperationException($"Expressions {expression} cannot be evaluated.")
-    };
+        Result = (int)literalExpression.Value;
+        return literalExpression;
+    }
+    protected override BoundExpression VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
+    {
+        Visit(unaryExpression.Operand);
+        switch (unaryExpression.OperatorKind)
+        {
+            case BoundUnaryOperatorKind.Identity:
+                break;
+            case BoundUnaryOperatorKind.Negation:
+                Result = -Result;
+                break;
+            default:
+                throw new InvalidOperationException($"Unary operator {unaryExpression.OperatorKind} cannot be evaluated.");
+        }
 
-    public static int Evaluate(BoundExpression expression) => new Evaluator(expression).Evaluate();
+        return unaryExpression;
+    }
+    protected override BoundExpression VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
+    {
+        Visit(binaryExpression.Left);
+        int left = Result;
+        Visit(binaryExpression.Right);
+        int right = Result;
+        Result = binaryExpression.OperatorKind switch
+        {
+            BoundBinaryOperatorKind.Addition => left + right,
+            BoundBinaryOperatorKind.Substraction => left - right,
+            BoundBinaryOperatorKind.Multiplication => left * right,
+            BoundBinaryOperatorKind.Division => left / right,
+            _ => throw new InvalidOperationException($"Unary operator {binaryExpression.OperatorKind} cannot be evaluated."),
+        };
+        return binaryExpression;
+    }
+
+    public static int Evaluate(BoundExpression expression)
+    {
+        var evaluator = new Evaluator();
+        evaluator.Visit(expression ?? throw new ArgumentNullException(nameof(expression)));
+        return evaluator.Result;
+    }
 }
