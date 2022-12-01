@@ -46,8 +46,8 @@ while (true)
         var boundTree = Binder.Bind(syntaxTree.Root);
         if (showBound)
         {
-            Console.ForegroundColor = ConsoleColor.DarkBlue;
-            PrettyPrintBound(boundTree.Root);
+            Console.ForegroundColor = ConsoleColor.DarkYellow;
+            BoundTreePrinter.Print(boundTree.Root, Console.Out);
             Console.ResetColor();
         }
         
@@ -61,45 +61,6 @@ while (true)
             Console.WriteLine(new Evaluator(syntaxTree.Root).Evaluate());
 
         Console.WriteLine();
-
-        static void PrettyPrintSyntax(SyntaxNode node, string indent = "", bool last = true)
-        {
-            var marker = last ? "└──" : "├──";
-            Console.Write(indent);
-            Console.Write(marker);
-            Console.WriteLine(node);
-
-            indent += last ? "   " : "│  ";
-            var children = node.Children.ToArray();
-            for (int i = 0; i < children.Length - 1; i++)
-                PrettyPrintSyntax(children[i], indent, false);
-            if (children.Length > 0)
-                PrettyPrintSyntax(children[^1], indent);
-        }
-        static void PrettyPrintBound(BoundExpression node, string indent = "", bool last = true)
-        {
-            var marker = last ? "└──" : "├──";
-            Console.Write(indent);
-            Console.Write(marker);
-            Console.Write($"{node.Kind}({node.Type}) ");
-
-            indent += last ? "   " : "│  ";
-            switch (node)
-            {
-                case BoundLiteralExpression  literal:
-                    Console.WriteLine(literal.Value);
-                    break;
-                case BoundUnaryExpression unary:
-                    Console.WriteLine(unary.OperatorKind);
-                    PrettyPrintBound(unary.Operand, indent);
-                    break;
-                case BoundBinaryExpression binary:
-                    Console.WriteLine(binary.OperatorKind);
-                    PrettyPrintBound(binary.Left, indent);
-                    PrettyPrintBound(binary.Right, indent);
-                    break;
-            }
-        }
     }
     catch (Exception exception)
     {
