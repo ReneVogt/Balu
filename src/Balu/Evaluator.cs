@@ -24,6 +24,9 @@ sealed class Evaluator : BoundExpressionVisitor
             case BoundUnaryOperatorKind.Negation:
                 Result = -(int)Result!;
                 break;
+            case BoundUnaryOperatorKind.LogicalNegation:
+                Result = !(bool)Result!;
+                break;
             default:
                 throw new InvalidOperationException($"Unary operator {unaryExpression.OperatorKind} cannot be evaluated.");
         }
@@ -33,15 +36,17 @@ sealed class Evaluator : BoundExpressionVisitor
     protected override BoundExpression VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
         Visit(binaryExpression.Left);
-        int left = (int)Result!;
+        object left = Result!;
         Visit(binaryExpression.Right);
-        int right = (int)Result!;
+        object right = Result!;
         Result = binaryExpression.OperatorKind switch
         {
-            BoundBinaryOperatorKind.Addition => left + right,
-            BoundBinaryOperatorKind.Substraction => left - right,
-            BoundBinaryOperatorKind.Multiplication => left * right,
-            BoundBinaryOperatorKind.Division => left / right,
+            BoundBinaryOperatorKind.Addition => (int)left + (int)right,
+            BoundBinaryOperatorKind.Substraction => (int)left - (int)right,
+            BoundBinaryOperatorKind.Multiplication => (int)left * (int)right,
+            BoundBinaryOperatorKind.Division => (int)left / (int)right,
+            BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
+            BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
             _ => throw new InvalidOperationException($"Unary operator {binaryExpression.OperatorKind} cannot be evaluated."),
         };
         return binaryExpression;
