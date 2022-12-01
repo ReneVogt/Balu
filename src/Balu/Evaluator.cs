@@ -5,13 +5,13 @@ namespace Balu;
 
 sealed class Evaluator : BoundExpressionVisitor
 {
-    public int Result { get; private set; }
+    public object? Result { get; private set; }
 
     Evaluator() {}
 
     protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
-        Result = (int)literalExpression.Value;
+        Result = literalExpression.Value;
         return literalExpression;
     }
     protected override BoundExpression VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
@@ -22,7 +22,7 @@ sealed class Evaluator : BoundExpressionVisitor
             case BoundUnaryOperatorKind.Identity:
                 break;
             case BoundUnaryOperatorKind.Negation:
-                Result = -Result;
+                Result = -(int)Result!;
                 break;
             default:
                 throw new InvalidOperationException($"Unary operator {unaryExpression.OperatorKind} cannot be evaluated.");
@@ -33,9 +33,9 @@ sealed class Evaluator : BoundExpressionVisitor
     protected override BoundExpression VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
         Visit(binaryExpression.Left);
-        int left = Result;
+        int left = (int)Result!;
         Visit(binaryExpression.Right);
-        int right = Result;
+        int right = (int)Result!;
         Result = binaryExpression.OperatorKind switch
         {
             BoundBinaryOperatorKind.Addition => left + right,
@@ -47,7 +47,7 @@ sealed class Evaluator : BoundExpressionVisitor
         return binaryExpression;
     }
 
-    public static int Evaluate(BoundExpression expression)
+    public static object? Evaluate(BoundExpression expression)
     {
         var evaluator = new Evaluator();
         evaluator.Visit(expression ?? throw new ArgumentNullException(nameof(expression)));

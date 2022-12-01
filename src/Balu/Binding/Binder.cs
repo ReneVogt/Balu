@@ -10,7 +10,7 @@ sealed class Binder : SyntaxVisitor
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
-        expression = new BoundLiteralExpression(node.Value as int? ?? 0);
+        expression = new BoundLiteralExpression(node.Value ?? 0);
         return node;
     }
     protected override SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node)
