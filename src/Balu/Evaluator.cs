@@ -17,7 +17,7 @@ sealed class Evaluator : BoundExpressionVisitor
     protected override BoundExpression VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
         Visit(unaryExpression.Operand);
-        switch (unaryExpression.OperatorKind)
+        switch (unaryExpression.Operator.OperatorKind)
         {
             case BoundUnaryOperatorKind.Identity:
                 break;
@@ -28,7 +28,7 @@ sealed class Evaluator : BoundExpressionVisitor
                 Result = !(bool)Result!;
                 break;
             default:
-                throw new InvalidOperationException($"Unary operator {unaryExpression.OperatorKind} cannot be evaluated.");
+                throw new InvalidOperationException($"Unary operator {unaryExpression.Operator.OperatorKind} cannot be evaluated.");
         }
 
         return unaryExpression;
@@ -39,7 +39,7 @@ sealed class Evaluator : BoundExpressionVisitor
         object left = Result!;
         Visit(binaryExpression.Right);
         object right = Result!;
-        Result = binaryExpression.OperatorKind switch
+        Result = binaryExpression.Operator.OperatorKind switch
         {
             BoundBinaryOperatorKind.Addition => (int)left + (int)right,
             BoundBinaryOperatorKind.Substraction => (int)left - (int)right,
@@ -47,7 +47,7 @@ sealed class Evaluator : BoundExpressionVisitor
             BoundBinaryOperatorKind.Division => (int)left / (int)right,
             BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
             BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
-            _ => throw new InvalidOperationException($"Unary operator {binaryExpression.OperatorKind} cannot be evaluated."),
+            _ => throw new InvalidOperationException($"Unary operator {binaryExpression.Operator.OperatorKind} cannot be evaluated."),
         };
         return binaryExpression;
     }

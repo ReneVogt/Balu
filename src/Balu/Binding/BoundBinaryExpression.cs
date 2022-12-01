@@ -8,13 +8,13 @@ sealed class BoundBinaryExpression : BoundExpression
     public override Type Type => Left.Type;
 
     public BoundExpression Left { get; }
-    public BoundBinaryOperatorKind OperatorKind { get; }
+    public BoundBinaryOperator Operator { get; }
     public BoundExpression Right { get; }
     
-    public BoundBinaryExpression(BoundExpression left, BoundBinaryOperatorKind operatorKind, BoundExpression right)
+    public BoundBinaryExpression(BoundExpression left, BoundBinaryOperator op, BoundExpression right)
     {
         Left = left;
-        OperatorKind = operatorKind;
+        Operator = op;
         Right = right;
     }
 
@@ -22,6 +22,6 @@ sealed class BoundBinaryExpression : BoundExpression
     {
         var left = visitor.Visit(Left);
         var right = visitor.Visit(Right);
-        return left == Left && right == Right ? this : new BoundBinaryExpression(left, OperatorKind, right);
+        return left == Left && right == Right ? this : new (left, Operator, right);
     }
 }

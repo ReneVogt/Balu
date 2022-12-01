@@ -15,27 +15,27 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node)
     {
-        var operatorKind = node.OperatorToken.Kind.UnaryOperatorKind(); 
         
         Visit(node.Expression);
-        if (!operatorKind.CanBeAppliedTo(expression!.Type))
-            diagnostics.Add($"ERROR: Unary operator {operatorKind} cannot be applied to type {expression.Type}.");
+        var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression!.Type);
+        if (op is null)
+            diagnostics.Add($"ERROR: Unary operator {node.OperatorToken.Text} cannot be applied to type {expression.Type}.");
         else
-            expression = new BoundUnaryExpression(operatorKind, expression!);
+            expression = new BoundUnaryExpression(op, expression!);
         return node;
     }
     protected override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
     {
-        var operatorKind = node.OperatorToken.Kind.BinaryOperatorKind(); 
         Visit(node.Left);
         var left = expression!;
         Visit(node.Right);
         var right = expression!;
 
-        if (!operatorKind.CanBeAppliedTo(left.Type, right.Type))
-            diagnostics.Add($"ERROR: Binary operator {operatorKind} cannot be applied to types {left.Type} and {right.Type}.");
+        var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, left.Type, right.Type);
+        if (op is null)
+            diagnostics.Add($"ERROR: Binary operator {node.OperatorToken.Text} cannot be applied to types {left.Type} and {right.Type}.");
         else
-            expression = new BoundBinaryExpression(left, operatorKind, right);
+            expression = new BoundBinaryExpression(left, op, right);
         return node;
     }
 
