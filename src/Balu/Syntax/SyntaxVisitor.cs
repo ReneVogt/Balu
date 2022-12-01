@@ -42,84 +42,84 @@ public abstract class SyntaxVisitor
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    public virtual SyntaxNode VisitEndOfFileToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitEndOfFileToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.WhiteSpaceToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitWhiteSpaceToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitWhiteSpaceToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.BadToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitBadToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitBadToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.NumberToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitNumberToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitNumberToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.PlusToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitPlusToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitPlusToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.MinusToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitMinusToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitMinusToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.StarToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitStarToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitStarToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.SlashToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitSlashToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitSlashToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.OpenParenthesisToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitOpenParenthesisToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitOpenParenthesisToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.ClosedParenthesisToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitClosedParenthesisToken(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitClosedParenthesisToken(SyntaxNode node) => node.Accept(this);
 
     /// <summary>
     /// Visits a <see cref="LiteralExpressionSyntax"/>.
     /// </summary>
     /// <param name="node">The <see cref="LiteralExpressionSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node) => node.Accept(this);
+    protected virtual SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="UnaryExpressionSyntax"/>.
     /// </summary>
     /// <param name="node">The <see cref="UnaryExpressionSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node) => node.Accept(this);
+    protected virtual SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="BinaryExpressionSyntax"/>.
     /// </summary>
     /// <param name="node">The <see cref="BinaryExpressionSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node) => node.Accept(this);
+    protected virtual SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="ParenthesizedExpressionSyntax"/>.
     /// </summary>
     /// <param name="node">The <see cref="ParenthesizedExpressionSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    private SyntaxNode VisitParenthesizedExpression(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitParenthesizedExpression(SyntaxNode node) => node.Accept(this);
 }
