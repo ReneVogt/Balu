@@ -3,6 +3,7 @@ using System.Linq;
 using Balu;
 using Balu.Binding;
 using Balu.Syntax;
+using Balu.Visualization;
 
 bool showSyntax = false, showBound = false;
 
@@ -37,15 +38,15 @@ while (true)
         var syntaxTree = parser.Parse();
         if (showSyntax)
         {
-            Console.ForegroundColor = ConsoleColor.DarkGray;
-            PrettyPrintSyntax(syntaxTree.Root);
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            SyntaxTreePrinter.Print(syntaxTree.Root, Console.Out);
             Console.ResetColor();
         }
 
         var boundTree = Binder.Bind(syntaxTree.Root);
         if (showBound)
         {
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.ForegroundColor = ConsoleColor.DarkBlue;
             PrettyPrintBound(boundTree.Root);
             Console.ResetColor();
         }

@@ -19,6 +19,6 @@ static class BindingFacts
         SyntaxKind.SlashToken => BoundBinaryOperatorKind.Division,
         _ => throw new BindingException($"Cannot bind binary operator kind {syntaxKind}.")
     };
-    public static bool CanBeAppliedTo(this BoundUnaryOperatorKind operatorKind, Type expressionType) => Enum.IsDefined(typeof(UnaryExpressionSyntax), operatorKind) && expressionType == typeof(int);
-    public static bool CanBeAppliedTo(this BoundBinaryOperatorKind operatorKind, Type leftType, Type rightType) => Enum.IsDefined(typeof(BinaryExpressionSyntax), operatorKind) && leftType == typeof(int) && rightType == typeof(int);
+    public static bool CanBeAppliedTo(this BoundUnaryOperatorKind operatorKind, Type expressionType) => Enum.IsDefined(typeof(BoundUnaryOperatorKind), operatorKind) && expressionType == typeof(int);
+    public static bool CanBeAppliedTo(this BoundBinaryOperatorKind operatorKind, Type leftType, Type rightType) => Enum.IsDefined(typeof(BoundBinaryOperatorKind), operatorKind) && leftType == typeof(int) && rightType == typeof(int);
 }
