@@ -1,9 +1,10 @@
 ﻿using System;
 using System.Linq;
 using Balu;
+using Balu.Binding;
 using Balu.Syntax;
 
-bool showTree = true;
+bool showSyntax = false, showBound = false;
 
 while (true)
 {
@@ -11,10 +12,16 @@ while (true)
     {
         Console.Write("> ");
         var line = Console.ReadLine();
-        if (line == "#tree")
+        if (line == "#syntax")
         {
-            showTree = !showTree;
-            Console.WriteLine(showTree ? "Showing parse trees." : "Not showing parse trees.");
+            showSyntax = !showSyntax;
+            Console.WriteLine(showSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
+            continue;
+        }
+        if (line == "#bound")
+        {
+            showBound = !showBound;
+            Console.WriteLine(showBound ? "Showing bound tree." : "Not showing boud tree.");
             continue;
         }
 
@@ -28,17 +35,25 @@ while (true)
 
         var parser = new Parser(line);
         var syntaxTree = parser.Parse();
-        if (showTree)
+        if (showSyntax)
         {
             Console.ForegroundColor = ConsoleColor.DarkGray;
-            PrettyPrint(syntaxTree.Root);
+            PrettyPrintSyntax(syntaxTree.Root);
+            Console.ResetColor();
         }
 
-        Console.ResetColor();
-        if (syntaxTree.Diagnostics.Any())
+        var boundTree = Binder.Bind(syntaxTree.Root);
+        if (showBound)
+        {
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            PrettyPrintBound(boundTree.Root);
+            Console.ResetColor();
+        }
+        
+        if (boundTree.Diagnostics.Any())
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine(string.Join(Environment.NewLine, parser.Diagnostics));
+            Console.WriteLine(string.Join(Environment.NewLine, boundTree.Diagnostics));
             Console.ResetColor();
         }
         else
@@ -46,7 +61,7 @@ while (true)
 
         Console.WriteLine();
 
-        static void PrettyPrint(SyntaxNode node, string indent = "", bool last = true)
+        static void PrettyPrintSyntax(SyntaxNode node, string indent = "", bool last = true)
         {
             var marker = last ? "└──" : "├──";
             Console.Write(indent);
@@ -55,10 +70,34 @@ while (true)
 
             indent += last ? "   " : "│  ";
             var children = node.Children.ToArray();
-            for(int i = 0; i<children.Length -1; i++)
-                PrettyPrint(children[i], indent, false);
+            for (int i = 0; i < children.Length - 1; i++)
+                PrettyPrintSyntax(children[i], indent, false);
             if (children.Length > 0)
-                PrettyPrint(children[^1], indent);
+                PrettyPrintSyntax(children[^1], indent);
+        }
+        static void PrettyPrintBound(BoundExpression node, string indent = "", bool last = true)
+        {
+            var marker = last ? "└──" : "├──";
+            Console.Write(indent);
+            Console.Write(marker);
+            Console.Write($"{node.Kind}({node.Type}) ");
+
+            indent += last ? "   " : "│  ";
+            switch (node)
+            {
+                case BoundLiteralExpression  literal:
+                    Console.WriteLine(literal.Value);
+                    break;
+                case BoundUnaryExpression unary:
+                    Console.WriteLine(unary.OperatorKind);
+                    PrettyPrintBound(unary.Operand, indent);
+                    break;
+                case BoundBinaryExpression binary:
+                    Console.WriteLine(binary.OperatorKind);
+                    PrettyPrintBound(binary.Left, indent);
+                    PrettyPrintBound(binary.Right, indent);
+                    break;
+            }
         }
     }
     catch (Exception exception)

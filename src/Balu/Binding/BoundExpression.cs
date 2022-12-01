@@ -1,5 +1,4 @@
 ﻿using System;
-
 namespace Balu.Binding;
 
 abstract class BoundExpression : BoundNode
