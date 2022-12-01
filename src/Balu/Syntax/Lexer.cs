@@ -89,7 +89,13 @@ sealed class Lexer
                     yield return SyntaxToken.ClosedParenthesis(position++);
                     break;
                 case '!':
-                    yield return SyntaxToken.Bang(position++);
+                    if (Peek(1) == '=')
+                    {
+                        yield return SyntaxToken.NotEquals(position);
+                        position += 2;
+                    }
+                    else
+                        yield return SyntaxToken.Bang(position++);
                     break;
                 case '&':
                     if (Peek(1) != '&') goto default;
@@ -99,6 +105,11 @@ sealed class Lexer
                 case '|':
                     if (Peek(1) != '|') goto default;
                     yield return SyntaxToken.PipePipe(position);
+                    position += 2;
+                    break;
+                case '=':
+                    if (Peek(1) != '=') goto default;
+                    yield return SyntaxToken.EqualsEquals(position);
                     position += 2;
                     break;
                 default:

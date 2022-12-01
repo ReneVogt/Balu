@@ -47,7 +47,9 @@ sealed class Evaluator : BoundExpressionVisitor
             BoundBinaryOperatorKind.Division => (int)left / (int)right,
             BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
             BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
-            _ => throw new InvalidOperationException($"Unary operator {binaryExpression.Operator.OperatorKind} cannot be evaluated."),
+            BoundBinaryOperatorKind.Equals => Equals(left, right),
+            BoundBinaryOperatorKind.NotEqual => !Equals(left, right),
+            _ => throw new InvalidOperationException($"Binnary operator {binaryExpression.Operator.OperatorKind} cannot be evaluated."),
         };
         return binaryExpression;
     }

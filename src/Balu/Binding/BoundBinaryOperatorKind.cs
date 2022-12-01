@@ -7,5 +7,7 @@ enum BoundBinaryOperatorKind
     Multiplication,
     Division,
     LogicalOr,
-    LogicalAnd
+    LogicalAnd,
+    Equals,
+    NotEqual
 }

@@ -15,6 +15,9 @@ static class SyntaxFacts
         SyntaxKind.PlusToken or
             SyntaxKind.MinusToken => 10,
 
+        SyntaxKind.EqualsEqualsToken or
+            SyntaxKind.BangEqualToken => 5,
+
         SyntaxKind.AmpersandAmpersandToken => 2,
         SyntaxKind.PipePipeToken => 1,
         _ => 0
