@@ -7,6 +7,8 @@ namespace Balu.Syntax;
 /// </summary>
 public abstract class SyntaxNode
 {
+    private protected SyntaxNode(){}
+
     /// <summary>
     /// The <see cref="SyntaxKind"/> of this node.
     /// </summary>

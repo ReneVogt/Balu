@@ -20,6 +20,7 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
     }
 
     internal LiteralExpressionSyntax(SyntaxToken literalToken) => LiteralToken = literalToken;
+
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         SyntaxToken literal = (SyntaxToken)visitor.Visit(LiteralToken);
