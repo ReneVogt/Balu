@@ -71,18 +71,30 @@ sealed class Parser
             left = ExpressionSyntax.Binary(left, operatorToken, right);
         }
     }
-    ExpressionSyntax ParsePrimaryExpression()
-    {
-        if (Current.Kind == SyntaxKind.OpenParenthesisToken)
+    ExpressionSyntax ParsePrimaryExpression() =>
+        Current.Kind switch
         {
-            var left = NextToken();
-            var expression = ParseExpression();
-            var right = Match(SyntaxKind.ClosedParenthesisToken);
-            return new ParenthesizedExpressionSyntax(left, expression, right);
-        }
-
+            SyntaxKind.OpenParenthesisToken => ParseParenthesizedExpression(),
+            SyntaxKind.TrueKeyword or
+                SyntaxKind.FalseKeyword => ParseBooleanExpression(),
+            _ => ParseNumberExpression()
+        };
+    ExpressionSyntax ParseNumberExpression()
+    {
         var numberToken = Match(SyntaxKind.NumberToken);
         return new LiteralExpressionSyntax(numberToken);
+    }
+    ExpressionSyntax ParseParenthesizedExpression()
+    {
+        var left = NextToken();
+        var expression = ParseExpression();
+        var right = Match(SyntaxKind.ClosedParenthesisToken);
+        return new ParenthesizedExpressionSyntax(left, expression, right);
+    }
+    ExpressionSyntax ParseBooleanExpression()
+    {
+        var token = NextToken();
+        return new LiteralExpressionSyntax(token, token.Kind == SyntaxKind.TrueKeyword);
     }
     SyntaxToken Match(SyntaxKind kind)
     {

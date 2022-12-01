@@ -10,7 +10,7 @@ public abstract class ExpressionSyntax : SyntaxNode
     /// </summary>
     /// <param name="literalToken">The <see cref="SyntaxToken"/> creating this expression.</param>
     /// <returns>The parsed <see cref="LiteralExpressionSyntax"/>.</returns>
-    public static LiteralExpressionSyntax Literal(SyntaxToken literalToken) => new(literalToken);
+    public static LiteralExpressionSyntax Literal(SyntaxToken literalToken, object? value = null) => new(literalToken, value);
     /// <summary>
     /// Creates a new <see cref="UnaryExpressionSyntax"/> from the given <paramref name="operatorToken"/> and <paramref name="expression"/>.
     /// </summary>

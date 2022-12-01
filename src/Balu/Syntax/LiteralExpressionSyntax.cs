@@ -19,11 +19,17 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
         }
     }
 
-    internal LiteralExpressionSyntax(SyntaxToken literalToken) => LiteralToken = literalToken;
+    /// <summary>
+    /// The value of the <see cref="LiteralExpressionSyntax"/>.
+    /// </summary>
+    public object? Value { get; }
+
+    internal LiteralExpressionSyntax(SyntaxToken literalToken) : this(literalToken, literalToken.Value){}
+    internal LiteralExpressionSyntax(SyntaxToken literalToken, object? value) => (LiteralToken, Value) = (literalToken, value);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         SyntaxToken literal = (SyntaxToken)visitor.Visit(LiteralToken);
-        return literal == LiteralToken ? this : Literal(literal);
+        return literal == LiteralToken ? this : Literal(literal, literal.Value);
     }
 }

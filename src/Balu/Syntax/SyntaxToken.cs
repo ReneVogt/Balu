@@ -73,6 +73,26 @@ public sealed class SyntaxToken : SyntaxNode
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ClosedParenthesisToken"/>.</returns>
     public static SyntaxToken ClosedParenthesis(int position) => new(SyntaxKind.ClosedParenthesisToken, position, ")");
 
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.</returns>
+    public static SyntaxToken Identifier(int position, string name) => new(SyntaxKind.IdentifierToken, position, name);
+
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TrueKeyword"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TrueKeyword"/>.</returns>
+    public static SyntaxToken TrueKeyword(int position) => new(SyntaxKind.TrueKeyword, position, "true");
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.FalseKeyword"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.FalseKeyword"/>.</returns>
+    public static SyntaxToken FalseKeyword(int position) => new(SyntaxKind.FalseKeyword, position, "false");
+
     /// <inheritdoc/>
     public override SyntaxKind Kind { get; }
     /// <inheritdoc/>

@@ -15,4 +15,10 @@ static class SyntaxFacts
             SyntaxKind.StarToken => 2,
         _ => 0
     };
+    public static SyntaxKind KeywordKind(this string literal) => literal switch
+    {
+        "true" => SyntaxKind.TrueKeyword,
+        "false" => SyntaxKind.FalseKeyword,
+        _ => SyntaxKind.IdentifierToken
+    };
 }
