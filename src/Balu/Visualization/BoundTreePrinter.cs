@@ -29,7 +29,7 @@ sealed class BoundTreePrinter : BoundExpressionVisitor
     }
     protected override BoundExpression VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
-        writer.WriteLine($"{unaryExpression.OperatorKind}({unaryExpression.Type})");
+        writer.WriteLine($"{unaryExpression.Operator.OperatorKind}({unaryExpression.Type})");
         var lastIndnet = indent;
         var lastLast = last;
         indent += last ? TreeTexts.Indent : TreeTexts.Branch;
@@ -41,7 +41,7 @@ sealed class BoundTreePrinter : BoundExpressionVisitor
     }
     protected override BoundExpression VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
-        writer.WriteLine($"{binaryExpression.OperatorKind}({binaryExpression.Type})");
+        writer.WriteLine($"{binaryExpression.Operator.OperatorKind}({binaryExpression.Type})");
         var lastIndnet = indent;
         var lastLast = last;
         indent += last ? TreeTexts.Indent : TreeTexts.Branch;
