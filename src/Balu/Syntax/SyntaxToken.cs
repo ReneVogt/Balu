@@ -97,7 +97,7 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="kind">The <see cref="SyntaxKind"/> of this token.</param>
     /// <param name="position">The position of this token in the input stream.</param>
     /// <param name="text">The original text in the input code.</param>
-    public SyntaxToken(SyntaxKind kind, int position = 0, string text = "", object? value = null) => (Kind, Text, Position, Value) = (kind, text, position, value);
+    internal SyntaxToken(SyntaxKind kind, int position = 0, string text = "", object? value = null) => (Kind, Text, Position, Value) = (kind, text, position, value);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor) => this;
 
