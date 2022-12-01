@@ -74,6 +74,25 @@ public sealed class SyntaxToken : SyntaxNode
     public static SyntaxToken ClosedParenthesis(int position) => new(SyntaxKind.ClosedParenthesisToken, position, ")");
 
     /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangToken"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangToken"/>.</returns>
+    public static SyntaxToken Bang(int position) => new(SyntaxKind.BangToken, position, "!");
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.AmpersandAmpersandToken"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.AmpersandAmpersandToken"/>.</returns>
+    public static SyntaxToken AmpersandAmpersand(int position) => new(SyntaxKind.AmpersandAmpersandToken, position, "&&");
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PipePipeToken"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PipePipeToken"/>.</returns>
+    public static SyntaxToken PipePipe(int position) => new(SyntaxKind.PipePipeToken, position, "||");
+
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.
     /// </summary>
     /// <param name="position">The position of this token in the input code.</param>
