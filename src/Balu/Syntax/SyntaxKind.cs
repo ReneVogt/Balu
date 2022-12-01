@@ -57,6 +57,21 @@ public enum SyntaxKind
     ClosedParenthesisToken,
 
     /// <summary>
+    /// A '!' token.
+    /// </summary>
+    BangToken,
+
+    /// <summary>
+    /// A '&&' token.
+    /// </summary>
+    AmpersandAmpersandToken,
+
+    /// <summary>
+    /// A '||' token.
+    /// </summary>
+    PipePipeToken,
+
+    /// <summary>
     /// An arbitrary identifier token.
     /// </summary>
     IdentifierToken,

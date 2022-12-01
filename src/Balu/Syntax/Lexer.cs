@@ -71,33 +71,50 @@ sealed class Lexer
             switch (input[position])
             {
                 case '+':
-                    yield return SyntaxToken.Plus(position);
+                    yield return SyntaxToken.Plus(position++);
                     break;
                 case '-':
-                    yield return SyntaxToken.Minus(position);
+                    yield return SyntaxToken.Minus(position++);
                     break;
                 case '*':
-                    yield return SyntaxToken.Star(position);
+                    yield return SyntaxToken.Star(position++);
                     break;
                 case '/':
-                    yield return SyntaxToken.Slash(position);
+                    yield return SyntaxToken.Slash(position++);
                     break;
                 case '(':
-                    yield return SyntaxToken.OpenParenthesis(position);
+                    yield return SyntaxToken.OpenParenthesis(position++);
                     break;
                 case ')':
-                    yield return SyntaxToken.ClosedParenthesis(position);
+                    yield return SyntaxToken.ClosedParenthesis(position++);
+                    break;
+                case '!':
+                    yield return SyntaxToken.Bang(position++);
+                    break;
+                case '&':
+                    if (Peek(1) != '&') goto default;
+                    yield return SyntaxToken.AmpersandAmpersand(position);
+                    position += 2;
+                    break;
+                case '|':
+                    if (Peek(1) != '|') goto default;
+                    yield return SyntaxToken.PipePipe(position);
+                    position += 2;
                     break;
                 default:
                     diagnostics.Add($"ERROR: Unexpected token at {position}: '{input[position]}'.");
                     yield return SyntaxToken.Bad(position, input[position].ToString());
+                    position++;
                     break;
             }
-
-            position++;
-
         }
 
         yield return SyntaxToken.EndOfFile(position);
+        
+        char Peek(int offset)
+        {
+            var index = position + offset;
+            return index >= input.Length ? '\0' : input[index];
+        }
     }
 }

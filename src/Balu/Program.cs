@@ -43,7 +43,7 @@ while (true)
             Console.ResetColor();
         }
 
-        var boundTree = Binder.Bind(syntaxTree.Root);
+        var boundTree = Binder.Bind(syntaxTree);
         if (showBound)
         {
             Console.ForegroundColor = ConsoleColor.DarkYellow;
