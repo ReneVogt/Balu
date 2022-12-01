@@ -72,6 +72,16 @@ public enum SyntaxKind
     PipePipeToken,
 
     /// <summary>
+    /// A '==' token.
+    /// </summary>
+    EqualsEqualsToken,
+
+    /// <summary>
+    /// A '!=' token.
+    /// </summary>
+    BangEqualToken,
+
+    /// <summary>
     /// An arbitrary identifier token.
     /// </summary>
     IdentifierToken,

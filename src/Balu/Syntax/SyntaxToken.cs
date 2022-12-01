@@ -93,6 +93,19 @@ public sealed class SyntaxToken : SyntaxNode
     public static SyntaxToken PipePipe(int position) => new(SyntaxKind.PipePipeToken, position, "||");
 
     /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsEqualsToken"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsEqualsToken"/>.</returns>
+    public static SyntaxToken EqualsEquals(int position) => new(SyntaxKind.EqualsEqualsToken, position, "==");
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualToken"/>.
+    /// </summary>
+    /// <param name="position">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualToken"/>.</returns>
+    public static SyntaxToken NotEquals(int position) => new(SyntaxKind.BangEqualToken, position, "!=");
+
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.
     /// </summary>
     /// <param name="position">The position of this token in the input code.</param>
