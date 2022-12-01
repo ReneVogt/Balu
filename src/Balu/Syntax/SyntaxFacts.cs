@@ -5,14 +5,18 @@ static class SyntaxFacts
     {
         SyntaxKind.PlusToken or
             SyntaxKind.MinusToken => 100,
+        SyntaxKind.BangToken => 100,
         _ => 0
     };
     public static int BinaryOperatorPrecedence(this SyntaxKind kind) => kind switch
     {
-        SyntaxKind.PlusToken or
-            SyntaxKind.MinusToken => 1,
         SyntaxKind.SlashToken or
-            SyntaxKind.StarToken => 2,
+            SyntaxKind.StarToken => 11,
+        SyntaxKind.PlusToken or
+            SyntaxKind.MinusToken => 10,
+
+        SyntaxKind.AmpersandAmpersandToken => 2,
+        SyntaxKind.PipePipeToken => 1,
         _ => 0
     };
     public static SyntaxKind KeywordKind(this string literal) => literal switch
