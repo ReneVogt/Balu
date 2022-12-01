@@ -58,6 +58,16 @@ sealed class Lexer
                 continue;
             }
 
+            if (char.IsLetter(input[position]))
+            {
+                int index = position;
+                while (index < input.Length && char.IsLetter(input[index])) index++;
+                string keyword = input[position..index];
+                yield return new SyntaxToken(keyword.KeywordKind(), position, keyword);
+                position = index;
+                continue;
+            }
+
             switch (input[position])
             {
                 case '+':

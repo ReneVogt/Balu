@@ -5,6 +5,7 @@
 /// </summary>
 public enum SyntaxKind
 {
+    #region Tokens
     /// <summary>
     /// The token indicating the end of the input.
     /// </summary>
@@ -56,6 +57,23 @@ public enum SyntaxKind
     ClosedParenthesisToken,
 
     /// <summary>
+    /// An arbitrary identifier token.
+    /// </summary>
+    IdentifierToken,
+    #endregion
+    #region Keywords
+    /// <summary>
+    /// The <c>"true</c> keyword.
+    /// </summary>
+    TrueKeyword,
+
+    /// <summary>
+    /// The <c>"false</c> keyword.
+    /// </summary>
+    FalseKeyword,
+    #endregion
+    #region Expressions
+    /// <summary>
     /// A literal expression.
     /// </summary>
     LiteralExpression,
@@ -74,5 +92,5 @@ public enum SyntaxKind
     /// A parenthesized expression.
     /// </summary>
     ParenthesizedExpression
-
+    #endregion
 }
