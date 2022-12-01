@@ -18,14 +18,14 @@ sealed class BoundUnaryOperator
     public SyntaxKind SyntaxKind { get; }
     public BoundUnaryOperatorKind OperatorKind { get; }
     public Type OperandType { get; }
-    public Type ResultType { get; }
+    public Type Type { get; }
 
-    BoundUnaryOperator(SyntaxKind syntaxKind, BoundUnaryOperatorKind operatorKind, Type operandType, Type resultType)
+    BoundUnaryOperator(SyntaxKind syntaxKind, BoundUnaryOperatorKind operatorKind, Type operandType, Type type)
     {
         SyntaxKind = syntaxKind;
         OperatorKind = operatorKind;
         OperandType = operandType;
-        ResultType = resultType;
+        Type = type;
     }
 
     public static BoundUnaryOperator? Bind(SyntaxKind syntaxKind, Type operandType) =>
