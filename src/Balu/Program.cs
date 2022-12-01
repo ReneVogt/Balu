@@ -58,7 +58,7 @@ while (true)
             Console.ResetColor();
         }
         else
-            Console.WriteLine(new Evaluator(syntaxTree.Root).Evaluate());
+            Console.WriteLine(Evaluator.Evaluate(boundTree.Root));
 
         Console.WriteLine();
     }
