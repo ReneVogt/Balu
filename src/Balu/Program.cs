@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Linq;
-using Balu;
 using Balu.Binding;
+using Balu.Evaluation;
 using Balu.Syntax;
 using Balu.Visualization;
 

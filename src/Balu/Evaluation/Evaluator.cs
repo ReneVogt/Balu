@@ -1,13 +1,13 @@
 ﻿using System;
 using Balu.Binding;
 
-namespace Balu;
+namespace Balu.Evaluation;
 
 sealed class Evaluator : BoundExpressionVisitor
 {
     public object? Result { get; private set; }
 
-    Evaluator() {}
+    Evaluator() { }
 
     protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
