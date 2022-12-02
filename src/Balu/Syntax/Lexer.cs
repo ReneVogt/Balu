@@ -9,12 +9,12 @@ namespace Balu.Syntax;
 sealed class Lexer
 {
     readonly string input;
-    readonly List<string> diagnostics = new();
+    readonly List<Diagnostic> diagnostics = new();
 
     /// <summary>
     /// The list of error messages.
     /// </summary>
-    public IEnumerable<string> Diagnostics => diagnostics;
+    public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
     /// <summary>
     /// Creates a new <see cref="Lexer"/> instance.
@@ -42,8 +42,8 @@ sealed class Lexer
                 while (index < input.Length && char.IsDigit(input[index])) index++;
                 string text = input[position..index];
                 if (!int.TryParse(text, out var value))
-                    diagnostics.Add($"ERROR: The number '{text}' at position {position} is not a valid 32bit integer.");
-                yield return SyntaxToken.Number(value, position, text);
+                    diagnostics.Add(Diagnostic.LexerNumberNotValid(position, index - position, text));
+                yield return SyntaxToken.Number(value, new(position, index-position), text);
                 position = index;
                 continue;
             }
@@ -53,7 +53,7 @@ sealed class Lexer
                 int index = position;
                 while (index < input.Length && char.IsWhiteSpace(input[index])) index++;
                 string text = input[position..index];
-                yield return SyntaxToken.WhiteSpace(position, text);
+                yield return SyntaxToken.WhiteSpace(new(position, index - position), text);
                 position = index;
                 continue;
             }
@@ -63,7 +63,7 @@ sealed class Lexer
                 int index = position;
                 while (index < input.Length && char.IsLetter(input[index])) index++;
                 string keyword = input[position..index];
-                yield return new SyntaxToken(keyword.KeywordKind(), position, keyword);
+                yield return new SyntaxToken(keyword.KeywordKind(), new(position, index - position), keyword);
                 position = index;
                 continue;
             }
@@ -71,56 +71,56 @@ sealed class Lexer
             switch (input[position])
             {
                 case '+':
-                    yield return SyntaxToken.Plus(position++);
+                    yield return SyntaxToken.Plus(new(position++, 1));
                     break;
                 case '-':
-                    yield return SyntaxToken.Minus(position++);
+                    yield return SyntaxToken.Minus(new(position++, 1));
                     break;
                 case '*':
-                    yield return SyntaxToken.Star(position++);
+                    yield return SyntaxToken.Star(new(position++, 1));
                     break;
                 case '/':
-                    yield return SyntaxToken.Slash(position++);
+                    yield return SyntaxToken.Slash(new(position++, 1));
                     break;
                 case '(':
-                    yield return SyntaxToken.OpenParenthesis(position++);
+                    yield return SyntaxToken.OpenParenthesis(new(position++, 1));
                     break;
                 case ')':
-                    yield return SyntaxToken.ClosedParenthesis(position++);
+                    yield return SyntaxToken.ClosedParenthesis(new(position++, 1));
                     break;
                 case '!':
                     if (Peek(1) == '=')
                     {
-                        yield return SyntaxToken.NotEquals(position);
+                        yield return SyntaxToken.NotEquals(new(position, 2));
                         position += 2;
                     }
                     else
-                        yield return SyntaxToken.Bang(position++);
+                        yield return SyntaxToken.Bang(new(position++, 1));
                     break;
                 case '&':
                     if (Peek(1) != '&') goto default;
-                    yield return SyntaxToken.AmpersandAmpersand(position);
+                    yield return SyntaxToken.AmpersandAmpersand(new(position, 2));
                     position += 2;
                     break;
                 case '|':
                     if (Peek(1) != '|') goto default;
-                    yield return SyntaxToken.PipePipe(position);
+                    yield return SyntaxToken.PipePipe(new(position, 2));
                     position += 2;
                     break;
                 case '=':
                     if (Peek(1) != '=') goto default;
-                    yield return SyntaxToken.EqualsEquals(position);
+                    yield return SyntaxToken.EqualsEquals(new(position, 2));
                     position += 2;
                     break;
                 default:
-                    diagnostics.Add($"ERROR: Unexpected token at {position}: '{input[position]}'.");
-                    yield return SyntaxToken.Bad(position, input[position].ToString());
+                    diagnostics.Add(Diagnostic.LexerUnexpectedToken(position, 1, input[position].ToString()));
+                    yield return SyntaxToken.Bad(new(position, 1), input[position].ToString());
                     position++;
                     break;
             }
         }
 
-        yield return SyntaxToken.EndOfFile(position);
+        yield return SyntaxToken.EndOfFile(new(position, 0));
         
         char Peek(int offset)
         {
