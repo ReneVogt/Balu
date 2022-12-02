@@ -101,7 +101,7 @@ sealed class Parser
         if (Current.Kind == kind)
             return NextToken();
 
-        diagnostics.Add(Diagnostic.ParserUnexpectedToken(Current.TextSpan, Current, kind));
+        diagnostics.Add(Diagnostic.ParserUnexpectedToken(Current, kind));
         return new(kind, Current.TextSpan);
     }
 }
