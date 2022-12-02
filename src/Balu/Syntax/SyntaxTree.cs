@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Balu.Syntax;
@@ -15,5 +16,5 @@ public sealed class SyntaxTree
     internal SyntaxTree(ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<string> diagnostics) =>
         (Root, EndOfFileToken, Diagnostics) = (root, endOfFileToken, diagnostics.ToArray());
 
-    public static SyntaxTree Parse(string input) => new Parser(input).Parse();
+    public static SyntaxTree Parse(string input) => new Parser(input ?? throw new ArgumentNullException(nameof(input))).Parse();
 }

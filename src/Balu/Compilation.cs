@@ -39,5 +39,12 @@ public sealed class Compilation
     /// </summary>
     /// <param name="input">The string containing the Balu input code.</param>
     /// <returns>An <see cref="EvaluationResult"/> containing the result of the evaluation or error messages.</returns>
-    public static EvaluationResult Evaluate(string input) => new Compilation(SyntaxTree.Parse(input)).Evaluate();
+    public static EvaluationResult Evaluate(string input) => Evaluate(SyntaxTree.Parse(input ?? throw new ArgumentNullException(nameof(input))));
+
+    /// <summary>
+    /// Evaluates the given <see cref="SyntaxTree"/>.
+    /// </summary>
+    /// <param name="syntaxTree">The <see cref="SyntaxTree"/> to bind and evaluate.</param>
+    /// <returns>An <see cref="EvaluationResult"/> containing the result of the evaluation or error messages.</returns>
+    public static EvaluationResult Evaluate(SyntaxTree syntaxTree) => new Compilation(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))).Evaluate();
 }
