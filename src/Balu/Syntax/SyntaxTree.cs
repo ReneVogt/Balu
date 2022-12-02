@@ -11,9 +11,9 @@ public sealed class SyntaxTree
 {
     public ExpressionSyntax Root { get; }
     public SyntaxToken EndOfFileToken { get; }
-    public IReadOnlyList<string> Diagnostics { get; }
+    public IReadOnlyList<Diagnostic> Diagnostics { get; }
 
-    internal SyntaxTree(ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<string> diagnostics) =>
+    internal SyntaxTree(ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<Diagnostic> diagnostics) =>
         (Root, EndOfFileToken, Diagnostics) = (root, endOfFileToken, diagnostics.ToArray());
 
     public static SyntaxTree Parse(string input) => new Parser(input ?? throw new ArgumentNullException(nameof(input))).Parse();

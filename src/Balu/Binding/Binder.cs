@@ -5,7 +5,7 @@ namespace Balu.Binding;
 
 sealed class Binder : SyntaxVisitor
 {
-    readonly List<string> diagnostics = new();
+    readonly List<Diagnostic> diagnostics = new();
     BoundExpression? expression;
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
@@ -19,7 +19,7 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Expression);
         var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression!.Type);
         if (op is null)
-            diagnostics.Add($"ERROR: Unary operator {node.OperatorToken.Text} cannot be applied to type {expression.Type}.");
+            diagnostics.Add(Diagnostic.BinderUnaryOperatorTypeMismatch(node.OperatorToken.Text, expression.Type));
         else
             expression = new BoundUnaryExpression(op, expression!);
         return node;
@@ -33,7 +33,7 @@ sealed class Binder : SyntaxVisitor
 
         var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, left.Type, right.Type);
         if (op is null)
-            diagnostics.Add($"ERROR: Binary operator {node.OperatorToken.Text} cannot be applied to types {left.Type} and {right.Type}.");
+            diagnostics.Add(Diagnostic.BinderBinaryOperatorTypeMismatch(node.OperatorToken.Text, left.Type, right.Type));
         else
             expression = new BoundBinaryExpression(left, op, right);
         return node;

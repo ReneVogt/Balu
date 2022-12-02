@@ -8,7 +8,7 @@ namespace Balu.Syntax;
 /// </summary>
 sealed class Parser
 {
-    readonly List<string> diagnostics = new();
+    readonly List<Diagnostic> diagnostics = new();
     readonly List<SyntaxToken> tokens = new();
     readonly string input;
 
@@ -17,7 +17,7 @@ sealed class Parser
     /// <summary>
     /// The sequence of error messages.
     /// </summary>
-    public IEnumerable<string> Diagnostics => diagnostics;
+    public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
     /// <summary>
     /// Creates a new <see cref="Parser"/> for the given <paramref name="input"/> of Balu code.
@@ -101,7 +101,7 @@ sealed class Parser
         if (Current.Kind == kind)
             return NextToken();
 
-        diagnostics.Add($"ERROR: Unexpected {Current.Kind} at {Current.Position} ('{Current.Text}'), expected a {kind}.");
-        return new(kind, Current.Position);
+        diagnostics.Add(Diagnostic.ParserUnexpectedToken(Current.TextSpan, Current, kind));
+        return new(kind, Current.TextSpan);
     }
 }

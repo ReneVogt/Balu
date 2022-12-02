@@ -7,9 +7,9 @@ namespace Balu.Binding;
 sealed class BoundTree
 {
     public BoundExpression Root { get; }
-    public IReadOnlyList<string> Diagnostics { get; }
+    public IReadOnlyList<Diagnostic> Diagnostics { get; }
     
-    public BoundTree(BoundExpression root, IEnumerable<string> diagnostics)
+    public BoundTree(BoundExpression root, IEnumerable<Diagnostic> diagnostics)
     {
         Root = root;
         Diagnostics = diagnostics.ToArray();

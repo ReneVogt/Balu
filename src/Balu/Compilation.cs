@@ -31,7 +31,7 @@ public sealed class Compilation
         var boundTree = BoundTree.Bind(SyntaxTree);
         return boundTree.Diagnostics.Any()
                    ? new(boundTree.Diagnostics, null)
-                   : new(Array.Empty<string>(), Evaluator.Evaluate(boundTree.Root));
+                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(boundTree.Root));
     }
 
     /// <summary>
