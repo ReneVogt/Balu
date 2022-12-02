@@ -19,7 +19,7 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Expression);
         var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression!.Type);
         if (op is null)
-            diagnostics.Add(Diagnostic.BinderUnaryOperatorTypeMismatch(node.OperatorToken.Text, expression.Type));
+            diagnostics.Add(Diagnostic.BinderUnaryOperatorTypeMismatch(node.OperatorToken, expression.Type));
         else
             expression = new BoundUnaryExpression(op, expression!);
         return node;
@@ -33,7 +33,7 @@ sealed class Binder : SyntaxVisitor
 
         var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, left.Type, right.Type);
         if (op is null)
-            diagnostics.Add(Diagnostic.BinderBinaryOperatorTypeMismatch(node.OperatorToken.Text, left.Type, right.Type));
+            diagnostics.Add(Diagnostic.BinderBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type));
         else
             expression = new BoundBinaryExpression(left, op, right);
         return node;

@@ -39,12 +39,12 @@ public sealed class Diagnostic
     internal static Diagnostic LexerNumberNotValid(int start, int length, string text) =>
         new ("LEX0001", new (start, length), $"The number '{text}' is not a valid 32bit integer.");
 
-    internal static Diagnostic ParserUnexpectedToken(TextSpan textSpan, SyntaxToken foundToken, SyntaxKind expected) =>
-        new ("SYX0000", textSpan, $"Unexpected {foundToken.Kind} ('{foundToken.Text}'), expected {expected}.");
+    internal static Diagnostic ParserUnexpectedToken(SyntaxToken foundToken, SyntaxKind expected) =>
+        new ("SYX0000", foundToken.TextSpan, $"Unexpected {foundToken.Kind} ('{foundToken.Text}'), expected {expected}.");
 
-    internal static Diagnostic BinderUnaryOperatorTypeMismatch(string operatorText, Type type) =>
-        new("BND0000", default, $"Unary operator '{operatorText}' cannot be applied to type '{type}'.");
-    internal static Diagnostic BinderBinaryOperatorTypeMismatch(string operatorText, Type left, Type right) =>
-        new("BND0001", default, $"Binary operator '{operatorText}' cannot be applied to types '{left}' and '{right}'.");
+    internal static Diagnostic BinderUnaryOperatorTypeMismatch(SyntaxToken operatorToken, Type type) =>
+        new("BND0000", operatorToken.TextSpan, $"Unary operator '{operatorToken.Text}' cannot be applied to type '{type}'.");
+    internal static Diagnostic BinderBinaryOperatorTypeMismatch(SyntaxToken operatorToken, Type left, Type right) =>
+        new("BND0001", operatorToken.TextSpan, $"Binary operator '{operatorToken.Text}' cannot be applied to types '{left}' and '{right}'.");
 
 }
