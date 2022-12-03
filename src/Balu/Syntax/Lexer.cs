@@ -108,9 +108,13 @@ sealed class Lexer
                     position += 2;
                     break;
                 case '=':
-                    if (Peek(1) != '=') goto default;
-                    yield return SyntaxToken.EqualsEquals(new(position, 2));
-                    position += 2;
+                    if (Peek(1) == '=')
+                    {
+                        yield return SyntaxToken.EqualsEquals(new(position, 2));
+                        position += 2;
+                    }
+                    else
+                        yield return SyntaxToken.Equals(new TextSpan(position++, 1));
                     break;
                 default:
                     diagnostics.Add(Diagnostic.LexerUnexpectedToken(position, 1, input[position].ToString()));

@@ -55,11 +55,14 @@ sealed class Parser
         if (position < tokens.Count) position++;
         return current;
     }
-    ExpressionSyntax ParseExpression(int parentprecedence = 0)
+
+    ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
+    ExpressionSyntax ParseAssignmentExpression() => ParseBinaryExpression();
+    ExpressionSyntax ParseBinaryExpression(int parentprecedence = 0)
     {
         var unaryOperatorPrecedence = Current.Kind.UnaryOperatorPrecedence();
         var left = unaryOperatorPrecedence > 0 && unaryOperatorPrecedence >= parentprecedence
-                       ? ExpressionSyntax.Unary(NextToken(), ParseExpression(unaryOperatorPrecedence))
+                       ? ExpressionSyntax.Unary(NextToken(), ParseBinaryExpression(unaryOperatorPrecedence))
                        : ParsePrimaryExpression();
         for (; ; )
         {
@@ -67,7 +70,7 @@ sealed class Parser
             if (precedence <= parentprecedence) return left;
 
             var operatorToken = NextToken();
-            var right = ParseExpression(precedence);
+            var right = ParseBinaryExpression(precedence);
             left = ExpressionSyntax.Binary(left, operatorToken, right);
         }
     }

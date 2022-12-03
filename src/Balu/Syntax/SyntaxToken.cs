@@ -74,6 +74,12 @@ public sealed class SyntaxToken : SyntaxNode
     public static SyntaxToken ClosedParenthesis(TextSpan textSpan) => new(SyntaxKind.ClosedParenthesisToken, textSpan, ")");
 
     /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsToken"/>.
+    /// </summary>
+    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsToken"/>.</returns>
+    public static SyntaxToken Equals(TextSpan textSpan) => new(SyntaxKind.EqualsToken, textSpan, "=");
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangToken"/>.
     /// </summary>
     /// <param name="textSpan">The position of this token in the input code.</param>

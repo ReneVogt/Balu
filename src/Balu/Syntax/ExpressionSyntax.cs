@@ -33,6 +33,18 @@ public abstract class ExpressionSyntax : SyntaxNode
     /// <param name="openParenthesisToken">The <see cref="SyntaxToken"/> representing the opening parenthesis.</param>
     /// <param name="expresssion">The <see cref="ExpressionSyntax"/> representing the inner expression.</param>
     /// <param name="closedParenthesisToken">The <see cref="SyntaxToken"/> representing the closing parenthesis.</param>
-    /// <returns>The <see cref="BinaryExpressionSyntax"/>.</returns>
+    /// <returns>The <see cref="ParenthesizedExpressionSyntax"/>.</returns>
     public static ParenthesizedExpressionSyntax Parenthesized(SyntaxToken openParenthesisToken, ExpressionSyntax expresssion, SyntaxToken closedParenthesisToken) => new(openParenthesisToken, expresssion, closedParenthesisToken);
+    /// <summary>
+    /// Creates a new <see cref="NameExpressionSyntax"/>.
+    /// </summary>
+    /// <param name="identifierToken">The <see cref="SyntaxToken"/> representing name.</param>
+    /// <returns>The <see cref="NameExpressionSyntax"/>.</returns>
+    public static NameExpressionSyntax Name(SyntaxToken identifierToken) => new(identifierToken);
+    /// <summary>
+    /// Creates a new <see cref="AssignmentExpressionSyntax"/>.
+    /// </summary>
+    /// <param name="identifierToken">The <see cref="SyntaxToken"/> representing name.</param>
+    /// <returns>The <see cref="AssignmentExpressionSyntax"/>.</returns>
+    public static AssignmentExpressionSyntax Assignment(SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression) => new(identifierToken, equalsToken, expression);
 }

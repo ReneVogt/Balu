@@ -41,9 +41,19 @@ internal class Program
                 var result = Compilation.Evaluate(syntaxTree);
                 if (result.Diagnostics.Any())
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine(string.Join(Environment.NewLine, result.Diagnostics));
-                    Console.ResetColor();
+                    foreach (var diagnostic in result.Diagnostics)
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine(diagnostic);
+                        Console.ResetColor();
+                        Console.Write("   ");
+                        Console.Write(line[..diagnostic.TextSpan.Start]);
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.Write(line.Substring(diagnostic.TextSpan.Start, diagnostic.TextSpan.Length));
+                        Console.ResetColor();
+                        Console.WriteLine(line[diagnostic.TextSpan.End..]);
+                        Console.ResetColor();
+                    }
                 }
                 else
                     Console.WriteLine(result.Value);

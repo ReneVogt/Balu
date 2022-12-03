@@ -57,6 +57,11 @@ public enum SyntaxKind
     ClosedParenthesisToken,
 
     /// <summary>
+    /// An '=' token.
+    /// </summary>
+    EqualsToken,
+
+    /// <summary>
     /// A '!' token.
     /// </summary>
     BangToken,
@@ -104,6 +109,11 @@ public enum SyntaxKind
     LiteralExpression,
 
     /// <summary>
+    /// A symbol name expression.
+    /// </summary>
+    NameExpression,
+
+    /// <summary>
     /// A unary operator expression.
     /// </summary>
     UnaryExpression,
@@ -116,6 +126,11 @@ public enum SyntaxKind
     /// <summary>
     /// A parenthesized expression.
     /// </summary>
-    ParenthesizedExpression
+    ParenthesizedExpression,
+
+    /// <summary>
+    /// An assignment expression (x = 42).
+    /// </summary>
+    AssignmentExpression
     #endregion
 }
