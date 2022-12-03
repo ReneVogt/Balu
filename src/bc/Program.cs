@@ -8,7 +8,7 @@ internal class Program
 {
     private static void Main()
     {
-        bool showSyntax = false;
+        bool showSyntax = false, showBound = false;
 
         while (true)
         {
@@ -16,10 +16,16 @@ internal class Program
             {
                 Console.Write("> ");
                 var line = Console.ReadLine();
-                if (line == "#tree")
+                if (line == "#syntax")
                 {
                     showSyntax = !showSyntax;
                     Console.WriteLine(showSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
+                    continue;
+                }
+                if (line == "#bound")
+                {
+                    showBound = !showBound;
+                    Console.WriteLine(showBound? "Showing bound tree." : "Not showing bound tree.");
                     continue;
                 }
                 if (line == "#cls")
@@ -38,7 +44,9 @@ internal class Program
                     Console.ResetColor();
                 }
 
-                var result = Compilation.Evaluate(syntaxTree);
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
+                var result = Compilation.Evaluate(syntaxTree, Console.Out, showBoundTree: showBound);
+                Console.ResetColor();
                 if (result.Diagnostics.Any())
                 {
                     foreach (var diagnostic in result.Diagnostics)
