@@ -28,7 +28,7 @@ sealed class Evaluator : BoundExpressionVisitor
                 Result = !(bool)Result!;
                 break;
             default:
-                throw new InvalidOperationException($"Unary operator {unaryExpression.Operator.OperatorKind} cannot be evaluated.");
+                throw EvaluationException.UnaryOperatorCannotBeEvaluated(unaryExpression.Operator.OperatorKind);
         }
 
         return unaryExpression;
@@ -49,7 +49,7 @@ sealed class Evaluator : BoundExpressionVisitor
             BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
             BoundBinaryOperatorKind.Equals => Equals(left, right),
             BoundBinaryOperatorKind.NotEqual => !Equals(left, right),
-            _ => throw new InvalidOperationException($"Binnary operator {binaryExpression.Operator.OperatorKind} cannot be evaluated."),
+            _ => throw EvaluationException.BinaryOperatorCannotBeEvaluated(binaryExpression.Operator.OperatorKind)
         };
         return binaryExpression;
     }
