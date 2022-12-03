@@ -48,7 +48,12 @@ sealed class Parser
         return new(expresion, endOfFileToken, diagnostics);
     }
 
-    SyntaxToken Current => position < tokens.Count ? tokens[position] : tokens[^1];
+    SyntaxToken Peek(int offset)
+    {
+        int index = position + offset;
+        return index >= tokens.Count ? tokens[^1] : tokens[index];
+    }
+    SyntaxToken Current => Peek(0);
     SyntaxToken NextToken()
     {
         var current = Current;
@@ -57,7 +62,10 @@ sealed class Parser
     }
 
     ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
-    ExpressionSyntax ParseAssignmentExpression() => ParseBinaryExpression();
+    ExpressionSyntax ParseAssignmentExpression() =>
+        Current.Kind != SyntaxKind.IdentifierToken || Peek(1).Kind != SyntaxKind.EqualsToken
+            ? ParseBinaryExpression()
+            : new AssignmentExpressionSyntax(NextToken(), NextToken(), ParseAssignmentExpression());
     ExpressionSyntax ParseBinaryExpression(int parentprecedence = 0)
     {
         var unaryOperatorPrecedence = Current.Kind.UnaryOperatorPrecedence();
@@ -80,25 +88,27 @@ sealed class Parser
             SyntaxKind.OpenParenthesisToken => ParseParenthesizedExpression(),
             SyntaxKind.TrueKeyword or
                 SyntaxKind.FalseKeyword => ParseBooleanExpression(),
+            SyntaxKind.IdentifierToken => ParseNameExpression(),
             _ => ParseNumberExpression()
         };
-    ExpressionSyntax ParseNumberExpression()
+    LiteralExpressionSyntax ParseNumberExpression()
     {
         var numberToken = Match(SyntaxKind.NumberToken);
-        return new LiteralExpressionSyntax(numberToken);
+        return new (numberToken);
     }
-    ExpressionSyntax ParseParenthesizedExpression()
+    ParenthesizedExpressionSyntax ParseParenthesizedExpression()
     {
         var left = NextToken();
         var expression = ParseExpression();
         var right = Match(SyntaxKind.ClosedParenthesisToken);
-        return new ParenthesizedExpressionSyntax(left, expression, right);
+        return new (left, expression, right);
     }
-    ExpressionSyntax ParseBooleanExpression()
+    LiteralExpressionSyntax ParseBooleanExpression()
     {
         var token = NextToken();
-        return new LiteralExpressionSyntax(token, token.Kind == SyntaxKind.TrueKeyword);
+        return new (token, token.Kind == SyntaxKind.TrueKeyword);
     }
+    NameExpressionSyntax ParseNameExpression() => new(NextToken());
     SyntaxToken Match(SyntaxKind kind)
     {
         if (Current.Kind == kind)
