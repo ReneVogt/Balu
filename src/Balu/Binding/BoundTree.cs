@@ -15,6 +15,6 @@ sealed class BoundTree
         Diagnostics = diagnostics.ToArray();
     }
 
-    public static BoundTree Bind(ExpressionSyntax syntax, Dictionary<string, object?> variables) => Binder.Bind(syntax, variables);
-    public static BoundTree Bind(SyntaxTree syntax, Dictionary<string, object?> variables) => Binder.Bind(syntax, variables);
+    public static BoundTree Bind(ExpressionSyntax syntax, VariableDictionary variables) => Binder.Bind(syntax, variables);
+    public static BoundTree Bind(SyntaxTree syntax, VariableDictionary variables) => Binder.Bind(syntax, variables);
 }

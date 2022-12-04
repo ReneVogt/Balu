@@ -6,10 +6,10 @@ namespace Balu.Evaluation;
 
 sealed class Evaluator : BoundExpressionVisitor
 {
-    readonly Dictionary<string, object?> variables;
+    readonly VariableDictionary variables;
     public object? Result { get; private set; }
 
-    Evaluator(Dictionary<string, object?> variables) => this.variables = variables;
+    Evaluator(VariableDictionary variables) => this.variables = variables;
 
     protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
@@ -57,17 +57,17 @@ sealed class Evaluator : BoundExpressionVisitor
     }
     protected override BoundExpression VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
-        Result = variables[variableExpression.Name];
+        Result = variables[variableExpression.Symbol];
         return variableExpression;
     }
     protected override BoundExpression VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
         Visit(assignmentExpression.Expression);
-        variables[assignmentExpression.Name] = Result;
+        variables[assignmentExpression.Symbol] = Result;
         return assignmentExpression;
     }
 
-    public static object? Evaluate(BoundExpression expression, Dictionary<string, object?> variables)
+    public static object? Evaluate(BoundExpression expression, VariableDictionary variables)
     {
         var evaluator = new Evaluator(variables);
         evaluator.Visit(expression ?? throw new ArgumentNullException(nameof(expression)));

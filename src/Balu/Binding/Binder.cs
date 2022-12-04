@@ -7,10 +7,10 @@ namespace Balu.Binding;
 sealed class Binder : SyntaxVisitor
 {
     readonly DiagnosticBag diagnostics = new();
-    readonly Dictionary<string, object?> variables;
+    readonly VariableDictionary variables;
     BoundExpression? expression;
 
-    Binder(Dictionary<string, object?> variables) => this.variables = variables;
+    Binder(VariableDictionary variables) => this.variables = variables;
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
@@ -45,35 +45,37 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitNameExpression(NameExpressionSyntax node)
     {
         var name = node.IdentifierrToken.Text;
-        if (variables.TryGetValue(name, out var value))
-            expression = new BoundVariableExpression(name, value?.GetType() ?? typeof(object));
-        else
+        var symbol = variables.Keys.FirstOrDefault(s => s.Name == name);
+        if (symbol is null)
         {
             diagnostics.ReportUndefinedName(name, node.IdentifierrToken.TextSpan);
             expression = new BoundLiteralExpression(0);
         }
+        else
+            expression = new BoundVariableExpression(symbol);
+
         return node;
     }
     protected override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
         var name = node.IdentifierrToken.Text;
         Visit(node.Expression);
-        expression = new BoundAssignmentExpression(name, expression!);
 
-        object defaultValue = expression.Type == typeof(int)  ? 0 :
-                              expression.Type == typeof(bool) ? (object)false :
-                                                                throw new BindingException($"Type {expression.Type} is not supported.");
-        variables[name] = defaultValue;
+        var symbol = variables.Keys.FirstOrDefault(s => s.Name == name);
+        if (symbol is not null) variables.Remove(symbol);
+        symbol = new (name, expression!.Type);
+        variables[symbol] = null;
+        expression = new BoundAssignmentExpression(symbol, expression!);
         return node;
     }
 
-    public static BoundTree Bind(ExpressionSyntax syntax, Dictionary<string, object?> variables)
+    public static BoundTree Bind(ExpressionSyntax syntax, VariableDictionary variables)
     {
         var binder = new Binder(variables);
         binder.Visit(syntax);
         return new(binder.expression!, binder.diagnostics);
     }
-    public static BoundTree Bind(SyntaxTree syntax, Dictionary<string, object?> variables)
+    public static BoundTree Bind(SyntaxTree syntax, VariableDictionary variables)
     {
         var binder = new Binder(variables);
         binder.Visit(syntax.Root);
