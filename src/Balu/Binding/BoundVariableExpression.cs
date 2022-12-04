@@ -5,10 +5,10 @@ namespace Balu.Binding;
 sealed class BoundVariableExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.VariableExpression;
-    public override Type Type { get; }
-    public string Name { get; }
+    public override Type Type => Symbol.Type;
+    public VariableSymbol Symbol { get; }
 
-    public BoundVariableExpression(string name, Type type) => (Name, Type) = (name, type);
+    public BoundVariableExpression(VariableSymbol symbol) => Symbol = symbol;
 
     internal override BoundExpression Accept(BoundExpressionVisitor visitor) => this;
 }

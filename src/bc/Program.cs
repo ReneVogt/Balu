@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using Balu;
 using Balu.Syntax;
@@ -10,7 +9,7 @@ internal class Program
     private static void Main()
     {
         bool showSyntax = false, showBound = false;
-        Dictionary<string, object?> variables = new();
+        VariableDictionary variables = new();
 
         while (true)
         {
@@ -74,7 +73,7 @@ internal class Program
                 else
                 {
                     Console.WriteLine(result.Value);
-                    Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key}: {kvp.Value}")));
+                    Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
                 }
 
                 Console.WriteLine();
