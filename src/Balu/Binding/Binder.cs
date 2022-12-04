@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Balu.Syntax;
 
@@ -57,7 +56,10 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        throw new NotImplementedException();
+        var name = node.IdentifierrToken.Text;
+        Visit(node.Expression);
+        expression = new BoundAssignmentExpression(name, expression!);
+        return node;
     }
 
     public static BoundTree Bind(ExpressionSyntax syntax, Dictionary<string, object?> variables)
