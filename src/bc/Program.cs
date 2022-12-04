@@ -10,6 +10,7 @@ internal class Program
     private static void Main()
     {
         bool showSyntax = false, showBound = false;
+        Dictionary<string, object?> variables = new();
 
         while (true)
         {
@@ -29,6 +30,12 @@ internal class Program
                     Console.WriteLine(showBound? "Showing bound tree." : "Not showing bound tree.");
                     continue;
                 }
+                if (line == "#clear")
+                {
+                    Console.WriteLine("Clearing variable store.");
+                    variables.Clear();
+                    continue;
+                }
                 if (line == "#cls")
                 {
                     Console.Clear();
@@ -45,7 +52,6 @@ internal class Program
                     Console.ResetColor();
                 }
 
-                Dictionary<string, object?> variables = new();
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 var result = Compilation.Evaluate(syntaxTree, variables, Console.Out, showBoundTree: showBound);
                 Console.ResetColor();

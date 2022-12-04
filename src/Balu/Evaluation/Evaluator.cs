@@ -60,7 +60,12 @@ sealed class Evaluator : BoundExpressionVisitor
         Result = variables[variableExpression.Name];
         return variableExpression;
     }
-    protected override BoundExpression VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression) => base.VisitBoundAssignmentExpression(assignmentExpression);
+    protected override BoundExpression VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
+    {
+        Visit(assignmentExpression.Expression);
+        variables[assignmentExpression.Name] = Result;
+        return assignmentExpression;
+    }
 
     public static object? Evaluate(BoundExpression expression, Dictionary<string, object?> variables)
     {
