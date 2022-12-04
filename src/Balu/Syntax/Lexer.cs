@@ -9,7 +9,7 @@ namespace Balu.Syntax;
 sealed class Lexer
 {
     readonly string input;
-    readonly List<Diagnostic> diagnostics = new();
+    readonly DiagnosticBag diagnostics = new();
 
     /// <summary>
     /// The list of error messages.
@@ -32,7 +32,6 @@ sealed class Lexer
     /// <returns>A sequence of <see cref="SyntaxToken">syntax tokens</see>.</returns>
     public IEnumerable<SyntaxToken> Lex()
     {
-        diagnostics.Clear();
         int position = 0;
         while (position < input.Length)
         {
@@ -42,7 +41,7 @@ sealed class Lexer
                 while (index < input.Length && char.IsDigit(input[index])) index++;
                 string text = input[position..index];
                 if (!int.TryParse(text, out var value))
-                    diagnostics.Add(Diagnostic.LexerNumberNotValid(position, index - position, text));
+                    diagnostics.ReportNumberNotValid(position, index - position, text);
                 yield return SyntaxToken.Number(value, new(position, index-position), text);
                 position = index;
                 continue;
@@ -117,7 +116,7 @@ sealed class Lexer
                         yield return SyntaxToken.Equals(new TextSpan(position++, 1));
                     break;
                 default:
-                    diagnostics.Add(Diagnostic.LexerUnexpectedToken(position, 1, input[position].ToString()));
+                    diagnostics.ReportUnexpectedToken(position, 1, input[position].ToString());
                     yield return SyntaxToken.Bad(new(position, 1), input[position].ToString());
                     position++;
                     break;
