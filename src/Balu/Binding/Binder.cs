@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using Balu.Syntax;
 
 namespace Balu.Binding;
@@ -37,6 +38,14 @@ sealed class Binder : SyntaxVisitor
         else
             expression = new BoundBinaryExpression(left, op, right);
         return node;
+    }
+    protected override SyntaxNode VisitNameExpression(NameExpressionSyntax node)
+    {
+        throw new NotImplementedException();
+    }
+    protected override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
+    {
+        throw new NotImplementedException();
     }
 
     public static BoundTree Bind(ExpressionSyntax syntax)
