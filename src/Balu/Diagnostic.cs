@@ -46,5 +46,7 @@ public sealed class Diagnostic
         new("BND0000", operatorToken.TextSpan, $"Unary operator '{operatorToken.Text}' cannot be applied to type '{type}'.");
     internal static Diagnostic BinderBinaryOperatorTypeMismatch(SyntaxToken operatorToken, Type left, Type right) =>
         new("BND0001", operatorToken.TextSpan, $"Binary operator '{operatorToken.Text}' cannot be applied to types '{left}' and '{right}'.");
+    internal static Diagnostic BinderUndefinedName(string name, TextSpan textSpan) =>
+        new("BND0002", textSpan, $"Undefined name '{name}'.");
 
 }
