@@ -59,6 +59,11 @@ sealed class Binder : SyntaxVisitor
         var name = node.IdentifierrToken.Text;
         Visit(node.Expression);
         expression = new BoundAssignmentExpression(name, expression!);
+
+        object defaultValue = expression.Type == typeof(int)  ? 0 :
+                              expression.Type == typeof(bool) ? (object)false :
+                                                                throw new BindingException($"Type {expression.Type} is not supported.");
+        variables[name] = defaultValue;
         return node;
     }
 
