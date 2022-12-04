@@ -8,7 +8,7 @@ namespace Balu.Syntax;
 /// </summary>
 sealed class Parser
 {
-    readonly List<Diagnostic> diagnostics = new();
+    readonly DiagnosticBag diagnostics = new();
     readonly List<SyntaxToken> tokens = new();
     readonly string input;
 
@@ -31,7 +31,6 @@ sealed class Parser
     /// <returns>The resulting <see cref="SyntaxTree"/> representing the input Balu code.</returns>
     public SyntaxTree Parse()
     {
-        diagnostics.Clear();
         tokens.Clear();
         position = 0;
 
@@ -41,11 +40,10 @@ sealed class Parser
             tokens.Add(token);
             if (token.Kind == SyntaxKind.EndOfFileToken) break;
         }
-        diagnostics.AddRange(lexer.Diagnostics);
 
         var expresion = ParseExpression();
         var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
-        return new(expresion, endOfFileToken, diagnostics);
+        return new(expresion, endOfFileToken, lexer.Diagnostics.Concat(diagnostics));
     }
 
     SyntaxToken Peek(int offset)
@@ -114,7 +112,7 @@ sealed class Parser
         if (Current.Kind == kind)
             return NextToken();
 
-        diagnostics.Add(Diagnostic.ParserUnexpectedToken(Current, kind));
+        diagnostics.ReportUnexpectedToken(Current, kind);
         return new(kind, Current.TextSpan);
     }
 }

@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using Balu.Syntax;
 
 namespace Balu.Binding;
 
 sealed class Binder : SyntaxVisitor
 {
-    readonly List<Diagnostic> diagnostics = new();
+    readonly DiagnosticBag diagnostics = new();
     readonly Dictionary<string, object?> variables;
     BoundExpression? expression;
 
@@ -23,7 +24,7 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Expression);
         var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression!.Type);
         if (op is null)
-            diagnostics.Add(Diagnostic.BinderUnaryOperatorTypeMismatch(node.OperatorToken, expression.Type));
+            diagnostics.ReportUnaryOperatorTypeMismatch(node.OperatorToken, expression.Type);
         else
             expression = new BoundUnaryExpression(op, expression!);
         return node;
@@ -37,7 +38,7 @@ sealed class Binder : SyntaxVisitor
 
         var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, left.Type, right.Type);
         if (op is null)
-            diagnostics.Add(Diagnostic.BinderBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type));
+            diagnostics.ReportBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type);
         else
             expression = new BoundBinaryExpression(left, op, right);
         return node;
@@ -49,7 +50,7 @@ sealed class Binder : SyntaxVisitor
             expression = new BoundVariableExpression(name, value?.GetType() ?? typeof(object));
         else
         {
-            diagnostics.Add(Diagnostic.BinderUndefinedName(name, node.IdentifierrToken.TextSpan));
+            diagnostics.ReportUndefinedName(name, node.IdentifierrToken.TextSpan);
             expression = new BoundLiteralExpression(0);
         }
         return node;
@@ -68,8 +69,7 @@ sealed class Binder : SyntaxVisitor
     public static BoundTree Bind(SyntaxTree syntax, Dictionary<string, object?> variables)
     {
         var binder = new Binder(variables);
-        binder.diagnostics.AddRange(syntax.Diagnostics);
         binder.Visit(syntax.Root);
-        return new(binder.expression!, binder.diagnostics);
+        return new(binder.expression!, syntax.Diagnostics.Concat(binder.diagnostics));
     }
 }
