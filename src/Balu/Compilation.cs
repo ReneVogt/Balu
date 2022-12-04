@@ -45,7 +45,7 @@ public sealed class Compilation
         }
         return boundTree.Diagnostics.Any()
                    ? new(boundTree.Diagnostics, null)
-                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(boundTree.Root));
+                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(boundTree.Root, variables));
     }
 
     /// <summary>

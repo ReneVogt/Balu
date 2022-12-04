@@ -1,13 +1,15 @@
 ﻿using System;
+using System.Collections.Generic;
 using Balu.Binding;
 
 namespace Balu.Evaluation;
 
 sealed class Evaluator : BoundExpressionVisitor
 {
+    readonly Dictionary<string, object?> variables;
     public object? Result { get; private set; }
 
-    Evaluator() { }
+    Evaluator(Dictionary<string, object?> variables) => this.variables = variables;
 
     protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
@@ -53,10 +55,16 @@ sealed class Evaluator : BoundExpressionVisitor
         };
         return binaryExpression;
     }
-
-    public static object? Evaluate(BoundExpression expression)
+    protected override BoundExpression VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
-        var evaluator = new Evaluator();
+        Result = variables[variableExpression.Name];
+        return variableExpression;
+    }
+    protected override BoundExpression VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression) => base.VisitBoundAssignmentExpression(assignmentExpression);
+
+    public static object? Evaluate(BoundExpression expression, Dictionary<string, object?> variables)
+    {
+        var evaluator = new Evaluator(variables);
         evaluator.Visit(expression ?? throw new ArgumentNullException(nameof(expression)));
         return evaluator.Result;
     }
