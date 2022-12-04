@@ -44,7 +44,15 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitNameExpression(NameExpressionSyntax node)
     {
-        throw new NotImplementedException();
+        var name = node.IdentifierrToken.Text;
+        if (variables.TryGetValue(name, out var value))
+            expression = new BoundVariableExpression(name, value?.GetType() ?? typeof(object));
+        else
+        {
+            diagnostics.Add(Diagnostic.BinderUndefinedName(name, node.IdentifierrToken.TextSpan));
+            expression = new BoundLiteralExpression(0);
+        }
+        return node;
     }
     protected override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {

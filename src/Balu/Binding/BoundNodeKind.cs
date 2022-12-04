@@ -4,5 +4,6 @@ enum BoundNodeKind
 {
     UnaryExpression,
     BinaryExpression,
-    LiteralExpression
+    LiteralExpression,
+    VariableExpression
 }

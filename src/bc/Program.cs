@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Balu;
 using Balu.Syntax;
@@ -44,8 +45,9 @@ internal class Program
                     Console.ResetColor();
                 }
 
+                Dictionary<string, object?> variables = new();
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                var result = Compilation.Evaluate(syntaxTree, Console.Out, showBoundTree: showBound);
+                var result = Compilation.Evaluate(syntaxTree, variables, Console.Out, showBoundTree: showBound);
                 Console.ResetColor();
                 if (result.Diagnostics.Any())
                 {
@@ -64,7 +66,10 @@ internal class Program
                     }
                 }
                 else
+                {
                     Console.WriteLine(result.Value);
+                    Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key}: {kvp.Value}")));
+                }
 
                 Console.WriteLine();
             }
