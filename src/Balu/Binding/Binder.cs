@@ -7,7 +7,10 @@ namespace Balu.Binding;
 sealed class Binder : SyntaxVisitor
 {
     readonly List<Diagnostic> diagnostics = new();
+    readonly Dictionary<string, object?> variables;
     BoundExpression? expression;
+
+    Binder(Dictionary<string, object?> variables) => this.variables = variables;
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
@@ -48,15 +51,15 @@ sealed class Binder : SyntaxVisitor
         throw new NotImplementedException();
     }
 
-    public static BoundTree Bind(ExpressionSyntax syntax)
+    public static BoundTree Bind(ExpressionSyntax syntax, Dictionary<string, object?> variables)
     {
-        var binder = new Binder();
+        var binder = new Binder(variables);
         binder.Visit(syntax);
         return new(binder.expression!, binder.diagnostics);
     }
-    public static BoundTree Bind(SyntaxTree syntax)
+    public static BoundTree Bind(SyntaxTree syntax, Dictionary<string, object?> variables)
     {
-        var binder = new Binder();
+        var binder = new Binder(variables);
         binder.diagnostics.AddRange(syntax.Diagnostics);
         binder.Visit(syntax.Root);
         return new(binder.expression!, binder.diagnostics);
