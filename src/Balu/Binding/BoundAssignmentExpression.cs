@@ -4,7 +4,7 @@ namespace Balu.Binding;
 
 sealed class BoundAssignmentExpression : BoundExpression
 {
-    public override BoundNodeKind Kind => BoundNodeKind.VariableExpression;
+    public override BoundNodeKind Kind => BoundNodeKind.AssignmentExpression;
     public override Type Type => Expression.Type;
     public string Name { get; }
     public BoundExpression Expression { get; }
