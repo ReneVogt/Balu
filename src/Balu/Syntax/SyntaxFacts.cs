@@ -1,4 +1,8 @@
-﻿namespace Balu.Syntax;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+
+namespace Balu.Syntax;
 
 /// <summary>
 /// Provides methods to evalute syntax facts.
@@ -9,7 +13,7 @@ public static class SyntaxFacts
     /// Determines the precedence of an unary operator.
     /// </summary>
     /// <param name="kind">The <see cref="SyntaxKind"/> of the unary operator.</param>
-    /// <returns>The precedence of the given operator.</returns>
+    /// <returns>The precedence of the given operator or 0 if it's not a unary operator.</returns>
     public static int UnaryOperatorPrecedence(this SyntaxKind kind) => kind switch
     {
         SyntaxKind.PlusToken or
@@ -21,7 +25,7 @@ public static class SyntaxFacts
     /// Determines the precedence of a binary operator.
     /// </summary>
     /// <param name="kind">The <see cref="SyntaxKind"/> of the binary operator.</param>
-    /// <returns>The precedence of the given operator.</returns>
+    /// <returns>The precedence of the given operator or 0 if it's not a binary operator..</returns>
     public static int BinaryOperatorPrecedence(this SyntaxKind kind) => kind switch
     {
         SyntaxKind.SlashToken or
@@ -71,4 +75,21 @@ public static class SyntaxFacts
         SyntaxKind.FalseKeyword => "false",
         _ => null
     };
+
+    /// <summary>
+    /// Returns a sequence of all unary Balu operators.
+    /// </summary>
+    /// <returns>A sequence of all unary Balu operators.</returns>
+    public static IEnumerable<SyntaxKind> GetUnaryOperators() => from kind in Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>()
+                                                                 where kind.UnaryOperatorPrecedence() > 0
+                                                                 select kind;
+    /// <summary>
+    /// Returns a sequence of all binary Balu operators.
+    /// </summary>
+    /// <returns>A sequence of all binary Balu operators.</returns>
+    public static IEnumerable<SyntaxKind> GetBinaryOperators() => from kind in Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>()
+                                                                  where kind.BinaryOperatorPrecedence() > 0
+                                                                  select kind;
+
+
 }
