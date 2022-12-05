@@ -9,6 +9,18 @@ namespace Balu.Tests.Syntax;
 public class LexerTests
 {
     [Fact]
+    public void Lexer_Tests_CoveringAllTokens()
+    {
+        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadToken };
+        var allTokenKinds = Enum.GetValues(typeof(SyntaxKind))
+                                .Cast<SyntaxKind>()
+                                .Where(kind => kind.ToString().EndsWith("Keyword") || kind.ToString().EndsWith("Token"))
+                                .Except(nonTestingKinds);
+        var testedTokens = ProvideSingleTokens().Select(x => (SyntaxKind)x[1]).Distinct();
+        var untestedTokenKinds = allTokenKinds.Except(testedTokens).ToList();
+        Assert.Empty(untestedTokenKinds);
+    }
+    [Fact]
     public void Lexer_Lexes_EmptyString()
     {
         Assert.Empty(SyntaxTree.ParseTokens(string.Empty));
@@ -60,7 +72,6 @@ public class LexerTests
                     ("987654321", kind: SyntaxKind.NumberToken),
                     ("myNameIs", kind: SyntaxKind.IdentifierToken),
                     ("x", kind: SyntaxKind.IdentifierToken),
-
                     ("true", kind: SyntaxKind.TrueKeyword),
                     ("false", kind: SyntaxKind.FalseKeyword)
                 });
