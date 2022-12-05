@@ -37,22 +37,23 @@ sealed class Lexer
     /// <returns>A sequence of <see cref="SyntaxToken">syntax tokens</see>.</returns>
     public IEnumerable<SyntaxToken> Lex()
     {
-        while (position < input.Length)
+        do
         {
             start = position;
             value = null;
             kind = SyntaxKind.BadToken;
 
-            if (char.IsDigit(input[position]))
+            if (char.IsDigit(Current))
                 ReadNumberToken();
-            else if (char.IsWhiteSpace(input[position]))
+            else if (char.IsWhiteSpace(Current))
                 ReadWhiteSpaceToken();
-            else if (char.IsLetter(input[position]))
+            else if (char.IsLetter(Current))
                 ReadIdentifierOrKeywordToken();
             else
             {
-                kind = (input[position], Peek(1)) switch
+                kind = (Current, Peek(1)) switch
                 {
+                    ('\0', _) => SyntaxKind.EndOfFileToken,
                     ('+', _) => SyntaxKind.PlusToken,
                     ('-', _) => SyntaxKind.MinusToken,
                     ('*', _) => SyntaxKind.StarToken,
@@ -68,28 +69,29 @@ sealed class Lexer
                     _ => SyntaxKind.BadToken
                 };
 
-                text = kind.GetText() ?? input[position].ToString();
+                text = kind.GetText() ?? Current.ToString();
                 position += text.Length;
             }
 
             if (kind == SyntaxKind.BadToken)
-                diagnostics.ReportUnexpectedToken(start, position-start, input[position].ToString());
+                diagnostics.ReportUnexpectedToken(start, position - start, input[position].ToString());
 
-            yield return new (kind, new(start, position-start), text, value);
-        }
+            yield return new(kind, new(start, position - start), text, value);
 
-        yield return SyntaxToken.EndOfFile(new(position, 0));
-        
-        char Peek(int offset)
-        {
-            var index = position + offset;
-            return index >= input.Length ? '\0' : input[index];
-        }
+        } while (kind != SyntaxKind.EndOfFileToken);
     }
+    char Peek(int offset)
+    {
+        var index = position + offset;
+        return index >= input.Length ? '\0' : input[index];
+    }
+    char Next() => position >= input.Length ? '\0' : input[position++];
+    char Current => Peek(0);
+
     void ReadNumberToken()
     {
         kind = SyntaxKind.NumberToken;
-        while (position < input.Length && char.IsDigit(input[position])) position++;
+        while (char.IsDigit(Current)) Next();
         text = input[start..position];
         if (int.TryParse(text, out var v))
             value = v;
@@ -99,12 +101,12 @@ sealed class Lexer
     void ReadWhiteSpaceToken()
     {
         kind = SyntaxKind.WhiteSpaceToken;
-        while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+        while (char.IsWhiteSpace(Current)) Next();
         text = input[start..position];
     }
     void ReadIdentifierOrKeywordToken()
     {
-        while (position < input.Length && char.IsLetter(input[position])) position++;
+        while (char.IsLetter(Current)) Next();
         text = input[start..position];
         kind = text.KeywordKind();
     }

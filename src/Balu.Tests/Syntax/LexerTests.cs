@@ -7,6 +7,11 @@ namespace Balu.Tests.Syntax;
 
 public class LexerTests
 {
+    [Fact]
+    public void Lexer_Lexes_EmptyString()
+    {
+        Assert.Empty(SyntaxTree.ParseTokens(string.Empty));
+    }
     [Theory]
     [MemberData(nameof(ProvideSingleTokens))]
     public void Lexer_Lexes_Token(string text, SyntaxKind kind)
