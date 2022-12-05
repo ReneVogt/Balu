@@ -115,6 +115,6 @@ sealed class Parser
             return NextToken();
 
         diagnostics.ReportUnexpectedToken(Current, kind);
-        return new(kind, Current.TextSpan);
+        return new(kind, Current.Span);
     }
 }

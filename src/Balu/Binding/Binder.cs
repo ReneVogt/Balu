@@ -48,7 +48,7 @@ sealed class Binder : SyntaxVisitor
         var symbol = variables.Keys.FirstOrDefault(s => s.Name == name);
         if (symbol is null)
         {
-            diagnostics.ReportUndefinedName(name, node.IdentifierrToken.TextSpan);
+            diagnostics.ReportUndefinedName(name, node.IdentifierrToken.Span);
             expression = new BoundLiteralExpression(0);
         }
         else

@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using Balu.Syntax;
 
@@ -47,7 +46,7 @@ public sealed class SyntaxTreePrinter : SyntaxVisitor
     /// <summary>
     /// Writes a text-based tree representation of <paramref name="syntax"/> to <paramref name="textWriter"/>.
     /// </summary>
-    /// <param name="syntax">The <see cref="ExpressionSyntax"/> to represent.</param>
+    /// <param name="syntax">The <see cref="SyntaxNode"/> to represent.</param>
     /// <param name="textWriter">The <see cref="TextWriter"/> to write the output to.</param>
-    public static void Print(ExpressionSyntax syntax, TextWriter textWriter) => new SyntaxTreePrinter(textWriter).Visit(syntax);
+    public static void Print(SyntaxNode syntax, TextWriter textWriter) => new SyntaxTreePrinter(textWriter).Visit(syntax);
 }

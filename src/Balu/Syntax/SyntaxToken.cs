@@ -140,10 +140,8 @@ public sealed class SyntaxToken : SyntaxNode
     /// The original text in the input code.
     /// </summary>
     public string Text { get; }
-    /// <summary>
-    /// The <see cref="TextSpan"/> of this token in the input stream.
-    /// </summary>
-    public TextSpan TextSpan { get; }
+    /// <inheritdoc/>
+    public override TextSpan Span { get; }
     /// <summary>
     /// The value of this token, if there is any.
     /// </summary>
@@ -153,12 +151,12 @@ public sealed class SyntaxToken : SyntaxNode
     /// Creates a new <see cref="SyntaxToken"/> with the given values.
     /// </summary>
     /// <param name="kind">The <see cref="SyntaxKind"/> of this token.</param>
-    /// <param name="textSpan">The <see cref="TextSpan"/> of this token in the input stream.</param>
+    /// <param name="textSpan">The <see cref="Span"/> of this token in the input stream.</param>
     /// <param name="text">The original text in the input code.</param>
-    internal SyntaxToken(SyntaxKind kind, TextSpan textSpan = default, string text = "", object? value = null) => (Kind, Text, TextSpan, Value) = (kind, text, textSpan, value);
+    internal SyntaxToken(SyntaxKind kind, TextSpan textSpan = default, string text = "", object? value = null) => (Kind, Text, Span, Value) = (kind, text, textSpan, value);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor) => this;
 
     /// <inheritdoc />
-    public override string ToString() => $"{TextSpan}: {Kind} \"{Text}\" ({Value})";
+    public override string ToString() => $"{Span}: {Kind} \"{Text}\" ({Value})";
 }
