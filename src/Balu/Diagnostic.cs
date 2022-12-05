@@ -5,6 +5,12 @@
 /// </summary>
 public sealed class Diagnostic
 {
+    public const string LEX0000 = nameof(LEX0000);
+    public const string LEX0001 = nameof(LEX0001);
+    public const string SYX0000 = nameof(SYX0000);
+    public const string BND0000 = nameof(BND0000);
+    public const string BND0001 = nameof(BND0001);
+
     /// <summary>
     /// An id to identify the kind of error message.
     /// </summary>
