@@ -1,0 +1,40 @@
+﻿using Xunit;
+
+namespace Balu.Tests;
+public class EvaluatorTests
+{
+    [Theory]
+    [InlineData("42", 42)]
+    [InlineData("-42", -42)]
+    [InlineData("+--+3", 3)]
+    [InlineData("+---3", -3)]
+    [InlineData("2+3", 5)]
+    [InlineData("2-3", -1)]
+    [InlineData("2*3", 6)]
+    [InlineData("12/3", 4)]
+    [InlineData("12/3+2", 6)]
+    [InlineData("12/(4+2)", 2)]
+    [InlineData("12*3+2", 38)]
+    [InlineData("12*(3-5)", -24)]
+    [InlineData("false", false)]
+    [InlineData("true", true)]
+    [InlineData("!false", true)]
+    [InlineData("!true", false)]
+    [InlineData("false && false", false)]
+    [InlineData("true && false", false)]
+    [InlineData("false && true", false)]
+    [InlineData("true && true", true)]
+    [InlineData("false || false", false)]
+    [InlineData("true || false", true)]
+    [InlineData("false || true", true)]
+    [InlineData("true || true", true)]
+    [InlineData("!true || true", true)]
+    [InlineData("false || !false", true)]
+    [InlineData("!(false && true)", true)]
+    public void Evaluate(string text, object expectedResult)
+    {
+        var variables = new VariableDictionary();
+        var result = Compilation.Evaluate(text, variables);
+        Assert.Equal(expectedResult, result.Value);
+    }
+}
