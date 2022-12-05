@@ -14,7 +14,9 @@ public class SyntaxFactsTests
     {
         var text = kind.GetText();
         if (text is null) return;
-        Assert.Equal(kind, Assert.Single(SyntaxTree.ParseTokens(text)).Kind);
+        var token = Assert.Single(SyntaxTree.ParseTokens(text));
+        Assert.Equal(kind, token.Kind);
+        Assert.Equal(text, token.Text);
     }
 
     public static IEnumerable<object[]> GetSyntaxKinds() =>
