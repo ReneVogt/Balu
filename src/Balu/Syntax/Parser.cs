@@ -42,7 +42,7 @@ sealed class Parser
         }
 
         var expresion = ParseExpression();
-        var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
+        var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
         return new(expresion, endOfFileToken, lexer.Diagnostics.Concat(diagnostics));
     }
 
@@ -83,31 +83,33 @@ sealed class Parser
     ExpressionSyntax ParsePrimaryExpression() =>
         Current.Kind switch
         {
+            SyntaxKind.NumberToken => ParseNumberExpression(),
             SyntaxKind.OpenParenthesisToken => ParseParenthesizedExpression(),
             SyntaxKind.TrueKeyword or
                 SyntaxKind.FalseKeyword => ParseBooleanExpression(),
             SyntaxKind.IdentifierToken => ParseNameExpression(),
-            _ => ParseNumberExpression()
+            _ => ParseNameExpression()
         };
     LiteralExpressionSyntax ParseNumberExpression()
     {
-        var numberToken = Match(SyntaxKind.NumberToken);
+        var numberToken = MatchToken(SyntaxKind.NumberToken);
         return new (numberToken);
     }
     ParenthesizedExpressionSyntax ParseParenthesizedExpression()
     {
-        var left = NextToken();
+        var left = MatchToken(SyntaxKind.OpenParenthesisToken);
         var expression = ParseExpression();
-        var right = Match(SyntaxKind.ClosedParenthesisToken);
+        var right = MatchToken(SyntaxKind.ClosedParenthesisToken);
         return new (left, expression, right);
     }
     LiteralExpressionSyntax ParseBooleanExpression()
     {
-        var token = NextToken();
-        return new (token, token.Kind == SyntaxKind.TrueKeyword);
+        var value = Current.Kind == SyntaxKind.TrueKeyword;
+        var token = MatchToken(value ? SyntaxKind.TrueKeyword : SyntaxKind.FalseKeyword);
+        return new (token, value);
     }
-    NameExpressionSyntax ParseNameExpression() => new(NextToken());
-    SyntaxToken Match(SyntaxKind kind)
+    NameExpressionSyntax ParseNameExpression() => new(MatchToken(SyntaxKind.IdentifierToken));
+    SyntaxToken MatchToken(SyntaxKind kind)
     {
         if (Current.Kind == kind)
             return NextToken();
