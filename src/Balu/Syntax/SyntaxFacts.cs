@@ -34,7 +34,7 @@ public static class SyntaxFacts
             SyntaxKind.MinusToken => 10,
 
         SyntaxKind.EqualsEqualsToken or
-            SyntaxKind.BangEqualToken => 5,
+            SyntaxKind.BangEqualsToken => 5,
 
         SyntaxKind.AmpersandAmpersandToken => 2,
         SyntaxKind.PipePipeToken => 1,
@@ -70,7 +70,7 @@ public static class SyntaxFacts
         SyntaxKind.AmpersandAmpersandToken => "&&",
         SyntaxKind.PipePipeToken => "||",
         SyntaxKind.EqualsEqualsToken => "==",
-        SyntaxKind.BangEqualToken => "!=",
+        SyntaxKind.BangEqualsToken => "!=",
         SyntaxKind.TrueKeyword => "true",
         SyntaxKind.FalseKeyword => "false",
         _ => null

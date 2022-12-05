@@ -58,7 +58,7 @@ public class LexerTests
         ("&&", kind: SyntaxKind.AmpersandAmpersandToken),
         ("||", kind: SyntaxKind.PipePipeToken),
         ("==", kind: SyntaxKind.EqualsEqualsToken),
-        ("!=", kind: SyntaxKind.BangEqualToken),
+        ("!=", kind: SyntaxKind.BangEqualsToken),
 
         ("myNameIs", kind: SyntaxKind.IdentifierToken),
         ("x", kind: SyntaxKind.IdentifierToken),

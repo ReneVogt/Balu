@@ -84,7 +84,7 @@ public enum SyntaxKind
     /// <summary>
     /// A '!=' token.
     /// </summary>
-    BangEqualToken,
+    BangEqualsToken,
 
     /// <summary>
     /// An arbitrary identifier token.

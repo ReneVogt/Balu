@@ -105,11 +105,11 @@ public sealed class SyntaxToken : SyntaxNode
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsEqualsToken"/>.</returns>
     public static SyntaxToken EqualsEquals(TextSpan textSpan) => new(SyntaxKind.EqualsEqualsToken, textSpan, "==");
     /// <summary>
-    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualToken"/>.
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualsToken"/>.
     /// </summary>
     /// <param name="textSpan">The position of this token in the input code.</param>
-    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualToken"/>.</returns>
-    public static SyntaxToken NotEquals(TextSpan textSpan) => new(SyntaxKind.BangEqualToken, textSpan, "!=");
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualsToken"/>.</returns>
+    public static SyntaxToken NotEquals(TextSpan textSpan) => new(SyntaxKind.BangEqualsToken, textSpan, "!=");
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.

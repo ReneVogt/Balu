@@ -34,7 +34,7 @@ public abstract class SyntaxVisitor
             { Kind: SyntaxKind.AmpersandAmpersandToken} => VisitAmpersandAmpersandToken(node),
             { Kind: SyntaxKind.PipePipeToken} => VisitPipePipeToken(node),
             { Kind: SyntaxKind.EqualsEqualsToken} => VisitEqualsEqualsToken(node),
-            { Kind: SyntaxKind.BangEqualToken} => VisitBangEqualsToken(node),
+            { Kind: SyntaxKind.BangEqualsToken} => VisitBangEqualsToken(node),
             { Kind: SyntaxKind.IdentifierToken } => VisitIdentifierToken(node),
             LiteralExpressionSyntax literal => VisitLiteralExpression(literal),
             UnaryExpressionSyntax unary => VisitUnaryExpression(unary),
@@ -137,7 +137,7 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     protected virtual SyntaxNode VisitEqualsEqualsToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
-    /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.BangEqualToken"/>.
+    /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.BangEqualsToken"/>.
     /// </summary>
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>

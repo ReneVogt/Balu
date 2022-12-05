@@ -14,9 +14,9 @@ sealed class BoundBinaryOperator
         [(SyntaxKind.AmpersandAmpersandToken, typeof(bool), typeof(bool))] = new(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, typeof(bool), typeof(bool), typeof(bool)),
         [(SyntaxKind.PipePipeToken, typeof(bool), typeof(bool))] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, typeof(bool), typeof(bool), typeof(bool)),
         [(SyntaxKind.EqualsEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.Equals, typeof(int), typeof(int), typeof(bool)),
-        [(SyntaxKind.BangEqualToken, typeof(int), typeof(int))] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.NotEqual, typeof(int), typeof(int), typeof(bool)),
+        [(SyntaxKind.BangEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.NotEqual, typeof(int), typeof(int), typeof(bool)),
         [(SyntaxKind.EqualsEqualsToken, typeof(bool), typeof(bool))] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.BangEqualToken, typeof(bool), typeof(bool))] = new(SyntaxKind.BangEqualToken, BoundBinaryOperatorKind.NotEqual, typeof(bool), typeof(bool), typeof(bool)),
+        [(SyntaxKind.BangEqualsToken, typeof(bool), typeof(bool))] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, typeof(bool), typeof(bool), typeof(bool)),
     };
 
     public SyntaxKind SyntaxKind { get; }

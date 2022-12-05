@@ -16,6 +16,11 @@ sealed class Lexer
     /// </summary>
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
+    int position, start;
+    string text = string.Empty;
+    SyntaxKind kind;
+    object? value;
+
     /// <summary>
     /// Creates a new <see cref="Lexer"/> instance.
     /// </summary>
@@ -32,95 +37,45 @@ sealed class Lexer
     /// <returns>A sequence of <see cref="SyntaxToken">syntax tokens</see>.</returns>
     public IEnumerable<SyntaxToken> Lex()
     {
-        int position = 0;
         while (position < input.Length)
         {
+            start = position;
+            value = null;
+            kind = SyntaxKind.BadToken;
+
             if (char.IsDigit(input[position]))
+                ReadNumberToken();
+            else if (char.IsWhiteSpace(input[position]))
+                ReadWhiteSpaceToken();
+            else if (char.IsLetter(input[position]))
+                ReadIdentifierOrKeywordToken();
+            else
             {
-                int index = position;
-                while (index < input.Length && char.IsDigit(input[index])) index++;
-                string text = input[position..index];
-                if (!int.TryParse(text, out var value))
-                    diagnostics.ReportNumberNotValid(position, index - position, text);
-                yield return SyntaxToken.Number(value, new(position, index-position), text);
-                position = index;
-                continue;
+                kind = (input[position], Peek(1)) switch
+                {
+                    ('+', _) => SyntaxKind.PlusToken,
+                    ('-', _) => SyntaxKind.MinusToken,
+                    ('*', _) => SyntaxKind.StarToken,
+                    ('/', _) => SyntaxKind.SlashToken,
+                    ('(', _) => SyntaxKind.OpenParenthesisToken,
+                    (')', _) => SyntaxKind.ClosedParenthesisToken,
+                    ('!', '=') => SyntaxKind.BangEqualsToken,
+                    ('!', _) => SyntaxKind.BangToken,
+                    ('=', '=') => SyntaxKind.EqualsEqualsToken,
+                    ('=', _) => SyntaxKind.EqualsToken,
+                    ('&', '&') => SyntaxKind.AmpersandAmpersandToken,
+                    ('|', '|') => SyntaxKind.PipePipeToken,
+                    _ => SyntaxKind.BadToken
+                };
+
+                text = kind.GetText() ?? input[position].ToString();
+                position += text.Length;
             }
 
-            if (char.IsWhiteSpace(input[position]))
-            {
-                int index = position;
-                while (index < input.Length && char.IsWhiteSpace(input[index])) index++;
-                string text = input[position..index];
-                yield return SyntaxToken.WhiteSpace(new(position, index - position), text);
-                position = index;
-                continue;
-            }
+            if (kind == SyntaxKind.BadToken)
+                diagnostics.ReportUnexpectedToken(start, position-start, input[position].ToString());
 
-            if (char.IsLetter(input[position]))
-            {
-                int index = position;
-                while (index < input.Length && char.IsLetter(input[index])) index++;
-                string keyword = input[position..index];
-                yield return new SyntaxToken(keyword.KeywordKind(), new(position, index - position), keyword);
-                position = index;
-                continue;
-            }
-
-            switch (input[position])
-            {
-                case '+':
-                    yield return SyntaxToken.Plus(new(position++, 1));
-                    break;
-                case '-':
-                    yield return SyntaxToken.Minus(new(position++, 1));
-                    break;
-                case '*':
-                    yield return SyntaxToken.Star(new(position++, 1));
-                    break;
-                case '/':
-                    yield return SyntaxToken.Slash(new(position++, 1));
-                    break;
-                case '(':
-                    yield return SyntaxToken.OpenParenthesis(new(position++, 1));
-                    break;
-                case ')':
-                    yield return SyntaxToken.ClosedParenthesis(new(position++, 1));
-                    break;
-                case '!':
-                    if (Peek(1) == '=')
-                    {
-                        yield return SyntaxToken.NotEquals(new(position, 2));
-                        position += 2;
-                    }
-                    else
-                        yield return SyntaxToken.Bang(new(position++, 1));
-                    break;
-                case '&':
-                    if (Peek(1) != '&') goto default;
-                    yield return SyntaxToken.AmpersandAmpersand(new(position, 2));
-                    position += 2;
-                    break;
-                case '|':
-                    if (Peek(1) != '|') goto default;
-                    yield return SyntaxToken.PipePipe(new(position, 2));
-                    position += 2;
-                    break;
-                case '=':
-                    if (Peek(1) == '=')
-                    {
-                        yield return SyntaxToken.EqualsEquals(new(position, 2));
-                        position += 2;
-                    }
-                    else
-                        yield return SyntaxToken.Equals(new TextSpan(position++, 1));
-                    break;
-                default:
-                    diagnostics.ReportUnexpectedToken(position, 1, input[position].ToString());
-                    yield return SyntaxToken.Bad(new(position, 1), input[position].ToString());
-                    position++;
-                    break;
-            }
+            yield return new (kind, new(start, position-start), text, value);
         }
 
         yield return SyntaxToken.EndOfFile(new(position, 0));
@@ -130,5 +85,27 @@ sealed class Lexer
             var index = position + offset;
             return index >= input.Length ? '\0' : input[index];
         }
+    }
+    void ReadNumberToken()
+    {
+        kind = SyntaxKind.NumberToken;
+        while (position < input.Length && char.IsDigit(input[position])) position++;
+        text = input[start..position];
+        if (int.TryParse(text, out var v))
+            value = v;
+        else
+            diagnostics.ReportNumberNotValid(start, position - start, text);
+    }
+    void ReadWhiteSpaceToken()
+    {
+        kind = SyntaxKind.WhiteSpaceToken;
+        while (position < input.Length && char.IsWhiteSpace(input[position])) position++;
+        text = input[start..position];
+    }
+    void ReadIdentifierOrKeywordToken()
+    {
+        while (position < input.Length && char.IsLetter(input[position])) position++;
+        text = input[start..position];
+        kind = text.KeywordKind();
     }
 }
