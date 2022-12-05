@@ -31,6 +31,13 @@ public class EvaluatorTests
     [InlineData("!true || true", true)]
     [InlineData("false || !false", true)]
     [InlineData("!(false && true)", true)]
+    [InlineData("3 == 3", true)]
+    [InlineData("3 == 4", false)]
+    [InlineData("(true || false) == (false || true)", true)]
+    [InlineData("true != false", true)]
+    [InlineData("2 != 3", true)]
+    [InlineData("3 != 3", false)]
+    [InlineData("(a = 12) * a", 144)]
     public void Evaluate(string text, object expectedResult)
     {
         var variables = new VariableDictionary();
