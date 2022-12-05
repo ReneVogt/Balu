@@ -1,4 +1,5 @@
 using Balu.Syntax;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -46,31 +47,23 @@ public class LexerTests
     }
 
     public static IEnumerable<object[]> ProvideSingleTokens() => GetSingleTokens().Concat(GetSeparators()).Select(x => new object[] { x.text, x.kind });
-    public static IEnumerable<(string text, SyntaxKind kind)> GetSingleTokens() => new (string text, SyntaxKind kind)[]
-    {
-        ("01", kind: SyntaxKind.NumberToken),
-        ("123", kind: SyntaxKind.NumberToken),
-        ("987654321", kind: SyntaxKind.NumberToken),
+    public static IEnumerable<(string text, SyntaxKind kind)> GetSingleTokens() =>
+        Enum.GetValues(typeof(SyntaxKind))
+            .Cast<SyntaxKind>()
+            .Select(kind => (text: kind.GetText()!, kind))
+            .Where(x => !string.IsNullOrEmpty(x.text))
+            .Concat(
+                new (string text, SyntaxKind kind)[]
+                {
+                    ("01", kind: SyntaxKind.NumberToken),
+                    ("123", kind: SyntaxKind.NumberToken),
+                    ("987654321", kind: SyntaxKind.NumberToken),
+                    ("myNameIs", kind: SyntaxKind.IdentifierToken),
+                    ("x", kind: SyntaxKind.IdentifierToken),
 
-        ("+", kind: SyntaxKind.PlusToken),
-        ("-", kind: SyntaxKind.MinusToken),
-        ("*", kind: SyntaxKind.StarToken),
-        ("/", kind: SyntaxKind.SlashToken),
-        ("(", kind: SyntaxKind.OpenParenthesisToken),
-        (")", kind: SyntaxKind.ClosedParenthesisToken),
-        ("=", kind: SyntaxKind.EqualsToken),
-        ("!", kind: SyntaxKind.BangToken),
-        ("&&", kind: SyntaxKind.AmpersandAmpersandToken),
-        ("||", kind: SyntaxKind.PipePipeToken),
-        ("==", kind: SyntaxKind.EqualsEqualsToken),
-        ("!=", kind: SyntaxKind.BangEqualsToken),
-
-        ("myNameIs", kind: SyntaxKind.IdentifierToken),
-        ("x", kind: SyntaxKind.IdentifierToken),
-
-        ("true", kind: SyntaxKind.TrueKeyword),
-        ("false", kind: SyntaxKind.FalseKeyword)
-    };
+                    ("true", kind: SyntaxKind.TrueKeyword),
+                    ("false", kind: SyntaxKind.FalseKeyword)
+                });
     static IEnumerable<(string text, SyntaxKind kind)> GetSeparators() => new (string text, SyntaxKind kind)[]
     {
         (" ", kind: SyntaxKind.WhiteSpaceToken),
