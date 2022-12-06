@@ -69,7 +69,7 @@ internal class Program
                 Console.ResetColor();
                 if (result.Diagnostics.Any())
                 {
-                    foreach (var diagnostic in result.Diagnostics)
+                    foreach (var diagnostic in result.Diagnostics.OrderBy(d => d.Span.Start))
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.Span.Start);
@@ -77,13 +77,16 @@ internal class Program
                         int column = diagnostic.Span.Start - syntaxLine.Start;
                         Console.WriteLine($"[{diagnostic.Id}]({lineNumber+1}, {column+1}): {diagnostic.Message}");
                         Console.ResetColor();
-                        Console.Write("   ");
-                        Console.Write(syntaxTree.Text.ToString(syntaxLine.Start, column));
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.Write(syntaxTree.Text.ToString(diagnostic.Span));
-                        Console.ResetColor();
-                        Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Span.End, syntaxLine.End - diagnostic.Span.End));
-                        Console.ResetColor();
+                        if (diagnostic.Span.Length > 0)
+                        {
+                            Console.Write("   ");
+                            Console.Write(syntaxTree.Text.ToString(syntaxLine.Start, column));
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.Write(syntaxTree.Text.ToString(diagnostic.Span));
+                            Console.ResetColor();
+                            Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Span.End, syntaxLine.End - diagnostic.Span.End));
+                            Console.ResetColor();
+                        }
                     }
                 }
                 else
@@ -101,6 +104,7 @@ internal class Program
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine(exception);
                 Console.ResetColor();
+                textBuilder.Clear();
             }
         }
     }
