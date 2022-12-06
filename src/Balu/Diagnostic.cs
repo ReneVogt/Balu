@@ -21,7 +21,7 @@ public sealed class Diagnostic
     /// <summary>
     /// The span in the input Balu string that causes this error.
     /// </summary>
-    public TextSpan TextSpan { get; }
+    public TextSpan Span { get; }
 
     /// <summary>
     /// The specific error message.
@@ -32,10 +32,10 @@ public sealed class Diagnostic
     /// Initializes a new <see cref="Diagnostic"/> instance.
     /// </summary>
     /// <param name="id">An id to identify the kind of error message.</param>
-    /// <param name="textSpan"><inheritdoc cref="TextSpan"/></param>
+    /// <param name="span"><inheritdoc cref="Span"/></param>
     /// <param name="message"><inheritdoc cref="Message"/></param>
-    public Diagnostic(string id, TextSpan textSpan, string message) => (Id, TextSpan, Message) = (id, textSpan, message);
+    public Diagnostic(string id, TextSpan span, string message) => (Id, Span, Message) = (id, span, message);
 
     /// <inheritdoc />
-    public override string ToString() => $"[{Id}]{TextSpan}: {Message}";
+    public override string ToString() => $"[{Id}]{Span}: {Message}";
 }

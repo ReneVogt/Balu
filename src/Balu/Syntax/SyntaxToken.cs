@@ -12,125 +12,125 @@ public sealed class SyntaxToken : SyntaxNode
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EndOfFileToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EndOfFileToken"/>.</returns>
-    public static SyntaxToken EndOfFile(TextSpan textSpan) => new(SyntaxKind.EndOfFileToken, textSpan);
+    public static SyntaxToken EndOfFile(TextSpan span) => new(SyntaxKind.EndOfFileToken, span);
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BadToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <param name="text">The original text of this token from the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BadToken"/>.</returns>
-    public static SyntaxToken Bad(TextSpan textSpan, string text) => new(SyntaxKind.BadToken, textSpan, text);
+    public static SyntaxToken Bad(TextSpan span, string text) => new(SyntaxKind.BadToken, span, text);
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.WhiteSpaceToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <param name="text">The original text of this token from the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.WhiteSpaceToken"/>.</returns>
-    public static SyntaxToken WhiteSpace(TextSpan textSpan, string text) => new(SyntaxKind.WhiteSpaceToken, textSpan, text);
+    public static SyntaxToken WhiteSpace(TextSpan span, string text) => new(SyntaxKind.WhiteSpaceToken, span, text);
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.NumberToken"/>.
     /// </summary>
     /// <param name="value">The integer value of this number token.</param>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <param name="text">The original text of this token from the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.NumberToken"/>.</returns>
-    public static SyntaxToken Number(int value, TextSpan textSpan, string text) => new(SyntaxKind.NumberToken, textSpan, text, value);
+    public static SyntaxToken Number(int value, TextSpan span, string text) => new(SyntaxKind.NumberToken, span, text, value);
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PlusToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PlusToken"/>.</returns>
-    public static SyntaxToken Plus(TextSpan textSpan) => new(SyntaxKind.PlusToken, textSpan, "+");
+    public static SyntaxToken Plus(TextSpan span) => new(SyntaxKind.PlusToken, span, "+");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.MinusToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.MinusToken"/>.</returns>
-    public static SyntaxToken Minus(TextSpan textSpan) => new(SyntaxKind.MinusToken, textSpan, "-");
+    public static SyntaxToken Minus(TextSpan span) => new(SyntaxKind.MinusToken, span, "-");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.StarToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.StarToken"/>.</returns>
-    public static SyntaxToken Star(TextSpan textSpan) => new(SyntaxKind.StarToken, textSpan, "*");
+    public static SyntaxToken Star(TextSpan span) => new(SyntaxKind.StarToken, span, "*");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.SlashToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.SlashToken"/>.</returns>
-    public static SyntaxToken Slash(TextSpan textSpan) => new(SyntaxKind.SlashToken, textSpan, "/");
+    public static SyntaxToken Slash(TextSpan span) => new(SyntaxKind.SlashToken, span, "/");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.OpenParenthesisToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.OpenParenthesisToken"/>.</returns>
-    public static SyntaxToken OpenParenthesis(TextSpan textSpan) => new(SyntaxKind.OpenParenthesisToken, textSpan, "(");
+    public static SyntaxToken OpenParenthesis(TextSpan span) => new(SyntaxKind.OpenParenthesisToken, span, "(");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ClosedParenthesisToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ClosedParenthesisToken"/>.</returns>
-    public static SyntaxToken ClosedParenthesis(TextSpan textSpan) => new(SyntaxKind.ClosedParenthesisToken, textSpan, ")");
+    public static SyntaxToken ClosedParenthesis(TextSpan span) => new(SyntaxKind.ClosedParenthesisToken, span, ")");
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsToken"/>.</returns>
-    public static SyntaxToken Equals(TextSpan textSpan) => new(SyntaxKind.EqualsToken, textSpan, "=");
+    public static SyntaxToken Equals(TextSpan span) => new(SyntaxKind.EqualsToken, span, "=");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangToken"/>.</returns>
-    public static SyntaxToken Bang(TextSpan textSpan) => new(SyntaxKind.BangToken, textSpan, "!");
+    public static SyntaxToken Bang(TextSpan span) => new(SyntaxKind.BangToken, span, "!");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.AmpersandAmpersandToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.AmpersandAmpersandToken"/>.</returns>
-    public static SyntaxToken AmpersandAmpersand(TextSpan textSpan) => new(SyntaxKind.AmpersandAmpersandToken, textSpan, "&&");
+    public static SyntaxToken AmpersandAmpersand(TextSpan span) => new(SyntaxKind.AmpersandAmpersandToken, span, "&&");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PipePipeToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PipePipeToken"/>.</returns>
-    public static SyntaxToken PipePipe(TextSpan textSpan) => new(SyntaxKind.PipePipeToken, textSpan, "||");
+    public static SyntaxToken PipePipe(TextSpan span) => new(SyntaxKind.PipePipeToken, span, "||");
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsEqualsToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsEqualsToken"/>.</returns>
-    public static SyntaxToken EqualsEquals(TextSpan textSpan) => new(SyntaxKind.EqualsEqualsToken, textSpan, "==");
+    public static SyntaxToken EqualsEquals(TextSpan span) => new(SyntaxKind.EqualsEqualsToken, span, "==");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualsToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangEqualsToken"/>.</returns>
-    public static SyntaxToken NotEquals(TextSpan textSpan) => new(SyntaxKind.BangEqualsToken, textSpan, "!=");
+    public static SyntaxToken NotEquals(TextSpan span) => new(SyntaxKind.BangEqualsToken, span, "!=");
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.</returns>
-    public static SyntaxToken Identifier(TextSpan textSpan, string name) => new(SyntaxKind.IdentifierToken, textSpan, name);
+    public static SyntaxToken Identifier(TextSpan span, string name) => new(SyntaxKind.IdentifierToken, span, name);
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TrueKeyword"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TrueKeyword"/>.</returns>
-    public static SyntaxToken TrueKeyword(TextSpan textSpan) => new(SyntaxKind.TrueKeyword, textSpan, "true");
+    public static SyntaxToken TrueKeyword(TextSpan span) => new(SyntaxKind.TrueKeyword, span, "true");
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.FalseKeyword"/>.
     /// </summary>
-    /// <param name="textSpan">The position of this token in the input code.</param>
+    /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.FalseKeyword"/>.</returns>
-    public static SyntaxToken FalseKeyword(TextSpan textSpan) => new(SyntaxKind.FalseKeyword, textSpan, "false");
+    public static SyntaxToken FalseKeyword(TextSpan span) => new(SyntaxKind.FalseKeyword, span, "false");
 
     /// <inheritdoc/>
     public override SyntaxKind Kind { get; }
@@ -152,9 +152,9 @@ public sealed class SyntaxToken : SyntaxNode
     /// Creates a new <see cref="SyntaxToken"/> with the given values.
     /// </summary>
     /// <param name="kind">The <see cref="SyntaxKind"/> of this token.</param>
-    /// <param name="textSpan">The <see cref="Span"/> of this token in the input stream.</param>
+    /// <param name="span">The <see cref="Span"/> of this token in the input stream.</param>
     /// <param name="text">The original text in the input code.</param>
-    internal SyntaxToken(SyntaxKind kind, TextSpan textSpan = default, string text = "", object? value = null) => (Kind, Text, Span, Value) = (kind, text, textSpan, value);
+    internal SyntaxToken(SyntaxKind kind, TextSpan span = default, string text = "", object? value = null) => (Kind, Text, Span, Value) = (kind, text, span, value);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor) => this;
 

@@ -24,5 +24,5 @@ sealed class DiagnosticBag : IEnumerable<Diagnostic>
         diagnostics.Add(new(Diagnostic.BND0000, operatorToken.Span, $"Unary operator '{operatorToken.Text}' cannot be applied to type '{type}'."));
     public void ReportBinaryOperatorTypeMismatch(SyntaxToken operatorToken, Type left, Type right) => diagnostics.Add(
         new(Diagnostic.BND0001, operatorToken.Span, $"Binary operator '{operatorToken.Text}' cannot be applied to types '{left}' and '{right}'."));
-    public void ReportUndefinedName(string name, TextSpan textSpan) => diagnostics.Add(new("BND0002", textSpan, $"Undefined name '{name}'."));
+    public void ReportUndefinedName(string name, TextSpan span) => diagnostics.Add(new("BND0002", span, $"Undefined name '{name}'."));
 }
