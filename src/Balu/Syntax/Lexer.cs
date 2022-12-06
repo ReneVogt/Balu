@@ -75,9 +75,9 @@ sealed class Lexer
             }
 
             if (kind == SyntaxKind.BadToken)
-                diagnostics.ReportUnexpectedToken(start, position - start, input[position].ToString());
+                diagnostics.ReportUnexpectedToken(start, position - start, input[start].ToString());
 
-            yield return new(kind, new(start, position - start), text, value);
+            yield return new(kind, new(start, kind == SyntaxKind.EndOfFileToken ? 0 :  position - start), text, value);
 
         } while (kind != SyntaxKind.EndOfFileToken);
     }

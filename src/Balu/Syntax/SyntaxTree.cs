@@ -23,9 +23,13 @@ public sealed class SyntaxTree
     /// The error messages collected during compilation.
     /// </summary>
     public ImmutableArray<Diagnostic> Diagnostics { get; }
+    /// <summary>
+    /// The <see cref="Text"/> representing the original source text.
+    /// </summary>
+    public SourceText Text { get; }
 
-    internal SyntaxTree(ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<Diagnostic> diagnostics) =>
-        (Root, EndOfFileToken, Diagnostics) = (root, endOfFileToken, diagnostics.ToImmutableArray());
+    internal SyntaxTree(SourceText text, ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<Diagnostic> diagnostics) =>
+        (Text, Root, EndOfFileToken, Diagnostics) = (text, root, endOfFileToken, diagnostics.ToImmutableArray());
 
     /// <summary>
     /// Parses a input string into a Balu syntax tree.
@@ -54,7 +58,7 @@ public sealed class SyntaxTree
     /// <summary>
     /// Parses an input string into a sequence of Balu <see cref="SyntaxToken"/>.
     /// </summary>
-    /// <param name="source">The input <see cref="SourceText"/> to parse.</param>
+    /// <param name="source">The input <see cref="Text"/> to parse.</param>
     /// <returns>A sequence of <see cref="SyntaxToken"/> representing the input code.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
     public static IEnumerable<SyntaxToken> ParseTokens(SourceText source) =>

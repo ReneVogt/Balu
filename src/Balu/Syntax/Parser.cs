@@ -11,7 +11,7 @@ sealed class Parser
 {
     readonly DiagnosticBag diagnostics = new();
     readonly List<SyntaxToken> tokens = new();
-    readonly SourceText input;
+    readonly SourceText text;
 
     int position;
 
@@ -21,21 +21,21 @@ sealed class Parser
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
     /// <summary>
-    /// Creates a new <see cref="Parser"/> for the given <paramref name="input"/> of Balu code.
+    /// Creates a new <see cref="Parser"/> for the given <paramref name="text"/> of Balu code.
     /// </summary>
-    /// <param name="input">The input Balu code to parse.</param>
-    public Parser(SourceText input) => this.input = input;
+    /// <param name="text">The text Balu code to parse.</param>
+    public Parser(SourceText text) => this.text = text;
 
     /// <summary>
-    /// Parses the provided input into an <see cref="SyntaxTree"/>.
+    /// Parses the provided text into an <see cref="SyntaxTree"/>.
     /// </summary>
-    /// <returns>The resulting <see cref="SyntaxTree"/> representing the input Balu code.</returns>
+    /// <returns>The resulting <see cref="SyntaxTree"/> representing the text Balu code.</returns>
     public SyntaxTree Parse()
     {
         tokens.Clear();
         position = 0;
 
-        var lexer = new Lexer(input);
+        var lexer = new Lexer(text);
         foreach (var token in lexer.Lex().Where(token => token.Kind != SyntaxKind.BadToken && token.Kind != SyntaxKind.WhiteSpaceToken))
         {
             tokens.Add(token);
@@ -44,7 +44,7 @@ sealed class Parser
 
         var expresion = ParseExpression();
         var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
-        return new(expresion, endOfFileToken, lexer.Diagnostics.Concat(diagnostics));
+        return new(text, expresion, endOfFileToken, lexer.Diagnostics.Concat(diagnostics));
     }
 
     SyntaxToken Peek(int offset)

@@ -59,7 +59,9 @@ internal class Program
                     foreach (var diagnostic in result.Diagnostics)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine(diagnostic);
+                        int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.TextSpan.Start);
+                        int column = diagnostic.TextSpan.Start - syntaxTree.Text.Lines[lineNumber].Start;
+                        Console.WriteLine($"[{diagnostic.Id}]({lineNumber}, {column}): {diagnostic.Message}");
                         Console.ResetColor();
                         Console.Write("   ");
                         Console.Write(line[..diagnostic.TextSpan.Start]);
