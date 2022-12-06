@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 
 namespace Balu.Evaluation;
 
@@ -12,7 +12,7 @@ public sealed class EvaluationResult
     /// <summary>
     /// The errors that occured during lexing, parsing or binding.
     /// </summary>
-    public IReadOnlyList<Diagnostic> Diagnostics { get; }
+    public ImmutableArray<Diagnostic> Diagnostics { get; }
     /// <summary>
     /// The resulting value of the evalution. This is <c>null</c> if there are any <see cref="Diagnostics"/>.
     /// </summary>
@@ -20,5 +20,5 @@ public sealed class EvaluationResult
 
     internal EvaluationResult(object? value)
         : this(Array.Empty<Diagnostic>(), value) { }
-    internal EvaluationResult(IEnumerable<Diagnostic> diagnostics, object? value) => (Diagnostics, Value) = (diagnostics.ToArray(), value);
+    internal EvaluationResult(IEnumerable<Diagnostic> diagnostics, object? value) => (Diagnostics, Value) = (diagnostics.ToImmutableArray(), value);
 }

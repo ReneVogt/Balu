@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 
 namespace Balu.Syntax;
@@ -20,10 +21,10 @@ public sealed class SyntaxTree
     /// <summary>
     /// The error messages collected during compilation.
     /// </summary>
-    public IReadOnlyList<Diagnostic> Diagnostics { get; }
+    public ImmutableArray<Diagnostic> Diagnostics { get; }
 
     internal SyntaxTree(ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<Diagnostic> diagnostics) =>
-        (Root, EndOfFileToken, Diagnostics) = (root, endOfFileToken, diagnostics.ToArray());
+        (Root, EndOfFileToken, Diagnostics) = (root, endOfFileToken, diagnostics.ToImmutableArray());
 
     /// <summary>
     /// Parses a input string into a Balu syntax tree.

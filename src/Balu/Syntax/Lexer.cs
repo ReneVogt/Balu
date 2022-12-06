@@ -85,8 +85,11 @@ sealed class Lexer
         var index = position + offset;
         return index >= input.Length ? '\0' : input[index];
     }
-    char Next() => position >= input.Length ? '\0' : input[position++];
     char Current => Peek(0);
+    void Next()
+    {
+        if (position < input.Length) position++;
+    }
 
     void ReadNumberToken()
     {

@@ -18,7 +18,7 @@ public sealed class NameExpressionSyntax : ExpressionSyntax
     }
 
     internal NameExpressionSyntax(SyntaxToken identifierrToken) =>
-        (IdentifierrToken) = (identifierrToken);
+        IdentifierrToken = identifierrToken;
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
