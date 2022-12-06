@@ -46,4 +46,6 @@ public sealed class TextLine
         Span = new (start, Length);
     }
 
+    /// <inheritdoc />
+    public override string ToString() => Text.ToString(Span);
 }

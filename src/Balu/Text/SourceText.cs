@@ -42,6 +42,22 @@ public sealed class SourceText
         return lower;
     }
 
+    /// <inheritdoc />
+    public override string ToString() => Text;
+    /// <summary>
+    /// Returns a part of the represented Balu code text.
+    /// </summary>
+    /// <param name="start">The start position of the part to return.</param>
+    /// <param name="length">The length of the part to return.</param>
+    /// <returns>The part of the original text defined by <paramref name="start"/> and <paramref name="length"/>.</returns>
+    public string ToString(int start, int length) => Text.Substring(start, length);
+    /// <summary>
+    /// Returns a part of the represented Balu code text.
+    /// </summary>
+    /// <param name="span">The span to return of the original text.</param>
+    /// <returns>The part of the original text defined by <paramref name="span"/>.</returns>
+    public string ToString(TextSpan span) => ToString(span.Start, span.Length);
+
     static ImmutableArray<TextLine> ParseLines(SourceText sourceText, string text)
     {
         int lineStart = 0, position = 0;
