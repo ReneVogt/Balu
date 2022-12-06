@@ -18,7 +18,7 @@ public class SourceTextTests
         {
             Assert.Equal(zip.expected.start, zip.actual.Start);
             Assert.Equal(zip.expected.length, zip.actual.Length);
-            Assert.Equal(zip.expected.incl, zip.actual.LengthWithNewLine);
+            Assert.Equal(zip.expected.incl, zip.actual.LengthIncludingNewLine);
         }
     }
 
@@ -43,28 +43,65 @@ public class SourceTextTests
             ("", Array.Empty<(int, int, int)>()),
             ("\n", new (int start, int length, int incl)[] { (0, 0, 1) }),
             ("\r\n", new (int start, int length, int incl)[] { (0, 0, 2) }),
-            ("test\rtest\nabc\r\nhuhu", new (int start, int length, int incl)[]
+            ("\n\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 1) }),
+            ("\n\r\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 2) }),
+            ("\r\n\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 1) }),
+            ("\r\n\r\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 2) }),
+            ("line1a\r1b\nline2\r\nline3_\n\nline5__\r\n\r\nline7___", new (int start, int length, int incl)[]
                 {
                     (0, 9, 10),
-                    (10, 3, 5),
-                    (15, 4, 4)
+                    (10, 5, 7),
+                    (17, 6, 7),
+                    (24, 0, 1),
+                    (25, 7, 9),
+                    (34, 0, 2),
+                    (36, 8, 8)
                 }),
-            ("test\rtest\nabc\r\nhuhu\r\n", new (int start, int length, int incl)[]
+            ("ending\nwith\r\n", new (int start, int length, int incl)[]
                 {
-                    (0, 9, 10),
-                    (10, 3, 5),
-                    (15, 4, 6)
+                    (0, 6, 7),
+                    (7, 4, 6)
                 }),
+            ("ending\nwith\n", new (int start, int length, int incl)[]
+                {
+                    (0, 6, 7),
+                    (7, 4, 5)
+                })
         }.Select(x => new object[] { x.text, x.lines });
     public static IEnumerable<object[]> ProvideLineIndexTests() =>
-        new (string text, int position, int expectedIndex)[]
+        new (string text, int[] expectedIndices)[]
         {
-            ("", 0, 0),
-            ("\r\n", 0, 0),
-            ("test\nhoppla\r\nwhat", 7, 1),
-            ("test\r\ntest2\r\n", 4, 0),
-            ("test\r\nwhat", 0, 0),
-            ("test\r\nwhat\r\n", 12, 2),
-            ("test\r\nwhat", 10, 1)
-        }.Select(x => new object[] { x.text, x.position, x.expectedIndex });
+            ("", new[] { 0 }),
+            ("\n", new[] { 0, 0 }),
+            ("\r\n", new[] { 0, 0, 0 }),
+
+            ("\n\n", new[] { 0, 1, 1 }),
+            ("\r\n\n", new[] { 0, 0, 1, 1 }),
+            ("\n\r\n", new[] { 0, 1, 1, 1 }),
+            ("\r\n\r\n", new[] { 0, 0, 1, 1, 1 }),
+
+            ("a\na\n", new[] { 0, 0, 1, 1, 1 }),
+            ("a\na\r\n", new[] { 0, 0, 1, 1, 1, 1 }),
+            ("a\r\na\n", new[] { 0, 0, 0, 1, 1, 1 }),
+            ("a\r\na\r\n", new[] { 0, 0, 0, 1, 1, 1, 1 }),
+
+            ("aa\naa\n", new[] { 0, 0, 0, 1, 1, 1, 1 }),
+            ("aa\naa\r\n", new[] { 0, 0, 0, 1, 1, 1, 1, 1 }),
+            ("aa\r\naa\n", new[] { 0, 0, 0, 0, 1, 1, 1, 1 }),
+            ("aa\r\naa\r\n", new[] { 0, 0, 0, 0, 1, 1, 1, 1, 1 }),
+
+            ("aa\naa\na", new[] { 0, 0, 0, 1, 1, 1, 2, 2 }),
+            ("aa\naa\r\na", new[] { 0, 0, 0, 1, 1, 1, 1, 2, 2 }),
+            ("aa\r\naa\na", new[] { 0, 0, 0, 0, 1, 1, 1, 2, 2 }),
+            ("aa\r\naa\r\na", new[] { 0, 0, 0, 0, 1, 1, 1, 1, 2, 2 }),
+
+            ("aa\naa\na\n", new[] { 0, 0, 0, 1, 1, 1, 2, 2 }),
+            ("aa\naa\r\na\r\n", new[] { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2 }),
+
+            ("a\naa\naa\na", new[] { 0, 0, 1, 1, 1, 2, 2, 2, 3, 3 }),
+            ("a\naa\naa\r\na", new[] { 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3}),
+            ("a\naa\r\naa\na", new[] { 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3 }),
+            ("a\naa\r\naa\r\na", new[] { 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3 }),
+
+        }.SelectMany(x => x.expectedIndices.Select((expectedIndex, i) => new object[] { x.text, i, expectedIndex }));
 }

@@ -28,13 +28,13 @@ public sealed class SourceText
         if (position < 0 || position > Text.Length)
             throw new ArgumentOutOfRangeException(nameof(position));
 
-        int lower = 0, upper = Lines.Length;
+        int lower = 0, upper = Lines.Length - 1;
         while (lower < upper)
         {
             var index = lower + (upper - lower) / 2;
             if (position < Lines[index].Start)
                 upper = index - 1;
-            else if (position > Lines[index].End)
+            else if (position >= Lines[index].EndIncludingNewLine)
                 lower = index + 1;
             else return index;
         }

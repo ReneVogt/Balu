@@ -20,24 +20,29 @@ public sealed class TextLine
     /// <summary>
     /// The length of this line (including all new line characters).
     /// </summary>
-    public int LengthWithNewLine { get; }
+    public int LengthIncludingNewLine { get; }
     /// <summary>
     /// The end position of this line (without any new line characters).
     /// </summary>
     public int End { get; }
     /// <summary>
+    /// The end position of this line (including all new line characters).
+    /// </summary>
+    public int EndIncludingNewLine { get; }
+    /// <summary>
     /// The <see cref="TextSpan"/> this line covers (without any new line characters).
     /// </summary>
     public TextSpan Span { get; }
 
-    internal TextLine(SourceText text, int start, int length, int lengthWithNewLine)
+    internal TextLine(SourceText text, int start, int length, int lengthIncludingNewLine)
     {
         Text = text;
         Start = start;
         Length = length;
-        LengthWithNewLine = lengthWithNewLine;
+        LengthIncludingNewLine = lengthIncludingNewLine;
 
         End = Start + Length;
+        EndIncludingNewLine = Start + LengthIncludingNewLine;
         Span = new (start, Length);
     }
 
