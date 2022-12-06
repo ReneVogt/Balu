@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using Balu.Syntax;
 
@@ -11,18 +12,22 @@ namespace Balu.Visualization;
 public sealed class SyntaxTreePrinter : SyntaxVisitor
 {
     readonly TextWriter writer;
+    readonly bool console;
     string indent = string.Empty;
     bool last = true;
 
-    SyntaxTreePrinter(TextWriter writer) => this.writer = writer;
+    SyntaxTreePrinter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
 
     /// <inheritdoc />
     public override SyntaxNode Visit(SyntaxNode node)
     {
         var marker = last ? TreeTexts.LastLeaf : TreeTexts.Leaf;
         writer.Write(indent);
+        if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
         writer.Write(marker);
+        if (console) Console.ForegroundColor = node is SyntaxToken ? ConsoleColor.Blue : ConsoleColor.Cyan;
         writer.WriteLine(node);
+        if (console) Console.ResetColor();
 
         var lastIndnet = indent;
         var lastLast = last;

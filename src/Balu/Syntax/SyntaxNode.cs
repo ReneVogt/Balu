@@ -41,21 +41,5 @@ public abstract class SyntaxNode
 
     internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
 
-    /// <summary>
-    /// Writes this <see cref="SyntaxNode"/> into a <see cref="TextWriter"/>.
-    /// </summary>
-    /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
-    /// <exception cref="ArgumentNullException">The <paramref name="writer"/> is <c>null</c>.</exception>
-    public void WriteTo(TextWriter writer)
-    {
-        SyntaxTreePrinter.Print(this, writer ?? throw new ArgumentNullException(nameof(writer)));
-    }
-
-    /// <inheritdoc />
-    public override string ToString()
-    {
-        using var writer = new StringWriter();
-        WriteTo(writer);
-        return writer.ToString();
-    }
+    public override string ToString() => Kind.ToString();
 }

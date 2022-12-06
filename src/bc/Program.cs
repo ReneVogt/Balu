@@ -17,7 +17,9 @@ internal class Program
         {
             try
             {
-                Console.Write(textBuilder.Length == 0 ? "> " : "| ");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.Write(textBuilder.Length == 0 ? "» " : "· ");
+                Console.ResetColor();
                 var line = Console.ReadLine();
                 if (textBuilder.Length == 0)
                 {
@@ -58,11 +60,7 @@ internal class Program
                 if (!string.IsNullOrWhiteSpace(line) && syntaxTree.Diagnostics.Any()) continue;
 
                 if (showSyntax)
-                {
-                    Console.ForegroundColor = ConsoleColor.DarkGreen;
                     SyntaxTreePrinter.Print(syntaxTree.Root, Console.Out);
-                    Console.ResetColor();
-                }
 
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 var result = Compilation.Evaluate(syntaxTree, variables, Console.Out, showBoundTree: showBound);
@@ -91,7 +89,9 @@ internal class Program
                 }
                 else
                 {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
                     Console.WriteLine(result.Value);
+                    Console.ResetColor();
                     if (variables.Any())
                         Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
                 }
