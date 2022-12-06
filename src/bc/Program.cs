@@ -61,7 +61,7 @@ internal class Program
                         Console.ForegroundColor = ConsoleColor.Red;
                         int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.TextSpan.Start);
                         int column = diagnostic.TextSpan.Start - syntaxTree.Text.Lines[lineNumber].Start;
-                        Console.WriteLine($"[{diagnostic.Id}]({lineNumber}, {column}): {diagnostic.Message}");
+                        Console.WriteLine($"[{diagnostic.Id}]({lineNumber+1}, {column+1}): {diagnostic.Message}");
                         Console.ResetColor();
                         Console.Write("   ");
                         Console.Write(line[..diagnostic.TextSpan.Start]);
