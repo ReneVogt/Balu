@@ -40,13 +40,13 @@ public class SourceTextTests
     public static IEnumerable<object[]> ProvideParseTests() =>
         new (string text, (int start, int length, int incl)[] lines)[]
         {
-            ("", Array.Empty<(int, int, int)>()),
-            ("\n", new (int start, int length, int incl)[] { (0, 0, 1) }),
-            ("\r\n", new (int start, int length, int incl)[] { (0, 0, 2) }),
-            ("\n\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 1) }),
-            ("\n\r\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 2) }),
-            ("\r\n\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 1) }),
-            ("\r\n\r\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 2) }),
+            ("", new (int start, int length, int incl)[] { (0, 0, 0) }),
+            ("\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 0) }),
+            ("\r\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 0) }),
+            ("\n\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 1), (2, 0, 0) }),
+            ("\n\r\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 2), (3, 0, 0) }),
+            ("\r\n\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 1), (3, 0, 0) }),
+            ("\r\n\r\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 2), (4, 0, 0) }),
             ("line1a\r1b\nline2\r\nline3_\n\nline5__\r\n\r\nline7___", new (int start, int length, int incl)[]
                 {
                     (0, 9, 10),
@@ -60,43 +60,45 @@ public class SourceTextTests
             ("ending\nwith\r\n", new (int start, int length, int incl)[]
                 {
                     (0, 6, 7),
-                    (7, 4, 6)
+                    (7, 4, 6),
+                    (13, 0, 0)
                 }),
             ("ending\nwith\n", new (int start, int length, int incl)[]
                 {
                     (0, 6, 7),
-                    (7, 4, 5)
+                    (7, 4, 5),
+                    (12, 0, 0)
                 })
         }.Select(x => new object[] { x.text, x.lines });
     public static IEnumerable<object[]> ProvideLineIndexTests() =>
         new (string text, int[] expectedIndices)[]
         {
             ("", new[] { 0 }),
-            ("\n", new[] { 0, 0 }),
-            ("\r\n", new[] { 0, 0, 0 }),
+            ("\n", new[] { 0, 1 }),
+            ("\r\n", new[] { 0, 0, 1 }),
 
-            ("\n\n", new[] { 0, 1, 1 }),
-            ("\r\n\n", new[] { 0, 0, 1, 1 }),
-            ("\n\r\n", new[] { 0, 1, 1, 1 }),
-            ("\r\n\r\n", new[] { 0, 0, 1, 1, 1 }),
+            ("\n\n", new[] { 0, 1, 2 }),
+            ("\r\n\n", new[] { 0, 0, 1, 2 }),
+            ("\n\r\n", new[] { 0, 1, 1, 2 }),
+            ("\r\n\r\n", new[] { 0, 0, 1, 1, 2 }),
 
-            ("a\na\n", new[] { 0, 0, 1, 1, 1 }),
-            ("a\na\r\n", new[] { 0, 0, 1, 1, 1, 1 }),
-            ("a\r\na\n", new[] { 0, 0, 0, 1, 1, 1 }),
-            ("a\r\na\r\n", new[] { 0, 0, 0, 1, 1, 1, 1 }),
+            ("a\na\n", new[] { 0, 0, 1, 1, 2 }),
+            ("a\na\r\n", new[] { 0, 0, 1, 1, 1, 2 }),
+            ("a\r\na\n", new[] { 0, 0, 0, 1, 1, 2 }),
+            ("a\r\na\r\n", new[] { 0, 0, 0, 1, 1, 1, 2 }),
 
-            ("aa\naa\n", new[] { 0, 0, 0, 1, 1, 1, 1 }),
-            ("aa\naa\r\n", new[] { 0, 0, 0, 1, 1, 1, 1, 1 }),
-            ("aa\r\naa\n", new[] { 0, 0, 0, 0, 1, 1, 1, 1 }),
-            ("aa\r\naa\r\n", new[] { 0, 0, 0, 0, 1, 1, 1, 1, 1 }),
+            ("aa\naa\n", new[] { 0, 0, 0, 1, 1, 1, 2 }),
+            ("aa\naa\r\n", new[] { 0, 0, 0, 1, 1, 1, 1, 2 }),
+            ("aa\r\naa\n", new[] { 0, 0, 0, 0, 1, 1, 1, 2 }),
+            ("aa\r\naa\r\n", new[] { 0, 0, 0, 0, 1, 1, 1, 1, 2 }),
 
             ("aa\naa\na", new[] { 0, 0, 0, 1, 1, 1, 2, 2 }),
             ("aa\naa\r\na", new[] { 0, 0, 0, 1, 1, 1, 1, 2, 2 }),
             ("aa\r\naa\na", new[] { 0, 0, 0, 0, 1, 1, 1, 2, 2 }),
             ("aa\r\naa\r\na", new[] { 0, 0, 0, 0, 1, 1, 1, 1, 2, 2 }),
 
-            ("aa\naa\na\n", new[] { 0, 0, 0, 1, 1, 1, 2, 2 }),
-            ("aa\naa\r\na\r\n", new[] { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2 }),
+            ("aa\naa\na\n", new[] { 0, 0, 0, 1, 1, 1, 2, 2, 3 }),
+            ("aa\naa\r\na\r\n", new[] { 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 3 }),
 
             ("a\naa\naa\na", new[] { 0, 0, 1, 1, 1, 2, 2, 2, 3, 3 }),
             ("a\naa\naa\r\na", new[] { 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3}),

@@ -84,8 +84,7 @@ public sealed class SourceText
             position += endings;
             lineStart = position;
         }
-
-        if (lineStart < position)
+        if (builder.Count == 0 || builder[^1].LengthIncludingNewLine > builder[^1].Length)
             builder.Add(new(sourceText, lineStart, text.Length - lineStart, text.Length - lineStart));
         return builder.ToImmutable();
     }
