@@ -8,24 +8,33 @@ namespace Balu.Text;
 /// </summary>
 public sealed class SourceText
 {
+    readonly string text;
+
     /// <summary>
     /// The lines in this source code text.
     /// </summary>
     public ImmutableArray<TextLine> Lines { get; }
+
     /// <summary>
-    /// The original Balu source code text.
+    /// Returns the character in the original source text at the given <paramref name="index"/>.
     /// </summary>
-    public string Text { get; }
+    /// <param name="index">The index in the original source text to return the character from.</param>
+    /// <returns>The character at the given <paramref name="index"/> in the original source code.</returns>
+    public char this[int index] => text[index];
+    /// <summary>
+    /// The length of the original source text.
+    /// </summary>
+    public int Length => text.Length;
 
     SourceText(string text)
     {
-        Text = text;
+        this.text = text;
         Lines = ParseLines(this, text);
     }
 
     public int GetLineIndex(int position)
     {
-        if (position < 0 || position > Text.Length)
+        if (position < 0 || position > text.Length)
             throw new ArgumentOutOfRangeException(nameof(position));
 
         int lower = 0, upper = Lines.Length - 1;
@@ -43,14 +52,14 @@ public sealed class SourceText
     }
 
     /// <inheritdoc />
-    public override string ToString() => Text;
+    public override string ToString() => text;
     /// <summary>
     /// Returns a part of the represented Balu code text.
     /// </summary>
     /// <param name="start">The start position of the part to return.</param>
     /// <param name="length">The length of the part to return.</param>
     /// <returns>The part of the original text defined by <paramref name="start"/> and <paramref name="length"/>.</returns>
-    public string ToString(int start, int length) => Text.Substring(start, length);
+    public string ToString(int start, int length) => text.Substring(start, length);
     /// <summary>
     /// Returns a part of the represented Balu code text.
     /// </summary>
@@ -87,5 +96,5 @@ public sealed class SourceText
     /// <param name="text">The Balu source code.</param>
     /// <returns>A new <see cref="SourceText"/> instance representing the Balu source code <paramref name="text"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="text"/> is <c>null</c>.</exception>
-    public static SourceText From(string text) => new SourceText(text ?? throw new ArgumentNullException(nameof(text)));
+    public static SourceText From(string text) => new (text ?? throw new ArgumentNullException(nameof(text)));
 }

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Balu.Text;
 
 namespace Balu.Syntax;
 
@@ -10,7 +11,7 @@ sealed class Parser
 {
     readonly DiagnosticBag diagnostics = new();
     readonly List<SyntaxToken> tokens = new();
-    readonly string input;
+    readonly SourceText input;
 
     int position;
 
@@ -23,7 +24,7 @@ sealed class Parser
     /// Creates a new <see cref="Parser"/> for the given <paramref name="input"/> of Balu code.
     /// </summary>
     /// <param name="input">The input Balu code to parse.</param>
-    public Parser(string input) => this.input = input;
+    public Parser(SourceText input) => this.input = input;
 
     /// <summary>
     /// Parses the provided input into an <see cref="SyntaxTree"/>.

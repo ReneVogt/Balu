@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Balu.Text;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -32,7 +33,15 @@ public sealed class SyntaxTree
     /// <param name="input">The Balu code to parse.</param>
     /// <returns>The <see cref="SyntaxTree"/> representing the parsed code.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
-    public static SyntaxTree Parse(string input) => new Parser(input ?? throw new ArgumentNullException(nameof(input))).Parse();
+    public static SyntaxTree Parse(string input) => Parse(SourceText.From(input));
+
+    /// <summary>
+    /// Parses a input string into a Balu syntax tree.
+    /// </summary>
+    /// <param name="input">The Balu code to parse.</param>
+    /// <returns>The <see cref="SyntaxTree"/> representing the parsed code.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
+    public static SyntaxTree Parse(SourceText input) => new Parser(input ?? throw new ArgumentNullException(nameof(input))).Parse();
 
     /// <summary>
     /// Parses an input string into a sequence of Balu <see cref="SyntaxToken"/>.
@@ -40,7 +49,15 @@ public sealed class SyntaxTree
     /// <param name="tokens">The input string to parse.</param>
     /// <returns>A sequence of <see cref="SyntaxToken"/> representing the input code.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="tokens"/> is <c>null</c>.</exception>
-    public static IEnumerable<SyntaxToken> ParseTokens(string tokens) =>
-        new Lexer(tokens ?? throw new ArgumentNullException(nameof(tokens))).Lex().TakeWhile(token => token.Kind != SyntaxKind.EndOfFileToken);
-    
+    public static IEnumerable<SyntaxToken> ParseTokens(string tokens) => ParseTokens(SourceText.From(tokens ?? throw new ArgumentNullException(nameof(tokens))));
+
+    /// <summary>
+    /// Parses an input string into a sequence of Balu <see cref="SyntaxToken"/>.
+    /// </summary>
+    /// <param name="source">The input <see cref="SourceText"/> to parse.</param>
+    /// <returns>A sequence of <see cref="SyntaxToken"/> representing the input code.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
+    public static IEnumerable<SyntaxToken> ParseTokens(SourceText source) =>
+        new Lexer(source ?? throw new ArgumentNullException(nameof(source))).Lex().TakeWhile(token => token.Kind != SyntaxKind.EndOfFileToken);
+
 }

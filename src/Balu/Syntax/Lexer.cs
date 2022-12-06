@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Balu.Text;
+using System;
 using System.Collections.Generic;
 
 namespace Balu.Syntax;
@@ -8,7 +9,7 @@ namespace Balu.Syntax;
 /// </summary>
 sealed class Lexer
 {
-    readonly string input;
+    readonly SourceText input;
     readonly DiagnosticBag diagnostics = new();
 
     /// <summary>
@@ -26,7 +27,7 @@ sealed class Lexer
     /// </summary>
     /// <param name="input">The input Balu code.</param>
     /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
-    internal Lexer(string input)
+    internal Lexer(SourceText input)
     {
         this.input = input ?? throw new ArgumentNullException(nameof(input));
     }
@@ -95,7 +96,7 @@ sealed class Lexer
     {
         kind = SyntaxKind.NumberToken;
         while (char.IsDigit(Current)) Next();
-        text = input[start..position];
+        text = input.ToString(start, position - start);
         if (int.TryParse(text, out var v))
             value = v;
         else
@@ -105,12 +106,12 @@ sealed class Lexer
     {
         kind = SyntaxKind.WhiteSpaceToken;
         while (char.IsWhiteSpace(Current)) Next();
-        text = input[start..position];
+        text = input.ToString(start, position - start);
     }
     void ReadIdentifierOrKeywordToken()
     {
         while (char.IsLetter(Current)) Next();
-        text = input[start..position];
+        text = input.ToString(start, position - start);
         kind = text.KeywordKind();
     }
 }
