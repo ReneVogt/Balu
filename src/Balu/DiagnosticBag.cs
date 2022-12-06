@@ -1,4 +1,5 @@
 ﻿using Balu.Syntax;
+using Balu.Text;
 using System;
 using System.Collections;
 using System.Collections.Generic;

@@ -1,4 +1,6 @@
-﻿namespace Balu;
+﻿using Balu.Text;
+
+namespace Balu;
 
 /// <summary>
 /// Represents a Balu compilation error message.

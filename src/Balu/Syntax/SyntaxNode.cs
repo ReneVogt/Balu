@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Balu.Text;
 using Balu.Visualization;
 
 namespace Balu.Syntax;

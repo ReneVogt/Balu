@@ -1,4 +1,4 @@
-﻿namespace Balu;
+﻿namespace Balu.Text;
 
 /// <summary>
 /// Represents a span of text in a Balu code string.

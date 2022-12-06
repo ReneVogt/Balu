@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Balu.Text;
 
 namespace Balu.Syntax;
 
