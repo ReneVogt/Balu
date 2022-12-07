@@ -48,6 +48,21 @@ namespace Balu.Tests
                 throw;
             }
         }
+        public void AssertToken(SyntaxKind kind, string text, object? value)
+        {
+            try
+            {
+                Assert.True(enumerator.MoveNext());
+                Assert.Equal(kind, enumerator.Current.Kind);
+                var token = Assert.IsType<SyntaxToken>(enumerator.Current);
+                Assert.Equal(text, token.Text);
+                Assert.Equal(value, token.Value);
+            }
+            catch when (Markfailed())
+            {
+                throw;
+            }
+        }
         public void AssertNode(SyntaxKind kind)
         {
             try

@@ -87,6 +87,18 @@ public class ParserTests
             e.AssertToken(SyntaxKind.IdentifierToken, "b");
         }
     }
+
+    [Theory]
+    [InlineData(SyntaxKind.TrueKeyword, true)]
+    [InlineData(SyntaxKind.FalseKeyword, false)]
+    public void Parser_BooleanKeywords_CorrectValues(SyntaxKind kind, object? value)
+    {
+        var text = kind.GetText()!;
+        var tree = SyntaxTree.Parse(text);
+        using var e = new SyntaxTreeAsserter(tree.Root);
+        e.AssertNode(SyntaxKind.LiteralExpression);
+        e.AssertToken(kind, text, value);
+    }
     public static IEnumerable<object[]> ProvideBinaryOperatorPairs() => from left in SyntaxFacts.GetBinaryOperators()
                                                                         from right in SyntaxFacts.GetBinaryOperators()
                                                                         select new object[] { left, right };

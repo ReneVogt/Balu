@@ -113,5 +113,12 @@ sealed class Lexer
         while (char.IsLetter(Current)) Next();
         text = input.ToString(start, position - start);
         kind = text.KeywordKind();
+        value = kind switch
+        {
+            SyntaxKind.TrueKeyword
+                => true,
+            SyntaxKind.FalseKeyword => false,
+            _ => null
+        };
     }
 }
