@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using Balu.Binding;
 using Balu.Syntax;
 
@@ -7,29 +8,36 @@ namespace Balu.Visualization;
 sealed class BoundTreePrinter : BoundExpressionVisitor
 {
     readonly TextWriter writer;
+    readonly bool console;
     string indent = string.Empty;
     bool last = true;
 
-    BoundTreePrinter(TextWriter writer) => this.writer = writer;
+    BoundTreePrinter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
 
     /// <inheritdoc />
     public override BoundExpression Visit(BoundExpression expression)
     {
         var marker = last ? TreeTexts.LastLeaf : TreeTexts.Leaf;
         writer.Write(indent);
+        if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
         writer.Write(marker);
+        if (console) Console.ResetColor();
 
         base.Visit(expression);
         return expression;
     }
     protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
+        if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
         writer.WriteLine($"{literalExpression.Kind}({literalExpression.Type}) {literalExpression.Value}");
+        if (console) Console.ResetColor();
         return literalExpression;
     }
     protected override BoundExpression VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
+        if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
         writer.WriteLine($"{unaryExpression.Operator.OperatorKind}({unaryExpression.Type})");
+        if (console) Console.ResetColor();
         var lastIndnet = indent;
         var lastLast = last;
         indent += last ? TreeTexts.Indent : TreeTexts.Branch;
@@ -41,7 +49,9 @@ sealed class BoundTreePrinter : BoundExpressionVisitor
     }
     protected override BoundExpression VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
+        if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
         writer.WriteLine($"{binaryExpression.Operator.OperatorKind}({binaryExpression.Type})");
+        if (console) Console.ResetColor();
         var lastIndnet = indent;
         var lastLast = last;
         indent += last ? TreeTexts.Indent : TreeTexts.Branch;

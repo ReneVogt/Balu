@@ -48,5 +48,5 @@ public abstract class SyntaxNode
     /// <param name="endOfFileToken">The eof token of the compilation unit.</param>
     /// <returns>A new <see cref="CompilationUnitSyntax"/> instance.</returns>
     public static CompilationUnitSyntax CompilationUnit(ExpressionSyntax expression, SyntaxToken endOfFileToken) =>
-        new CompilationUnitSyntax(expression, endOfFileToken);
+        new (expression, endOfFileToken);
 }

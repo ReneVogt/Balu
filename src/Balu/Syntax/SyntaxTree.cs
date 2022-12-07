@@ -12,13 +12,9 @@ namespace Balu.Syntax;
 public sealed class SyntaxTree
 {
     /// <summary>
-    /// The root expression of the syntax tree.
+    /// The root of the syntax tree.
     /// </summary>
-    public ExpressionSyntax Root { get; }
-    /// <summary>
-    /// The eof token of the parsed input.
-    /// </summary>
-    public SyntaxToken EndOfFileToken { get; }
+    public CompilationUnitSyntax Root { get; }
     /// <summary>
     /// The error messages collected during compilation.
     /// </summary>
@@ -28,8 +24,13 @@ public sealed class SyntaxTree
     /// </summary>
     public SourceText Text { get; }
 
-    internal SyntaxTree(SourceText text, ExpressionSyntax root, SyntaxToken endOfFileToken, IEnumerable<Diagnostic> diagnostics) =>
-        (Text, Root, EndOfFileToken, Diagnostics) = (text, root, endOfFileToken, diagnostics.ToImmutableArray());
+    SyntaxTree(SourceText text)
+    {
+        Text = text;
+        var parser = new Parser(text);
+        Root = parser.ParseCompilationUnit();
+        Diagnostics = parser.Diagnostics.ToImmutableArray();
+    }
 
     /// <summary>
     /// Parses a input string into a Balu syntax tree.
@@ -42,10 +43,10 @@ public sealed class SyntaxTree
     /// <summary>
     /// Parses a input string into a Balu syntax tree.
     /// </summary>
-    /// <param name="input">The Balu code to parse.</param>
+    /// <param name="text">The Balu code to parse.</param>
     /// <returns>The <see cref="SyntaxTree"/> representing the parsed code.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
-    public static SyntaxTree Parse(SourceText input) => new Parser(input ?? throw new ArgumentNullException(nameof(input))).Parse();
+    /// <exception cref="ArgumentNullException"><paramref name="text"/> is <c>null</c>.</exception>
+    public static SyntaxTree Parse(SourceText text) => new (text);
 
     /// <summary>
     /// Parses an input string into a sequence of Balu <see cref="SyntaxToken"/>.

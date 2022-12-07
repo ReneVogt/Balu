@@ -34,6 +34,19 @@ namespace Balu.Tests
 
         bool Markfailed() => !(hasErrors = true);
 
+        public void AssertToken(SyntaxKind kind)
+        {
+            try
+            {
+                Assert.True(enumerator.MoveNext());
+                Assert.IsType<SyntaxToken>(enumerator.Current);
+                Assert.Equal(kind, enumerator.Current.Kind);
+            }
+            catch when (Markfailed())
+            {
+                throw;
+            }
+        }
         public void AssertToken(SyntaxKind kind, string text)
         {
             try

@@ -22,6 +22,7 @@ public class ParserTests
         if (leftPrecedence >= rightPrecedence)
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
+            e.AssertNode(SyntaxKind.CompilationUnit);
             e.AssertNode(SyntaxKind.BinaryExpression);
             e.AssertNode(SyntaxKind.BinaryExpression);
             e.AssertNode(SyntaxKind.NameExpression);
@@ -32,10 +33,12 @@ public class ParserTests
             e.AssertToken(right, rightText);
             e.AssertNode(SyntaxKind.NameExpression);
             e.AssertToken(SyntaxKind.IdentifierToken, "c");
+            e.AssertToken(SyntaxKind.EndOfFileToken);
         }
         else
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
+            e.AssertNode(SyntaxKind.CompilationUnit);
             e.AssertNode(SyntaxKind.BinaryExpression);
             e.AssertNode(SyntaxKind.NameExpression);
             e.AssertToken(SyntaxKind.IdentifierToken, "a");
@@ -46,7 +49,7 @@ public class ParserTests
             e.AssertToken(right, rightText);
             e.AssertNode(SyntaxKind.NameExpression);
             e.AssertToken(SyntaxKind.IdentifierToken, "c");
-
+            e.AssertToken(SyntaxKind.EndOfFileToken);
         }
     }
 
@@ -65,6 +68,7 @@ public class ParserTests
         if (unaryPrecedence >= binaryPrecedence)
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
+            e.AssertNode(SyntaxKind.CompilationUnit);
             e.AssertNode(SyntaxKind.BinaryExpression);
             e.AssertNode(SyntaxKind.UnaryExpression);
             e.AssertToken(unaryKind, unaryText);
@@ -73,10 +77,12 @@ public class ParserTests
             e.AssertToken(binaryKind, binaryText);
             e.AssertNode(SyntaxKind.NameExpression);
             e.AssertToken(SyntaxKind.IdentifierToken, "b");
+            e.AssertToken(SyntaxKind.EndOfFileToken);
         }
         else
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
+            e.AssertNode(SyntaxKind.CompilationUnit);
             e.AssertNode(SyntaxKind.UnaryExpression);
             e.AssertToken(unaryKind, unaryText);
             e.AssertNode(SyntaxKind.BinaryExpression);
@@ -85,6 +91,7 @@ public class ParserTests
             e.AssertToken(binaryKind, binaryText);
             e.AssertNode(SyntaxKind.NameExpression);
             e.AssertToken(SyntaxKind.IdentifierToken, "b");
+            e.AssertToken(SyntaxKind.EndOfFileToken);
         }
     }
 
@@ -96,8 +103,10 @@ public class ParserTests
         var text = kind.GetText()!;
         var tree = SyntaxTree.Parse(text);
         using var e = new SyntaxTreeAsserter(tree.Root);
+        e.AssertNode(SyntaxKind.CompilationUnit);
         e.AssertNode(SyntaxKind.LiteralExpression);
         e.AssertToken(kind, text, value);
+        e.AssertToken(SyntaxKind.EndOfFileToken);
     }
     public static IEnumerable<object[]> ProvideBinaryOperatorPairs() => from left in SyntaxFacts.GetBinaryOperators()
                                                                         from right in SyntaxFacts.GetBinaryOperators()
