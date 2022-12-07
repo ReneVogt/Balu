@@ -20,5 +20,6 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(Diagnostic.BND0000, operatorToken.Span, $"Unary operator '{operatorToken.Text}' cannot be applied to type '{type}'."));
     public void ReportBinaryOperatorTypeMismatch(SyntaxToken operatorToken, Type left, Type right) => Add(
         new(Diagnostic.BND0001, operatorToken.Span, $"Binary operator '{operatorToken.Text}' cannot be applied to types '{left}' and '{right}'."));
-    public void ReportUndefinedName(string name, TextSpan span) => Add(new("BND0002", span, $"Undefined name '{name}'."));
+    public void ReportUndefinedName(string name, TextSpan span) => Add(new(Diagnostic.BND0002, span, $"Undefined name '{name}'."));
+    public void ReportVariableAlreadyDeclared(string name, TextSpan span) => Add(new(Diagnostic.BND0003, span, $"Variable '{name}' was already declared."));
 }

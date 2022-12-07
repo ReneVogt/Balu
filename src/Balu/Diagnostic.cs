@@ -12,6 +12,8 @@ public sealed class Diagnostic
     public const string SYX0000 = nameof(SYX0000);
     public const string BND0000 = nameof(BND0000);
     public const string BND0001 = nameof(BND0001);
+    public const string BND0002 = nameof(BND0002);
+    public const string BND0003 = nameof(BND0003);
 
     /// <summary>
     /// An id to identify the kind of error message.

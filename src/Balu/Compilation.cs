@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Balu.Binding;
 using Balu.Evaluation;
 using Balu.Syntax;
@@ -13,16 +14,45 @@ namespace Balu;
 /// </summary>
 public sealed class Compilation
 {
+    BoundGlobalScope? globalScope;
+
+    internal BoundGlobalScope GlobalScope
+    {
+        get
+        {
+            if (globalScope is null)
+            {
+                var scope = Binder.BindGlobalScope(SyntaxTree.Root);
+                Interlocked.CompareExchange(ref globalScope, scope, null);
+            }
+
+            return globalScope;
+        }
+    }
+
     /// <summary>
     /// The compilation's <see cref="SyntaxTree"/>.
     /// </summary>
     public SyntaxTree SyntaxTree { get; }
+    /// <summary>
+    /// The previous compilation step.
+    /// </summary>
+    public Compilation? Previous { get; }
 
     /// <summary>
     /// Creates a new <see cref="Compilation"/> instance holding the provided <see cref="SyntaxTree"/>.
     /// </summary>
     /// <param name="syntaxTree">The <see cref="SyntaxTree"/> representing the root of this compilation.</param>
-    public Compilation(SyntaxTree syntaxTree) => SyntaxTree = syntaxTree;
+    public Compilation(SyntaxTree syntaxTree) : this(null, syntaxTree){}
+
+    Compilation(Compilation? previous, SyntaxTree syntaxTree) => (Previous, SyntaxTree) = (previous, syntaxTree);
+
+    /// <summary>
+    /// Creates another compilation that keeps the scope of the current one.
+    /// </summary>
+    /// <param name="syntaxTree">The <see cref="SyntaxTree"/> to continue with.</param>
+    /// <returns>A new <see cref="Compilation"/> that continues the current one.</returns>
+    public Compilation ContinueWith(SyntaxTree syntaxTree) => new (this, syntaxTree);
 
     /// <summary>
     /// Evaluates the <see cref="SyntaxTree"/>.
@@ -36,15 +66,16 @@ public sealed class Compilation
     public EvaluationResult Evaluate(VariableDictionary variables, TextWriter? analyzisWriter = null, bool showSyntaxTree = false, bool showBoundTree = false)
     {
         _ = variables ?? throw new ArgumentNullException(nameof(variables));
-        var boundTree = BoundTree.Bind(SyntaxTree, variables);
         if (analyzisWriter is not null)
         {
             if (showSyntaxTree) SyntaxTreeWriter.Print(SyntaxTree.Root, analyzisWriter);
-            if (showBoundTree) BoundTreeWriter.Print(boundTree.Root, analyzisWriter);
+            if (showBoundTree) BoundTreeWriter.Print(GlobalScope.Expression, analyzisWriter);
         }
-        return boundTree.Diagnostics.Any()
-                   ? new(boundTree.Diagnostics, null)
-                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(boundTree.Root, variables));
+
+        var diagnostics = SyntaxTree.Diagnostics.Concat(GlobalScope.Diagnostics).ToArray();
+        return diagnostics.Any()
+                   ? new(diagnostics, null)
+                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(GlobalScope.Expression, variables));
     }
 
     /// <summary>

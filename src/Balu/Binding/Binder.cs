@@ -6,10 +6,11 @@ namespace Balu.Binding;
 sealed class Binder : SyntaxVisitor
 {
     readonly DiagnosticBag diagnostics = new();
-    readonly VariableDictionary variables;
+
+    BoundScope scope;
     BoundExpression? expression;
 
-    Binder(VariableDictionary variables) => this.variables = variables;
+    Binder(BoundScope? parent) => scope = new(parent);
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
@@ -44,14 +45,13 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitNameExpression(NameExpressionSyntax node)
     {
         var name = node.IdentifierrToken.Text;
-        var symbol = variables.Keys.FirstOrDefault(s => s.Name == name);
-        if (symbol is null)
+        if (!scope.TryLookup(name, out var variable))
         {
             if (!string.IsNullOrEmpty(name)) diagnostics.ReportUndefinedName(name, node.IdentifierrToken.Span);
             expression = new BoundLiteralExpression(0);
         }
         else
-            expression = new BoundVariableExpression(symbol);
+            expression = new BoundVariableExpression(variable);
 
         return node;
     }
@@ -59,25 +59,31 @@ sealed class Binder : SyntaxVisitor
     {
         var name = node.IdentifierrToken.Text;
         Visit(node.Expression);
-
-        var symbol = variables.Keys.FirstOrDefault(s => s.Name == name);
-        if (symbol is not null) variables.Remove(symbol);
-        symbol = new (name, expression!.Type);
-        variables[symbol] = null;
-        expression = new BoundAssignmentExpression(symbol, expression!);
+        var variable = new VariableSymbol(name, expression!.Type);
+        if (!scope.TryDeclare(variable))
+            diagnostics.ReportVariableAlreadyDeclared(name, node.IdentifierrToken.Span);
+        expression = new BoundAssignmentExpression(variable, expression!);
         return node;
     }
 
-    public static BoundTree Bind(ExpressionSyntax syntax, VariableDictionary variables)
+    //public static BoundTree Bind(ExpressionSyntax syntax, VariableDictionary variables)
+    //{
+    //    var binder = new Binder(variables);
+    //    binder.Visit(syntax);
+    //    return new(binder.expression!, binder.diagnostics);
+    //}
+    //public static BoundTree Bind(SyntaxTree syntax, VariableDictionary variables)
+    //{
+    //    var binder = new Binder(variables);
+    //    binder.Visit(syntax.Root);
+    //    return new(binder.expression!, syntax.Diagnostics.Concat(binder.diagnostics));
+    //}
+
+    public static BoundGlobalScope BindGlobalScope(CompilationUnitSyntax syntax)
     {
-        var binder = new Binder(variables);
+        var binder = new Binder(null);
         binder.Visit(syntax);
-        return new(binder.expression!, binder.diagnostics);
+        return new BoundGlobalScope(null, binder.expression!, binder.scope.GetDeclaredVariables(), binder.diagnostics);
     }
-    public static BoundTree Bind(SyntaxTree syntax, VariableDictionary variables)
-    {
-        var binder = new Binder(variables);
-        binder.Visit(syntax.Root);
-        return new(binder.expression!, syntax.Diagnostics.Concat(binder.diagnostics));
-    }
+
 }
