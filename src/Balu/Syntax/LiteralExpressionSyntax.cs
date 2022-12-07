@@ -2,6 +2,9 @@
 
 namespace Balu.Syntax;
 
+/// <summary>
+/// Represents a literal expression like numbers or identifiers.
+/// </summary>
 public sealed class LiteralExpressionSyntax : ExpressionSyntax
 {
     /// <summary>

@@ -2,10 +2,22 @@
 
 namespace Balu.Syntax;
 
+/// <summary>
+/// Represents a parenthesized expression.
+/// </summary>
 public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
 {
+    /// <summary>
+    /// The token for the opening parenthesis.
+    /// </summary>
     public SyntaxToken OpenParenthesisToken { get; }
+    /// <summary>
+    /// The expression inside the parenthesis.
+    /// </summary>
     public ExpressionSyntax Expression { get; }
+    /// <summary>
+    /// The token for the closing parenthesis.
+    /// </summary>
     public SyntaxToken ClosedParenthesisToken { get; }
 
     /// <inheritdoc/>

@@ -2,9 +2,18 @@
 
 namespace Balu.Syntax;
 
+/// <summary>
+/// Represents a unary expression.
+/// </summary>
 public sealed class UnaryExpressionSyntax : ExpressionSyntax
 {
+    /// <summary>
+    /// The token for the unary operator.
+    /// </summary>
     public SyntaxToken OperatorToken { get; }
+    /// <summary>
+    /// The expression the unary operator is applied to.
+    /// </summary>
     public ExpressionSyntax Expression { get; }
 
     /// <inheritdoc/>

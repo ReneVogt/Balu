@@ -2,10 +2,22 @@
 
 namespace Balu.Syntax;
 
+/// <summary>
+/// Represents a binary expression.
+/// </summary>
 public sealed class BinaryExpressionSyntax : ExpressionSyntax
 {
+    /// <summary>
+    /// The left operand.
+    /// </summary>
     public ExpressionSyntax Left { get; }
+    /// <summary>
+    /// The binary operator.
+    /// </summary>
     public SyntaxToken OperatorToken { get; }
+    /// <summary>
+    /// The right operand.
+    /// </summary>
     public ExpressionSyntax Right { get; }
 
     /// <inheritdoc/>

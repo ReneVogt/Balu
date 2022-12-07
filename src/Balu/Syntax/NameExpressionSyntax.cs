@@ -2,8 +2,14 @@
 
 namespace Balu.Syntax;
 
+/// <summary>
+/// A name expression like variable names.
+/// </summary>
 public sealed class NameExpressionSyntax : ExpressionSyntax
 {
+    /// <summary>
+    /// The identifier token.
+    /// </summary>
     public SyntaxToken IdentifierrToken { get; }
 
     /// <inheritdoc/>
