@@ -60,7 +60,7 @@ internal class Program
                 if (!string.IsNullOrWhiteSpace(line) && syntaxTree.Diagnostics.Any()) continue;
 
                 if (showSyntax)
-                    SyntaxTreePrinter.Print(syntaxTree.Root, Console.Out);
+                    SyntaxTreeWriter.Print(syntaxTree.Root, Console.Out);
 
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 var result = Compilation.Evaluate(syntaxTree, variables, Console.Out, showBoundTree: showBound);

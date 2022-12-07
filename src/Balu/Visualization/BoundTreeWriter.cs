@@ -5,14 +5,14 @@ using Balu.Syntax;
 
 namespace Balu.Visualization;
 
-sealed class BoundTreePrinter : BoundExpressionVisitor
+sealed class BoundTreeWriter : BoundExpressionVisitor
 {
     readonly TextWriter writer;
     readonly bool console;
     string indent = string.Empty;
     bool last = true;
 
-    BoundTreePrinter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
+    BoundTreeWriter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
 
     /// <inheritdoc />
     public override BoundExpression Visit(BoundExpression expression)
@@ -69,5 +69,5 @@ sealed class BoundTreePrinter : BoundExpressionVisitor
     /// </summary>
     /// <param name="boundExpression">The <see cref="ExpressionSyntax"/> to represent.</param>
     /// <param name="textWriter">The <see cref="TextWriter"/> to write the output to.</param>
-    public static void Print(BoundExpression boundExpression, TextWriter textWriter) => new BoundTreePrinter(textWriter).Visit(boundExpression);
+    public static void Print(BoundExpression boundExpression, TextWriter textWriter) => new BoundTreeWriter(textWriter).Visit(boundExpression);
 }

@@ -9,14 +9,14 @@ namespace Balu.Visualization;
 /// Provides text-based tree representation of an
 /// <see cref="ExpressionSyntax"/>.
 /// </summary>
-public sealed class SyntaxTreePrinter : SyntaxVisitor
+public sealed class SyntaxTreeWriter : SyntaxVisitor
 {
     readonly TextWriter writer;
     readonly bool console;
     string indent = string.Empty;
     bool last = true;
 
-    SyntaxTreePrinter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
+    SyntaxTreeWriter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
 
     /// <inheritdoc />
     public override SyntaxNode Visit(SyntaxNode node)
@@ -56,5 +56,5 @@ public sealed class SyntaxTreePrinter : SyntaxVisitor
     /// </summary>
     /// <param name="syntax">The <see cref="SyntaxNode"/> to represent.</param>
     /// <param name="textWriter">The <see cref="TextWriter"/> to write the output to.</param>
-    public static void Print(SyntaxNode syntax, TextWriter textWriter) => new SyntaxTreePrinter(textWriter).Visit(syntax);
+    public static void Print(SyntaxNode syntax, TextWriter textWriter) => new SyntaxTreeWriter(textWriter).Visit(syntax);
 }

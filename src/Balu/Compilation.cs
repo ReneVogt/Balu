@@ -39,8 +39,8 @@ public sealed class Compilation
         var boundTree = BoundTree.Bind(SyntaxTree, variables);
         if (analyzisWriter is not null)
         {
-            if (showSyntaxTree) SyntaxTreePrinter.Print(SyntaxTree.Root, analyzisWriter);
-            if (showBoundTree) BoundTreePrinter.Print(boundTree.Root, analyzisWriter);
+            if (showSyntaxTree) SyntaxTreeWriter.Print(SyntaxTree.Root, analyzisWriter);
+            if (showBoundTree) BoundTreeWriter.Print(boundTree.Root, analyzisWriter);
         }
         return boundTree.Diagnostics.Any()
                    ? new(boundTree.Diagnostics, null)
