@@ -1,9 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using Balu.Text;
-using Balu.Visualization;
 
 namespace Balu.Syntax;
 
@@ -42,4 +40,13 @@ public abstract class SyntaxNode
     internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
 
     public override string ToString() => Kind.ToString();
+
+    /// <summary>
+    /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="ExpressionSyntax"/>.
+    /// </summary>
+    /// <param name="expression">The root <see cref="ExpressionSyntax"/> of the compilation unit.</param>
+    /// <param name="endOfFileToken">The eof token of the compilation unit.</param>
+    /// <returns>A new <see cref="CompilationUnitSyntax"/> instance.</returns>
+    public static CompilationUnitSyntax CompilationUnit(ExpressionSyntax expression, SyntaxToken endOfFileToken) =>
+        new CompilationUnitSyntax(expression, endOfFileToken);
 }

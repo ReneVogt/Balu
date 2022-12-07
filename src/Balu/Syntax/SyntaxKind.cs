@@ -102,6 +102,9 @@ public enum SyntaxKind
     /// </summary>
     FalseKeyword,
     #endregion
+    #region Nodes
+    CompilationUnit,
+    #endregion
     #region Expressions
     /// <summary>
     /// A literal expression.
