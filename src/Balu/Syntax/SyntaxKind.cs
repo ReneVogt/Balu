@@ -97,6 +97,26 @@ public enum SyntaxKind
     BangEqualsToken,
 
     /// <summary>
+    /// A '&gt;' token.
+    /// </summary>
+    GreaterThanToken,
+
+    /// <summary>
+    /// A '&gt;=' token.
+    /// </summary>
+    GreaterThanEqualsToken,
+
+    /// <summary>
+    /// A '&lt;' token.
+    /// </summary>
+    LessThanToken,
+
+    /// <summary>
+    /// A '&lt;=' token.
+    /// </summary>
+    LessThanEqualsToken,
+    
+    /// <summary>
     /// An arbitrary identifier token.
     /// </summary>
     IdentifierToken,
