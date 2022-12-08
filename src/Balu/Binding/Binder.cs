@@ -1,4 +1,4 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
 using Balu.Syntax;
 
 namespace Balu.Binding;
@@ -79,11 +79,31 @@ sealed class Binder : SyntaxVisitor
     //    return new(binder.expression!, syntax.Diagnostics.Concat(binder.diagnostics));
     //}
 
-    public static BoundGlobalScope BindGlobalScope(CompilationUnitSyntax syntax)
+    public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {
-        var binder = new Binder(null);
+        var binder = new Binder(CreateParentScopes(previous));
         binder.Visit(syntax);
-        return new BoundGlobalScope(null, binder.expression!, binder.scope.GetDeclaredVariables(), binder.diagnostics);
+        return new (previous, binder.expression!, binder.scope.GetDeclaredVariables(), binder.diagnostics);
     }
+    static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
+    {
+        var stack = new Stack<BoundGlobalScope>();
+        while (previous is not null)
+        {
+            stack.Push(previous);
+            previous = previous.Previous;
+        }
 
+        BoundScope? parentScope = null;
+        while (stack.Count > 0)
+        {
+            previous = stack.Pop();
+            var scope = new BoundScope(parentScope);
+            foreach (var variable in previous.Variables)
+                scope.TryDeclare(variable);
+            parentScope = scope;
+        }
+
+        return parentScope;
+    }
 }

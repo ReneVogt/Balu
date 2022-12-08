@@ -22,7 +22,7 @@ public sealed class Compilation
         {
             if (globalScope is null)
             {
-                var scope = Binder.BindGlobalScope(SyntaxTree.Root);
+                var scope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTree.Root);
                 Interlocked.CompareExchange(ref globalScope, scope, null);
             }
 
