@@ -65,9 +65,9 @@ sealed class BoundTreeWriter : BoundTreeVisitor
     }
 
     /// <summary>
-    /// Writes a text-based tree representation of <paramref name="boundExpression"/> to <paramref name="textWriter"/>.
+    /// Writes a text-based tree representation of <paramref name="boundNode"/> to <paramref name="textWriter"/>.
     /// </summary>
-    /// <param name="boundExpression">The <see cref="ExpressionSyntax"/> to represent.</param>
+    /// <param name="boundNode">The <see cref="ExpressionSyntax"/> to represent.</param>
     /// <param name="textWriter">The <see cref="TextWriter"/> to write the output to.</param>
     public static void Print(BoundNode boundNode, TextWriter textWriter) => new BoundTreeWriter(textWriter).Visit(boundNode);
 }

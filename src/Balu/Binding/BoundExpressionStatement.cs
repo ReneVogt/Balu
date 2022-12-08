@@ -13,6 +13,6 @@ sealed class BoundExpressionStatement : BoundStatement
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
         var expression = (BoundExpression)visitor.Visit(Expression);
-        return expression == Expression ? this : new BoundExpressionStatement(expression);
+        return expression == Expression ? this : new (expression);
     }
 }

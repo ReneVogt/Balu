@@ -55,8 +55,7 @@ sealed class AnnotatedText
         if (text is null) return Array.Empty<string>();
         using var reader = new StringReader(text);
         var lines = new List<string>();
-        string? line;
-        while ((line = reader.ReadLine()) != null)
+        while (reader.ReadLine() is { } line)
             lines.Add(line);
         while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[0])) lines.RemoveAt(0);
         while (lines.Count > 0 && string.IsNullOrWhiteSpace(lines[^1])) lines.RemoveAt(lines.Count - 1);

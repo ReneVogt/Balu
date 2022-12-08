@@ -17,6 +17,6 @@ sealed class BoundBlockStatement : BoundStatement
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
         var transformed = Statements.Select(visitor.Visit).Cast<BoundStatement>().ToList();
-        return Statements.SequenceEqual(transformed) ? this : new BoundBlockStatement(transformed);
+        return Statements.SequenceEqual(transformed) ? this : new (transformed);
     }
 }
