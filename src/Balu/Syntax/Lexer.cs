@@ -61,6 +61,8 @@ sealed class Lexer
                     ('/', _) => SyntaxKind.SlashToken,
                     ('(', _) => SyntaxKind.OpenParenthesisToken,
                     (')', _) => SyntaxKind.ClosedParenthesisToken,
+                    ('{', _) => SyntaxKind.OpenBraceToken,
+                    ('}', _) => SyntaxKind.ClosedBraceToken,
                     ('!', '=') => SyntaxKind.BangEqualsToken,
                     ('!', _) => SyntaxKind.BangToken,
                     ('=', '=') => SyntaxKind.EqualsEqualsToken,

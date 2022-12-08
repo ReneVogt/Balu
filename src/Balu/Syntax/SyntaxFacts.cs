@@ -65,6 +65,8 @@ public static class SyntaxFacts
         SyntaxKind.SlashToken => "/",
         SyntaxKind.OpenParenthesisToken => "(",
         SyntaxKind.ClosedParenthesisToken => ")",
+        SyntaxKind.OpenBraceToken => "{",
+        SyntaxKind.ClosedBraceToken => "}",
         SyntaxKind.EqualsToken => "=",
         SyntaxKind.BangToken => "!",
         SyntaxKind.AmpersandAmpersandToken => "&&",

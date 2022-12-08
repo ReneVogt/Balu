@@ -105,6 +105,18 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ClosedParenthesisToken"/>.</returns>
     public static SyntaxToken ClosedParenthesis(TextSpan span) => new(SyntaxKind.ClosedParenthesisToken, span, ")");
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.OpenBraceToken"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.OpenBraceToken"/>.</returns>
+    public static SyntaxToken OpenBrace(TextSpan span) => new(SyntaxKind.OpenBraceToken, span, "{");
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ClosedBraceToken"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ClosedBraceToken"/>.</returns>
+    public static SyntaxToken ClosedBrace(TextSpan span) => new(SyntaxKind.ClosedParenthesisToken, span, "}");
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsToken"/>.
