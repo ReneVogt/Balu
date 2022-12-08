@@ -60,9 +60,15 @@ sealed class Binder : SyntaxVisitor
     {
         var name = node.IdentifierrToken.Text;
         Visit(node.Expression);
-        var variable = new VariableSymbol(name, expression!.Type);
-        if (!scope.TryDeclare(variable))
-            diagnostics.ReportVariableAlreadyDeclared(name, node.IdentifierrToken.Span);
+
+        if (!scope.TryLookup(name, out var variable))
+        {
+            variable = new VariableSymbol(name, expression!.Type);
+            scope.TryDeclare(variable);
+        }
+
+        if (expression!.Type != variable.Type)
+            diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression!.Type, variable.Type);
         expression = new BoundAssignmentExpression(variable, expression!);
         return node;
     }
