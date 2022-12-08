@@ -1,4 +1,5 @@
-﻿using Xunit;
+﻿using System;
+using Xunit;
 namespace Balu.Tests.TestHelper;
 
 static class CompilationAsserter
@@ -9,7 +10,9 @@ static class CompilationAsserter
         var result = Compilation.Evaluate(annotatedText.Text, new());
 
         var expectedDiagnostics = AnnotatedText.UnindentLines(diagnostics);
-        Assert.Equal(expectedDiagnostics.Length, result.Diagnostics.Length);
+        if (expectedDiagnostics.Length != annotatedText.Spans.Length)
+            throw new ArgumentException("The number of expected diagnostics must match the number of marked spans.");
+
         Assert.Equal(annotatedText.Spans.Length, result.Diagnostics.Length);
 
         for (int i = 0; i < expectedDiagnostics.Length; i++)
