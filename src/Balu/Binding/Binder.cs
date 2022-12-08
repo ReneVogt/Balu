@@ -49,7 +49,7 @@ sealed class Binder : SyntaxVisitor
         var name = node.IdentifierrToken.Text;
         if (!scope.TryLookup(name, out var variable))
         {
-            if (!string.IsNullOrEmpty(name)) diagnostics.ReportUndefinedName(name, node.IdentifierrToken.Span);
+            if (!string.IsNullOrEmpty(name)) diagnostics.ReportUndefinedName(node.IdentifierrToken);
             boundNode = new BoundLiteralExpression(0);
         }
         else
@@ -65,25 +65,26 @@ sealed class Binder : SyntaxVisitor
         var expression = (BoundExpression)boundNode!;
 
         if (!scope.TryLookup(name, out var variable))
-        {
-            variable = new VariableSymbol(name, expression.Type);
-            scope.TryDeclare(variable);
-        }
-
-        if (expression.Type != variable.Type)
+            diagnostics.ReportUndefinedName(node.IdentifierrToken);
+        else if (variable.ReadOnly)
+            diagnostics.ReportVariableIsReadOnly(node.IdentifierrToken);
+        else if (expression.Type != variable.Type)
             diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression.Type, variable.Type);
-        boundNode = new BoundAssignmentExpression(variable, expression);
+        else
+            boundNode = new BoundAssignmentExpression(variable, expression);
         return node;
     }
     protected override SyntaxNode VisitBlockStatement(BlockStatementSyntax node)
     {
         var statements = new List<BoundStatement>();
+        scope = new (scope);
         foreach (var statement in node.Statements)
         {
             Visit(statement);
             statements.Add((BoundStatement)boundNode!);
         }
 
+        scope = scope.Parent!;
         boundNode = new BoundBlockStatement(statements);
         return node;
     }
@@ -91,6 +92,19 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Expression);
         boundNode = new BoundExpressionStatement((BoundExpression)boundNode!);
+        return node;
+    }
+    protected override SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationSyntax node)
+    {
+        Visit(node.Expression);
+        var expression = (BoundExpression)boundNode!;
+        string name = node.IdentifierToken.Text;
+        bool readOnly = node.KeywordToken.Kind == SyntaxKind.LetKeyword;
+
+        var variable = new VariableSymbol(name, readOnly, expression.Type);
+        if (!scope.TryDeclare(variable))
+            diagnostics.ReportVariableAlreadyDeclared(node.IdentifierToken);
+        boundNode = new BoundVariableDeclaration(variable, expression);
         return node;
     }
 

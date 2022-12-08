@@ -59,7 +59,13 @@ sealed class Parser
         return current;
     }
 
-    StatementSyntax ParseStatement() => Current.Kind == SyntaxKind.OpenBraceToken ? ParseBlockStatement() : ParseExpressionStatement();
+    StatementSyntax ParseStatement() => Current.Kind switch
+    {
+        SyntaxKind.OpenBraceToken => ParseBlockStatement(), 
+        SyntaxKind.LetKeyword or
+            SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
+        _ => ParseExpressionStatement()
+    };
     BlockStatementSyntax ParseBlockStatement()
     {
         var open = MatchToken(SyntaxKind.OpenBraceToken);
@@ -70,6 +76,15 @@ sealed class Parser
         return StatementSyntax.BlockStatement(open, statements, closed);
     }
     ExpressionStatementSyntax ParseExpressionStatement() => StatementSyntax.ExpressionStatement(ParseExpression());
+    VariableDeclarationSyntax ParseVariableDeclarationStatement()
+    {
+        var expectedKeyword = Current.Kind == SyntaxKind.LetKeyword ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword;
+        var keyword = MatchToken(expectedKeyword);
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        var equals = MatchToken(SyntaxKind.EqualsToken);
+        var expression = ParseExpression();
+        return StatementSyntax.VariableDeclaration(keyword, identifier, equals, expression);
+    }
     ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
     ExpressionSyntax ParseAssignmentExpression() =>
         Current.Kind != SyntaxKind.IdentifierToken || Peek(1).Kind != SyntaxKind.EqualsToken

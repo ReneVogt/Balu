@@ -20,6 +20,8 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(Diagnostic.BND0000, operatorToken.Span, $"Unary operator '{operatorToken.Text}' cannot be applied to type '{type}'."));
     public void ReportBinaryOperatorTypeMismatch(SyntaxToken operatorToken, Type left, Type right) => Add(
         new(Diagnostic.BND0001, operatorToken.Span, $"Binary operator '{operatorToken.Text}' cannot be applied to types '{left}' and '{right}'."));
-    public void ReportUndefinedName(string name, TextSpan span) => Add(new(Diagnostic.BND0002, span, $"Undefined name '{name}'."));
+    public void ReportUndefinedName(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0002, identifierToken.Span, $"Undefined name '{identifierToken.Text}'."));
     public void ReportCannotConvert(TextSpan span, Type sourceType, Type targetType) => Add(new(Diagnostic.BND0003, span, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'."));
+    public void ReportVariableAlreadyDeclared(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Variable '{identifierToken.Text}' is already declared."));
+    public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Variable '{identifierToken.Text}' is readonly and cannot be reassigned."));
 }

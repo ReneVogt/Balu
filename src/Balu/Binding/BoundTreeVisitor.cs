@@ -11,6 +11,7 @@ abstract class BoundTreeVisitor
         BoundNodeKind.AssignmentExpression => VisitBoundAssignmentExpression((BoundAssignmentExpression)node),
         BoundNodeKind.BlockStatement => VisitBoundBlockStatement((BoundBlockStatement)node),
         BoundNodeKind.ExpressionStatement => VisitBoundExpressionStatement((BoundExpressionStatement)node),
+        BoundNodeKind.VariableDeclaration => VisitBoundVariableDeclarationStatement((BoundVariableDeclaration)node),
         _ => node
     };
     protected virtual BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression) => literalExpression.Accept(this);
@@ -20,4 +21,5 @@ abstract class BoundTreeVisitor
     protected virtual BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression) => assignmentExpression.Accept(this);
     protected virtual BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement) => blockStatement.Accept(this);
     protected virtual BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement) => expressionStatement.Accept(this);
+    protected virtual BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclaration variableDeclaration) => variableDeclaration.Accept(this);
 }

@@ -15,6 +15,10 @@ public sealed class VariableSymbol
     /// The type of the variable.
     /// </summary>
     public Type Type { get; }
+    /// <summary>
+    /// Indicates wether this variable can be changed or not.
+    /// </summary>
+    public bool ReadOnly { get; }
 
-    internal VariableSymbol(string name, Type type) => (Name, Type) = (name, type);
+    internal VariableSymbol(string name, bool readOnly, Type type) => (Name, ReadOnly, Type) = (name, readOnly, type);
 }

@@ -9,5 +9,6 @@ enum BoundNodeKind
     AssignmentExpression,
 
     BlockStatement,
-    ExpressionStatement
+    ExpressionStatement,
+    VariableDeclaration
 }

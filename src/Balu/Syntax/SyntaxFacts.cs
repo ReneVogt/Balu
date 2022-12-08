@@ -49,6 +49,8 @@ public static class SyntaxFacts
     {
         "true" => SyntaxKind.TrueKeyword,
         "false" => SyntaxKind.FalseKeyword,
+        "let" => SyntaxKind.LetKeyword,
+        "var" => SyntaxKind.VarKeyword,
         _ => SyntaxKind.IdentifierToken
     };
 
@@ -75,6 +77,8 @@ public static class SyntaxFacts
         SyntaxKind.BangEqualsToken => "!=",
         SyntaxKind.TrueKeyword => "true",
         SyntaxKind.FalseKeyword => "false",
+        SyntaxKind.LetKeyword => "let",
+        SyntaxKind.VarKeyword => "var",
         _ => null
     };
 

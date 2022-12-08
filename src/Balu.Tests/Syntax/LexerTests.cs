@@ -90,11 +90,9 @@ public class LexerTests
                                                                where !(Equals(SyntaxKind.NumberToken, left.kind) &&
                                                                        Equals(SyntaxKind.NumberToken, right.kind)) &&
                                                                      !((Equals(SyntaxKind.IdentifierToken, left.kind) ||
-                                                                        Equals(SyntaxKind.TrueKeyword, left.kind) ||
-                                                                        Equals(SyntaxKind.FalseKeyword, left.kind)) &&
+                                                                        left.kind.ToString().EndsWith("Keyword")) &&
                                                                        (Equals(SyntaxKind.IdentifierToken, right.kind) ||
-                                                                        Equals(SyntaxKind.TrueKeyword, right.kind) ||
-                                                                        Equals(SyntaxKind.FalseKeyword, right.kind))) &&
+                                                                        right.kind.ToString().EndsWith("Keyword"))) &&
                                                                      !(Equals(SyntaxKind.BangToken, left.kind) &&
                                                                        (Equals(SyntaxKind.EqualsEqualsToken, right.kind) ||
                                                                         Equals(SyntaxKind.EqualsToken, right.kind))) &&

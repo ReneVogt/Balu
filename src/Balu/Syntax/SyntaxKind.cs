@@ -103,14 +103,24 @@ public enum SyntaxKind
     #endregion
     #region Keywords
     /// <summary>
-    /// The <c>"true</c> keyword.
+    /// The <c>true</c> keyword.
     /// </summary>
     TrueKeyword,
 
     /// <summary>
-    /// The <c>"false</c> keyword.
+    /// The <c>false</c> keyword.
     /// </summary>
     FalseKeyword,
+
+    /// <summary>
+    /// The <c>let</c> keyword.
+    /// </summary>
+    LetKeyword,
+
+    /// <summary>
+    /// The <c>var</c> keyword.
+    /// </summary>
+    VarKeyword,
     #endregion
     #region Nodes
     CompilationUnit,
@@ -155,6 +165,11 @@ public enum SyntaxKind
     /// <summary>
     /// An expression statement.
     /// </summary>
-    ExpressionStatement
+    ExpressionStatement,
+
+    /// <summary>
+    /// A variable declaration.
+    /// </summary>
+    VariableDeclaration
     #endregion
 }

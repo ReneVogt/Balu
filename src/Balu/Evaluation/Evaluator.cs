@@ -65,6 +65,12 @@ sealed class Evaluator : BoundTreeVisitor
         variables[assignmentExpression.Symbol] = Result;
         return assignmentExpression;
     }
+    protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclaration variableDeclaration)
+    {
+        Visit(variableDeclaration.Expression);
+        variables[variableDeclaration.Variable] = Result;
+        return variableDeclaration;
+    }
 
     public static object? Evaluate(BoundStatement statement, VariableDictionary variables)
     {
