@@ -61,7 +61,7 @@ internal class Program
                     }
 
                     if (line?.StartsWith("#file ") ?? false)
-                        file = line.Substring(6);
+                        file = line[6..];
 
                     if (string.IsNullOrWhiteSpace(line) || line == "#exit") return;
                 }

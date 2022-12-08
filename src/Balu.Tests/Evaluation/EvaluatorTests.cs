@@ -1,6 +1,7 @@
-﻿using Xunit;
+﻿using Balu.Tests.TestHelper;
+using Xunit;
 
-namespace Balu.Tests;
+namespace Balu.Tests.Evaluation;
 public class EvaluatorTests
 {
     [Theory]
@@ -44,4 +45,17 @@ public class EvaluatorTests
         var result = Compilation.Evaluate(text, variables);
         Assert.Equal(expectedResult, result.Value);
     }
+
+    [Fact]
+    public void Evaluate_VariableDeclaration_Reports_Redeclaration() =>
+        @"
+                {
+                    var x = 10
+                    var y = 100
+                    {
+                        var x = 10
+                    }
+                    var [x] = 5
+                }
+".AssertEvaluation("Variable 'x' is already declared.");
 }
