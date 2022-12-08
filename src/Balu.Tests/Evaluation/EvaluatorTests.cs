@@ -39,12 +39,7 @@ public class EvaluatorTests
     [InlineData("2 != 3", true)]
     [InlineData("3 != 3", false)]
     [InlineData("{var a = 12 (a = a * 12)}", 144)]
-    public void Evaluate_Expression(string text, object expectedResult)
-    {
-        var variables = new VariableDictionary();
-        var result = Compilation.Evaluate(text, variables);
-        Assert.Equal(expectedResult, result.Value);
-    }
+    public void Evaluate_Expression(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
 
     [Theory]
     [InlineData("[!]1", "Unary operator '!' cannot be applied to type 'Int32'.")]
