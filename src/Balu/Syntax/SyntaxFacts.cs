@@ -34,12 +34,11 @@ public static class SyntaxFacts
             SyntaxKind.MinusToken => 10,
 
         SyntaxKind.EqualsEqualsToken or
-            SyntaxKind.BangEqualsToken => 5,
-
-        SyntaxKind.GreaterThanToken or
-            SyntaxKind.GreaterThanEqualsToken or
-            SyntaxKind.LessThanToken or
-            SyntaxKind.LessThanEqualsToken => 3,
+            SyntaxKind.BangEqualsToken or
+            SyntaxKind.GreaterToken or
+            SyntaxKind.GreaterOrEqualsToken or
+            SyntaxKind.LessToken or
+            SyntaxKind.LessOrEqualsToken => 5,
 
         SyntaxKind.AmpersandAmpersandToken => 2,
         SyntaxKind.PipePipeToken => 1,
@@ -80,10 +79,10 @@ public static class SyntaxFacts
         SyntaxKind.PipePipeToken => "||",
         SyntaxKind.EqualsEqualsToken => "==",
         SyntaxKind.BangEqualsToken => "!=",
-        SyntaxKind.GreaterThanToken => ">",
-        SyntaxKind.GreaterThanEqualsToken => ">=",
-        SyntaxKind.LessThanToken => "<",
-        SyntaxKind.LessThanEqualsToken => "<=",
+        SyntaxKind.GreaterToken => ">",
+        SyntaxKind.GreaterOrEqualsToken => ">=",
+        SyntaxKind.LessToken => "<",
+        SyntaxKind.LessOrEqualsToken => "<=",
         SyntaxKind.TrueKeyword => "true",
         SyntaxKind.FalseKeyword => "false",
         SyntaxKind.LetKeyword => "let",

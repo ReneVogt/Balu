@@ -99,22 +99,22 @@ public enum SyntaxKind
     /// <summary>
     /// A '&gt;' token.
     /// </summary>
-    GreaterThanToken,
+    GreaterToken,
 
     /// <summary>
     /// A '&gt;=' token.
     /// </summary>
-    GreaterThanEqualsToken,
+    GreaterOrEqualsToken,
 
     /// <summary>
     /// A '&lt;' token.
     /// </summary>
-    LessThanToken,
+    LessToken,
 
     /// <summary>
     /// A '&lt;=' token.
     /// </summary>
-    LessThanEqualsToken,
+    LessOrEqualsToken,
     
     /// <summary>
     /// An arbitrary identifier token.
