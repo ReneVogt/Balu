@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using Balu.Syntax;
 
 namespace Balu.Binding;
@@ -66,24 +67,12 @@ sealed class Binder : SyntaxVisitor
         return node;
     }
 
-    //public static BoundTree Bind(ExpressionSyntax syntax, VariableDictionary variables)
-    //{
-    //    var binder = new Binder(variables);
-    //    binder.Visit(syntax);
-    //    return new(binder.expression!, binder.diagnostics);
-    //}
-    //public static BoundTree Bind(SyntaxTree syntax, VariableDictionary variables)
-    //{
-    //    var binder = new Binder(variables);
-    //    binder.Visit(syntax.Root);
-    //    return new(binder.expression!, syntax.Diagnostics.Concat(binder.diagnostics));
-    //}
-
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {
         var binder = new Binder(CreateParentScopes(previous));
         binder.Visit(syntax);
-        return new (previous, binder.expression!, binder.scope.GetDeclaredVariables(), binder.diagnostics);
+        var diagnostics = previous is null ? binder.diagnostics : previous.Diagnostics.Concat(binder.diagnostics);
+        return new (previous, binder.expression!, binder.scope.GetDeclaredVariables(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {

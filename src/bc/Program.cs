@@ -51,6 +51,12 @@ internal class Program
                         continue;
                     }
 
+                    if (line == "#reset")
+                    {
+                        previous = null;
+                        continue;
+                    }
+
                     if (string.IsNullOrWhiteSpace(line) || line == "#exit") return;
                 }
 
