@@ -148,8 +148,13 @@ public enum SyntaxKind
     #endregion
     #region Statements
     /// <summary>
-    /// A block statement surrounded by {}
+    /// A block statement surrounded by {}.
     /// </summary>
-    BlockStatement
+    BlockStatement,
+
+    /// <summary>
+    /// An expression statement.
+    /// </summary>
+    ExpressionStatement
     #endregion
 }

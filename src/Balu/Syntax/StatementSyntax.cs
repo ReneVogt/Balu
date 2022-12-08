@@ -20,4 +20,11 @@ public abstract class StatementSyntax : SyntaxNode
         BlockStatement(SyntaxToken openBraceToken, IEnumerable<StatementSyntax> statements, SyntaxToken closedBraceToken) => new(
         openBraceToken ?? throw new ArgumentNullException(nameof(openBraceToken)), statements ?? throw new ArgumentNullException(nameof(statements)),
         closedBraceToken ?? throw new ArgumentNullException(nameof(closedBraceToken)));
+    /// <summary>
+    /// Creates a new <see cref="ExpressionStatementSyntax"/> from the given <see cref="ExpressionSyntax"/>.
+    /// </summary>
+    /// <param name="expression">The underlying <see cref="ExpressionSyntax"/> of the statement.</param>
+    /// <returns>The parsed <see cref="ExpressionStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="expression"/> is <c>null</c>.</exception>
+    public static ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression) => new(expression ?? throw new ArgumentNullException(nameof(expression)));
 }
