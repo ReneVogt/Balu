@@ -16,7 +16,11 @@ sealed class BoundBinaryOperator
         [(SyntaxKind.EqualsEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.Equals, typeof(int), typeof(int), typeof(bool)),
         [(SyntaxKind.BangEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.NotEqual, typeof(int), typeof(int), typeof(bool)),
         [(SyntaxKind.EqualsEqualsToken, typeof(bool), typeof(bool))] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.BangEqualsToken, typeof(bool), typeof(bool))] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, typeof(bool), typeof(bool), typeof(bool))
+        [(SyntaxKind.BangEqualsToken, typeof(bool), typeof(bool))] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, typeof(bool), typeof(bool), typeof(bool)),
+        [(SyntaxKind.LessToken, typeof(int), typeof(int))] = new(SyntaxKind.LessToken, BoundBinaryOperatorKind.Less, typeof(int), typeof(int), typeof(bool)),
+        [(SyntaxKind.LessOrEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.LessOrEqualsToken, BoundBinaryOperatorKind.LessOrEquals, typeof(int), typeof(int), typeof(bool)),
+        [(SyntaxKind.GreaterToken, typeof(int), typeof(int))] = new(SyntaxKind.GreaterToken, BoundBinaryOperatorKind.Greater, typeof(int), typeof(int), typeof(bool)),
+        [(SyntaxKind.GreaterOrEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.GreaterOrEqualsToken, BoundBinaryOperatorKind.GreaterOrEquals, typeof(int), typeof(int), typeof(bool))
     };
 
     public SyntaxKind SyntaxKind { get; }

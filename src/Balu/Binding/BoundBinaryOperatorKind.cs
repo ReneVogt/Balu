@@ -9,5 +9,9 @@ enum BoundBinaryOperatorKind
     LogicalOr,
     LogicalAnd,
     Equals,
-    NotEqual
+    NotEqual,
+    Less,
+    LessOrEquals,
+    Greater,
+    GreaterOrEquals
 }
