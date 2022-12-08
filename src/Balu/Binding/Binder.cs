@@ -9,38 +9,39 @@ sealed class Binder : SyntaxVisitor
     readonly DiagnosticBag diagnostics = new();
 
     BoundScope scope;
-    BoundExpression? expression;
+    BoundNode? boundNode;
 
     Binder(BoundScope? parent) => scope = new(parent);
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
-        expression = new BoundLiteralExpression(node.Value ?? 0);
+        boundNode = new BoundLiteralExpression(node.Value ?? 0);
         return node;
     }
     protected override SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node)
     {
         
         Visit(node.Expression);
-        var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression!.Type);
+        var expression = (BoundExpression)boundNode!;
+        var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression.Type);
         if (op is null)
             diagnostics.ReportUnaryOperatorTypeMismatch(node.OperatorToken, expression.Type);
         else
-            expression = new BoundUnaryExpression(op, expression!);
+            boundNode = new BoundUnaryExpression(op, expression);
         return node;
     }
     protected override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
     {
         Visit(node.Left);
-        var left = expression!;
+        var left = (BoundExpression)boundNode!;
         Visit(node.Right);
-        var right = expression!;
+        var right = (BoundExpression)boundNode!;
 
         var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, left.Type, right.Type);
         if (op is null)
             diagnostics.ReportBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type);
         else
-            expression = new BoundBinaryExpression(left, op, right);
+            boundNode = new BoundBinaryExpression(left, op, right);
         return node;
     }
     protected override SyntaxNode VisitNameExpression(NameExpressionSyntax node)
@@ -49,10 +50,10 @@ sealed class Binder : SyntaxVisitor
         if (!scope.TryLookup(name, out var variable))
         {
             if (!string.IsNullOrEmpty(name)) diagnostics.ReportUndefinedName(name, node.IdentifierrToken.Span);
-            expression = new BoundLiteralExpression(0);
+            boundNode = new BoundLiteralExpression(0);
         }
         else
-            expression = new BoundVariableExpression(variable);
+            boundNode = new BoundVariableExpression(variable);
 
         return node;
     }
@@ -61,15 +62,35 @@ sealed class Binder : SyntaxVisitor
         var name = node.IdentifierrToken.Text;
         Visit(node.Expression);
 
+        var expression = (BoundExpression)boundNode!;
+
         if (!scope.TryLookup(name, out var variable))
         {
-            variable = new VariableSymbol(name, expression!.Type);
+            variable = new VariableSymbol(name, expression.Type);
             scope.TryDeclare(variable);
         }
 
-        if (expression!.Type != variable.Type)
-            diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression!.Type, variable.Type);
-        expression = new BoundAssignmentExpression(variable, expression!);
+        if (expression.Type != variable.Type)
+            diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression.Type, variable.Type);
+        boundNode = new BoundAssignmentExpression(variable, expression);
+        return node;
+    }
+    protected override SyntaxNode VisitBlockStatement(BlockStatementSyntax node)
+    {
+        var statements = new List<BoundStatement>();
+        foreach (var statement in node.Statements)
+        {
+            Visit(statement);
+            statements.Add((BoundStatement)boundNode!);
+        }
+
+        boundNode = new BoundBlockStatement(statements);
+        return node;
+    }
+    protected override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
+    {
+        Visit(node.Expression);
+        boundNode = new BoundExpressionStatement((BoundExpression)boundNode!);
         return node;
     }
 
@@ -78,7 +99,7 @@ sealed class Binder : SyntaxVisitor
         var binder = new Binder(CreateParentScopes(previous));
         binder.Visit(syntax);
         var diagnostics = previous is null ? binder.diagnostics : previous.Diagnostics.Concat(binder.diagnostics);
-        return new (previous, binder.expression!, binder.scope.GetDeclaredVariables(), diagnostics);
+        return new (previous, (BoundStatement)binder.boundNode!, binder.scope.GetDeclaredVariables(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {

@@ -41,9 +41,9 @@ sealed class Parser
     /// <returns>The resulting <see cref="CompilationUnitSyntax"/> representing the text Balu code.</returns>
     public CompilationUnitSyntax ParseCompilationUnit()
     {
-        var expresion = ParseExpression();
+        var statement = ParseStatement();
         var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
-        return new(expresion, endOfFileToken);
+        return new(statement, endOfFileToken);
     }
 
     SyntaxToken Peek(int offset)
@@ -59,6 +59,17 @@ sealed class Parser
         return current;
     }
 
+    StatementSyntax ParseStatement() => Current.Kind == SyntaxKind.OpenBraceToken ? ParseBlockStatement() : ParseExpressionStatement();
+    BlockStatementSyntax ParseBlockStatement()
+    {
+        var open = MatchToken(SyntaxKind.OpenBraceToken);
+        var statements = new List<StatementSyntax>();
+        while(Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.ClosedBraceToken)
+            statements.Add(ParseStatement());
+        var closed = MatchToken(SyntaxKind.ClosedBraceToken);
+        return StatementSyntax.BlockStatement(open, statements, closed);
+    }
+    ExpressionStatementSyntax ParseExpressionStatement() => StatementSyntax.ExpressionStatement(ParseExpression());
     ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
     ExpressionSyntax ParseAssignmentExpression() =>
         Current.Kind != SyntaxKind.IdentifierToken || Peek(1).Kind != SyntaxKind.EqualsToken

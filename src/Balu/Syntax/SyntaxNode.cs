@@ -42,11 +42,12 @@ public abstract class SyntaxNode
     public override string ToString() => Kind.ToString();
 
     /// <summary>
-    /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="ExpressionSyntax"/>.
+    /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="StatementSyntax"/>.
     /// </summary>
-    /// <param name="expression">The root <see cref="ExpressionSyntax"/> of the compilation unit.</param>
+    /// <param name="statement">The root <see cref="StatementSyntax"/> of the compilation unit.</param>
     /// <param name="endOfFileToken">The eof token of the compilation unit.</param>
     /// <returns>A new <see cref="CompilationUnitSyntax"/> instance.</returns>
-    public static CompilationUnitSyntax CompilationUnit(ExpressionSyntax expression, SyntaxToken endOfFileToken) =>
-        new (expression, endOfFileToken);
+    /// <exception cref="ArgumentNullException"><paramref name="statement"/> or <paramref name="endOfFileToken"/> is <c>null</c>.</exception>
+    public static CompilationUnitSyntax CompilationUnit(StatementSyntax statement, SyntaxToken endOfFileToken) =>
+        new (statement ?? throw new ArgumentNullException(nameof(statement)), endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken)));
 }

@@ -24,6 +24,7 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
     
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
-        throw new System.NotImplementedException();
+        var expression = (ExpressionSyntax)visitor.Visit(Expression);
+        return expression != Expression ? ExpressionStatement(expression) : this;
     }
 }

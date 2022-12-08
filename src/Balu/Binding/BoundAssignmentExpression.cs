@@ -11,9 +11,9 @@ sealed class BoundAssignmentExpression : BoundExpression
 
     public BoundAssignmentExpression(VariableSymbol symbol, BoundExpression expression) => (Symbol, Expression) = (symbol, expression);
 
-    internal override BoundExpression Accept(BoundExpressionVisitor visitor)
+    internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
-        var expression = visitor.Visit(Expression);
+        var expression = (BoundExpression)visitor.Visit(Expression);
         return expression == Expression ? this : new (Symbol, expression);
     }
 }

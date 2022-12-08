@@ -12,9 +12,9 @@ sealed class BoundUnaryExpression : BoundExpression
 
     public BoundUnaryExpression(BoundUnaryOperator op, BoundExpression operand) => (Operator, Operand) = (op, operand);
 
-    internal override BoundExpression Accept(BoundExpressionVisitor visitor)
+    internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
-        var operand = visitor.Visit(Operand);
+        var operand = (BoundExpression)visitor.Visit(Operand);
         return operand == Operand ? this : new (Operator, operand);
     }
 

@@ -6,5 +6,8 @@ enum BoundNodeKind
     BinaryExpression,
     LiteralExpression,
     VariableExpression,
-    AssignmentExpression
+    AssignmentExpression,
+
+    BlockStatement,
+    ExpressionStatement
 }

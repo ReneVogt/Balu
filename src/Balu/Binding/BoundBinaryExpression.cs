@@ -18,10 +18,10 @@ sealed class BoundBinaryExpression : BoundExpression
         Right = right;
     }
 
-    internal override BoundExpression Accept(BoundExpressionVisitor visitor)
+    internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
-        var left = visitor.Visit(Left);
-        var right = visitor.Visit(Right);
+        var left = (BoundExpression)visitor.Visit(Left);
+        var right = (BoundExpression)visitor.Visit(Right);
         return left == Left && right == Right ? this : new (left, Operator, right);
     }
 }

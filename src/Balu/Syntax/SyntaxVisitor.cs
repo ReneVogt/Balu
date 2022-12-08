@@ -17,31 +17,35 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     public virtual SyntaxNode Visit(SyntaxNode node)
     {
-        return node switch
+        return node.Kind switch
         {
-            { Kind: SyntaxKind.EndOfFileToken } => VisitEndOfFileToken(node),
-            { Kind: SyntaxKind.WhiteSpaceToken } => VisitWhiteSpaceToken(node),
-            { Kind: SyntaxKind.BadToken } => VisitBadToken(node),
-            { Kind: SyntaxKind.NumberToken } => VisitNumberToken(node),
-            { Kind: SyntaxKind.PlusToken } => VisitPlusToken(node),
-            { Kind: SyntaxKind.MinusToken } => VisitMinusToken(node),
-            { Kind: SyntaxKind.StarToken } => VisitStarToken(node),
-            { Kind: SyntaxKind.SlashToken } => VisitSlashToken(node),
-            { Kind: SyntaxKind.OpenParenthesisToken } => VisitOpenParenthesisToken(node),
-            { Kind: SyntaxKind.ClosedParenthesisToken } => VisitClosedParenthesisToken(node),
-            { Kind: SyntaxKind.EqualsToken } => VisitEqualsToken(node),
-            { Kind: SyntaxKind.BangToken } => VisitBangToken(node),
-            { Kind: SyntaxKind.AmpersandAmpersandToken} => VisitAmpersandAmpersandToken(node),
-            { Kind: SyntaxKind.PipePipeToken} => VisitPipePipeToken(node),
-            { Kind: SyntaxKind.EqualsEqualsToken} => VisitEqualsEqualsToken(node),
-            { Kind: SyntaxKind.BangEqualsToken} => VisitBangEqualsToken(node),
-            { Kind: SyntaxKind.IdentifierToken } => VisitIdentifierToken(node),
-            LiteralExpressionSyntax literal => VisitLiteralExpression(literal),
-            UnaryExpressionSyntax unary => VisitUnaryExpression(unary),
-            BinaryExpressionSyntax binary => VisitBinaryExpression(binary),
-            ParenthesizedExpressionSyntax parenthesized => VisitParenthesizedExpression(parenthesized),
-            NameExpressionSyntax name => VisitNameExpression(name),
-            AssignmentExpressionSyntax assignment => VisitAssignmentExpression(assignment),
+            SyntaxKind.EndOfFileToken => VisitEndOfFileToken(node),
+            SyntaxKind.WhiteSpaceToken => VisitWhiteSpaceToken(node),
+            SyntaxKind.BadToken  => VisitBadToken(node),
+            SyntaxKind.NumberToken  => VisitNumberToken(node),
+            SyntaxKind.PlusToken  => VisitPlusToken(node),
+            SyntaxKind.MinusToken => VisitMinusToken(node),
+            SyntaxKind.StarToken => VisitStarToken(node),
+            SyntaxKind.SlashToken => VisitSlashToken(node),
+            SyntaxKind.OpenParenthesisToken => VisitOpenParenthesisToken(node),
+            SyntaxKind.ClosedParenthesisToken => VisitClosedParenthesisToken(node),
+            SyntaxKind.OpenBraceToken => VisitOpenBraceToken(node),
+            SyntaxKind.ClosedBraceToken => VisitClosedBraceToken(node),
+            SyntaxKind.EqualsToken => VisitEqualsToken(node),
+            SyntaxKind.BangToken => VisitBangToken(node),
+            SyntaxKind.AmpersandAmpersandToken => VisitAmpersandAmpersandToken(node),
+            SyntaxKind.PipePipeToken => VisitPipePipeToken(node),
+            SyntaxKind.EqualsEqualsToken => VisitEqualsEqualsToken(node),
+            SyntaxKind.BangEqualsToken => VisitBangEqualsToken(node),
+            SyntaxKind.IdentifierToken => VisitIdentifierToken(node),
+            SyntaxKind.LiteralExpression => VisitLiteralExpression((LiteralExpressionSyntax)node),
+            SyntaxKind.UnaryExpression => VisitUnaryExpression((UnaryExpressionSyntax)node),
+             SyntaxKind.BinaryExpression => VisitBinaryExpression((BinaryExpressionSyntax)node),
+            SyntaxKind.ParenthesizedExpression => VisitParenthesizedExpression((ParenthesizedExpressionSyntax)node),
+            SyntaxKind.NameExpression => VisitNameExpression((NameExpressionSyntax)node),
+            SyntaxKind.AssignmentExpression => VisitAssignmentExpression((AssignmentExpressionSyntax)node),
+            SyntaxKind.BlockStatement => VisitBlockStatement((BlockStatementSyntax)node),
+            SyntaxKind.ExpressionStatement => VisitExpressionStatement((ExpressionStatementSyntax)node),
             _ => node.Accept(this)
         };
     }
@@ -106,6 +110,18 @@ public abstract class SyntaxVisitor
     /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     protected virtual SyntaxNode VisitClosedParenthesisToken(SyntaxNode node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.OpenBraceToken"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitOpenBraceToken(SyntaxNode node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.ClosedBraceToken"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="SyntaxNode"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitClosedBraceToken(SyntaxNode node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="SyntaxNode"/> of <see cref="SyntaxNode.Kind"/> <see cref="SyntaxKind.EqualsToken"/>.
     /// </summary>
@@ -199,4 +215,16 @@ public abstract class SyntaxVisitor
     /// <param name="node">The <see cref="AssignmentExpressionSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     protected virtual SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="BlockStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="BlockStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitBlockStatement(BlockStatementSyntax node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="ExpressionStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="ExpressionStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node) => node.Accept(this);
 }

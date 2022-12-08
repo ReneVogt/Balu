@@ -3,19 +3,19 @@ using Balu.Binding;
 
 namespace Balu.Evaluation;
 
-sealed class Evaluator : BoundExpressionVisitor
+sealed class Evaluator : BoundTreeVisitor
 {
     readonly VariableDictionary variables;
     public object? Result { get; private set; }
 
     Evaluator(VariableDictionary variables) => this.variables = variables;
 
-    protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
+    protected override BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
         Result = literalExpression.Value;
         return literalExpression;
     }
-    protected override BoundExpression VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
+    protected override BoundNode VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
         Visit(unaryExpression.Operand);
         switch (unaryExpression.Operator.OperatorKind)
@@ -34,7 +34,7 @@ sealed class Evaluator : BoundExpressionVisitor
 
         return unaryExpression;
     }
-    protected override BoundExpression VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
+    protected override BoundNode VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
         Visit(binaryExpression.Left);
         object left = Result!;
@@ -54,22 +54,22 @@ sealed class Evaluator : BoundExpressionVisitor
         };
         return binaryExpression;
     }
-    protected override BoundExpression VisitBoundVariableExpression(BoundVariableExpression variableExpression)
+    protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
         Result = variables[variableExpression.Symbol];
         return variableExpression;
     }
-    protected override BoundExpression VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
+    protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
         Visit(assignmentExpression.Expression);
         variables[assignmentExpression.Symbol] = Result;
         return assignmentExpression;
     }
 
-    public static object? Evaluate(BoundExpression expression, VariableDictionary variables)
+    public static object? Evaluate(BoundStatement statement, VariableDictionary variables)
     {
         var evaluator = new Evaluator(variables);
-        evaluator.Visit(expression ?? throw new ArgumentNullException(nameof(expression)));
+        evaluator.Visit(statement ?? throw new ArgumentNullException(nameof(statement)));
         return evaluator.Result;
     }
 }

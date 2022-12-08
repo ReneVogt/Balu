@@ -5,7 +5,7 @@ using Balu.Syntax;
 
 namespace Balu.Visualization;
 
-sealed class BoundTreeWriter : BoundExpressionVisitor
+sealed class BoundTreeWriter : BoundTreeVisitor
 {
     readonly TextWriter writer;
     readonly bool console;
@@ -15,7 +15,7 @@ sealed class BoundTreeWriter : BoundExpressionVisitor
     BoundTreeWriter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
 
     /// <inheritdoc />
-    public override BoundExpression Visit(BoundExpression expression)
+    public override BoundNode Visit(BoundNode node)
     {
         var marker = last ? TreeTexts.LastLeaf : TreeTexts.Leaf;
         writer.Write(indent);
@@ -23,17 +23,17 @@ sealed class BoundTreeWriter : BoundExpressionVisitor
         writer.Write(marker);
         if (console) Console.ResetColor();
 
-        base.Visit(expression);
-        return expression;
+        base.Visit(node);
+        return node;
     }
-    protected override BoundExpression VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
+    protected override BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
         if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
         writer.WriteLine($"{literalExpression.Kind}({literalExpression.Type}) {literalExpression.Value}");
         if (console) Console.ResetColor();
         return literalExpression;
     }
-    protected override BoundExpression VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
+    protected override BoundNode VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
         if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
         writer.WriteLine($"{unaryExpression.Operator.OperatorKind}({unaryExpression.Type})");
@@ -47,7 +47,7 @@ sealed class BoundTreeWriter : BoundExpressionVisitor
         indent = lastIndnet;
         return unaryExpression;
     }
-    protected override BoundExpression VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
+    protected override BoundNode VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
         if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
         writer.WriteLine($"{binaryExpression.Operator.OperatorKind}({binaryExpression.Type})");
@@ -69,5 +69,5 @@ sealed class BoundTreeWriter : BoundExpressionVisitor
     /// </summary>
     /// <param name="boundExpression">The <see cref="ExpressionSyntax"/> to represent.</param>
     /// <param name="textWriter">The <see cref="TextWriter"/> to write the output to.</param>
-    public static void Print(BoundExpression boundExpression, TextWriter textWriter) => new BoundTreeWriter(textWriter).Visit(boundExpression);
+    public static void Print(BoundNode boundNode, TextWriter textWriter) => new BoundTreeWriter(textWriter).Visit(boundNode);
 }

@@ -11,5 +11,5 @@ sealed class BoundLiteralExpression : BoundExpression
 
     public BoundLiteralExpression(object value) => Value = value;
 
-    internal override BoundExpression Accept(BoundExpressionVisitor visitor) => this;
+    internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
 }

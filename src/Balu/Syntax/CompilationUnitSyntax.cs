@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Balu.Text;
 
 namespace Balu.Syntax;
 
@@ -8,9 +9,9 @@ namespace Balu.Syntax;
 public sealed class CompilationUnitSyntax : SyntaxNode
 {
     /// <summary>
-    /// The root expression of this compilation unit.
+    /// The root statement of this compilation unit.
     /// </summary>
-    public ExpressionSyntax Expression { get; }
+    public StatementSyntax Statement { get; }
     /// <summary>
     /// The eof token of this compilation unit.
     /// </summary>
@@ -23,18 +24,18 @@ public sealed class CompilationUnitSyntax : SyntaxNode
     {
         get
         {
-            yield return Expression;
+            yield return Statement;
             yield return EndOfFileToken;
         }
     }
 
-    internal CompilationUnitSyntax(ExpressionSyntax expression, SyntaxToken endOfFileToken) =>
-        (Expression, EndOfFileToken) = (expression, endOfFileToken);
+    internal CompilationUnitSyntax(StatementSyntax statement, SyntaxToken endOfFileToken) =>
+        (Statement, EndOfFileToken) = (statement, endOfFileToken);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
-        var expression = (ExpressionSyntax)visitor.Visit(Expression);
+        var statement = (StatementSyntax)visitor.Visit(Statement);
         var eof = (SyntaxToken)visitor.Visit(EndOfFileToken);
-        return expression != Expression || eof != EndOfFileToken ? CompilationUnit(expression, eof) : this;
+        return statement != Statement || eof != EndOfFileToken ? CompilationUnit(statement, eof) : this;
     }
 }

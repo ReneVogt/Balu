@@ -69,13 +69,13 @@ public sealed class Compilation
         if (analyzisWriter is not null)
         {
             if (showSyntaxTree) SyntaxTreeWriter.Print(SyntaxTree.Root, analyzisWriter);
-            if (showBoundTree) BoundTreeWriter.Print(GlobalScope.Expression, analyzisWriter);
+            if (showBoundTree) BoundTreeWriter.Print(GlobalScope.Statement, analyzisWriter);
         }
 
         var diagnostics = SyntaxTree.Diagnostics.Concat(GlobalScope.Diagnostics).ToArray();
         return diagnostics.Any()
                    ? new(diagnostics, null)
-                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(GlobalScope.Expression, variables));
+                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(GlobalScope.Statement, variables));
     }
 
     /// <summary>
