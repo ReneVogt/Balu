@@ -37,7 +37,7 @@ public class EvaluatorTests
     [InlineData("true != false", true)]
     [InlineData("2 != 3", true)]
     [InlineData("3 != 3", false)]
-    [InlineData("var a = 12 * 12", 144)]
+    [InlineData("{var a = 12 (a = a * 12)}", 144)]
     public void Evaluate(string text, object expectedResult)
     {
         var variables = new VariableDictionary();
