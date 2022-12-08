@@ -12,6 +12,7 @@ internal class Program
         bool showSyntax = false, showBound = false;
         VariableDictionary variables = new();
         StringBuilder textBuilder = new();
+        Compilation? previous = null;
 
         while (true)
         {
@@ -63,7 +64,8 @@ internal class Program
                     SyntaxTreeWriter.Print(syntaxTree.Root, Console.Out);
 
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-                var result = Compilation.Evaluate(syntaxTree, variables, Console.Out, showBoundTree: showBound);
+                var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
+                var result = compilation.Evaluate(variables, Console.Out, showBoundTree: showBound);
                 Console.ResetColor();
                 if (result.Diagnostics.Any())
                 {
@@ -89,6 +91,7 @@ internal class Program
                 }
                 else
                 {
+                    previous = compilation;
                     Console.ForegroundColor = ConsoleColor.Magenta;
                     Console.WriteLine(result.Value);
                     Console.ResetColor();
