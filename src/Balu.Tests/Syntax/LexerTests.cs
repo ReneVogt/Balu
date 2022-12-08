@@ -87,18 +87,21 @@ public class LexerTests
 
     public static IEnumerable<object[]> ProvideTokenPairs() => from left in GetSingleTokens()
                                                                from right in GetSingleTokens()
-                                                               where !(Equals(SyntaxKind.NumberToken, left.kind) &&
-                                                                       Equals(SyntaxKind.NumberToken, right.kind)) &&
-                                                                     !((Equals(SyntaxKind.IdentifierToken, left.kind) ||
-                                                                        left.kind.ToString().EndsWith("Keyword")) &&
-                                                                       (Equals(SyntaxKind.IdentifierToken, right.kind) ||
-                                                                        right.kind.ToString().EndsWith("Keyword"))) &&
-                                                                     !(Equals(SyntaxKind.BangToken, left.kind) &&
-                                                                       (Equals(SyntaxKind.EqualsEqualsToken, right.kind) ||
-                                                                        Equals(SyntaxKind.EqualsToken, right.kind))) &&
-                                                                     !(Equals(SyntaxKind.EqualsToken, left.kind) &&
-                                                                       (Equals(SyntaxKind.EqualsEqualsToken, right.kind) ||
-                                                                        Equals(SyntaxKind.EqualsToken, right.kind)))
+                                                               where (left.kind, right.kind) switch
+                                                               {
+                                                                   (SyntaxKind.NumberToken, SyntaxKind.NumberToken) => false,
+                                                                   (SyntaxKind.IdentifierToken, _) => right.kind != SyntaxKind.IdentifierToken && !right.kind.ToString().EndsWith("Keyword"),
+                                                                   (_, SyntaxKind.IdentifierToken) => left.kind != SyntaxKind.IdentifierToken && !left.kind.ToString().EndsWith("Keyword"),
+                                                                   (SyntaxKind.BangToken, SyntaxKind.EqualsToken) => false,
+                                                                   (SyntaxKind.BangToken, SyntaxKind.EqualsEqualsToken) => false,
+                                                                   (SyntaxKind.EqualsToken, SyntaxKind.EqualsToken) => false,
+                                                                   (SyntaxKind.EqualsToken, SyntaxKind.EqualsEqualsToken) => false,
+                                                                   (SyntaxKind.GreaterThanToken, SyntaxKind.EqualsToken) => false,
+                                                                   (SyntaxKind.GreaterThanToken, SyntaxKind.EqualsEqualsToken) => false,
+                                                                   (SyntaxKind.LessThanToken, SyntaxKind.EqualsToken) => false,
+                                                                   (SyntaxKind.LessThanToken, SyntaxKind.EqualsEqualsToken) => false,
+                                                                   _ => !(left.kind.ToString().EndsWith("Keyword") && right.kind.ToString().EndsWith("Keyword"))
+                                                               }
                                                                select new object[] { left.text, left.kind, right.text, right.kind };
 
     public static IEnumerable<object[]> ProvideSeparatedTokenPairs() => from left in GetSingleTokens()
