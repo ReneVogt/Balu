@@ -50,6 +50,10 @@ sealed class Evaluator : BoundTreeVisitor
             BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
             BoundBinaryOperatorKind.Equals => Equals(left, right),
             BoundBinaryOperatorKind.NotEqual => !Equals(left, right),
+            BoundBinaryOperatorKind.Less => (int)left < (int)right,
+            BoundBinaryOperatorKind.LessOrEquals => (int)left <= (int)right,
+            BoundBinaryOperatorKind.Greater => (int)left > (int)right,
+            BoundBinaryOperatorKind.GreaterOrEquals => (int)left >= (int)right,
             _ => throw EvaluationException.BinaryOperatorCannotBeEvaluated(binaryExpression.Operator.OperatorKind)
         };
         return binaryExpression;
