@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using Balu;
@@ -22,6 +23,7 @@ internal class Program
                 Console.Write(textBuilder.Length == 0 ? "» " : "· ");
                 Console.ResetColor();
                 var line = Console.ReadLine();
+                string? file = null;
                 if (textBuilder.Length == 0)
                 {
                     if (line == "#syntax")
@@ -54,17 +56,30 @@ internal class Program
                     if (line == "#reset")
                     {
                         previous = null;
+                        variables.Clear();
                         continue;
                     }
+
+                    if (line?.StartsWith("#file ") ?? false)
+                        file = line.Substring(6);
 
                     if (string.IsNullOrWhiteSpace(line) || line == "#exit") return;
                 }
 
 
-                textBuilder.AppendLine(line);
-                var text = textBuilder.ToString();
-                var syntaxTree = SyntaxTree.Parse(text);
-                if (!string.IsNullOrWhiteSpace(line) && syntaxTree.Diagnostics.Any()) continue;
+                SyntaxTree syntaxTree;
+                if (file is not null)
+                {
+                    previous = null;
+                    syntaxTree = SyntaxTree.Parse(File.ReadAllText(file));
+                }
+                else
+                {
+                    textBuilder.AppendLine(line);
+                    var text = textBuilder.ToString();
+                    syntaxTree = SyntaxTree.Parse(text);
+                    if (!string.IsNullOrWhiteSpace(line) && syntaxTree.Diagnostics.Any()) continue;
+                }
 
                 if (showSyntax)
                     SyntaxTreeWriter.Print(syntaxTree.Root, Console.Out);
@@ -75,7 +90,7 @@ internal class Program
                 Console.ResetColor();
                 if (result.Diagnostics.Any())
                 {
-                    foreach (var diagnostic in result.Diagnostics.OrderBy(d => d.Span.Start))
+                    foreach (var diagnostic in result.Diagnostics)
                     {
                         Console.ForegroundColor = ConsoleColor.Red;
                         int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.Span.Start);
