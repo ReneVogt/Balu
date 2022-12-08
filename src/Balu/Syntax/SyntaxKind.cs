@@ -47,14 +47,24 @@ public enum SyntaxKind
     SlashToken,
 
     /// <summary>
-    /// An open parenthesis token.
+    /// An open parenthesis '(' token.
     /// </summary>
     OpenParenthesisToken,
 
     /// <summary>
-    /// A closed parenthesis token.
+    /// A closed parenthesis ')' token.
     /// </summary>
     ClosedParenthesisToken,
+
+    /// <summary>
+    /// An open brace '{' token.
+    /// </summary>
+    OpenBraceToken,
+
+    /// <summary>
+    /// A closed brace '}' token.
+    /// </summary>
+    ClosedBraceToken,
 
     /// <summary>
     /// An '=' token.
@@ -134,6 +144,12 @@ public enum SyntaxKind
     /// <summary>
     /// An assignment expression (x = 42).
     /// </summary>
-    AssignmentExpression
+    AssignmentExpression,
+    #endregion
+    #region Statements
+    /// <summary>
+    /// A block statement surrounded by {}
+    /// </summary>
+    BlockStatement
     #endregion
 }

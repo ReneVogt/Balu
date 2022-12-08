@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Balu.Text;
 
@@ -57,7 +58,8 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <param name="text">The original text of this token from the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.WhiteSpaceToken"/>.</returns>
-    public static SyntaxToken WhiteSpace(TextSpan span, string text) => new(SyntaxKind.WhiteSpaceToken, span, text);
+    /// <exception cref="ArgumentNullException"><paramref name="text"/> is <c>null</c>.</exception>
+    public static SyntaxToken WhiteSpace(TextSpan span, string text) => new(SyntaxKind.WhiteSpaceToken, span, text ?? throw new ArgumentNullException(nameof(text)));
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.NumberToken"/>.
     /// </summary>
@@ -65,7 +67,8 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <param name="text">The original text of this token from the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.NumberToken"/>.</returns>
-    public static SyntaxToken Number(int value, TextSpan span, string text) => new(SyntaxKind.NumberToken, span, text, value);
+    /// <exception cref="ArgumentNullException"><paramref name="text"/> is <c>null</c>.</exception>
+    public static SyntaxToken Number(int value, TextSpan span, string text) => new(SyntaxKind.NumberToken, span, text ?? throw new ArgumentNullException(nameof(text)), value);
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PlusToken"/>.
     /// </summary>
@@ -146,7 +149,8 @@ public sealed class SyntaxToken : SyntaxNode
     /// </summary>
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.IdentifierToken"/>.</returns>
-    public static SyntaxToken Identifier(TextSpan span, string name) => new(SyntaxKind.IdentifierToken, span, name);
+    /// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c>.</exception>
+    public static SyntaxToken Identifier(TextSpan span, string name) => new(SyntaxKind.IdentifierToken, span, name ?? throw new ArgumentNullException(nameof(name)));
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TrueKeyword"/>.
