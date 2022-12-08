@@ -1,7 +1,7 @@
 ﻿using Xunit;
 namespace Balu.Tests.TestHelper;
 
-static class EvaluationAsserter
+static class CompilationAsserter
 {
     internal static void AssertEvaluation(this string code, string? diagnostics = null, object? value = null)
     {

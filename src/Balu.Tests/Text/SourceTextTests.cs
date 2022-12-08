@@ -103,7 +103,7 @@ public class SourceTextTests
             ("a\naa\naa\na", new[] { 0, 0, 1, 1, 1, 2, 2, 2, 3, 3 }),
             ("a\naa\naa\r\na", new[] { 0, 0, 1, 1, 1, 2, 2, 2, 2, 3, 3}),
             ("a\naa\r\naa\na", new[] { 0, 0, 1, 1, 1, 1, 2, 2, 2, 3, 3 }),
-            ("a\naa\r\naa\r\na", new[] { 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3 }),
+            ("a\naa\r\naa\r\na", new[] { 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3 })
 
         }.SelectMany(x => x.expectedIndices.Select((expectedIndex, i) => new object[] { x.text, i, expectedIndex }));
 }
