@@ -7,7 +7,16 @@ public sealed class VariableDeclarationSyntax : StatementSyntax
     /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.VariableDeclaration;
     /// <inheritdoc/>
-    public override IEnumerable<SyntaxNode> Children => throw new System.NotImplementedException();
+    public override IEnumerable<SyntaxNode> Children
+    {
+        get
+        {
+            yield return KeywordToken;
+            yield return IdentifierToken;
+            yield return EqualsToken;
+            yield return Expression;
+        }
+    }
 
     public SyntaxToken KeywordToken { get; }
     /// <summary>

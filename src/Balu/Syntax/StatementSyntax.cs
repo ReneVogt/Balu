@@ -50,7 +50,7 @@ public abstract class StatementSyntax : SyntaxNode
     /// <returns>The parsed <see cref="IfStatementSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException">An argument is <c>null</c> (except for <paramref name="elseClause"/>).</exception>
     public static IfStatementSyntax
-        IfStatement(SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause) => new(
+        IfStatement(SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause = null) => new(
         ifKeyword ?? throw new ArgumentNullException(nameof(ifKeyword)), condition ?? throw new ArgumentNullException(nameof(condition)),
         thenStatement ?? throw new ArgumentNullException(nameof(thenStatement)), elseClause);
     /// <summary>
