@@ -55,6 +55,8 @@ public static class SyntaxFacts
         "false" => SyntaxKind.FalseKeyword,
         "let" => SyntaxKind.LetKeyword,
         "var" => SyntaxKind.VarKeyword,
+        "if" => SyntaxKind.IfKeyword,
+        "else" => SyntaxKind.ElseKeyword,
         _ => SyntaxKind.IdentifierToken
     };
 
@@ -87,6 +89,8 @@ public static class SyntaxFacts
         SyntaxKind.FalseKeyword => "false",
         SyntaxKind.LetKeyword => "let",
         SyntaxKind.VarKeyword => "var",
+        SyntaxKind.IfKeyword => "if",
+        SyntaxKind.ElseKeyword => "else",
         _ => null
     };
 
