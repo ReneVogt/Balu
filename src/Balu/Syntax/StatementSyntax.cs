@@ -39,4 +39,27 @@ public abstract class StatementSyntax : SyntaxNode
         identifier ?? throw new ArgumentNullException(nameof(identifier)),
         equals ?? throw new ArgumentNullException(nameof(equals)),
         expression ?? throw new ArgumentNullException(nameof(expression)));
+
+    /// <summary>
+    /// Creates a new <see cref="ElseClauseSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="ifKeyword">The <see cref="SyntaxToken"/> of the 'if' keyword.</param>
+    /// <param name="condition">The <see cref="ExpressionSyntax"/> for the condition.</param>
+    /// <param name="thenStatement">The <see cref="StatementSyntax"/> to use when the <paramref name="condition"/> is true.</param>
+    /// <param name="elseClause">An optional 'else' part.</param>
+    /// <returns>The parsed <see cref="IfStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c> (except for <paramref name="elseClause"/>).</exception>
+    public static IfStatementSyntax
+        IfStatement(SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause) => new(
+        ifKeyword ?? throw new ArgumentNullException(nameof(ifKeyword)), condition ?? throw new ArgumentNullException(nameof(condition)),
+        thenStatement ?? throw new ArgumentNullException(nameof(thenStatement)), elseClause);
+    /// <summary>
+    /// Creates a new <see cref="ElseClauseSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="elseKeyword">The <see cref="SyntaxToken"/> of the 'else' keyword.</param>
+    /// <param name="statement">The <see cref="StatementSyntax"/> for the 'else' part.</param>
+    /// <returns>The parsed <see cref="ElseClauseSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static ElseClauseSyntax Else(SyntaxToken elseKeyword, StatementSyntax statement) => new(
+        elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword)), statement ?? throw new ArgumentNullException(nameof(statement)));
 }

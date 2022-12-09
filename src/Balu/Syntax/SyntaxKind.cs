@@ -141,6 +141,15 @@ public enum SyntaxKind
     /// The <c>var</c> keyword.
     /// </summary>
     VarKeyword,
+
+    /// <summary>
+    /// The 'if' keyword.
+    /// </summary>
+    IfKeyword,
+    /// <summary>
+    /// The 'else' keyword.
+    /// </summary>
+    ElseKeyword,
     #endregion
     #region Nodes
     CompilationUnit,
@@ -190,6 +199,15 @@ public enum SyntaxKind
     /// <summary>
     /// A variable declaration.
     /// </summary>
-    VariableDeclaration
+    VariableDeclaration,
+
+    /// <summary>
+    /// The 'if' statement.
+    /// </summary>
+    IfStatement,
+    /// <summary>
+    /// The 'else' clause.
+    /// </summary>
+    ElseClause
     #endregion
 }
