@@ -64,6 +64,7 @@ sealed class Parser
         SyntaxKind.OpenBraceToken => ParseBlockStatement(), 
         SyntaxKind.LetKeyword or
             SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
+        SyntaxKind.IfKeyword => ParseIfStatement(),
         _ => ParseExpressionStatement()
     };
     BlockStatementSyntax ParseBlockStatement()
@@ -84,6 +85,20 @@ sealed class Parser
         var equals = MatchToken(SyntaxKind.EqualsToken);
         var expression = ParseExpression();
         return StatementSyntax.VariableDeclaration(keyword, identifier, equals, expression);
+    }
+    IfStatementSyntax ParseIfStatement()
+    {
+        var keyword = MatchToken(SyntaxKind.IfKeyword);
+        var condition = ParseExpression();
+        var thenStatement = ParseStatement();
+        ElseClauseSyntax? elseClause = null;
+        if (Current.Kind == SyntaxKind.ElseKeyword)
+        {
+            var elseKeyword = MatchToken(SyntaxKind.ElseKeyword);
+            var elseStatement = ParseStatement();
+            elseClause = StatementSyntax.Else(elseKeyword, elseStatement);
+        }
+        return StatementSyntax.IfStatement(keyword, condition, thenStatement, elseClause);
     }
     ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
     ExpressionSyntax ParseAssignmentExpression() =>

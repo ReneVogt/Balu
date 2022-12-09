@@ -107,6 +107,14 @@ sealed class Binder : SyntaxVisitor
         boundNode = new BoundVariableDeclaration(variable, expression);
         return node;
     }
+    protected override SyntaxNode VisitIfStatement(IfStatementSyntax node)
+    {
+        return node;
+    }
+    protected override SyntaxNode VisitElseClause(ElseClauseSyntax node)
+    {
+        return node;
+    }
 
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {

@@ -29,6 +29,8 @@ public abstract class SyntaxVisitor
             BlockStatementSyntax block => VisitBlockStatement(block),
             ExpressionStatementSyntax expression => VisitExpressionStatement(expression),
             VariableDeclarationSyntax variable => VisitVariableDeclarationStatement(variable),
+            IfStatementSyntax ifStatement => VisitIfStatement(ifStatement),
+            ElseClauseSyntax elseClause => VisitElseClause(elseClause),
             _ => node.Accept(this)
         };
     }
@@ -94,4 +96,16 @@ public abstract class SyntaxVisitor
     /// <param name="node">The <see cref="VariableDeclarationSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     protected virtual SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationSyntax node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="IfStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="IfStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitIfStatement(IfStatementSyntax node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="ElseClauseSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="ElseClauseSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitElseClause(ElseClauseSyntax node) => node.Accept(this);
 }
