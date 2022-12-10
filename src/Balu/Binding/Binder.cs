@@ -135,7 +135,7 @@ sealed class Binder : SyntaxVisitor
         if (condition.Type != typeof(bool))
             diagnostics.ReportUnexpectedExpressionType(node.Condition.Span, typeof(bool), condition.Type);
 
-        Visit(node.Statement);
+        Visit(node.Body);
         var statement = (BoundStatement)boundNode!;
 
         boundNode = new BoundWhileStatement(condition, statement);
