@@ -8,7 +8,7 @@ using Xunit;
 
 namespace Balu.Tests.Syntax;
 
-public class SynaxVisitorTests
+public class SyntaxVisitorTests
 {
     [Fact]
     public void SyntaxVisitor_ImplementsAllVirtualVisits()
@@ -35,7 +35,7 @@ public class SynaxVisitorTests
     [Fact]
     public void SyntaxVisitor_AcceptAndGetChildrenTestedForAllSyntaxNodes()
     {
-        var testedNames = from method in typeof(SynaxVisitorTests).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+        var testedNames = from method in typeof(SyntaxVisitorTests).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                           let match = testingMethodRegex.Match(method.Name)
                           where match.Success && match.Groups.Count == 2 && method.ReturnType == typeof(void) && method.GetParameters().Length == 0 && method.GetCustomAttribute<FactAttribute>() is not null
                           select match.Groups[1].Value;
@@ -154,7 +154,7 @@ public class SynaxVisitorTests
     static readonly Regex visitMethodRegex = new("Visit(.*?)", RegexOptions.Compiled);
     static readonly Regex testingMethodRegex = new("SyntaxVisitor_(.*?)_AcceptVisitsChildren", RegexOptions.Compiled);
     static IEnumerable<Type> GetAllSyntaxNodeTypes() => from type in typeof(SyntaxNode).Assembly.GetExportedTypes()
-                                                        where type != typeof(SyntaxToken) && IsDerivedFromSyntaxNode(type) && type.IsPublic && !type.IsAbstract
+                                                        where type != typeof(SyntaxToken) && typeof(SyntaxNode).IsAssignableFrom(type) && type.IsPublic && !type.IsAbstract
                                                         select type;
 
     static void AssertVisits(SyntaxNode node)
@@ -176,16 +176,5 @@ public class SynaxVisitorTests
             parented = true;
             return base.Visit(node);
         }
-    }
-    static bool IsDerivedFromSyntaxNode(Type t)
-    {
-        if (t == typeof(SyntaxNode)) return true;
-        while (t.BaseType is not null)
-        {
-            t = t.BaseType;
-            if (t == typeof(SyntaxNode)) return true;
-        }
-
-        return false;
     }
 }

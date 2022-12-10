@@ -5,11 +5,10 @@ using Balu.Text;
 using Xunit;
 
 namespace Balu.Tests.Syntax;
-
 public sealed class SyntaxTokenTests
 {
     [Fact]
-    public void SyntaxTokens_ProvidesFactoryForAllTokens()
+    public void SyntaxToken_ProvidesFactoryForAllTokens()
     {
         var expectedMethodNames = from kind in typeof(SyntaxKind).GetEnumNames()
                                   where kind.EndsWith("Token") || kind.EndsWith("Keyword")
