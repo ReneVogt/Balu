@@ -126,4 +126,29 @@ public class EvaluatorTests
 ";
         text.AssertEvaluation(diagnostics);
     }
+
+    [Theory]
+    [InlineData("if true 1", 1)]
+    [InlineData("if false 1", false)]
+    [InlineData("if true 1 else 2", 1)]
+    [InlineData("if false 1 else 2", 2)]
+    [InlineData("{ var a = 10 if a == 10 a = 5 a }", 5)]
+    [InlineData("{ var a = 10 if a != 10 a = 5 a }", 10)]
+    [InlineData("{ var a = 10 if a == 10 a = 5 else a = 20 a }", 5)]
+    [InlineData("{ var a = 10 if a != 10 a = 5 else a = 20 a }", 20)]
+    public void Evaluate_IfStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
+//    [Fact]
+//    public void Evaluate_ElseClause_Reports_UnexpectedToken()
+//    {
+//        const string text = @"
+//                {
+//                    var x = 10
+//                    [else] x = 12
+//                }
+//";
+//        const string diagnostics = @"
+//            Variable 'x' is already declared.
+//";
+//        text.AssertEvaluation(diagnostics);
+//    }
 }
