@@ -51,12 +51,14 @@ public static class SyntaxFacts
     /// <returns>The <see cref="SyntaxKind"/> of the given keyword, or <see cref="SyntaxKind.IdentifierToken"/> if it's not a keyword.</returns>
     public static SyntaxKind KeywordKind(this string literal) => literal switch
     {
-        "true" => SyntaxKind.TrueKeyword,
-        "false" => SyntaxKind.FalseKeyword,
-        "let" => SyntaxKind.LetKeyword,
-        "var" => SyntaxKind.VarKeyword,
-        "if" => SyntaxKind.IfKeyword,
         "else" => SyntaxKind.ElseKeyword,
+        "for" => SyntaxKind.ForKeyword,
+        "false" => SyntaxKind.FalseKeyword,
+        "if" => SyntaxKind.IfKeyword,
+        "let" => SyntaxKind.LetKeyword,
+        "to" => SyntaxKind.ToKeyword,
+        "true" => SyntaxKind.TrueKeyword,
+        "var" => SyntaxKind.VarKeyword,
         "while" => SyntaxKind.WhileKeyword,
         _ => SyntaxKind.IdentifierToken
     };
@@ -93,6 +95,8 @@ public static class SyntaxFacts
         SyntaxKind.IfKeyword => "if",
         SyntaxKind.ElseKeyword => "else",
         SyntaxKind.WhileKeyword => "while",
+        SyntaxKind.ForKeyword => "for",
+        SyntaxKind.ToKeyword => "to",
         _ => null
     };
 

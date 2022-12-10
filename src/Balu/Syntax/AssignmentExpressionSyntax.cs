@@ -10,7 +10,7 @@ public sealed class AssignmentExpressionSyntax : ExpressionSyntax
     /// <summary>
     /// The identifier token that identifies the target of the assignment.
     /// </summary>
-    public SyntaxToken IdentifierrToken { get; }
+    public SyntaxToken IdentifierToken { get; }
     /// <summary>
     /// The equals token of this assignment.
     /// </summary>
@@ -27,20 +27,20 @@ public sealed class AssignmentExpressionSyntax : ExpressionSyntax
     {
         get
         {
-            yield return IdentifierrToken;
+            yield return IdentifierToken;
             yield return EqualsToken;
             yield return Expression;
         }
     }
 
     internal AssignmentExpressionSyntax(SyntaxToken identifierrToken, SyntaxToken equalsToken, ExpressionSyntax expression) =>
-        (IdentifierrToken, EqualsToken, Expression) = (identifierrToken, equalsToken, expression);
+        (IdentifierToken, EqualsToken, Expression) = (identifierrToken, equalsToken, expression);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
-        SyntaxToken identifierToken = (SyntaxToken)visitor.Visit(IdentifierrToken);
+        SyntaxToken identifierToken = (SyntaxToken)visitor.Visit(IdentifierToken);
         SyntaxToken equalsToken = (SyntaxToken)visitor.Visit(EqualsToken);
         ExpressionSyntax expression = (ExpressionSyntax)visitor.Visit(Expression);
-        return identifierToken != IdentifierrToken || equalsToken != EqualsToken || expression != Expression ? Assignment(identifierToken, equalsToken, expression) : this;
+        return identifierToken != IdentifierToken || equalsToken != EqualsToken || expression != Expression ? Assignment(identifierToken, equalsToken, expression) : this;
     }
 }

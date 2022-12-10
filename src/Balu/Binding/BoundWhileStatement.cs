@@ -6,7 +6,7 @@ sealed class BoundWhileStatement : BoundStatement
     public BoundExpression Condition { get; }
     public BoundStatement Body { get; }
 
-    public BoundWhileStatement(BoundExpression condition, BoundStatement statement) => (Condition, Body) = (condition, statement);
+    public BoundWhileStatement(BoundExpression condition, BoundStatement body) => (Condition, Body) = (condition, body);
 
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {

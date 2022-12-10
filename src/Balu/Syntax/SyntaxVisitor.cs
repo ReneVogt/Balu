@@ -33,6 +33,7 @@ public abstract class SyntaxVisitor
             IfStatementSyntax ifStatement => VisitIfStatement(ifStatement),
             ElseClauseSyntax elseClause => VisitElseClause(elseClause),
             WhileStatementSyntax whileStatement => VisitWhileStatement(whileStatement),
+            ForStatementSyntax forStatement => VisitForStatement(forStatement),
             _ => node.Accept(this)
         };
     }
@@ -122,4 +123,10 @@ public abstract class SyntaxVisitor
     /// <param name="node">The <see cref="WhileStatementSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     protected virtual SyntaxNode VisitWhileStatement(WhileStatementSyntax node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="ForStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="ForStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitForStatement(ForStatementSyntax node) => node.Accept(this);
 }

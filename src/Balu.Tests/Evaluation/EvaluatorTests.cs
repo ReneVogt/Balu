@@ -177,4 +177,18 @@ public class EvaluatorTests
 ";
         text.AssertEvaluation(diagnostics);
     }
+
+    [Theory]
+    [InlineData("{ var result = 0 for i=0 to 10 result=result+i result }", 55)]
+    public void Evaluate_ForStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
+    [Fact]
+    public void Evaluate_ForStatement_Reports_WrongBoundaryTypes()
+    {
+        const string text = "{for i= [1>2] to [2>1] 12}";
+        const string diagnostics = @"
+            Unexpected expression type 'Boolean', expected 'Int32'.
+            Unexpected expression type 'Boolean', expected 'Int32'.
+";
+        text.AssertEvaluation(diagnostics);
+    }
 }

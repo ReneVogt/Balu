@@ -76,4 +76,26 @@ public abstract class StatementSyntax : SyntaxNode
         whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword)), condition ?? throw new ArgumentNullException(nameof(condition)),
         body ?? throw new ArgumentNullException(nameof(body)));
 
+    /// <summary>
+    /// Creates a new <see cref="ForStatementSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="forKeyword">The <see cref="SyntaxToken"/> of the 'for' keyword.</param>
+    /// <param name="identifier">The <see cref="SyntaxToken"/> of the loop variable.</param>
+    /// <param name="equals">The <see cref="SyntaxToken"/> of equals sign.</param>
+    /// <param name="lowerBound">The <see cref="ExpressionSyntax"/> for the lower bound.</param>
+    /// <param name="toKeyword">The <see cref="SyntaxToken"/> of the 'to' keyword.</param>
+    /// <param name="upperBound">The <see cref="ExpressionSyntax"/> for the upper bound.</param>
+    /// <param name="body">The <see cref="StatementSyntax"/> to execute in the loop.</param>
+    /// <returns>The parsed <see cref="ForStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static ForStatementSyntax
+        ForStatement(SyntaxToken forKeyword, SyntaxToken identifier, SyntaxToken equals, ExpressionSyntax lowerBound, SyntaxToken toKeyword, ExpressionSyntax upperBound, StatementSyntax body) => new(
+        forKeyword ?? throw new ArgumentNullException(nameof(forKeyword)),
+        identifier ?? throw new ArgumentNullException(nameof(identifier)),
+        equals ?? throw new ArgumentNullException(nameof(equals)),
+        lowerBound ?? throw new ArgumentNullException(nameof(lowerBound)),
+        toKeyword ?? throw new ArgumentNullException(nameof(toKeyword)),
+        upperBound ?? throw new ArgumentNullException(nameof(upperBound)),
+        body ?? throw new ArgumentNullException(nameof(body)));
+
 }

@@ -230,4 +230,16 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.WhileKeyword"/>.</returns>
     public static SyntaxToken WhileKeyword(TextSpan span) => new(SyntaxKind.WhileKeyword, span, SyntaxKind.WhileKeyword.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ForKeyword"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ForKeyword"/>.</returns>
+    public static SyntaxToken ForKeyword(TextSpan span) => new(SyntaxKind.ForKeyword, span, SyntaxKind.ForKeyword.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ToKeyword"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ToKeyword"/>.</returns>
+    public static SyntaxToken ToKeyword(TextSpan span) => new(SyntaxKind.ToKeyword, span, SyntaxKind.ToKeyword.GetText()!);
 }
