@@ -12,7 +12,9 @@ sealed class BoundUnaryOperator
         [(SyntaxKind.PlusToken, typeof(int))] =
             new (SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, typeof(int), typeof(int)),
         [(SyntaxKind.BangToken, typeof(bool))] =
-            new(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, typeof(bool), typeof(bool))
+            new(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, typeof(bool), typeof(bool)),
+        [(SyntaxKind.TildeToken, typeof(int))] =
+                new(SyntaxKind.TildeToken, BoundUnaryOperatorKind.BitwiseNegation, typeof(int), typeof(int))
     };
 
     public SyntaxKind SyntaxKind { get; }

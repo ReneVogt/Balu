@@ -72,6 +72,7 @@ sealed class Lexer
                     ('|', '|') => SyntaxKind.PipePipeToken,
                     ('|', _) => SyntaxKind.PipeToken,
                     ('^', _) => SyntaxKind.CircumflexToken,
+                    ('~', _) => SyntaxKind.TildeToken,
                     ('>', '=') => SyntaxKind.GreaterOrEqualsToken,
                     ('>', _) => SyntaxKind.GreaterToken,
                     ('<', '=') => SyntaxKind.LessOrEqualsToken,

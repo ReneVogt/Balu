@@ -160,6 +160,12 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.CircumflexToken"/>.</returns>
     public static SyntaxToken Circumflex(TextSpan span) => new(SyntaxKind.CircumflexToken, span, SyntaxKind.CircumflexToken.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TildeToken"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TildeToken"/>.</returns>
+    public static SyntaxToken Tilde(TextSpan span) => new(SyntaxKind.TildeToken, span, SyntaxKind.TildeToken.GetText()!);
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsEqualsToken"/>.
