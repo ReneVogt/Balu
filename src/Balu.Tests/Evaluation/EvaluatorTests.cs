@@ -52,7 +52,7 @@ public class EvaluatorTests
     [InlineData("5 > 5", false)]
     [InlineData("5 <= 5", true)]
     [InlineData("5 >= 5", true)]
-    public void Evaluate_Expression(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
+    public void Evaluate_Expression_CorrectResults(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
 
     [Theory]
     [InlineData("[!]1", "Unary operator '!' cannot be applied to type 'Int32'.")]
@@ -110,6 +110,17 @@ public class EvaluatorTests
     [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'Int32' to 'Boolean'.")]
     public void Evaluate_Assignment_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
 
+
+    [Fact]
+    public void Evaluate_BlockStatement_NoInfiniteLoop()
+    {
+        const string text = "{[)][]";
+        var diagnostics = $@"
+            Unexpected ClosedParenthesisToken (')'), expected IdentifierToken.
+            Unexpected EndOfFileToken ('{'\0'}'), expected ClosedBraceToken.";
+        text.AssertEvaluation(diagnostics);
+    }
+
     [Fact]
     public void Evaluate_VariableDeclaration_Reports_Redeclaration()
     {
@@ -148,20 +159,20 @@ public class EvaluatorTests
 ";
         text.AssertEvaluation(diagnostics);
     }
-    //    [Fact]
-    //    public void Evaluate_ElseClause_Reports_UnexpectedToken()
-    //    {
-    //        const string text = @"
-    //                {
-    //                    var x = 10
-    //                    [else] x = 12
-    //                }
-    //";
-    //        const string diagnostics = @"
-    //            Variable 'x' is already declared.
-    //";
-    //        text.AssertEvaluation(diagnostics);
-    //    }
+    [Fact]
+    public void Evaluate_ElseClause_Reports_UnexpectedToken()
+    {
+        const string text = @"
+                    {
+                        var x = 10
+                        [else] x = 12
+                    }
+    ";
+        const string diagnostics = @"
+                Unexpected ElseKeyword ('else'), expected IdentifierToken.
+    ";
+        text.AssertEvaluation(diagnostics);
+    }
 
     [Theory]
     [InlineData("{ var x = 0 while (x < 12) x = x + 1 x }", 12)]

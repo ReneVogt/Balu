@@ -73,8 +73,19 @@ sealed class Parser
     {
         var open = MatchToken(SyntaxKind.OpenBraceToken);
         var statements = new List<StatementSyntax>();
-        while(Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.ClosedBraceToken)
+        while (Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.ClosedBraceToken)
+        {
+            var currentToken = Current;
             statements.Add(ParseStatement());
+            
+            // Check if we consumend a token.
+            // If not, we need to skip this, because
+            // othwrwise we end up in an infinit loop.
+            // Error will be reported by the unfinished
+            // statement.
+            if (currentToken == Current) NextToken();
+        }
+
         var closed = MatchToken(SyntaxKind.ClosedBraceToken);
         return StatementSyntax.BlockStatement(open, statements, closed);
     }
