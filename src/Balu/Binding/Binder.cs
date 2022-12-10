@@ -112,7 +112,7 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
         if (condition.Type != typeof(bool))
-            diagnostics.ReportIfConditionNotBool(node.Condition.Span);
+            diagnostics.ReportUnexpectedExpressionType(node.Condition.Span, typeof(bool), condition.Type);
 
         Visit(node.ThenStatement);
         var thenStatement = (BoundStatement)boundNode!;
@@ -126,10 +126,6 @@ sealed class Binder : SyntaxVisitor
 
         boundNode = new BoundIfStatement(condition, thenStatement, elseStatement);
 
-        return node;
-    }
-    protected override SyntaxNode VisitElseClause(ElseClauseSyntax node)
-    {
         return node;
     }
 
