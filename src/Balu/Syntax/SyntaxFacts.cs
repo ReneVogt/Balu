@@ -17,9 +17,9 @@ public static class SyntaxFacts
     public static int UnaryOperatorPrecedence(this SyntaxKind kind) => kind switch
     {
         SyntaxKind.PlusToken or
-            SyntaxKind.MinusToken => 100,
-        SyntaxKind.BangToken => 100,
-        SyntaxKind.TildeToken => 50,
+            SyntaxKind.MinusToken or
+            SyntaxKind.BangToken or 
+            SyntaxKind.TildeToken => 100,
         _ => 0
     };
     /// <summary>
