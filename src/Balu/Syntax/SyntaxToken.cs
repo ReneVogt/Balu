@@ -131,6 +131,12 @@ public sealed class SyntaxToken : SyntaxNode
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BangToken"/>.</returns>
     public static SyntaxToken Bang(TextSpan span) => new(SyntaxKind.BangToken, span, SyntaxKind.BangToken.GetText()!);
     /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.AmpersandToken"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.AmpersandToken"/>.</returns>
+    public static SyntaxToken Ampersand(TextSpan span) => new(SyntaxKind.AmpersandToken, span, SyntaxKind.AmpersandToken.GetText()!);
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.AmpersandAmpersandToken"/>.
     /// </summary>
     /// <param name="span">The position of this token in the input code.</param>
@@ -142,6 +148,18 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PipePipeToken"/>.</returns>
     public static SyntaxToken PipePipe(TextSpan span) => new(SyntaxKind.PipePipeToken, span, SyntaxKind.PipePipeToken.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PipeToken"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PipeToken"/>.</returns>
+    public static SyntaxToken Pipe(TextSpan span) => new(SyntaxKind.PipeToken, span, SyntaxKind.PipeToken.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.CircumflexToken"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.CircumflexToken"/>.</returns>
+    public static SyntaxToken Circumflex(TextSpan span) => new(SyntaxKind.CircumflexToken, span, SyntaxKind.CircumflexToken.GetText()!);
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EqualsEqualsToken"/>.
