@@ -2,7 +2,7 @@
 
 namespace Balu.Syntax;
 
-public sealed class VariableDeclarationSyntax : StatementSyntax
+public sealed class VariableDeclarationStatementSyntax : StatementSyntax
 {
     /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.VariableDeclaration;
@@ -32,7 +32,7 @@ public sealed class VariableDeclarationSyntax : StatementSyntax
     /// </summary>
     public ExpressionSyntax Expression { get; }
 
-    internal VariableDeclarationSyntax(SyntaxToken keywordToken, SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression)
+    internal VariableDeclarationStatementSyntax(SyntaxToken keywordToken, SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression)
     {
         KeywordToken = keywordToken;
         IdentifierToken = identifierToken;

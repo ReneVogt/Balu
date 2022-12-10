@@ -28,12 +28,12 @@ public abstract class StatementSyntax : SyntaxNode
     /// <exception cref="ArgumentNullException"><paramref name="expression"/> is <c>null</c>.</exception>
     public static ExpressionStatementSyntax ExpressionStatement(ExpressionSyntax expression) => new(expression ?? throw new ArgumentNullException(nameof(expression)));
     /// <summary>
-    /// Creates a new <see cref="VariableDeclarationSyntax"/> from the given elements.
+    /// Creates a new <see cref="VariableDeclarationStatementSyntax"/> from the given elements.
     /// </summary>
     /// <param name="expression">The underlying <see cref="ExpressionSyntax"/> of the statement.</param>
     /// <returns>The parsed <see cref="ExpressionStatementSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
-    public static VariableDeclarationSyntax VariableDeclaration(SyntaxToken keyword, SyntaxToken identifier, SyntaxToken equals,
+    public static VariableDeclarationStatementSyntax VariableDeclaration(SyntaxToken keyword, SyntaxToken identifier, SyntaxToken equals,
                                                                 ExpressionSyntax expression) => new(
         keyword ?? throw new ArgumentNullException(nameof(keyword)),
         identifier ?? throw new ArgumentNullException(nameof(identifier)),

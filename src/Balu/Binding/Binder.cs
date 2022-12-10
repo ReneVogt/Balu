@@ -94,7 +94,7 @@ sealed class Binder : SyntaxVisitor
         boundNode = new BoundExpressionStatement((BoundExpression)boundNode!);
         return node;
     }
-    protected override SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationSyntax node)
+    protected override SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationStatementSyntax node)
     {
         Visit(node.Expression);
         var expression = (BoundExpression)boundNode!;

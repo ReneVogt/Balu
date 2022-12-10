@@ -77,7 +77,7 @@ sealed class Parser
         return StatementSyntax.BlockStatement(open, statements, closed);
     }
     ExpressionStatementSyntax ParseExpressionStatement() => StatementSyntax.ExpressionStatement(ParseExpression());
-    VariableDeclarationSyntax ParseVariableDeclarationStatement()
+    VariableDeclarationStatementSyntax ParseVariableDeclarationStatement()
     {
         var expectedKeyword = Current.Kind == SyntaxKind.LetKeyword ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword;
         var keyword = MatchToken(expectedKeyword);

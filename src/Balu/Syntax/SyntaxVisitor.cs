@@ -20,6 +20,7 @@ public abstract class SyntaxVisitor
         return node switch
         {
             SyntaxToken token => VisitToken(token),
+            CompilationUnitSyntax compilationUnit => VisitCompilationUnit(compilationUnit),
             LiteralExpressionSyntax literal => VisitLiteralExpression(literal),
             UnaryExpressionSyntax unary => VisitUnaryExpression(unary),
             BinaryExpressionSyntax binary => VisitBinaryExpression(binary),
@@ -28,7 +29,7 @@ public abstract class SyntaxVisitor
             AssignmentExpressionSyntax assignment => VisitAssignmentExpression(assignment),
             BlockStatementSyntax block => VisitBlockStatement(block),
             ExpressionStatementSyntax expression => VisitExpressionStatement(expression),
-            VariableDeclarationSyntax variable => VisitVariableDeclarationStatement(variable),
+            VariableDeclarationStatementSyntax variable => VisitVariableDeclarationStatement(variable),
             IfStatementSyntax ifStatement => VisitIfStatement(ifStatement),
             ElseClauseSyntax elseClause => VisitElseClause(elseClause),
             _ => node.Accept(this)
@@ -41,6 +42,12 @@ public abstract class SyntaxVisitor
     /// <param name="node">The <see cref="SyntaxToken"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxToken"/>.</returns>
     protected virtual SyntaxNode VisitToken(SyntaxToken node) => node.Accept(this);
+    /// <summary>
+    /// Visits a <see cref="CompilationUnitSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="CompilationUnitSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    protected virtual SyntaxNode VisitCompilationUnit(CompilationUnitSyntax node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="LiteralExpressionSyntax"/>.
     /// </summary>
@@ -64,7 +71,7 @@ public abstract class SyntaxVisitor
     /// </summary>
     /// <param name="node">The <see cref="ParenthesizedExpressionSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    protected virtual SyntaxNode VisitParenthesizedExpression(SyntaxNode node) => node.Accept(this);
+    protected virtual SyntaxNode VisitParenthesizedExpression(ParenthesizedExpressionSyntax node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="NameExpressionSyntax"/>.
     /// </summary>
@@ -91,11 +98,11 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     protected virtual SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node) => node.Accept(this);
     /// <summary>
-    /// Visits a <see cref="VariableDeclarationSyntax"/>.
+    /// Visits a <see cref="VariableDeclarationStatementSyntax"/>.
     /// </summary>
-    /// <param name="node">The <see cref="VariableDeclarationSyntax"/> to visit.</param>
+    /// <param name="node">The <see cref="VariableDeclarationStatementSyntax"/> to visit.</param>
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
-    protected virtual SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationSyntax node) => node.Accept(this);
+    protected virtual SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationStatementSyntax node) => node.Accept(this);
     /// <summary>
     /// Visits a <see cref="IfStatementSyntax"/>.
     /// </summary>
