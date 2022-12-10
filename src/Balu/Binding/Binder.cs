@@ -112,7 +112,7 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
         if (condition.Type != typeof(bool))
-            diagnostics.ReportUnexpectedExpressionType(node.Condition.Span, typeof(bool), condition.Type);
+            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, typeof(bool));
 
         Visit(node.ThenStatement);
         var thenStatement = (BoundStatement)boundNode!;
@@ -133,7 +133,7 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
         if (condition.Type != typeof(bool))
-            diagnostics.ReportUnexpectedExpressionType(node.Condition.Span, typeof(bool), condition.Type);
+            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, typeof(bool));
 
         Visit(node.Body);
         var statement = (BoundStatement)boundNode!;
@@ -147,11 +147,11 @@ sealed class Binder : SyntaxVisitor
         Visit(node.LowerBound);
         var lowerBound = (BoundExpression)boundNode!;
         if (lowerBound.Type != typeof(int))
-            diagnostics.ReportUnexpectedExpressionType(node.LowerBound.Span, typeof(int), lowerBound.Type);
+            diagnostics.ReportCannotConvert(node.LowerBound.Span, lowerBound.Type, typeof(int));
         Visit(node.UpperBound);
         var upperBound = (BoundExpression)boundNode!;
         if (upperBound.Type != typeof(int))
-            diagnostics.ReportUnexpectedExpressionType(node.UpperBound.Span, typeof(int), upperBound.Type);
+            diagnostics.ReportCannotConvert(node.UpperBound.Span, upperBound.Type, typeof(int));
 
         var name = node.IdentifierToken.Text;
         var variable = new VariableSymbol(name, true, typeof(int));

@@ -144,7 +144,7 @@ public class EvaluatorTests
     {
         const string text = "if [(12 + 3)] 1 else 0";
         const string diagnostics = @"
-            Unexpected expression type 'Int32', expected 'Boolean'.
+            Cannot convert 'Int32' to 'Boolean'.
 ";
         text.AssertEvaluation(diagnostics);
     }
@@ -173,7 +173,7 @@ public class EvaluatorTests
     {
         const string text = "{var a=0 while [(12 + 3)] a = a + 1 }";
         const string diagnostics = @"
-            Unexpected expression type 'Int32', expected 'Boolean'.
+            Cannot convert 'Int32' to 'Boolean'.
 ";
         text.AssertEvaluation(diagnostics);
     }
@@ -186,8 +186,8 @@ public class EvaluatorTests
     {
         const string text = "{for i= [1>2] to [2>1] 12}";
         const string diagnostics = @"
-            Unexpected expression type 'Boolean', expected 'Int32'.
-            Unexpected expression type 'Boolean', expected 'Int32'.
+            Cannot convert 'Boolean' to 'Int32'.
+            Cannot convert 'Boolean' to 'Int32'.
 ";
         text.AssertEvaluation(diagnostics);
     }
