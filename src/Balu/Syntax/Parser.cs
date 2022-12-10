@@ -65,6 +65,7 @@ sealed class Parser
         SyntaxKind.LetKeyword or
             SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
         SyntaxKind.IfKeyword => ParseIfStatement(),
+        SyntaxKind.WhileKeyword => ParseWhileStatement(),
         _ => ParseExpressionStatement()
     };
     BlockStatementSyntax ParseBlockStatement()
@@ -99,6 +100,13 @@ sealed class Parser
             elseClause = StatementSyntax.Else(elseKeyword, elseStatement);
         }
         return StatementSyntax.IfStatement(keyword, condition, thenStatement, elseClause);
+    }
+    WhileStatementSyntax ParseWhileStatement()
+    {
+        var keyword = MatchToken(SyntaxKind.WhileKeyword);
+        var condition = ParseExpression();
+        var statement = ParseStatement();
+        return StatementSyntax.WhileStatement(keyword, condition, statement);
     }
     ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
     ExpressionSyntax ParseAssignmentExpression() =>

@@ -224,4 +224,10 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ElseKeyword"/>.</returns>
     public static SyntaxToken ElseKeyword(TextSpan span) => new(SyntaxKind.ElseKeyword, span, SyntaxKind.ElseKeyword.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.WhileKeyword"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.WhileKeyword"/>.</returns>
+    public static SyntaxToken WhileKeyword(TextSpan span) => new(SyntaxKind.WhileKeyword, span, SyntaxKind.WhileKeyword.GetText()!);
 }

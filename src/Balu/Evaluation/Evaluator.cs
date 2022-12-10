@@ -83,6 +83,19 @@ sealed class Evaluator : BoundTreeVisitor
         else if (ifStatemnet.ElseStatement is not null) Visit(ifStatemnet.ElseStatement);
         return ifStatemnet;
     }
+    protected override BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatemnet)
+    {
+        bool goon;
+        do
+        {
+            Visit(whileStatemnet.Condition);
+            goon = (bool)Result!;
+            if (goon)
+                Visit(whileStatemnet.Statement);
+        } while (goon);
+
+        return whileStatemnet;
+    }
 
     public static object? Evaluate(BoundStatement statement, VariableDictionary variables)
     {

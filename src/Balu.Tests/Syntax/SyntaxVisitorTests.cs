@@ -150,6 +150,15 @@ public class SyntaxVisitorTests
         var statement = StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression);
         AssertVisits(statement);
     }
+    [Fact]
+    public void SyntaxVisitor_WhileStatementSyntax_AcceptVisitsChildren()
+    {
+        var keyword = SyntaxToken.WhileKeyword(default);
+        var condition = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
+        var inner = StatementSyntax.ExpressionStatement(condition);
+        var statement = StatementSyntax.WhileStatement(keyword, condition, inner);
+        AssertVisits(statement);
+    }
 
     static readonly Regex visitMethodRegex = new("Visit(.*?)", RegexOptions.Compiled);
     static readonly Regex testingMethodRegex = new("SyntaxVisitor_(.*?)_AcceptVisitsChildren", RegexOptions.Compiled);
