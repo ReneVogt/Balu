@@ -147,7 +147,7 @@ public class SyntaxVisitorTests
         var identifier = SyntaxToken.Identifier(default, string.Empty);
         var equals = SyntaxToken.Equals(default);
         var expression = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var statement = StatementSyntax.VariableDeclaration(keyword, identifier, equals, expression);
+        var statement = StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression);
         AssertVisits(statement);
     }
 

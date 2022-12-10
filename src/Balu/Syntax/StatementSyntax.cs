@@ -33,7 +33,7 @@ public abstract class StatementSyntax : SyntaxNode
     /// <param name="expression">The underlying <see cref="ExpressionSyntax"/> of the statement.</param>
     /// <returns>The parsed <see cref="ExpressionStatementSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
-    public static VariableDeclarationStatementSyntax VariableDeclaration(SyntaxToken keyword, SyntaxToken identifier, SyntaxToken equals,
+    public static VariableDeclarationStatementSyntax VariableDeclarationStatement(SyntaxToken keyword, SyntaxToken identifier, SyntaxToken equals,
                                                                 ExpressionSyntax expression) => new(
         keyword ?? throw new ArgumentNullException(nameof(keyword)),
         identifier ?? throw new ArgumentNullException(nameof(identifier)),
