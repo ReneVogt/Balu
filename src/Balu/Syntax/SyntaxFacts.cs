@@ -40,8 +40,11 @@ public static class SyntaxFacts
             SyntaxKind.LessToken or
             SyntaxKind.LessOrEqualsToken => 5,
 
-        SyntaxKind.AmpersandAmpersandToken => 2,
-        SyntaxKind.PipePipeToken => 1,
+        SyntaxKind.AmpersandToken or
+            SyntaxKind.AmpersandAmpersandToken => 2,
+        SyntaxKind.PipeToken or
+            SyntaxKind.PipePipeToken or
+            SyntaxKind.CircumflexToken => 1,
         _ => 0
     };
     /// <summary>
@@ -80,8 +83,11 @@ public static class SyntaxFacts
         SyntaxKind.ClosedBraceToken => "}",
         SyntaxKind.EqualsToken => "=",
         SyntaxKind.BangToken => "!",
+        SyntaxKind.AmpersandToken => "&",
         SyntaxKind.AmpersandAmpersandToken => "&&",
+        SyntaxKind.PipeToken => "|",
         SyntaxKind.PipePipeToken => "||",
+        SyntaxKind.CircumflexToken => "^",
         SyntaxKind.EqualsEqualsToken => "==",
         SyntaxKind.BangEqualsToken => "!=",
         SyntaxKind.GreaterToken => ">",

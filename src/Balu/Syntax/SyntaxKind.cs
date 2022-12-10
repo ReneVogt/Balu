@@ -77,14 +77,27 @@ public enum SyntaxKind
     BangToken,
 
     /// <summary>
+    /// A '&' token.
+    /// </summary>
+    AmpersandToken,
+    /// <summary>
     /// A '&&' token.
     /// </summary>
     AmpersandAmpersandToken,
 
     /// <summary>
+    /// A '|' token.
+    /// </summary>
+    PipeToken,
+    /// <summary>
     /// A '||' token.
     /// </summary>
     PipePipeToken,
+
+    /// <summary>
+    /// A '^' token.
+    /// </summary>
+    CircumflexToken,
 
     /// <summary>
     /// A '==' token.

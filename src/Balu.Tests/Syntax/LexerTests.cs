@@ -100,6 +100,10 @@ public class LexerTests
                                                                    (SyntaxKind.GreaterToken, SyntaxKind.EqualsEqualsToken) => false,
                                                                    (SyntaxKind.LessToken, SyntaxKind.EqualsToken) => false,
                                                                    (SyntaxKind.LessToken, SyntaxKind.EqualsEqualsToken) => false,
+                                                                   (SyntaxKind.AmpersandToken, SyntaxKind.AmpersandToken) => false,
+                                                                   (SyntaxKind.AmpersandToken, SyntaxKind.AmpersandAmpersandToken) => false,
+                                                                   (SyntaxKind.PipeToken, SyntaxKind.PipeToken) => false,
+                                                                   (SyntaxKind.PipeToken, SyntaxKind.PipePipeToken) => false,
                                                                    _ => !(left.kind.ToString().EndsWith("Keyword") && right.kind.ToString().EndsWith("Keyword"))
                                                                }
                                                                select new object[] { left.text, left.kind, right.text, right.kind };
