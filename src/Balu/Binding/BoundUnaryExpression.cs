@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -6,6 +7,13 @@ sealed class BoundUnaryExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
     public override Type Type => Operator.Type;
+    public override IEnumerable<BoundNode> Children
+    {
+        get
+        {
+            yield return Operand;
+        }
+    }
 
     public BoundUnaryOperator Operator { get; }
     public BoundExpression Operand { get; }

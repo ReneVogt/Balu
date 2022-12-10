@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -6,6 +7,14 @@ sealed class BoundBinaryExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
     public override Type Type => Operator.Type;
+    public override IEnumerable<BoundNode> Children
+    {
+        get
+        {
+            yield return Left;
+            yield return Right;
+        }
+    }
 
     public BoundExpression Left { get; }
     public BoundBinaryOperator Operator { get; }

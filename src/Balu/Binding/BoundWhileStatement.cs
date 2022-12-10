@@ -1,8 +1,19 @@
-﻿namespace Balu.Binding;
+﻿using System.Collections.Generic;
+
+namespace Balu.Binding;
 
 sealed class BoundWhileStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.WhileStatement;
+    public override IEnumerable<BoundNode> Children
+    {
+        get
+        {
+            yield return Condition;
+            yield return Body;
+        }
+    }
+
     public BoundExpression Condition { get; }
     public BoundStatement Body { get; }
 
