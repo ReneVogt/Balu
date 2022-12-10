@@ -58,20 +58,11 @@ public sealed class Compilation
     /// Evaluates the <see cref="SyntaxTree"/>.
     /// </summary>
     /// <param name="variables">A <see cref="VariableDictionary"/> for storing variables and their values.</param>
-    /// <param name="analyzisWriter">An optional <see cref="TextWriter"/> to write syntax and/or bound tree to.</param>
-    /// <param name="showSyntaxTree">Indicates wether the syntax tree should be written to the <paramref name="analyzisWriter"/>.</param>
-    /// <param name="showBoundTree">Indicates wether the bound tree should be written to the <paramref name="analyzisWriter"/>.</param>
     /// <returns>An <see cref="EvaluationResult"/> containing the result of the evaluation or error messages.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="variables"/> is <c>>null</c>.</exception>
-    public EvaluationResult Evaluate(VariableDictionary variables, TextWriter? analyzisWriter = null, bool showSyntaxTree = false, bool showBoundTree = false)
+    public EvaluationResult Evaluate(VariableDictionary variables)
     {
         _ = variables ?? throw new ArgumentNullException(nameof(variables));
-        if (analyzisWriter is not null)
-        {
-            if (showSyntaxTree) SyntaxTreeWriter.Print(SyntaxTree.Root, analyzisWriter);
-            if (showBoundTree) BoundTreeWriter.Print(GlobalScope.Statement, analyzisWriter);
-        }
-
         var diagnostics = SyntaxTree.Diagnostics.Concat(GlobalScope.Diagnostics).ToArray();
         return diagnostics.Any()
                    ? new(diagnostics, null)
@@ -79,26 +70,34 @@ public sealed class Compilation
     }
 
     /// <summary>
+    /// Writes a text representation of the <see cref="SyntaxTree"/> to the provided <see cref="TextWriter"/>.
+    /// </summary>
+    /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
+    public void WriteSyntaxTree(TextWriter writer) => SyntaxTreeWriter.Print(SyntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
+    /// <summary>
+    /// Writes a text representation of the bound program tree to the provided <see cref="TextWriter"/>.
+    /// </summary>
+    /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
+    public void WriteBoundTree(TextWriter writer) =>
+        BoundTreeWriter.Print(GlobalScope.Statement, writer ?? throw new ArgumentNullException(nameof(writer)));
+
+    /// <summary>
     /// Evaluates the given Balu <paramref name="input"/> string.
     /// </summary>
     /// <param name="input">The string containing the Balu input code.</param>
     /// <param name="variables">A <see cref="VariableDictionary"/> for storing variables and their values.</param>
-    /// <param name="analyzisWriter">An optional <see cref="TextWriter"/> to write syntax and/or bound tree to.</param>
-    /// <param name="showSyntaxTree">Indicates wether the syntax tree should be written to the <paramref name="analyzisWriter"/>.</param>
-    /// <param name="showBoundTree">Indicates wether the bound tree should be written to the <paramref name="analyzisWriter"/>.</param>
     /// <returns>An <see cref="EvaluationResult"/> containing the result of the evaluation or error messages.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="variables"/> is <c>>null</c>.</exception>
-    public static EvaluationResult Evaluate(string input, VariableDictionary variables, TextWriter? analyzisWriter = null, bool showSyntaxTree = false, bool showBoundTree = false) => Evaluate(SyntaxTree.Parse(input ?? throw new ArgumentNullException(nameof(input))), variables, analyzisWriter, showSyntaxTree, showBoundTree);
+    /// <exception cref="ArgumentNullException"><paramref name="input"/> or <paramref name="variables"/> is <c>>null</c>.</exception>
+    public static EvaluationResult Evaluate(string input, VariableDictionary variables) => Evaluate(SyntaxTree.Parse(input ?? throw new ArgumentNullException(nameof(input))), variables);
 
     /// <summary>
     /// Evaluates the given <see cref="SyntaxTree"/>.
     /// </summary>
     /// <param name="syntaxTree">The <see cref="SyntaxTree"/> to bind and evaluate.</param>
     /// <param name="variables">A <see cref="VariableDictionary"/> for storing variables and their values.</param>
-    /// <param name="analyzisWriter">An optional <see cref="TextWriter"/> to write syntax and/or bound tree to.</param>
-    /// <param name="showSyntaxTree">Indicates wether the syntax tree should be written to the <paramref name="analyzisWriter"/>.</param>
-    /// <param name="showBoundTree">Indicates wether the bound tree should be written to the <paramref name="analyzisWriter"/>.</param>
     /// <returns>An <see cref="EvaluationResult"/> containing the result of the evaluation or error messages.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="variables"/> is <c>>null</c>.</exception>
-    public static EvaluationResult Evaluate(SyntaxTree syntaxTree, VariableDictionary variables, TextWriter? analyzisWriter = null, bool showSyntaxTree = false, bool showBoundTree = false) => new Compilation(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))).Evaluate(variables, analyzisWriter, showSyntaxTree, showBoundTree);
+    /// <exception cref="ArgumentNullException"><paramref name="syntaxTree"/> or <paramref name="variables"/> is <c>>null</c>.</exception>
+    public static EvaluationResult Evaluate(SyntaxTree syntaxTree, VariableDictionary variables) => new Compilation(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))).Evaluate(variables);
 }

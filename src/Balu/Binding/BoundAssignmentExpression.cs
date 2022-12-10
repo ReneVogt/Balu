@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -6,6 +7,14 @@ sealed class BoundAssignmentExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.AssignmentExpression;
     public override Type Type => Expression.Type;
+    public override IEnumerable<BoundNode> Children
+    {
+        get
+        {
+            yield return Expression;
+        }
+    }
+
     public VariableSymbol Symbol { get; }
     public BoundExpression Expression { get; }
 

@@ -1,8 +1,19 @@
-﻿namespace Balu.Binding;
+﻿using System.Collections.Generic;
+
+namespace Balu.Binding;
 
 sealed class BoundForStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.ForStatement;
+    public override IEnumerable<BoundNode> Children
+    {
+        get
+        {
+            yield return LowerBound;
+            yield return UpperBound;
+            yield return Body;
+        }
+    }
 
     public VariableSymbol Variable { get; }
     public BoundExpression LowerBound { get; }

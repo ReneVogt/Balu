@@ -7,6 +7,8 @@ namespace Balu.Binding;
 sealed class BoundBlockStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.BlockStatement;
+    public override IEnumerable<BoundNode> Children => Statements;
+
     public ImmutableArray<BoundStatement> Statements { get; }
 
     public BoundBlockStatement(IEnumerable<BoundStatement> statements)

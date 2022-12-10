@@ -34,7 +34,7 @@ public sealed class SyntaxTreeWriter : SyntaxVisitor
 
         var lastIndnet = indent;
         var lastLast = last;
-        indent += last ? "   " : "│  ";
+        indent += last ? TreeTexts.Indent : TreeTexts.Branch;
         last = false;
 
         var children = node.Children.ToArray();

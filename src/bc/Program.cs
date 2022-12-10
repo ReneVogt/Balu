@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using Balu;
 using Balu.Syntax;
-using Balu.Visualization;
 
 internal class Program
 {
@@ -81,12 +80,15 @@ internal class Program
                     if (!string.IsNullOrWhiteSpace(line) && syntaxTree.Diagnostics.Any()) continue;
                 }
 
-                if (showSyntax)
-                    SyntaxTreeWriter.Print(syntaxTree.Root, Console.Out);
 
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
-                var result = compilation.Evaluate(variables, Console.Out, showBoundTree: showBound);
+                if (showSyntax)
+                    compilation.WriteSyntaxTree(Console.Out);
+                if (showBound)
+                    compilation.WriteBoundTree(Console.Out);
+
+                var result = compilation.Evaluate(variables);
                 Console.ResetColor();
                 if (result.Diagnostics.Any())
                 {

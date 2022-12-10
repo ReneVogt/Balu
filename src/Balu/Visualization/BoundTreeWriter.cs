@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Linq;
 using Balu.Binding;
 using Balu.Syntax;
 
@@ -21,47 +22,37 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         writer.Write(indent);
         if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
         writer.Write(marker);
-        if (console) Console.ResetColor();
+        if (console)
+            Console.ForegroundColor = node switch
+            {
+                BoundStatement => ConsoleColor.DarkCyan,
+                BoundExpression => ConsoleColor.DarkMagenta,
+                _ => ConsoleColor.Gray
+            };
 
-        base.Visit(node);
-        return node;
-    }
-    protected override BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
-    {
-        if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
-        writer.WriteLine($"{literalExpression.Kind}({literalExpression.Type}) {literalExpression.Value}");
+        writer.Write($"{node.Kind}");
+        if (node is BoundExpression { Type: var type}) writer.Write($"({type.Name})");
+
         if (console) Console.ResetColor();
-        return literalExpression;
-    }
-    protected override BoundNode VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
-    {
-        if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
-        writer.WriteLine($"{unaryExpression.Operator.OperatorKind}({unaryExpression.Type})");
-        if (console) Console.ResetColor();
-        var lastIndnet = indent;
-        var lastLast = last;
-        indent += last ? TreeTexts.Indent : TreeTexts.Branch;
-        last = true;
-        Visit(unaryExpression.Operand);
-        last = lastLast;
-        indent = lastIndnet;
-        return unaryExpression;
-    }
-    protected override BoundNode VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
-    {
-        if (console) Console.ForegroundColor = ConsoleColor.DarkYellow;
-        writer.WriteLine($"{binaryExpression.Operator.OperatorKind}({binaryExpression.Type})");
-        if (console) Console.ResetColor();
+        writer.WriteLine();
+
         var lastIndnet = indent;
         var lastLast = last;
         indent += last ? TreeTexts.Indent : TreeTexts.Branch;
         last = false;
-        Visit(binaryExpression.Left);
-        last = true;
-        Visit(binaryExpression.Right);
+
+        var children = node.Children.ToArray();
+        for (int i = 0; i < children.Length - 1; i++)
+            Visit(children[i]);
+        if (children.Length > 0)
+        {
+            last = true;
+            Visit(children[^1]);
+        }
+
         last = lastLast;
         indent = lastIndnet;
-        return binaryExpression;
+        return node;
     }
 
     /// <summary>
