@@ -100,6 +100,11 @@ public enum SyntaxKind
     CircumflexToken,
 
     /// <summary>
+    /// A '~' token.
+    /// </summary>
+    TildeToken,
+
+    /// <summary>
     /// A '==' token.
     /// </summary>
     EqualsEqualsToken,

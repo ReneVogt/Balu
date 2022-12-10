@@ -19,6 +19,7 @@ public static class SyntaxFacts
         SyntaxKind.PlusToken or
             SyntaxKind.MinusToken => 100,
         SyntaxKind.BangToken => 100,
+        SyntaxKind.TildeToken => 50,
         _ => 0
     };
     /// <summary>
@@ -88,6 +89,7 @@ public static class SyntaxFacts
         SyntaxKind.PipeToken => "|",
         SyntaxKind.PipePipeToken => "||",
         SyntaxKind.CircumflexToken => "^",
+        SyntaxKind.TildeToken => "~",
         SyntaxKind.EqualsEqualsToken => "==",
         SyntaxKind.BangEqualsToken => "!=",
         SyntaxKind.GreaterToken => ">",

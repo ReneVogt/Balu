@@ -28,6 +28,9 @@ sealed class Evaluator : BoundTreeVisitor
             case BoundUnaryOperatorKind.LogicalNegation:
                 Result = !(bool)Result!;
                 break;
+            case BoundUnaryOperatorKind.BitwiseNegation:
+                Result = ~(int)Result!;
+                break;
             default:
                 throw EvaluationException.UnaryOperatorCannotBeEvaluated(unaryExpression.Operator.OperatorKind);
         }
