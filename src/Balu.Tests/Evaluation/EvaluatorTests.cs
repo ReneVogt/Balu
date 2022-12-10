@@ -2,6 +2,7 @@
 using Xunit;
 
 namespace Balu.Tests.Evaluation;
+
 public class EvaluatorTests
 {
     [Theory]
@@ -102,7 +103,8 @@ public class EvaluatorTests
     [Fact]
     public void Evaluate_Assignment_Reports_UndefinedName() => " [abc] = 12".AssertEvaluation("Undefined name 'abc'.");
     [Fact]
-    public void Evaluate_Assignment_Reports_ReadOnly() => "{ let abc = 12 [abc] = 10 }".AssertEvaluation("Variable 'abc' is readonly and cannot be assigned to.");
+    public void Evaluate_Assignment_Reports_ReadOnly() =>
+        "{ let abc = 12 [abc] = 10 }".AssertEvaluation("Variable 'abc' is readonly and cannot be assigned to.");
     [Theory]
     [InlineData("{ var abc = 12 abc [=] false }", "Cannot convert 'Boolean' to 'Int32'.")]
     [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'Int32' to 'Boolean'.")]
@@ -137,18 +139,43 @@ public class EvaluatorTests
     [InlineData("{ var a = 10 if a == 10 a = 5 else a = 20 a }", 5)]
     [InlineData("{ var a = 10 if a != 10 a = 5 else a = 20 a }", 20)]
     public void Evaluate_IfStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
-//    [Fact]
-//    public void Evaluate_ElseClause_Reports_UnexpectedToken()
-//    {
-//        const string text = @"
-//                {
-//                    var x = 10
-//                    [else] x = 12
-//                }
-//";
-//        const string diagnostics = @"
-//            Variable 'x' is already declared.
-//";
-//        text.AssertEvaluation(diagnostics);
-//    }
+    [Fact]
+    public void Evaluate_IfStatement_Reports_WrongConditionType()
+    {
+        const string text = "if [(12 + 3)] 1 else 0";
+        const string diagnostics = @"
+            Unexpected expression type 'Int32', expected 'Boolean'.
+";
+        text.AssertEvaluation(diagnostics);
+    }
+    //    [Fact]
+    //    public void Evaluate_ElseClause_Reports_UnexpectedToken()
+    //    {
+    //        const string text = @"
+    //                {
+    //                    var x = 10
+    //                    [else] x = 12
+    //                }
+    //";
+    //        const string diagnostics = @"
+    //            Variable 'x' is already declared.
+    //";
+    //        text.AssertEvaluation(diagnostics);
+    //    }
+
+    [Fact]
+    public void Evaluate_WhileStatement_BasicallyWorks()
+    {
+        const string text = "{ var x = 0 while (x < 12) x = x + 1 x }";
+        text.AssertEvaluation(value: 12);
+    }
+    [Fact]
+    public void Evaluate_WhileStatement_Reports_WrongConditionType()
+    {
+        const string text = "{var a=0 while [(12 + 3)] a = a + 1 }";
+        const string diagnostics = @"
+            Unexpected expression type 'Int32', expected 'Boolean'.
+";
+        text.AssertEvaluation(diagnostics);
+    }
 }

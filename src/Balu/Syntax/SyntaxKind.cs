@@ -150,6 +150,11 @@ public enum SyntaxKind
     /// The 'else' keyword.
     /// </summary>
     ElseKeyword,
+
+    /// <summary>
+    /// The 'while' keyword.
+    /// </summary>
+    WhileKeyword,
     #endregion
     #region Nodes
     CompilationUnit,
@@ -208,6 +213,11 @@ public enum SyntaxKind
     /// <summary>
     /// The 'else' clause.
     /// </summary>
-    ElseClause
+    ElseClause,
+
+    /// <summary>
+    /// The 'while' statement.
+    /// </summary>
+    WhileStatement
     #endregion
 }

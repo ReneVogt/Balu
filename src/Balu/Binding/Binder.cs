@@ -128,6 +128,20 @@ sealed class Binder : SyntaxVisitor
 
         return node;
     }
+    protected override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
+    {
+        Visit(node.Condition);
+        var condition = (BoundExpression)boundNode!;
+        if (condition.Type != typeof(bool))
+            diagnostics.ReportUnexpectedExpressionType(node.Condition.Span, typeof(bool), condition.Type);
+
+        Visit(node.Statement);
+        var statement = (BoundStatement)boundNode!;
+
+        boundNode = new BoundWhileStatement(condition, statement);
+
+        return node;
+    }
 
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {

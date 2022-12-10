@@ -41,7 +41,7 @@ public abstract class StatementSyntax : SyntaxNode
         expression ?? throw new ArgumentNullException(nameof(expression)));
 
     /// <summary>
-    /// Creates a new <see cref="ElseClauseSyntax"/> from the given elements.
+    /// Creates a new <see cref="IfStatementSyntax"/> from the given elements.
     /// </summary>
     /// <param name="ifKeyword">The <see cref="SyntaxToken"/> of the 'if' keyword.</param>
     /// <param name="condition">The <see cref="ExpressionSyntax"/> for the condition.</param>
@@ -62,4 +62,18 @@ public abstract class StatementSyntax : SyntaxNode
     /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
     public static ElseClauseSyntax Else(SyntaxToken elseKeyword, StatementSyntax statement) => new(
         elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword)), statement ?? throw new ArgumentNullException(nameof(statement)));
+
+    /// <summary>
+    /// Creates a new <see cref="WhileStatementSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="whileKeyword">The <see cref="SyntaxToken"/> of the 'while' keyword.</param>
+    /// <param name="condition">The <see cref="ExpressionSyntax"/> for the condition.</param>
+    /// <param name="statement">The <see cref="StatementSyntax"/> to execute while the <paramref name="condition"/> is true.</param>
+    /// <returns>The parsed <see cref="WhileStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static WhileStatementSyntax
+        WhileStatement(SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax statement) => new(
+        whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword)), condition ?? throw new ArgumentNullException(nameof(condition)),
+        statement ?? throw new ArgumentNullException(nameof(statement)));
+
 }
