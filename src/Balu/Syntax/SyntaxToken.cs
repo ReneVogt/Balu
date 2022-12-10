@@ -166,7 +166,7 @@ public sealed class SyntaxToken : SyntaxNode
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.LessOrEqualsToken"/>.
     /// </summary>
     /// <param name="span">The position of this token in the input code.</param>
-    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.LessOrEquals"/>.</returns>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.LessOrEqualsToken"/>.</returns>
     public static SyntaxToken LessOrEquals(TextSpan span) => new(SyntaxKind.LessOrEqualsToken, span, SyntaxKind.LessOrEqualsToken.GetText()!);
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.GreaterToken"/>.
