@@ -84,7 +84,7 @@ sealed class Parser
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
         var equals = MatchToken(SyntaxKind.EqualsToken);
         var expression = ParseExpression();
-        return StatementSyntax.VariableDeclaration(keyword, identifier, equals, expression);
+        return StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression);
     }
     IfStatementSyntax ParseIfStatement()
     {

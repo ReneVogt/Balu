@@ -48,6 +48,6 @@ public sealed class VariableDeclarationStatementSyntax : StatementSyntax
         var expression = (ExpressionSyntax)visitor.Visit(Expression);
         return keyword == KeywordToken && identifier == IdentifierToken && equals == EqualsToken && expression == Expression
                    ? this
-                   : VariableDeclaration(keyword, identifier, equals, expression);
+                   : VariableDeclarationStatement(keyword, identifier, equals, expression);
     }
 }
