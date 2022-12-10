@@ -24,5 +24,4 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportCannotConvert(TextSpan span, Type sourceType, Type targetType) => Add(new(Diagnostic.BND0003, span, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'."));
     public void ReportVariableAlreadyDeclared(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Variable '{identifierToken.Text}' is already declared."));
     public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Variable '{identifierToken.Text}' is readonly and cannot be assigned to."));
-    public void ReportUnexpectedExpressionType(TextSpan span, Type expectedType, Type actualType) => Add(new(Diagnostic.BND0005, span, $"Unexpected expression type '{actualType.Name}', expected '{expectedType.Name}'."));
 }
