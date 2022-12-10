@@ -16,7 +16,7 @@ public sealed class WhileStatementSyntax : StatementSyntax
         {
             yield return WhileKeyword;
             yield return Condition;
-            yield return Statement;
+            yield return Body;
         }
     }
 
@@ -29,22 +29,22 @@ public sealed class WhileStatementSyntax : StatementSyntax
     /// </summary>
     public ExpressionSyntax Condition { get; }
     /// <summary>
-    /// The inner statement of the 'while' statement.
+    /// The body of the 'while' statement.
     /// </summary>
-    public StatementSyntax Statement { get; }
+    public StatementSyntax Body { get; }
 
-    internal WhileStatementSyntax(SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax statement)
+    internal WhileStatementSyntax(SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body)
     {
         WhileKeyword = whileKeyword;
         Condition = condition;
-        Statement = statement;
+        Body = body;
     }
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var whileKeyword = (SyntaxToken)visitor.Visit(WhileKeyword);
         var condition = (ExpressionSyntax)visitor.Visit(Condition);
-        var statement = (StatementSyntax)visitor.Visit(Statement);
-        return whileKeyword == WhileKeyword && condition == Condition && statement == Statement
+        var statement = (StatementSyntax)visitor.Visit(Body);
+        return whileKeyword == WhileKeyword && condition == Condition && statement == Body
                    ? this
                    : WhileStatement(whileKeyword, condition, statement);
     }

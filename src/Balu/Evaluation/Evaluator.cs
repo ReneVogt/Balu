@@ -91,7 +91,7 @@ sealed class Evaluator : BoundTreeVisitor
             Visit(whileStatemnet.Condition);
             goon = (bool)Result!;
             if (goon)
-                Visit(whileStatemnet.Statement);
+                Visit(whileStatemnet.Body);
         } while (goon);
 
         return whileStatemnet;

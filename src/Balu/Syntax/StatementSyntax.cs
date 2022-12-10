@@ -68,12 +68,12 @@ public abstract class StatementSyntax : SyntaxNode
     /// </summary>
     /// <param name="whileKeyword">The <see cref="SyntaxToken"/> of the 'while' keyword.</param>
     /// <param name="condition">The <see cref="ExpressionSyntax"/> for the condition.</param>
-    /// <param name="statement">The <see cref="StatementSyntax"/> to execute while the <paramref name="condition"/> is true.</param>
+    /// <param name="body">The <see cref="StatementSyntax"/> to execute while the <paramref name="condition"/> is true.</param>
     /// <returns>The parsed <see cref="WhileStatementSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
     public static WhileStatementSyntax
-        WhileStatement(SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax statement) => new(
+        WhileStatement(SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body) => new(
         whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword)), condition ?? throw new ArgumentNullException(nameof(condition)),
-        statement ?? throw new ArgumentNullException(nameof(statement)));
+        body ?? throw new ArgumentNullException(nameof(body)));
 
 }
