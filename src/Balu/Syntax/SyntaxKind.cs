@@ -155,6 +155,15 @@ public enum SyntaxKind
     /// The 'while' keyword.
     /// </summary>
     WhileKeyword,
+
+    /// <summary>
+    /// The 'for' keyword.
+    /// </summary>
+    ForKeyword,
+    /// <summary>
+    /// The 'to' keyword.
+    /// </summary>
+    ToKeyword,
     #endregion
     #region Nodes
     CompilationUnit,
@@ -218,6 +227,11 @@ public enum SyntaxKind
     /// <summary>
     /// The 'while' statement.
     /// </summary>
-    WhileStatement
+    WhileStatement,
+
+    /// <summary>
+    /// The 'for' statement.
+    /// </summary>
+    ForStatement
     #endregion
 }

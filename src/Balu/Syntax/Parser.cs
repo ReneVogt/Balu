@@ -66,6 +66,7 @@ sealed class Parser
             SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
         SyntaxKind.IfKeyword => ParseIfStatement(),
         SyntaxKind.WhileKeyword => ParseWhileStatement(),
+        SyntaxKind.ForKeyword => ParseForStatement(),
         _ => ParseExpressionStatement()
     };
     BlockStatementSyntax ParseBlockStatement()
@@ -108,6 +109,18 @@ sealed class Parser
         var statement = ParseStatement();
         return StatementSyntax.WhileStatement(keyword, condition, statement);
     }
+    ForStatementSyntax ParseForStatement()
+    {
+        var keyword = MatchToken(SyntaxKind.ForKeyword);
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        var equals = MatchToken(SyntaxKind.EqualsToken);
+        var lowerBound = ParseExpression();
+        var toKeyword = MatchToken(SyntaxKind.ToKeyword);
+        var upperBound = ParseExpression();
+        var body= ParseStatement();
+        return StatementSyntax.ForStatement(keyword, identifier, equals, lowerBound, toKeyword, upperBound, body);
+    }
+
     ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
     ExpressionSyntax ParseAssignmentExpression() =>
         Current.Kind != SyntaxKind.IdentifierToken || Peek(1).Kind != SyntaxKind.EqualsToken

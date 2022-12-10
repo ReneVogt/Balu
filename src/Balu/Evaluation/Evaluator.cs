@@ -96,6 +96,20 @@ sealed class Evaluator : BoundTreeVisitor
 
         return whileStatemnet;
     }
+    protected override BoundNode VisitBoundForStatement(BoundForStatement forStatemnet)
+    {
+        Visit(forStatemnet.LowerBound);
+        int lowerBound = (int)Result!;
+        Visit(forStatemnet.UpperBound);
+        int upperBound = (int)Result!;
+
+        for (int i = lowerBound; i <= upperBound; i++)
+        {
+            variables[forStatemnet.Variable] = i;
+            Visit(forStatemnet.Body);
+        }
+        return forStatemnet;
+    }
 
     public static object? Evaluate(BoundStatement statement, VariableDictionary variables)
     {

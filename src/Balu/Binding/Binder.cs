@@ -59,15 +59,15 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
-        var name = node.IdentifierrToken.Text;
+        var name = node.IdentifierToken.Text;
         Visit(node.Expression);
 
         var expression = (BoundExpression)boundNode!;
 
         if (!scope.TryLookup(name, out var variable))
-            diagnostics.ReportUndefinedName(node.IdentifierrToken);
+            diagnostics.ReportUndefinedName(node.IdentifierToken);
         else if (variable.ReadOnly)
-            diagnostics.ReportVariableIsReadOnly(node.IdentifierrToken);
+            diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
         else if (expression.Type != variable.Type)
             diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression.Type, variable.Type);
         else
@@ -139,6 +139,31 @@ sealed class Binder : SyntaxVisitor
         var statement = (BoundStatement)boundNode!;
 
         boundNode = new BoundWhileStatement(condition, statement);
+
+        return node;
+    }
+    protected override SyntaxNode VisitForStatement(ForStatementSyntax node)
+    {
+        Visit(node.LowerBound);
+        var lowerBound = (BoundExpression)boundNode!;
+        if (lowerBound.Type != typeof(int))
+            diagnostics.ReportUnexpectedExpressionType(node.LowerBound.Span, typeof(int), lowerBound.Type);
+        Visit(node.UpperBound);
+        var upperBound = (BoundExpression)boundNode!;
+        if (upperBound.Type != typeof(int))
+            diagnostics.ReportUnexpectedExpressionType(node.UpperBound.Span, typeof(int), upperBound.Type);
+
+        var name = node.IdentifierToken.Text;
+        var variable = new VariableSymbol(name, true, typeof(int));
+        scope = new (scope);
+        scope.TryDeclare(variable);
+
+        Visit(node.Body);
+        var body = (BoundStatement)boundNode!;
+
+        boundNode = new BoundForStatement(variable, lowerBound, upperBound, body);
+
+        scope = scope.Parent!;
 
         return node;
     }

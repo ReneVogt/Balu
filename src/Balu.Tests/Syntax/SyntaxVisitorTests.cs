@@ -155,8 +155,22 @@ public class SyntaxVisitorTests
     {
         var keyword = SyntaxToken.WhileKeyword(default);
         var condition = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var inner = StatementSyntax.ExpressionStatement(condition);
-        var statement = StatementSyntax.WhileStatement(keyword, condition, inner);
+        var body = StatementSyntax.ExpressionStatement(condition);
+        var statement = StatementSyntax.WhileStatement(keyword, condition, body);
+        AssertVisits(statement);
+    }
+    [Fact]
+    public void SyntaxVisitor_ForStatementSyntax_AcceptVisitsChildren()
+    {
+        var forKeyword = SyntaxToken.ForKeyword(default);
+        var identifier = SyntaxToken.Identifier(default, string.Empty);
+        var equals = SyntaxToken.Equals(default);
+        var dummy = SyntaxToken.TrueKeyword(default);
+        var lowerBound = ExpressionSyntax.Literal(dummy);
+        var toKeyWord = SyntaxToken.ToKeyword(default);
+        var upperBound = ExpressionSyntax.Literal(dummy);
+        var body = StatementSyntax.ExpressionStatement(upperBound);
+        var statement = StatementSyntax.ForStatement(forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
         AssertVisits(statement);
     }
 
