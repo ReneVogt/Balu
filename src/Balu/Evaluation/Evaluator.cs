@@ -75,6 +75,14 @@ sealed class Evaluator : BoundTreeVisitor
         variables[variableDeclaration.Variable] = Result;
         return variableDeclaration;
     }
+    protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet)
+    {
+        Visit(ifStatemnet.Condition);
+        if ((bool)Result!)
+            Visit(ifStatemnet.ThenStatement);
+        else if (ifStatemnet.ElseStatement is not null) Visit(ifStatemnet.ElseStatement);
+        return ifStatemnet;
+    }
 
     public static object? Evaluate(BoundStatement statement, VariableDictionary variables)
     {

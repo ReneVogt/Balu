@@ -109,6 +109,23 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitIfStatement(IfStatementSyntax node)
     {
+        Visit(node.Condition);
+        var condition = (BoundExpression)boundNode!;
+        if (condition.Type != typeof(bool))
+            diagnostics.ReportIfConditionNotBool(node.Condition.Span);
+
+        Visit(node.ThenStatement);
+        var thenStatement = (BoundStatement)boundNode!;
+
+        BoundStatement? elseStatement = null;
+        if (node.ElseClause is { Statement: var elseNode })
+        {
+            Visit(elseNode);
+            elseStatement = (BoundStatement)boundNode!;
+        }
+
+        boundNode = new BoundIfStatement(condition, thenStatement, elseStatement);
+
         return node;
     }
     protected override SyntaxNode VisitElseClause(ElseClauseSyntax node)

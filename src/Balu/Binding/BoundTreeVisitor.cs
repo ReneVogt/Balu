@@ -7,11 +7,12 @@ abstract class BoundTreeVisitor
         BoundNodeKind.LiteralExpression => VisitBoundLiteralExpression((BoundLiteralExpression)node),
         BoundNodeKind.UnaryExpression => VisitBoundUnaryExpression((BoundUnaryExpression)node),
         BoundNodeKind.BinaryExpression => VisitBoundBinaryExpression((BoundBinaryExpression)node),
-            BoundNodeKind.VariableExpression => VisitBoundVariableExpression((BoundVariableExpression)node),
+        BoundNodeKind.VariableExpression => VisitBoundVariableExpression((BoundVariableExpression)node),
         BoundNodeKind.AssignmentExpression => VisitBoundAssignmentExpression((BoundAssignmentExpression)node),
         BoundNodeKind.BlockStatement => VisitBoundBlockStatement((BoundBlockStatement)node),
         BoundNodeKind.ExpressionStatement => VisitBoundExpressionStatement((BoundExpressionStatement)node),
         BoundNodeKind.VariableDeclaration => VisitBoundVariableDeclarationStatement((BoundVariableDeclaration)node),
+        BoundNodeKind.IfStatement => VisitBoundIfStatement((BoundIfStatement)node),
         _ => node
     };
     protected virtual BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression) => literalExpression.Accept(this);
@@ -22,4 +23,5 @@ abstract class BoundTreeVisitor
     protected virtual BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement) => blockStatement.Accept(this);
     protected virtual BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement) => expressionStatement.Accept(this);
     protected virtual BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclaration variableDeclaration) => variableDeclaration.Accept(this);
+    protected virtual BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet) => ifStatemnet.Accept(this);
 }
