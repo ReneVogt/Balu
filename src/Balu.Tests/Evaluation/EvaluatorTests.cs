@@ -163,12 +163,10 @@ public class EvaluatorTests
     //        text.AssertEvaluation(diagnostics);
     //    }
 
-    [Fact]
-    public void Evaluate_WhileStatement_BasicallyWorks()
-    {
-        const string text = "{ var x = 0 while (x < 12) x = x + 1 x }";
-        text.AssertEvaluation(value: 12);
-    }
+    [Theory]
+    [InlineData("{ var x = 0 while (x < 12) x = x + 1 x }", 12)]
+    [InlineData("{ var result = 1 var i = 0 while (i < 5) { i = i + 1 result = result * 2} result }", 32)]
+    public void Evaluate_WhileStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
     [Fact]
     public void Evaluate_WhileStatement_Reports_WrongConditionType()
     {
