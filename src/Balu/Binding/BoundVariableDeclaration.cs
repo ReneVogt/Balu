@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -27,4 +28,6 @@ sealed class BoundVariableDeclaration : BoundStatement
         var expression = (BoundExpression)visitor.Visit(Expression);
         return expression == Expression ? this : new (Variable, expression);
     }
+
+    public override string ToString() => $"{Kind} \"{Variable.Name}\" ({Expression.Type.Name})";
 }

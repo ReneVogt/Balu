@@ -39,7 +39,7 @@ public abstract class SyntaxNode
 
     internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
 
-    public override string ToString() => Kind.ToString();
+    public override string ToString() => $"{Kind}{Span}";
 
     /// <summary>
     /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="StatementSyntax"/>.

@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 namespace Balu.Binding;
 
@@ -33,4 +34,6 @@ sealed class BoundBinaryExpression : BoundExpression
         var right = (BoundExpression)visitor.Visit(Right);
         return left == Left && right == Right ? this : new (left, Operator, right);
     }
+
+    public override string ToString() => $"{Kind} {Operator.OperatorKind} ({Left.Type.Name} x {Right.Type.Name} => {Type.Name})";
 }

@@ -37,4 +37,6 @@ sealed class BoundForStatement : BoundStatement
                    ? this
                    : new (Variable, lowerBound, upperBound, body);
     }
+
+    public override string ToString() => $"{Kind} \"{Variable.Name}\"";
 }

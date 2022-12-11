@@ -37,7 +37,7 @@ public sealed class SyntaxToken : SyntaxNode
     internal override SyntaxNode Accept(SyntaxVisitor visitor) => this;
 
     /// <inheritdoc />
-    public override string ToString() => $"{Span}: {Kind} \"{Text}\" ({Value})";
+    public override string ToString() => $"{Kind}{Span} \"{Text}\" ({Value})";
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EndOfFileToken"/>.

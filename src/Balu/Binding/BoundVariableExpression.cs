@@ -6,12 +6,14 @@ namespace Balu.Binding;
 sealed class BoundVariableExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.VariableExpression;
-    public override Type Type => Symbol.Type;
+    public override Type Type => Variable.Type;
     public override IEnumerable<BoundNode> Children => Array.Empty<BoundNode>();
 
-    public VariableSymbol Symbol { get; }
+    public VariableSymbol Variable { get; }
 
-    public BoundVariableExpression(VariableSymbol symbol) => Symbol = symbol;
+    public BoundVariableExpression(VariableSymbol variable) => Variable = variable;
 
     internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
+
+    public override string ToString() => $"{Kind} \"{Variable.Name}\" ({Type.Name})";
 }

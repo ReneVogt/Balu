@@ -26,9 +26,7 @@ public sealed class SyntaxTreeWriter : SyntaxVisitor
         if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
         writer.Write(marker);
         if (console) Console.ForegroundColor = node is SyntaxToken ? ConsoleColor.Blue : ConsoleColor.Cyan;
-        writer.Write($"{node.Kind}{node.Span}");
-        if (node is SyntaxToken { Text: var text, Value: var value})
-            writer.Write($" \"{text}\" {value}");
+        writer.Write(node);
         if (console) Console.ResetColor();
         writer.WriteLine();
 

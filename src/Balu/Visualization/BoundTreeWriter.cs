@@ -30,8 +30,7 @@ sealed class BoundTreeWriter : BoundTreeVisitor
                 _ => ConsoleColor.Gray
             };
 
-        writer.Write($"{node.Kind}");
-        if (node is BoundExpression { Type: var type}) writer.Write($"({type.Name})");
+        writer.Write(node);
 
         if (console) Console.ResetColor();
         writer.WriteLine();

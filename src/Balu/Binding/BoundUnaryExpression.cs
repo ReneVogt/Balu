@@ -26,4 +26,5 @@ sealed class BoundUnaryExpression : BoundExpression
         return operand == Operand ? this : new (Operator, operand);
     }
 
+    public override string ToString() => $"{Kind} {Operator.OperatorKind} ({Operand.Type.Name} => {Type.Name})";
 }

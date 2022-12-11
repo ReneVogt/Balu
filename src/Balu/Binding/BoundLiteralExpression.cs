@@ -15,4 +15,6 @@ sealed class BoundLiteralExpression : BoundExpression
     public BoundLiteralExpression(object value) => Value = value;
 
     internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
+
+    public override string ToString() => $"{Kind} ({Type.Name}) {Value}";
 }
