@@ -6,7 +6,7 @@ namespace Balu.Binding;
 sealed class BoundLiteralExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
-    public override IEnumerable<BoundNode> Children => Array.Empty<BoundNode>();
+    public override IEnumerable<BoundNode> Children { get; } = Array.Empty<BoundNode>();
 
     public override Type Type => Value.GetType();
 

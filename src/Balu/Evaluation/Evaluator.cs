@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Balu.Binding;
 
 namespace Balu.Evaluation;
@@ -6,9 +7,45 @@ namespace Balu.Evaluation;
 sealed class Evaluator : BoundTreeVisitor
 {
     readonly VariableDictionary variables;
+    readonly Dictionary<LabelSymbol, int> labelsToIndices = new();
+
     public object? Result { get; private set; }
 
     Evaluator(VariableDictionary variables) => this.variables = variables;
+
+    protected override BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement)
+    {
+        labelsToIndices.Clear();
+        for (int i = 0; i < blockStatement.Statements.Length; i++)
+            if (blockStatement.Statements[i] is BoundLabelStatement { Label: var label })
+                labelsToIndices[label] = i;
+
+        var index = 0;
+        while(index < blockStatement.Statements.Length)
+        {
+            var current = blockStatement.Statements[index];
+            switch (current.Kind)
+            {
+                case BoundNodeKind.GotoStatement:
+                    index = labelsToIndices[((BoundGotoStatement)current).Label];
+                    break;
+                case BoundNodeKind.ConditionalGotoStatement:
+                    var conditionalGoto = (BoundConditionalGotoStatement)current;
+                    Visit(conditionalGoto.Condition);
+                    if ((bool)Result! != conditionalGoto.JumpIfFalse)
+                        index = labelsToIndices[conditionalGoto.Label];
+                    else
+                        index++;
+                    break;
+                default:
+                    Visit(current);
+                    index++;
+                    break;
+            }
+        }
+
+        return blockStatement;
+    }
 
     protected override BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
@@ -81,31 +118,10 @@ sealed class Evaluator : BoundTreeVisitor
         variables[variableDeclarationStatement.Variable] = Result;
         return variableDeclarationStatement;
     }
-    protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet)
-    {
-        Visit(ifStatemnet.Condition);
-        if ((bool)Result!)
-            Visit(ifStatemnet.ThenStatement);
-        else if (ifStatemnet.ElseStatement is not null) Visit(ifStatemnet.ElseStatement);
-        return ifStatemnet;
-    }
-    protected override BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatemnet)
-    {
-        bool goon;
-        do
-        {
-            Visit(whileStatemnet.Condition);
-            goon = (bool)Result!;
-            if (goon)
-                Visit(whileStatemnet.Body);
-        } while (goon);
-
-        return whileStatemnet;
-    }
-    public static object? Evaluate(BoundStatement statement, VariableDictionary variables)
+    public static object? Evaluate(BoundBlockStatement statement, VariableDictionary variables)
     {
         var evaluator = new Evaluator(variables);
-        evaluator.Visit(statement ?? throw new ArgumentNullException(nameof(statement)));
+        evaluator.VisitBoundBlockStatement(statement ?? throw new ArgumentNullException(nameof(statement)));
         return evaluator.Result;
     }
 }

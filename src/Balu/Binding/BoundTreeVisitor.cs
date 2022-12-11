@@ -17,6 +17,9 @@ abstract class BoundTreeVisitor
         BoundNodeKind.IfStatement => VisitBoundIfStatement((BoundIfStatement)node),
         BoundNodeKind.WhileStatement => VisitBoundWhileStatement((BoundWhileStatement)node),
         BoundNodeKind.ForStatement => VisitBoundForStatement((BoundForStatement)node),
+        BoundNodeKind.LabelStatement => VisitBoundLabelStatement((BoundLabelStatement)node),
+        BoundNodeKind.GotoStatement => VisitBoundGotoStatement((BoundGotoStatement)node),
+        BoundNodeKind.ConditionalGotoStatement => VisitBoundConditionalGotoStatement((BoundConditionalGotoStatement)node),
         _ => throw new ArgumentException($"Unknown {nameof(BoundNodeKind)} '{node.Kind}'.")
     };
     protected virtual BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression) => literalExpression.Accept(this);
@@ -28,6 +31,9 @@ abstract class BoundTreeVisitor
     protected virtual BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement) => expressionStatement.Accept(this);
     protected virtual BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement) => variableDeclarationStatement.Accept(this);
     protected virtual BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet) => ifStatemnet.Accept(this);
-    protected virtual BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatemnet) => whileStatemnet.Accept(this);
+    protected virtual BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement) => whileStatement.Accept(this);
     protected virtual BoundNode VisitBoundForStatement(BoundForStatement forStatement) => forStatement.Accept(this);
+    protected virtual BoundNode VisitBoundLabelStatement(BoundLabelStatement labelStatement) => labelStatement.Accept(this);
+    protected virtual BoundNode VisitBoundGotoStatement(BoundGotoStatement gotoStatement) => gotoStatement.Accept(this);
+    protected virtual BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement) => conditionalGotoStatement.Accept(this);
 }
