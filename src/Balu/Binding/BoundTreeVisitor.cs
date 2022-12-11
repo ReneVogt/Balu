@@ -13,7 +13,7 @@ abstract class BoundTreeVisitor
         BoundNodeKind.AssignmentExpression => VisitBoundAssignmentExpression((BoundAssignmentExpression)node),
         BoundNodeKind.BlockStatement => VisitBoundBlockStatement((BoundBlockStatement)node),
         BoundNodeKind.ExpressionStatement => VisitBoundExpressionStatement((BoundExpressionStatement)node),
-        BoundNodeKind.VariableDeclaration => VisitBoundVariableDeclarationStatement((BoundVariableDeclaration)node),
+        BoundNodeKind.VariableDeclarationStatement => VisitBoundVariableDeclarationStatement((BoundVariableDeclarationStatement)node),
         BoundNodeKind.IfStatement => VisitBoundIfStatement((BoundIfStatement)node),
         BoundNodeKind.WhileStatement => VisitBoundWhileStatement((BoundWhileStatement)node),
         BoundNodeKind.ForStatement => VisitBoundForStatement((BoundForStatement)node),
@@ -26,8 +26,8 @@ abstract class BoundTreeVisitor
     protected virtual BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression) => assignmentExpression.Accept(this);
     protected virtual BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement) => blockStatement.Accept(this);
     protected virtual BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement) => expressionStatement.Accept(this);
-    protected virtual BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclaration variableDeclaration) => variableDeclaration.Accept(this);
+    protected virtual BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement) => variableDeclarationStatement.Accept(this);
     protected virtual BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet) => ifStatemnet.Accept(this);
     protected virtual BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatemnet) => whileStatemnet.Accept(this);
-    protected virtual BoundNode VisitBoundForStatement(BoundForStatement forStatemnet) => forStatemnet.Accept(this);
+    protected virtual BoundNode VisitBoundForStatement(BoundForStatement forStatement) => forStatement.Accept(this);
 }

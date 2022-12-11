@@ -2,9 +2,9 @@
 
 namespace Balu.Binding;
 
-sealed class BoundVariableDeclaration : BoundStatement
+sealed class BoundVariableDeclarationStatement : BoundStatement
 {
-    public override BoundNodeKind Kind => BoundNodeKind.VariableDeclaration;
+    public override BoundNodeKind Kind => BoundNodeKind.VariableDeclarationStatement;
     public override IEnumerable<BoundNode> Children
     {
         get
@@ -16,7 +16,7 @@ sealed class BoundVariableDeclaration : BoundStatement
     public VariableSymbol Variable { get; }
     public BoundExpression Expression { get; }
 
-    public BoundVariableDeclaration(VariableSymbol variable, BoundExpression expression)
+    public BoundVariableDeclarationStatement(VariableSymbol variable, BoundExpression expression)
     {
         Variable = variable;
         Expression = expression;

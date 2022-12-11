@@ -44,6 +44,9 @@ sealed class BoundBinaryOperator
         Type = type;
     }
 
+    public static BoundBinaryOperator BinaryPlus { get; } = Bind(SyntaxKind.PlusToken, typeof(int), typeof(int))!;
+    public static BoundBinaryOperator LessOrEquals { get; } = Bind(SyntaxKind.LessOrEqualsToken, typeof(int), typeof(int))!;
+
     public static BoundBinaryOperator? Bind(SyntaxKind syntaxKind, Type leftType, Type rightType) =>
         operators.TryGetValue((syntaxKind, leftType, rightType), out var op) ? op : null;
 }

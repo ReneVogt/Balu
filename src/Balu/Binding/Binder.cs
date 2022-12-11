@@ -104,7 +104,7 @@ sealed class Binder : SyntaxVisitor
         var variable = new VariableSymbol(name, readOnly, expression.Type);
         if (!scope.TryDeclare(variable))
             diagnostics.ReportVariableAlreadyDeclared(node.IdentifierToken);
-        boundNode = new BoundVariableDeclaration(variable, expression);
+        boundNode = new BoundVariableDeclarationStatement(variable, expression);
         return node;
     }
     protected override SyntaxNode VisitIfStatement(IfStatementSyntax node)
