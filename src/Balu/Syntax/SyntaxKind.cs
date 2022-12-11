@@ -231,7 +231,7 @@ public enum SyntaxKind
     /// <summary>
     /// A variable declaration.
     /// </summary>
-    VariableDeclaration,
+    VariableDeclarationStatement,
 
     /// <summary>
     /// The 'if' statement.

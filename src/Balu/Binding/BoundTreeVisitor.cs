@@ -1,4 +1,6 @@
-﻿namespace Balu.Binding;
+﻿using System;
+
+namespace Balu.Binding;
 
 abstract class BoundTreeVisitor
 {
@@ -15,7 +17,7 @@ abstract class BoundTreeVisitor
         BoundNodeKind.IfStatement => VisitBoundIfStatement((BoundIfStatement)node),
         BoundNodeKind.WhileStatement => VisitBoundWhileStatement((BoundWhileStatement)node),
         BoundNodeKind.ForStatement => VisitBoundForStatement((BoundForStatement)node),
-        _ => node
+        _ => throw new ArgumentException($"Unknown {nameof(BoundNodeKind)} '{node.Kind}'.")
     };
     protected virtual BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression) => literalExpression.Accept(this);
     protected virtual BoundNode VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression) => unaryExpression.Accept(this);
