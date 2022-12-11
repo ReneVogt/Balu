@@ -1,4 +1,6 @@
-﻿namespace Balu.Syntax;
+﻿using System;
+
+namespace Balu.Syntax;
 
 /// <summary>
 /// The abstract base class for <see cref="SyntaxNode"/> visitors.
@@ -17,24 +19,24 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     public virtual SyntaxNode Visit(SyntaxNode node)
     {
-        return node switch
+        _ = node ?? throw new ArgumentNullException(nameof(node));
+        return node.Kind switch
         {
-            SyntaxToken token => VisitToken(token),
-            CompilationUnitSyntax compilationUnit => VisitCompilationUnit(compilationUnit),
-            LiteralExpressionSyntax literal => VisitLiteralExpression(literal),
-            UnaryExpressionSyntax unary => VisitUnaryExpression(unary),
-            BinaryExpressionSyntax binary => VisitBinaryExpression(binary),
-            ParenthesizedExpressionSyntax parenthesized => VisitParenthesizedExpression(parenthesized),
-            NameExpressionSyntax name => VisitNameExpression(name),
-            AssignmentExpressionSyntax assignment => VisitAssignmentExpression(assignment),
-            BlockStatementSyntax block => VisitBlockStatement(block),
-            ExpressionStatementSyntax expression => VisitExpressionStatement(expression),
-            VariableDeclarationStatementSyntax variable => VisitVariableDeclarationStatement(variable),
-            IfStatementSyntax ifStatement => VisitIfStatement(ifStatement),
-            ElseClauseSyntax elseClause => VisitElseClause(elseClause),
-            WhileStatementSyntax whileStatement => VisitWhileStatement(whileStatement),
-            ForStatementSyntax forStatement => VisitForStatement(forStatement),
-            _ => node.Accept(this)
+            SyntaxKind.CompilationUnit => VisitCompilationUnit((CompilationUnitSyntax)node),
+            SyntaxKind.LiteralExpression => VisitLiteralExpression((LiteralExpressionSyntax)node),
+            SyntaxKind.UnaryExpression => VisitUnaryExpression((UnaryExpressionSyntax)node),
+            SyntaxKind.BinaryExpression=> VisitBinaryExpression((BinaryExpressionSyntax)node),
+            SyntaxKind.ParenthesizedExpression => VisitParenthesizedExpression((ParenthesizedExpressionSyntax)node),
+            SyntaxKind.NameExpression => VisitNameExpression((NameExpressionSyntax)node),
+            SyntaxKind.AssignmentExpression => VisitAssignmentExpression((AssignmentExpressionSyntax)node),
+            SyntaxKind.BlockStatement => VisitBlockStatement((BlockStatementSyntax)node),
+            SyntaxKind.ExpressionStatement => VisitExpressionStatement((ExpressionStatementSyntax)node),
+            SyntaxKind.VariableDeclarationStatement => VisitVariableDeclarationStatement((VariableDeclarationStatementSyntax)node),
+            SyntaxKind.IfStatement => VisitIfStatement((IfStatementSyntax)node),
+            SyntaxKind.ElseClause => VisitElseClause((ElseClauseSyntax)node),
+            SyntaxKind.WhileStatement => VisitWhileStatement((WhileStatementSyntax)node),
+            SyntaxKind.ForStatement => VisitForStatement((ForStatementSyntax)node),
+            _ => node is SyntaxToken token ? token.Accept(this) : throw new ArgumentException($"Unknown {nameof(SyntaxKind)} '{node.Kind}'.")
         };
     }
 

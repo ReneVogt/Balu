@@ -5,7 +5,7 @@ namespace Balu.Syntax;
 public sealed class VariableDeclarationStatementSyntax : StatementSyntax
 {
     /// <inheritdoc/>
-    public override SyntaxKind Kind => SyntaxKind.VariableDeclaration;
+    public override SyntaxKind Kind => SyntaxKind.VariableDeclarationStatement;
     /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children
     {
