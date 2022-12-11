@@ -8,4 +8,5 @@ abstract class BoundNode
     public abstract IEnumerable<BoundNode> Children { get; }
     internal abstract BoundNode Accept(BoundTreeVisitor visitor);
 
+    public override string ToString() => Kind.ToString();
 }

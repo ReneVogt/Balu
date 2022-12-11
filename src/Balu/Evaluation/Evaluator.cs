@@ -66,7 +66,7 @@ sealed class Evaluator : BoundTreeVisitor
     }
     protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
-        Result = variables[variableExpression.Symbol];
+        Result = variables[variableExpression.Variable];
         return variableExpression;
     }
     protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
