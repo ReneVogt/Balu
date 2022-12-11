@@ -32,7 +32,7 @@ sealed class Evaluator : BoundTreeVisitor
                 case BoundNodeKind.ConditionalGotoStatement:
                     var conditionalGoto = (BoundConditionalGotoStatement)current;
                     Visit(conditionalGoto.Condition);
-                    if ((bool)Result! != conditionalGoto.JumpIfFalse)
+                    if ((bool)Result! ^ conditionalGoto.JumpIfFalse)
                         index = labelsToIndices[conditionalGoto.Label];
                     else
                         index++;
