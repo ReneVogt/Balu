@@ -16,7 +16,7 @@ namespace Balu;
 public sealed class Compilation
 {
     BoundGlobalScope? globalScope;
-    BoundStatement? loweredStatement;
+    BoundBlockStatement? loweredStatement;
 
     internal BoundGlobalScope GlobalScope
     {
@@ -31,7 +31,7 @@ public sealed class Compilation
             return globalScope;
         }
     }
-    internal BoundStatement LoweredStatement
+    internal BoundBlockStatement LoweredStatement
     {
         get
         {
