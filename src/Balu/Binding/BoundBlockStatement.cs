@@ -11,6 +11,7 @@ sealed class BoundBlockStatement : BoundStatement
 
     public ImmutableArray<BoundStatement> Statements { get; }
 
+    public BoundBlockStatement(params BoundStatement[] statements) : this(statements.AsEnumerable()){}
     public BoundBlockStatement(IEnumerable<BoundStatement> statements)
     {
         Statements = statements.ToImmutableArray();
@@ -27,7 +28,7 @@ sealed class BoundBlockStatement : BoundStatement
                 if (transformedChildren is null)
                 {
                     transformedChildren = new(Statements.Length);
-                    if (i > 0) transformedChildren.AddRange(Statements.Take(i-1));
+                    transformedChildren.AddRange(Statements.Take(i));
                 }
             }
 

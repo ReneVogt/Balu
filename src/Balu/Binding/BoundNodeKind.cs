@@ -10,7 +10,7 @@ enum BoundNodeKind
 
     BlockStatement,
     ExpressionStatement,
-    VariableDeclaration,
+    VariableDeclarationStatement,
     IfStatement,
     WhileStatement,
     ForStatement

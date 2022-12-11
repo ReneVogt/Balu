@@ -75,11 +75,11 @@ sealed class Evaluator : BoundTreeVisitor
         variables[assignmentExpression.Symbol] = Result;
         return assignmentExpression;
     }
-    protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclaration variableDeclaration)
+    protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
-        Visit(variableDeclaration.Expression);
-        variables[variableDeclaration.Variable] = Result;
-        return variableDeclaration;
+        Visit(variableDeclarationStatement.Expression);
+        variables[variableDeclarationStatement.Variable] = Result;
+        return variableDeclarationStatement;
     }
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet)
     {
@@ -102,21 +102,6 @@ sealed class Evaluator : BoundTreeVisitor
 
         return whileStatemnet;
     }
-    protected override BoundNode VisitBoundForStatement(BoundForStatement forStatemnet)
-    {
-        Visit(forStatemnet.LowerBound);
-        int lowerBound = (int)Result!;
-        Visit(forStatemnet.UpperBound);
-        int upperBound = (int)Result!;
-
-        for (int i = lowerBound; i <= upperBound; i++)
-        {
-            variables[forStatemnet.Variable] = i;
-            Visit(forStatemnet.Body);
-        }
-        return forStatemnet;
-    }
-
     public static object? Evaluate(BoundStatement statement, VariableDictionary variables)
     {
         var evaluator = new Evaluator(variables);

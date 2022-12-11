@@ -21,4 +21,6 @@ public sealed class VariableSymbol
     public bool ReadOnly { get; }
 
     internal VariableSymbol(string name, bool readOnly, Type type) => (Name, ReadOnly, Type) = (name, readOnly, type);
+
+    public override string ToString() => $"{Name} ({Type.Name})";
 }
