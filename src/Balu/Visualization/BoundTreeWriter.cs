@@ -25,9 +25,9 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         if (console)
             Console.ForegroundColor = node switch
             {
-                BoundStatement => ConsoleColor.DarkCyan,
-                BoundExpression => ConsoleColor.DarkMagenta,
-                _ => ConsoleColor.Gray
+                BoundStatement => ConsoleColor.Cyan,
+                BoundExpression => ConsoleColor.Blue,
+                _ => ConsoleColor.Yellow
             };
 
         writer.Write(node);
