@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using Balu.Binding;
 using Balu.Evaluation;
+using Balu.Lowering;
 using Balu.Syntax;
 using Balu.Visualization;
 
@@ -15,6 +16,7 @@ namespace Balu;
 public sealed class Compilation
 {
     BoundGlobalScope? globalScope;
+    BoundStatement? loweredStatement;
 
     internal BoundGlobalScope GlobalScope
     {
@@ -27,6 +29,19 @@ public sealed class Compilation
             }
 
             return globalScope;
+        }
+    }
+    internal BoundStatement LoweredStatement
+    {
+        get
+        {
+            if (loweredStatement is null)
+            {
+                var statement = Lowerer.Lower(GlobalScope.Statement);
+                Interlocked.CompareExchange(ref loweredStatement, statement, null);
+            }
+
+            return loweredStatement;
         }
     }
 
@@ -66,7 +81,7 @@ public sealed class Compilation
         var diagnostics = SyntaxTree.Diagnostics.Concat(GlobalScope.Diagnostics).ToArray();
         return diagnostics.Any()
                    ? new(diagnostics, null)
-                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(GlobalScope.Statement, variables));
+                   : new(Array.Empty<Diagnostic>(), Evaluator.Evaluate(LoweredStatement, variables));
     }
 
     /// <summary>
@@ -82,7 +97,13 @@ public sealed class Compilation
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
     public void WriteBoundTree(TextWriter writer) =>
         BoundTreeWriter.Print(GlobalScope.Statement, writer ?? throw new ArgumentNullException(nameof(writer)));
-
+    /// <summary>
+    /// Writes a text representation of the lowered program tree to the provided <see cref="TextWriter"/>.
+    /// </summary>
+    /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
+    public void WriteLoweredTree(TextWriter writer) =>
+        BoundTreeWriter.Print(LoweredStatement, writer ?? throw new ArgumentNullException(nameof(writer)));
     /// <summary>
     /// Evaluates the given Balu <paramref name="input"/> string.
     /// </summary>
