@@ -9,7 +9,7 @@ internal class Program
 {
     private static void Main()
     {
-        bool showSyntax = false, showBound = false;
+        bool showSyntax = false, showBound = false, showLowered = false;
         VariableDictionary variables = new();
         StringBuilder textBuilder = new();
         Compilation? previous = null;
@@ -25,17 +25,24 @@ internal class Program
                 string? file = null;
                 if (textBuilder.Length == 0)
                 {
-                    if (line == "#syntax")
+                    if (line == "#showSyntax")
                     {
                         showSyntax = !showSyntax;
                         Console.WriteLine(showSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
                         continue;
                     }
 
-                    if (line == "#bound")
+                    if (line == "#showBound")
                     {
                         showBound = !showBound;
                         Console.WriteLine(showBound ? "Showing bound tree." : "Not showing bound tree.");
+                        continue;
+                    }
+
+                    if (line == "#showLowered")
+                    {
+                        showLowered = !showLowered;
+                        Console.WriteLine(showLowered ? "Showing lowered tree." : "Not showing lowered tree.");
                         continue;
                     }
 
@@ -65,7 +72,6 @@ internal class Program
                     if (string.IsNullOrWhiteSpace(line) || line == "#exit") return;
                 }
 
-
                 SyntaxTree syntaxTree;
                 if (file is not null)
                 {
@@ -84,9 +90,26 @@ internal class Program
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
                 var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
                 if (showSyntax)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Syntax:");
+                    Console.ResetColor();
                     compilation.WriteSyntaxTree(Console.Out);
+                }
                 if (showBound)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Bound:");
+                    Console.ResetColor();
                     compilation.WriteBoundTree(Console.Out);
+                }
+                if (showLowered)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine("Lowered:");
+                    Console.ResetColor();
+                    compilation.WriteLoweredTree(Console.Out);
+                }
 
                 var result = compilation.Evaluate(variables);
                 Console.ResetColor();

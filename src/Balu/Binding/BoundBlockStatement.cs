@@ -26,7 +26,7 @@ sealed class BoundBlockStatement : BoundStatement
             {
                 if (transformedChildren is null)
                 {
-                    transformedChildren = new();
+                    transformedChildren = new(Statements.Length);
                     if (i > 0) transformedChildren.AddRange(Statements.Take(i-1));
                 }
             }
