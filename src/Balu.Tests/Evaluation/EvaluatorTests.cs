@@ -66,6 +66,7 @@ public class EvaluatorTests
     [InlineData("2 != 3", true)]
     [InlineData("3 != 3", false)]
     [InlineData("{var a = 12 (a = a * 12)}", 144)]
+    [InlineData("{var a = 10 for i=0 to (a = a - 1) {} a}", 9)]
     [InlineData("12 < 3", false)]
     [InlineData("12 <= 3", false)]
     [InlineData("3 < 12", true)]

@@ -87,7 +87,8 @@ sealed class Lowerer : BoundTreeVisitor
          * Target statement:
          *   {
          *     var <var> = <lower>
-         *     while <var> <= <upper>
+         *     var <tmp> = <upper>
+         *     while <var> <= <tmp>
          *     {
          *       <body>
          *       <var> = <var> + 1
@@ -95,25 +96,28 @@ sealed class Lowerer : BoundTreeVisitor
          *   }
          */
 
-        var variable = new BoundVariableExpression(forStatement.Variable);
-        var declaration = new BoundVariableDeclarationStatement(forStatement.Variable, forStatement.LowerBound);
+        var loopVariable = new BoundVariableExpression(forStatement.Variable);
+        var loopVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Variable, forStatement.LowerBound);
+
+        var upperVariableSymbol = new VariableSymbol("upperBound", false, typeof(int));
+        var upperVariableDeclaration = new BoundVariableDeclarationStatement(upperVariableSymbol, forStatement.UpperBound);
 
         var increment = new BoundExpressionStatement(
             new BoundAssignmentExpression(
                 forStatement.Variable,
                 new BoundBinaryExpression(
-                    variable,
+                    loopVariable,
                     BoundBinaryOperator.BinaryPlus,
                     new BoundLiteralExpression(1))));
 
         var whileCondition = new BoundBinaryExpression(
-            variable,
+            loopVariable,
             BoundBinaryOperator.LessOrEquals,
-            forStatement.UpperBound);
+            new BoundVariableExpression(upperVariableSymbol));
         var whileBody = new BoundBlockStatement(forStatement.Body, increment);
         var whileStatement = new BoundWhileStatement(whileCondition, whileBody);
 
-        var rewritten = new BoundBlockStatement(declaration, whileStatement);
+        var rewritten = new BoundBlockStatement(loopVariableDeclaration, upperVariableDeclaration, whileStatement);
         return Visit(rewritten);
     }
 
