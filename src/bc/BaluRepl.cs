@@ -11,7 +11,7 @@ sealed class BaluRepl : Repl
     bool showSyntax, showBound, showLowered;
     Compilation? previous;
 
-    protected override bool IsCompleteSubmission(string text) => !(string.IsNullOrWhiteSpace(text) || SyntaxTree.Parse(text).Diagnostics.Any());
+    protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || !SyntaxTree.Parse(text).Diagnostics.Any();
 
     protected override void EvaluateMetaCommand(string text)
     {
@@ -103,7 +103,5 @@ sealed class BaluRepl : Repl
             if (variables.Any())
                 Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
         }
-
-        Console.WriteLine();
     }
 }
