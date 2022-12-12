@@ -21,7 +21,7 @@ sealed class Lowerer : BoundTreeVisitor
              *                          end:
              */
             var endLabel = new BoundLabelStatement(GenerateNextLabel());
-            var gotoStatement = new BoundConditionalGotoStatement(endLabel.Label, ifStatemnet.Condition, true);
+            var gotoStatement = new BoundConditionalGotoStatement(endLabel.Label, ifStatemnet.Condition, false);
             result = new BoundBlockStatement(
                 gotoStatement,
                 ifStatemnet.ThenStatement,
@@ -40,7 +40,7 @@ sealed class Lowerer : BoundTreeVisitor
 
             var elseLabel = new BoundLabelStatement(GenerateNextLabel());
             var endLabel = new BoundLabelStatement(GenerateNextLabel());
-            var gotoElse = new BoundConditionalGotoStatement(elseLabel.Label, ifStatemnet.Condition, true);
+            var gotoElse = new BoundConditionalGotoStatement(elseLabel.Label, ifStatemnet.Condition, false);
             var gotoEnd = new BoundGotoStatement(endLabel.Label);
             result = new BoundBlockStatement(
                 gotoElse,
@@ -66,7 +66,7 @@ sealed class Lowerer : BoundTreeVisitor
 
         var checkLabel = new BoundLabelStatement(GenerateNextLabel());
         var endLabel = new BoundLabelStatement(GenerateNextLabel());
-        var gotoEnd = new BoundConditionalGotoStatement(endLabel.Label, whileStatement.Condition, true);
+        var gotoEnd = new BoundConditionalGotoStatement(endLabel.Label, whileStatement.Condition, false);
         var gotoCheck = new BoundGotoStatement(checkLabel.Label);
         var result = new BoundBlockStatement(
             checkLabel,
