@@ -1,5 +1,4 @@
-﻿using System.Text;
-using System;
+﻿using System;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
@@ -13,8 +12,24 @@ abstract class Repl
     }
     sealed class SubmissionView
     {
+        sealed class UpdateDisposable : IDisposable
+        {
+            readonly SubmissionView parent;
+            public UpdateDisposable(SubmissionView parent)
+            {
+                this.parent = parent;
+                Console.CursorVisible = false;
+                parent.updatesInProgress++;
+            }
+            public void Dispose()
+            {
+                parent.updatesInProgress--;
+                if (parent.updatesInProgress != 0) return;
+                parent.Render();
+            }
+        }
         readonly int cursorTop;
-        int renderedLinesCount, cursorX, cursorY;
+        int renderedLinesCount, cursorX, cursorY, updatesInProgress;
 
         public Document SubmissionDocument { get; }
         public int CursorX
@@ -52,6 +67,7 @@ abstract class Repl
 
         void Render()
         {
+            if (updatesInProgress > 0) return;
             Console.CursorVisible = false;
             Console.SetCursorPosition(0, cursorTop);
             for (int i = 0; i < SubmissionDocument.Count; i++)
@@ -74,6 +90,7 @@ abstract class Repl
             Console.CursorTop = cursorTop + CursorY;
             Console.CursorLeft = 2 + CursorX;
         }
+        public IDisposable CreateUpdateContext() => new UpdateDisposable(this);
     }
 
     bool editDone;
@@ -81,13 +98,14 @@ abstract class Repl
     protected abstract bool IsCompleteSubmission(string text);
     protected virtual void EvaluateMetaCommand(string text)
     {
+        if (text == "#exit") Environment.Exit(0);
         Console.ForegroundColor = ConsoleColor.Red;
         Console.WriteLine($"Unknown command '{text}'.");
         Console.ResetColor();
     }
     protected abstract void EvaluateSubmission(string text);
 
-    string? EditSubmission()
+    string EditSubmission()
     {
         editDone = false;
         var view = new SubmissionView(new ());
@@ -99,87 +117,151 @@ abstract class Repl
     }
     void HandleKey(ConsoleKeyInfo keyInfo, SubmissionView view)
     {
-        if (keyInfo.Modifiers == default)
+        switch((keyInfo.Modifiers, keyInfo.Key, keyInfo.KeyChar))
         {
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.Enter:
-                    HandleEnter(view);
-                    break;
-                case ConsoleKey.LeftArrow:
-                    HandleLeftArrow(view);
-                    break;
-                case ConsoleKey.RightArrow:
-                    HandleRightArrow(view);
-                    break;
-                case ConsoleKey.UpArrow:
-                    HandleUpArrow(view);
-                    break;
-                case ConsoleKey.DownArrow:
-                    HandleDownArrow(view);
-                    break;
-                case ConsoleKey.Escape:
-                    HandleEscape(view);
-                    break;
-            }
+            case (ConsoleModifiers.Control, ConsoleKey.Enter, _):
+                editDone = true;
+                break;
+            case (0, ConsoleKey.Enter, _):
+                HandleEnter(view);
+                break;
+            case (0, ConsoleKey.LeftArrow, _):
+                HandleLeftArrow(view);
+                break;
+            case (0, ConsoleKey.RightArrow, _):
+                HandleRightArrow(view);
+                break;
+            case (0, ConsoleKey.UpArrow, _):
+                HandleUpArrow(view);
+                break;
+            case (0, ConsoleKey.DownArrow, _):
+                HandleDownArrow(view);
+                break;
+            case (0, ConsoleKey.Backspace, _):
+                HandleBackspace(view);
+                break;
+            case (0, ConsoleKey.Delete, _):
+                HandleDelete(view);
+                break;
+            case (0, ConsoleKey.Home, _):
+                view.CursorX = 0;
+                break;
+            case (0, ConsoleKey.End, _):
+                view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+                break;
+            case (_, _, >= ' '):
+                HandleTyping (view, keyInfo.KeyChar.ToString());
+                break;
         }
-
-        if (keyInfo.Modifiers == ConsoleModifiers.Control)
-        {
-            switch (keyInfo.Key)
-            {
-                case ConsoleKey.Enter:
-                    editDone = true;
-                    break;
-            }
-        }
-
-        if (keyInfo.KeyChar >= ' ')
-            HandleTyping(view, keyInfo.KeyChar.ToString());
     }
 
     void HandleEnter(SubmissionView view)
     {
         if (CheckSubmissionCompleted(view)) return;
-        var line = view.SubmissionDocument[view.CursorY];
-        var nextLine = line[view.CursorX..];
-        var oldLine = line[..view.CursorX];
-        view.SubmissionDocument[view.CursorY] = oldLine;
-        view.SubmissionDocument.Insert(view.CursorY+1, nextLine);
-        view.CursorX = 0;
-        view.CursorY++;
+        using(view.CreateUpdateContext())
+        {
+            var line = view.SubmissionDocument[view.CursorY];
+            var nextLine = line[view.CursorX..];
+            var oldLine = line[..view.CursorX];
+            view.SubmissionDocument[view.CursorY] = oldLine;
+            view.SubmissionDocument.Insert(view.CursorY + 1, nextLine);
+            view.CursorX = 0;
+            view.CursorY++;
+        }
     }
-
     static void HandleLeftArrow(SubmissionView view)
     {
-        if (view.CursorX > 0) view.CursorX--;
+        using(view.CreateUpdateContext())
+        {
+            if (view.CursorX > 0)
+                view.CursorX--;
+            else
+            {
+                if (view.CursorY == 0) return;
+                view.CursorY--;
+                if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
+                    view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+            }
+        }
     }
-
     static void HandleRightArrow(SubmissionView view)
     {
-        if (view.CursorX < view.SubmissionDocument[view.CursorY].Length - 1)
-            view.CursorX++;
+        using(view.CreateUpdateContext())
+        {
+            if (view.CursorX < view.SubmissionDocument[view.CursorY].Length)
+                view.CursorX++;
+            else
+            {
+                if (view.CursorY == view.SubmissionDocument.Count - 1) return;
+                view.CursorY++;
+                if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
+                    view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+            }
+        }
     }
-
     static void HandleUpArrow(SubmissionView view)
     {
-        if (view.CursorY > 0)
-            view.CursorY--;
+        using(view.CreateUpdateContext())
+        {
+            if (view.CursorY > 0)
+                view.CursorY--;
+            if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
+                view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+        }
     }
-
     static void HandleDownArrow(SubmissionView view)
     {
-        if (view.CursorY < view.SubmissionDocument.Count - 1)
-            view.CursorY++;
+        using(view.CreateUpdateContext())
+        {
+            if (view.CursorY < view.SubmissionDocument.Count - 1)
+                view.CursorY++;
+            if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
+                view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+        }
     }
 
-    static void HandleEscape(SubmissionView view) { }
+    static void HandleBackspace(SubmissionView view)
+    {
+        using(view.CreateUpdateContext())
+        {
+            if (view.CursorX == 0)
+            {
+                if (view.CursorY == 0) return;
+                view.CursorY--;
+                view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+                view.SubmissionDocument[view.CursorY] += view.SubmissionDocument[view.CursorY + 1];
+                view.SubmissionDocument.RemoveAt(view.CursorY + 1);
+                return;
+            }
+
+            view.SubmissionDocument[view.CursorY] = view.SubmissionDocument[view.CursorY].Remove(view.CursorX - 1, 1);
+            view.CursorX--;
+        }
+    }
+    static void HandleDelete(SubmissionView view)
+    {
+        using (view.CreateUpdateContext())
+        {
+            if (view.CursorX < view.SubmissionDocument[view.CursorY].Length)
+                view.SubmissionDocument[view.CursorY] = view.SubmissionDocument[view.CursorY].Remove(view.CursorX, 1);
+            else
+            {
+                if (view.CursorY == view.SubmissionDocument.Count - 1) return;
+                view.SubmissionDocument[view.CursorY] += view.SubmissionDocument[view.CursorY + 1];
+                view.SubmissionDocument.RemoveAt(view.CursorY+1);
+            }
+        }
+    }
 
     static void HandleTyping(SubmissionView view, string input)
     {
-        view.SubmissionDocument[view.CursorY] = view.SubmissionDocument[view.CursorY].Insert(view.CursorX, input);
-        view.CursorX += input.Length;
+        using(view.CreateUpdateContext())
+        {
+            view.SubmissionDocument[view.CursorY] = view.SubmissionDocument[view.CursorY].Insert(view.CursorX, input);
+            view.CursorX += input.Length;
+        }
     }
+
     bool CheckSubmissionCompleted(SubmissionView view)
     {
         var text = string.Join(Environment.NewLine, view.SubmissionDocument);
@@ -190,6 +272,7 @@ abstract class Repl
 
     public void Run()
     {
+        Console.ResetColor();
         while (true)
         {
             try
