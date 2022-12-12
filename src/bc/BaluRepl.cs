@@ -117,4 +117,20 @@ sealed class BaluRepl : Repl
             Console.ResetColor();
         }
     }
+
+    protected override void RenderLine(string line)
+    {
+        var tokens = SyntaxTree.ParseTokens(line);
+        foreach (var token in tokens)
+        {
+            if (token.Kind.ToString().EndsWith("Keyword"))
+                Console.ForegroundColor = ConsoleColor.Blue;
+            else if (token.Kind != SyntaxKind.NumberToken)
+                Console.ForegroundColor = ConsoleColor.DarkGray;
+
+            Console.Write(token.Text);
+            Console.ResetColor();
+        }
+
+    }
 }
