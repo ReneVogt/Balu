@@ -133,7 +133,7 @@ abstract class Repl
     }
     void HandleKey(ConsoleKeyInfo keyInfo, SubmissionView view)
     {
-        switch((keyInfo.Modifiers, keyInfo.Key, keyInfo.KeyChar))
+        switch(keyInfo.Modifiers, keyInfo.Key, keyInfo.KeyChar)
         {
             case (ConsoleModifiers.Control, ConsoleKey.Enter, _):
                 HandleControlEnter(view);
@@ -183,7 +183,7 @@ abstract class Repl
         }
     }
 
-    void HandleControlEnter(SubmissionView view) => InsertLine(view);
+    static void HandleControlEnter(SubmissionView view) => InsertLine(view);
     void HandleEnter(SubmissionView view)
     {
         if (CheckSubmissionCompleted(view)) return;
@@ -288,7 +288,7 @@ abstract class Repl
             const int TabWidth = 4;
             var line = view.SubmissionDocument[view.CursorY];
             var remaining = TabWidth - view.CursorX % TabWidth;
-            view.SubmissionDocument[view.CursorY] = line.Insert(view.CursorX, new string(' ', remaining));
+            view.SubmissionDocument[view.CursorY] = line.Insert(view.CursorX, value: new (' ', remaining));
             view.CursorX += remaining;
         }
     }
