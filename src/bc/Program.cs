@@ -1,3 +1,3 @@
 ﻿using Balu;
 
-new Repl().Run();
+new BaluRepl().Run();
