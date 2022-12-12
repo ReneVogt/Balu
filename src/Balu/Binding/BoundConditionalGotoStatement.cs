@@ -6,7 +6,7 @@ sealed class BoundConditionalGotoStatement : BoundStatement
 {
     public LabelSymbol Label { get; }
     public BoundExpression Condition { get; }
-    public bool JumpIfFalse { get; }
+    public bool JumpIfTrue { get; }
 
     public override BoundNodeKind Kind => BoundNodeKind.ConditionalGotoStatement;
     public override IEnumerable<BoundNode> Children
@@ -14,13 +14,13 @@ sealed class BoundConditionalGotoStatement : BoundStatement
         get { yield return Condition; }
     }
     
-    public BoundConditionalGotoStatement(LabelSymbol label, BoundExpression condition, bool jumpIfFalse = false) => (Label, Condition, JumpIfFalse) = (label, condition, jumpIfFalse);
+    public BoundConditionalGotoStatement(LabelSymbol label, BoundExpression condition, bool jumpIfTrue = true) => (Label, Condition, JumpIfTrue) = (label, condition, jumpIfTrue);
 
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
         var condition = (BoundExpression)visitor.Visit(Condition);
-        return condition == Condition ? this : new (Label, condition, JumpIfFalse);
+        return condition == Condition ? this : new (Label, condition, JumpIfTrue);
     }
 
-    public override string ToString() => $"{Kind} ({(JumpIfFalse ? "on false" : "on true")}) => {Label}";
+    public override string ToString() => $"{Kind} ({(JumpIfTrue ? "on true" : "on false")}) => {Label}";
 }
