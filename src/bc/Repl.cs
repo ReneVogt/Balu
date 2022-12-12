@@ -136,7 +136,7 @@ abstract class Repl
         switch((keyInfo.Modifiers, keyInfo.Key, keyInfo.KeyChar))
         {
             case (ConsoleModifiers.Control, ConsoleKey.Enter, _):
-                editDone = true;
+                HandleControlEnter(view);
                 break;
             case (0, ConsoleKey.Enter, _):
                 HandleEnter(view);
@@ -183,11 +183,15 @@ abstract class Repl
         }
     }
 
+    void HandleControlEnter(SubmissionView view) => InsertLine(view);
     void HandleEnter(SubmissionView view)
     {
-        if (view.CursorY == view.SubmissionDocument.Count - 1 && view.CursorX == view.SubmissionDocument[view.CursorY].Length &&
-            CheckSubmissionCompleted(view)) return;
-        using(view.CreateUpdateContext())
+        if (CheckSubmissionCompleted(view)) return;
+        InsertLine(view);
+    }
+    static void InsertLine(SubmissionView view)
+    {
+        using (view.CreateUpdateContext())
         {
             var line = view.SubmissionDocument[view.CursorY];
             var nextLine = line[view.CursorX..];
@@ -198,6 +202,7 @@ abstract class Repl
             view.CursorY++;
         }
     }
+
     static void HandleLeftArrow(SubmissionView view)
     {
         using(view.CreateUpdateContext())
