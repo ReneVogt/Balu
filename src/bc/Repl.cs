@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 
@@ -95,6 +96,9 @@ abstract class Repl
         public IDisposable CreateUpdateContext() => new UpdateDisposable(this);
     }
 
+    readonly List<string> history = new();
+
+    int historyIndex;
     bool editDone;
 
     protected abstract bool IsCompleteSubmission(string text);
@@ -106,6 +110,8 @@ abstract class Repl
         Console.ResetColor();
     }
     protected abstract void EvaluateSubmission(string text);
+
+    protected void ClearHistory() => history.Clear();
 
     string EditSubmission()
     {
@@ -153,6 +159,15 @@ abstract class Repl
                 break;
             case (0, ConsoleKey.Tab, _):
                 HandleTab(view);
+                break;
+            case (0, ConsoleKey.Escape, _):
+                HandleEscape(view);
+                break;
+            case (0, ConsoleKey.PageUp, _):
+                HandlePageUp(view);
+                break;
+            case (0, ConsoleKey.PageDown,_):
+                HandlePageDown(view);
                 break;
             case (_, _, >= ' '):
                 HandleTyping (view, keyInfo.KeyChar.ToString());
@@ -263,6 +278,40 @@ abstract class Repl
             view.CursorX += remaining;
         }
     }
+    static void HandleEscape(SubmissionView view)
+    {
+        using(view.CreateUpdateContext())
+        {
+            view.SubmissionDocument[view.CursorY] = string.Empty;
+            view.CursorX = 0;
+        }
+    }
+    void HandlePageUp(SubmissionView view)
+    {
+        if (history.Count == 0) return;
+        historyIndex--;
+        if (historyIndex < 0) historyIndex = history.Count - 1;
+        UpdateDocumentFromHistory(view);
+    }
+    void HandlePageDown(SubmissionView view)
+    {
+        if (history.Count == 0) return;
+        historyIndex++;
+        if (historyIndex >= history.Count) historyIndex = 0;
+        UpdateDocumentFromHistory(view);
+    }
+    void UpdateDocumentFromHistory(SubmissionView view)
+    {
+        if (history.Count == 0) return;
+        using(view.CreateUpdateContext())
+        {
+            view.SubmissionDocument.Clear();
+            foreach (var line in history[historyIndex].Split(Environment.NewLine))
+                view.SubmissionDocument.Add(line);
+            view.CursorY = view.SubmissionDocument.Count - 1;
+            view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+        }
+    }
 
     static void HandleTyping(SubmissionView view, string input)
     {
@@ -272,6 +321,7 @@ abstract class Repl
             view.CursorX += input.Length;
         }
     }
+    
 
     bool CheckSubmissionCompleted(SubmissionView view)
     {
@@ -293,7 +343,11 @@ abstract class Repl
                 if (text.StartsWith('#'))
                     EvaluateMetaCommand(text);
                 else
+                {
+                    history.Add(text);
+                    historyIndex = 0;
                     EvaluateSubmission(text);
+                }
             }
             catch (Exception exception)
             {

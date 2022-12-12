@@ -8,7 +8,7 @@ sealed class BaluRepl : Repl
 {
     readonly VariableDictionary variables = new();
 
-    bool showSyntax, showBound, showLowered;
+    bool showSyntax, showBound, showLowered, showVars;
     Compilation? previous;
 
     protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || !SyntaxTree.Parse(text).Diagnostics.Any();
@@ -29,12 +29,19 @@ sealed class BaluRepl : Repl
                 showLowered = !showLowered;
                 Console.WriteLine(showLowered ? "Showing lowered tree." : "Not showing lowered tree.");
                 break;
+            case "#showVars":
+                showVars = !showVars;
+                Console.WriteLine(showVars ? "Showing variables after evaluationn." : "Not showing variables after evaluation.");
+                break;
             case "#cls":
                 Console.Clear();
                 break;
             case "#reset":
                 previous = null;
                 variables.Clear();
+                break;
+            case "#clearHistory":
+                ClearHistory();
                 break;
             default:
                 base.EvaluateMetaCommand(text);
@@ -99,9 +106,15 @@ sealed class BaluRepl : Repl
             previous = compilation;
             Console.ForegroundColor = ConsoleColor.Magenta;
             Console.WriteLine(result.Value);
+            if (showVars)
+            {
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("Variables:");
+                Console.ResetColor();
+                if (variables.Any())
+                    Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
+            }
             Console.ResetColor();
-            if (variables.Any())
-                Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
         }
     }
 }
