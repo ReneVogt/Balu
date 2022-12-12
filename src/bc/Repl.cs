@@ -29,6 +29,8 @@ abstract class Repl
                 parent.Render();
             }
         }
+
+        readonly Action<string> lineRenderer;
         readonly int cursorTop;
         int renderedLinesCount, cursorX, cursorY, updatesInProgress;
 
@@ -55,9 +57,10 @@ abstract class Repl
             }
         }
 
-        public SubmissionView(Document submissionDocument)
+        public SubmissionView(Document submissionDocument, Action<string> lineRenderer)
         {
             SubmissionDocument = submissionDocument;
+            this.lineRenderer = lineRenderer;
             SubmissionDocument.CollectionChanged += OnSubmissionDocumentChanged;
             cursorTop = Console.CursorTop;
             Render();
@@ -77,7 +80,7 @@ abstract class Repl
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(i == 0 ? "» " : "· ");
                 Console.ResetColor();
-                Console.WriteLine(SubmissionDocument[i].PadRight(Console.WindowWidth-2));
+                lineRenderer(SubmissionDocument[i].PadRight(Console.WindowWidth-2));
             }
 
             int blankLines = renderedLinesCount - SubmissionDocument.Count;
@@ -111,16 +114,21 @@ abstract class Repl
     }
     protected abstract void EvaluateSubmission(string text);
 
+    protected virtual void RenderLine(string line) => Console.WriteLine(line);
+
     protected void ClearHistory() => history.Clear();
 
     string EditSubmission()
     {
         editDone = false;
-        var view = new SubmissionView(new ());
+        var view = new SubmissionView(new (), RenderLine);
 
         while (!editDone)
             HandleKey(Console.ReadKey(true), view);
+        view.CursorY = view.SubmissionDocument.Count - 1;
+        view.CursorX = view.SubmissionDocument[view.CursorY].Length;
         Console.WriteLine();
+
         return string.Join(Environment.NewLine, view.SubmissionDocument);
     }
     void HandleKey(ConsoleKeyInfo keyInfo, SubmissionView view)
@@ -177,7 +185,8 @@ abstract class Repl
 
     void HandleEnter(SubmissionView view)
     {
-        if (CheckSubmissionCompleted(view)) return;
+        if (view.CursorY == view.SubmissionDocument.Count - 1 && view.CursorX == view.SubmissionDocument[view.CursorY].Length &&
+            CheckSubmissionCompleted(view)) return;
         using(view.CreateUpdateContext())
         {
             var line = view.SubmissionDocument[view.CursorY];
