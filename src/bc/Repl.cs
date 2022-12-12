@@ -49,6 +49,7 @@ abstract class Repl
             {
                 if (value == cursorY) return;
                 cursorY = value;
+                if (cursorX > SubmissionDocument[cursorY].Length) cursorX = SubmissionDocument[cursorY].Length;
                 UpdateCursorPosition();
             }
         }
@@ -87,6 +88,7 @@ abstract class Repl
 
         void UpdateCursorPosition()
         {
+            if (updatesInProgress > 0) return;
             Console.CursorTop = cursorTop + CursorY;
             Console.CursorLeft = 2 + CursorX;
         }
@@ -149,6 +151,9 @@ abstract class Repl
             case (0, ConsoleKey.End, _):
                 view.CursorX = view.SubmissionDocument[view.CursorY].Length;
                 break;
+            case (0, ConsoleKey.Tab, _):
+                HandleTab(view);
+                break;
             case (_, _, >= ' '):
                 HandleTyping (view, keyInfo.KeyChar.ToString());
                 break;
@@ -179,8 +184,7 @@ abstract class Repl
             {
                 if (view.CursorY == 0) return;
                 view.CursorY--;
-                if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
-                    view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+                view.CursorX = view.SubmissionDocument[view.CursorY].Length;
             }
         }
     }
@@ -194,8 +198,7 @@ abstract class Repl
             {
                 if (view.CursorY == view.SubmissionDocument.Count - 1) return;
                 view.CursorY++;
-                if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
-                    view.CursorX = view.SubmissionDocument[view.CursorY].Length;
+                view.CursorX = 0;
             }
         }
     }
@@ -205,8 +208,6 @@ abstract class Repl
         {
             if (view.CursorY > 0)
                 view.CursorY--;
-            if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
-                view.CursorX = view.SubmissionDocument[view.CursorY].Length;
         }
     }
     static void HandleDownArrow(SubmissionView view)
@@ -215,8 +216,6 @@ abstract class Repl
         {
             if (view.CursorY < view.SubmissionDocument.Count - 1)
                 view.CursorY++;
-            if (view.CursorX >= view.SubmissionDocument[view.CursorY].Length)
-                view.CursorX = view.SubmissionDocument[view.CursorY].Length;
         }
     }
 
@@ -250,6 +249,18 @@ abstract class Repl
                 view.SubmissionDocument[view.CursorY] += view.SubmissionDocument[view.CursorY + 1];
                 view.SubmissionDocument.RemoveAt(view.CursorY+1);
             }
+        }
+    }
+
+    static void HandleTab(SubmissionView view)
+    {
+        using(view.CreateUpdateContext())
+        {
+            const int TabWidth = 4;
+            var line = view.SubmissionDocument[view.CursorY];
+            var remaining = TabWidth - view.CursorX % TabWidth;
+            view.SubmissionDocument[view.CursorY] = line.Insert(view.CursorX, new string(' ', remaining));
+            view.CursorX += remaining;
         }
     }
 
