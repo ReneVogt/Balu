@@ -83,53 +83,53 @@ public class EvaluatorTests
     public void Evaluate_Expression_CorrectResults(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
 
     [Theory]
-    [InlineData("[!]1", "Unary operator '!' cannot be applied to type 'Int32'.")]
-    [InlineData("[+]true", "Unary operator '+' cannot be applied to type 'Boolean'.")]
-    [InlineData("[-]false", "Unary operator '-' cannot be applied to type 'Boolean'.")]
-    [InlineData("[~]false", "Unary operator '~' cannot be applied to type 'Boolean'.")]
+    [InlineData("[!]1", "Unary operator '!' cannot be applied to type 'int'.")]
+    [InlineData("[+]true", "Unary operator '+' cannot be applied to type 'bool'.")]
+    [InlineData("[-]false", "Unary operator '-' cannot be applied to type 'bool'.")]
+    [InlineData("[~]false", "Unary operator '~' cannot be applied to type 'bool'.")]
     public void Evaluate_UnaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
 
     [Theory]
-    [InlineData("1 [&] true", "Binary operator '&' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [&] 2", "Binary operator '&' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("1 [&&] true", "Binary operator '&&' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [&&] 2", "Binary operator '&&' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("1 [&&] 2", "Binary operator '&&' cannot be applied to types 'Int32' and 'Int32'.")]
-    [InlineData("1 [|] true", "Binary operator '|' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [|] 2", "Binary operator '|' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("1 [||] true", "Binary operator '||' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [||] 2", "Binary operator '||' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("1 [||] 2", "Binary operator '||' cannot be applied to types 'Int32' and 'Int32'.")]
-    [InlineData("1 [^] true", "Binary operator '^' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [^] 2", "Binary operator '^' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("1 [+] true", "Binary operator '+' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [+] 2", "Binary operator '+' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("true [+] false", "Binary operator '+' cannot be applied to types 'Boolean' and 'Boolean'.")]
-    [InlineData("1 [-] true", "Binary operator '-' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [-] 2", "Binary operator '-' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("true [-] false", "Binary operator '-' cannot be applied to types 'Boolean' and 'Boolean'.")]
-    [InlineData("1 [*] true", "Binary operator '*' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [*] 2", "Binary operator '*' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("true [*] false", "Binary operator '*' cannot be applied to types 'Boolean' and 'Boolean'.")]
-    [InlineData("1 [/] true", "Binary operator '/' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [/] 2", "Binary operator '/' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("true [/] false", "Binary operator '/' cannot be applied to types 'Boolean' and 'Boolean'.")]
-    [InlineData("1 [==] true", "Binary operator '==' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [==] 2", "Binary operator '==' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("1 [!=] true", "Binary operator '!=' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [!=] 2", "Binary operator '!=' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("1 [<] true", "Binary operator '<' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [<] 2", "Binary operator '<' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("false [<] true", "Binary operator '<' cannot be applied to types 'Boolean' and 'Boolean'.")]
-    [InlineData("1 [<=] true", "Binary operator '<=' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [<=] 2", "Binary operator '<=' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("false [<=] true", "Binary operator '<=' cannot be applied to types 'Boolean' and 'Boolean'.")]
-    [InlineData("1 [>] true", "Binary operator '>' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [>] 2", "Binary operator '>' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("false [>] true", "Binary operator '>' cannot be applied to types 'Boolean' and 'Boolean'.")]
-    [InlineData("1 [>=] true", "Binary operator '>=' cannot be applied to types 'Int32' and 'Boolean'.")]
-    [InlineData("false [>=] 2", "Binary operator '>=' cannot be applied to types 'Boolean' and 'Int32'.")]
-    [InlineData("false [>=] true", "Binary operator '>=' cannot be applied to types 'Boolean' and 'Boolean'.")]
+    [InlineData("1 [&] true", "Binary operator '&' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [&] 2", "Binary operator '&' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("1 [&&] true", "Binary operator '&&' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [&&] 2", "Binary operator '&&' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("1 [&&] 2", "Binary operator '&&' cannot be applied to types 'int' and 'int'.")]
+    [InlineData("1 [|] true", "Binary operator '|' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [|] 2", "Binary operator '|' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("1 [||] true", "Binary operator '||' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [||] 2", "Binary operator '||' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("1 [||] 2", "Binary operator '||' cannot be applied to types 'int' and 'int'.")]
+    [InlineData("1 [^] true", "Binary operator '^' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [^] 2", "Binary operator '^' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("1 [+] true", "Binary operator '+' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [+] 2", "Binary operator '+' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("true [+] false", "Binary operator '+' cannot be applied to types 'bool' and 'bool'.")]
+    [InlineData("1 [-] true", "Binary operator '-' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [-] 2", "Binary operator '-' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("true [-] false", "Binary operator '-' cannot be applied to types 'bool' and 'bool'.")]
+    [InlineData("1 [*] true", "Binary operator '*' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [*] 2", "Binary operator '*' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("true [*] false", "Binary operator '*' cannot be applied to types 'bool' and 'bool'.")]
+    [InlineData("1 [/] true", "Binary operator '/' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [/] 2", "Binary operator '/' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("true [/] false", "Binary operator '/' cannot be applied to types 'bool' and 'bool'.")]
+    [InlineData("1 [==] true", "Binary operator '==' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [==] 2", "Binary operator '==' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("1 [!=] true", "Binary operator '!=' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [!=] 2", "Binary operator '!=' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("1 [<] true", "Binary operator '<' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [<] 2", "Binary operator '<' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("false [<] true", "Binary operator '<' cannot be applied to types 'bool' and 'bool'.")]
+    [InlineData("1 [<=] true", "Binary operator '<=' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [<=] 2", "Binary operator '<=' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("false [<=] true", "Binary operator '<=' cannot be applied to types 'bool' and 'bool'.")]
+    [InlineData("1 [>] true", "Binary operator '>' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [>] 2", "Binary operator '>' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("false [>] true", "Binary operator '>' cannot be applied to types 'bool' and 'bool'.")]
+    [InlineData("1 [>=] true", "Binary operator '>=' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("false [>=] 2", "Binary operator '>=' cannot be applied to types 'bool' and 'int'.")]
+    [InlineData("false [>=] true", "Binary operator '>=' cannot be applied to types 'bool' and 'bool'.")]
     public void Evaluate_BinaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
 
     [Fact]
@@ -143,8 +143,8 @@ public class EvaluatorTests
     public void Evaluate_Assignment_Reports_ReadOnly() =>
         "{ let abc = 12 [abc] = 10 }".AssertEvaluation("Variable 'abc' is readonly and cannot be assigned to.");
     [Theory]
-    [InlineData("{ var abc = 12 abc [=] false }", "Cannot convert 'Boolean' to 'Int32'.")]
-    [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'Int32' to 'Boolean'.")]
+    [InlineData("{ var abc = 12 abc [=] false }", "Cannot convert 'bool' to 'int'.")]
+    [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'int' to 'bool'.")]
     public void Evaluate_Assignment_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
 
 
@@ -192,7 +192,7 @@ public class EvaluatorTests
     {
         const string text = "if [(12 + 3)] 1 else 0";
         const string diagnostics = @"
-            Cannot convert 'Int32' to 'Boolean'.
+            Cannot convert 'int' to 'bool'.
 ";
         text.AssertEvaluation(diagnostics);
     }
@@ -221,7 +221,7 @@ public class EvaluatorTests
     {
         const string text = "{var a=0 while [(12 + 3)] a = a + 1 }";
         const string diagnostics = @"
-            Cannot convert 'Int32' to 'Boolean'.
+            Cannot convert 'int' to 'bool'.
 ";
         text.AssertEvaluation(diagnostics);
     }
@@ -234,8 +234,8 @@ public class EvaluatorTests
     {
         const string text = "{for i= [1>2] to [2>1] 12}";
         const string diagnostics = @"
-            Cannot convert 'Boolean' to 'Int32'.
-            Cannot convert 'Boolean' to 'Int32'.
+            Cannot convert 'bool' to 'int'.
+            Cannot convert 'bool' to 'int'.
 ";
         text.AssertEvaluation(diagnostics);
     }

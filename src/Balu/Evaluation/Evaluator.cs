@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Balu.Binding;
+using Balu.Symbols;
 
 namespace Balu.Evaluation;
 
@@ -88,9 +89,9 @@ sealed class Evaluator : BoundTreeVisitor
             BoundBinaryOperatorKind.Division => (int)left / (int)right,
             BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
             BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
-            BoundBinaryOperatorKind.BitwiseAnd => binaryExpression.Type == typeof(bool) ? (bool)left && (bool)right : (int)left & (int)right,
-            BoundBinaryOperatorKind.BitwiseOr => binaryExpression.Type == typeof(bool) ? (bool)left || (bool)right : (int)left | (int)right,
-            BoundBinaryOperatorKind.BitwiseXor => binaryExpression.Type == typeof(bool) ? (bool)left ^ (bool)right : (int)left ^ (int)right,
+            BoundBinaryOperatorKind.BitwiseAnd => binaryExpression.Type == TypeSymbol.Boolean ? (bool)left && (bool)right : (int)left & (int)right,
+            BoundBinaryOperatorKind.BitwiseOr => binaryExpression.Type == TypeSymbol.Boolean ? (bool)left || (bool)right : (int)left | (int)right,
+            BoundBinaryOperatorKind.BitwiseXor => binaryExpression.Type == TypeSymbol.Boolean ? (bool)left ^ (bool)right : (int)left ^ (int)right,
             BoundBinaryOperatorKind.Equals => Equals(left, right),
             BoundBinaryOperatorKind.NotEqual => !Equals(left, right),
             BoundBinaryOperatorKind.Less => (int)left < (int)right,

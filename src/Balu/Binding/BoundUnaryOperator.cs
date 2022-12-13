@@ -1,28 +1,29 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Balu.Symbols;
 using Balu.Syntax;
 
 namespace Balu.Binding;
 sealed class BoundUnaryOperator
 {
-    static readonly Dictionary<(SyntaxKind syntaxKind, Type operandType), BoundUnaryOperator> operators = new()
+    static readonly Dictionary<(SyntaxKind syntaxKind, TypeSymbol operandType), BoundUnaryOperator> operators = new()
     {
-        [(SyntaxKind.MinusToken, typeof(int))] =
-            new (SyntaxKind.MinusToken, BoundUnaryOperatorKind.Negation, typeof(int), typeof(int)),
-        [(SyntaxKind.PlusToken, typeof(int))] =
-            new (SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, typeof(int), typeof(int)),
-        [(SyntaxKind.BangToken, typeof(bool))] =
-            new(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, typeof(bool), typeof(bool)),
-        [(SyntaxKind.TildeToken, typeof(int))] =
-                new(SyntaxKind.TildeToken, BoundUnaryOperatorKind.BitwiseNegation, typeof(int), typeof(int))
+        [(SyntaxKind.MinusToken, TypeSymbol.Integer)] =
+            new (SyntaxKind.MinusToken, BoundUnaryOperatorKind.Negation, TypeSymbol.Integer),
+        [(SyntaxKind.PlusToken, TypeSymbol.Integer)] =
+            new (SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, TypeSymbol.Integer),
+        [(SyntaxKind.BangToken, TypeSymbol.Boolean)] =
+            new(SyntaxKind.BangToken, BoundUnaryOperatorKind.LogicalNegation, TypeSymbol.Boolean),
+        [(SyntaxKind.TildeToken, TypeSymbol.Integer)] =
+                new(SyntaxKind.TildeToken, BoundUnaryOperatorKind.BitwiseNegation, TypeSymbol.Integer)
     };
 
     public SyntaxKind SyntaxKind { get; }
     public BoundUnaryOperatorKind OperatorKind { get; }
-    public Type OperandType { get; }
-    public Type Type { get; }
+    public TypeSymbol OperandType { get; }
+    public TypeSymbol Type { get; }
 
-    BoundUnaryOperator(SyntaxKind syntaxKind, BoundUnaryOperatorKind operatorKind, Type operandType, Type type)
+    BoundUnaryOperator(SyntaxKind syntaxKind, BoundUnaryOperatorKind operatorKind, TypeSymbol type) : this(syntaxKind, operatorKind, type, type){}
+    BoundUnaryOperator(SyntaxKind syntaxKind, BoundUnaryOperatorKind operatorKind, TypeSymbol operandType, TypeSymbol type)
     {
         SyntaxKind = syntaxKind;
         OperatorKind = operatorKind;
@@ -30,6 +31,6 @@ sealed class BoundUnaryOperator
         Type = type;
     }
 
-    public static BoundUnaryOperator? Bind(SyntaxKind syntaxKind, Type operandType) =>
+    public static BoundUnaryOperator? Bind(SyntaxKind syntaxKind, TypeSymbol operandType) =>
         operators.TryGetValue((syntaxKind, operandType), out var op) ? op : null;
 }

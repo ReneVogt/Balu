@@ -1,41 +1,44 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using Balu.Symbols;
 using Balu.Syntax;
 
 namespace Balu.Binding;
 sealed class BoundBinaryOperator
 {
-    static readonly Dictionary<(SyntaxKind syntaxKind, Type leftType, Type rightType), BoundBinaryOperator> operators = new()
+    static readonly Dictionary<(SyntaxKind syntaxKind, TypeSymbol leftType, TypeSymbol rightType), BoundBinaryOperator> operators = new()
     {
-        [(SyntaxKind.PlusToken, typeof(int), typeof(int))] = new(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, typeof(int), typeof(int), typeof(int)),
-        [(SyntaxKind.MinusToken, typeof(int), typeof(int))] = new(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Substraction, typeof(int), typeof(int), typeof(int)),
-        [(SyntaxKind.StarToken, typeof(int), typeof(int))] = new(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, typeof(int), typeof(int), typeof(int)),
-        [(SyntaxKind.SlashToken, typeof(int), typeof(int))] = new(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, typeof(int), typeof(int), typeof(int)),
-        [(SyntaxKind.AmpersandToken, typeof(int), typeof(int))] = new(SyntaxKind.AmpersandToken, BoundBinaryOperatorKind.BitwiseAnd, typeof(int), typeof(int), typeof(int)),
-        [(SyntaxKind.AmpersandToken, typeof(bool), typeof(bool))] = new(SyntaxKind.AmpersandToken, BoundBinaryOperatorKind.BitwiseAnd, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.AmpersandAmpersandToken, typeof(bool), typeof(bool))] = new(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.PipeToken, typeof(int), typeof(int))] = new(SyntaxKind.PipeToken, BoundBinaryOperatorKind.BitwiseOr, typeof(int), typeof(int), typeof(int)),
-        [(SyntaxKind.PipeToken, typeof(bool), typeof(bool))] = new(SyntaxKind.PipeToken, BoundBinaryOperatorKind.BitwiseOr, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.PipePipeToken, typeof(bool), typeof(bool))] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.CircumflexToken, typeof(int), typeof(int))] = new(SyntaxKind.CircumflexToken, BoundBinaryOperatorKind.BitwiseXor, typeof(int), typeof(int), typeof(int)),
-        [(SyntaxKind.CircumflexToken, typeof(bool), typeof(bool))] = new(SyntaxKind.CircumflexToken, BoundBinaryOperatorKind.BitwiseXor, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.EqualsEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, typeof(int), typeof(int), typeof(bool)),
-        [(SyntaxKind.BangEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, typeof(int), typeof(int), typeof(bool)),
-        [(SyntaxKind.EqualsEqualsToken, typeof(bool), typeof(bool))] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.BangEqualsToken, typeof(bool), typeof(bool))] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, typeof(bool), typeof(bool), typeof(bool)),
-        [(SyntaxKind.LessToken, typeof(int), typeof(int))] = new(SyntaxKind.LessToken, BoundBinaryOperatorKind.Less, typeof(int), typeof(int), typeof(bool)),
-        [(SyntaxKind.LessOrEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.LessOrEqualsToken, BoundBinaryOperatorKind.LessOrEquals, typeof(int), typeof(int), typeof(bool)),
-        [(SyntaxKind.GreaterToken, typeof(int), typeof(int))] = new(SyntaxKind.GreaterToken, BoundBinaryOperatorKind.Greater, typeof(int), typeof(int), typeof(bool)),
-        [(SyntaxKind.GreaterOrEqualsToken, typeof(int), typeof(int))] = new(SyntaxKind.GreaterOrEqualsToken, BoundBinaryOperatorKind.GreaterOrEquals, typeof(int), typeof(int), typeof(bool))
+        [(SyntaxKind.PlusToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, TypeSymbol.Integer),
+        [(SyntaxKind.MinusToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Substraction, TypeSymbol.Integer),
+        [(SyntaxKind.StarToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, TypeSymbol.Integer),
+        [(SyntaxKind.SlashToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, TypeSymbol.Integer),
+        [(SyntaxKind.AmpersandToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.AmpersandToken, BoundBinaryOperatorKind.BitwiseAnd, TypeSymbol.Integer),
+        [(SyntaxKind.AmpersandToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.AmpersandToken, BoundBinaryOperatorKind.BitwiseAnd, TypeSymbol.Boolean),
+        [(SyntaxKind.AmpersandAmpersandToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.AmpersandAmpersandToken, BoundBinaryOperatorKind.LogicalAnd, TypeSymbol.Boolean),
+        [(SyntaxKind.PipeToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.PipeToken, BoundBinaryOperatorKind.BitwiseOr, TypeSymbol.Integer),
+        [(SyntaxKind.PipeToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.PipeToken, BoundBinaryOperatorKind.BitwiseOr, TypeSymbol.Boolean),
+        [(SyntaxKind.PipePipeToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, TypeSymbol.Boolean),
+        [(SyntaxKind.CircumflexToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.CircumflexToken, BoundBinaryOperatorKind.BitwiseXor, TypeSymbol.Integer),
+        [(SyntaxKind.CircumflexToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.CircumflexToken, BoundBinaryOperatorKind.BitwiseXor, TypeSymbol.Boolean),
+        [(SyntaxKind.EqualsEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, TypeSymbol.Integer, TypeSymbol.Boolean),
+        [(SyntaxKind.BangEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, TypeSymbol.Integer, TypeSymbol.Boolean),
+        [(SyntaxKind.EqualsEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, TypeSymbol.Boolean),
+        [(SyntaxKind.BangEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, TypeSymbol.Boolean),
+        [(SyntaxKind.LessToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.LessToken, BoundBinaryOperatorKind.Less, TypeSymbol.Integer, TypeSymbol.Boolean),
+        [(SyntaxKind.LessOrEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.LessOrEqualsToken, BoundBinaryOperatorKind.LessOrEquals, TypeSymbol.Integer, TypeSymbol.Boolean),
+        [(SyntaxKind.GreaterToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.GreaterToken, BoundBinaryOperatorKind.Greater, TypeSymbol.Integer, TypeSymbol.Boolean),
+        [(SyntaxKind.GreaterOrEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.GreaterOrEqualsToken, BoundBinaryOperatorKind.GreaterOrEquals, TypeSymbol.Integer, TypeSymbol.Boolean)
     };
 
     public SyntaxKind SyntaxKind { get; }
     public BoundBinaryOperatorKind OperatorKind { get; }
-    public Type LeftType { get; }
-    public Type RightType { get; }
-    public Type Type { get; }
+    public TypeSymbol LeftType { get; }
+    public TypeSymbol RightType { get; }
+    public TypeSymbol Type { get; }
 
-    BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind operatorKind, Type leftType, Type rightType, Type type)
+    BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind operatorKind, TypeSymbol type) : this(syntaxKind, operatorKind, type, type, type) { }
+    BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind operatorKind, TypeSymbol operandType, TypeSymbol operatorType)
+        : this(syntaxKind, operatorKind, operandType, operandType, operatorType) { }
+    BoundBinaryOperator(SyntaxKind syntaxKind, BoundBinaryOperatorKind operatorKind, TypeSymbol leftType, TypeSymbol rightType, TypeSymbol type)
     {
         SyntaxKind = syntaxKind;
         OperatorKind = operatorKind;
@@ -44,9 +47,9 @@ sealed class BoundBinaryOperator
         Type = type;
     }
 
-    public static BoundBinaryOperator BinaryPlus { get; } = Bind(SyntaxKind.PlusToken, typeof(int), typeof(int))!;
-    public static BoundBinaryOperator LessOrEquals { get; } = Bind(SyntaxKind.LessOrEqualsToken, typeof(int), typeof(int))!;
+    public static BoundBinaryOperator BinaryPlus { get; } = Bind(SyntaxKind.PlusToken, TypeSymbol.Integer, TypeSymbol.Integer)!;
+    public static BoundBinaryOperator LessOrEquals { get; } = Bind(SyntaxKind.LessOrEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)!;
 
-    public static BoundBinaryOperator? Bind(SyntaxKind syntaxKind, Type leftType, Type rightType) =>
+    public static BoundBinaryOperator? Bind(SyntaxKind syntaxKind, TypeSymbol leftType, TypeSymbol rightType) =>
         operators.TryGetValue((syntaxKind, leftType, rightType), out var op) ? op : null;
 }

@@ -112,8 +112,8 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
-        if (condition.Type != typeof(bool))
-            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, typeof(bool));
+        if (condition.Type != TypeSymbol.Boolean)
+            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
 
         Visit(node.ThenStatement);
         var thenStatement = (BoundStatement)boundNode!;
@@ -133,8 +133,8 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
-        if (condition.Type != typeof(bool))
-            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, typeof(bool));
+        if (condition.Type != TypeSymbol.Boolean)
+            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
 
         Visit(node.Body);
         var statement = (BoundStatement)boundNode!;
@@ -147,15 +147,15 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.LowerBound);
         var lowerBound = (BoundExpression)boundNode!;
-        if (lowerBound.Type != typeof(int))
-            diagnostics.ReportCannotConvert(node.LowerBound.Span, lowerBound.Type, typeof(int));
+        if (lowerBound.Type != TypeSymbol.Integer)
+            diagnostics.ReportCannotConvert(node.LowerBound.Span, lowerBound.Type, TypeSymbol.Integer);
         Visit(node.UpperBound);
         var upperBound = (BoundExpression)boundNode!;
-        if (upperBound.Type != typeof(int))
-            diagnostics.ReportCannotConvert(node.UpperBound.Span, upperBound.Type, typeof(int));
+        if (upperBound.Type != TypeSymbol.Integer)
+            diagnostics.ReportCannotConvert(node.UpperBound.Span, upperBound.Type, TypeSymbol.Integer);
 
         var name = node.IdentifierToken.Text;
-        var variable = new VariableSymbol(name, true, typeof(int));
+        var variable = new VariableSymbol(name, true, TypeSymbol.Integer);
         scope = new (scope);
         scope.TryDeclare(variable);
 

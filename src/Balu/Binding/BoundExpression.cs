@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Balu.Symbols;
 namespace Balu.Binding;
 
 abstract class BoundExpression : BoundNode
 {
-    public abstract Type Type { get; }
+    public abstract TypeSymbol Type { get; }
     public override string ToString() => $"{Kind} ({Type})";
 }
