@@ -1,7 +1,6 @@
 ﻿using Balu.Syntax;
 using Balu.Text;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 
 namespace Balu;
@@ -16,7 +15,7 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportInvalidEscapeSequence(int start, int length, string text) =>
         Add(new(Diagnostic.LEX0002, new(start, length), $"Invalid escape sequence '{text}'."));
     public void ReportUnterminatedString(int start, int length) =>
-        Add(new(Diagnostic.LEX0003, new(start, length), "String literal not terminated.."));
+        Add(new(Diagnostic.LEX0003, new(start, length), "String literal not terminated."));
 
     public void ReportUnexpectedToken(SyntaxToken foundToken, SyntaxKind expected) =>
         Add(new(Diagnostic.SYX0000, foundToken.Span, $"Unexpected {foundToken.Kind} ('{foundToken.Text}'), expected {expected}."));

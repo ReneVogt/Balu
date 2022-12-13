@@ -79,6 +79,7 @@ public class EvaluatorTests
     [InlineData("5 > 5", false)]
     [InlineData("5 <= 5", true)]
     [InlineData("5 >= 5", true)]
+    [InlineData("\"help\"", "help")]
     public void Evaluate_Expression_CorrectResults(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
 
     [Theory]
@@ -130,6 +131,17 @@ public class EvaluatorTests
     [InlineData("false [>=] 2", "Binary operator '>=' cannot be applied to types 'Boolean' and 'Int32'.")]
     [InlineData("false [>=] true", "Binary operator '>=' cannot be applied to types 'Boolean' and 'Boolean'.")]
     public void Evaluate_BinaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
+
+    [Fact]
+    public void Evaluate_String_Reports_InvalidEscapeSequence()
+    {
+        "\"test\\[u]yeah\"".AssertEvaluation("Invalid escape sequence 'u'.");
+    }
+    [Fact]
+    public void Evaluate_String_Reports_UnterminatedString()
+    {
+        "var x = [\"test]".AssertEvaluation("String literal not terminated.");
+    }
 
     [Fact]
     public void Evaluate_Name_Reports_UndefinedName() => "var a = [bxy]".AssertEvaluation("Undefined name 'bxy'.");
