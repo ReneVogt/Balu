@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Balu.Binding;
+using Balu.Symbols;
 
 namespace Balu.Lowering;
 
