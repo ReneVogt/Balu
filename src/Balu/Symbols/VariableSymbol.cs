@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Balu;
+namespace Balu.Symbols;
 
 /// <summary>
 /// Represents a named and typed bound variable.

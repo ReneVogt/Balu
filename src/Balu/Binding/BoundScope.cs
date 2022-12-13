@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using Balu.Symbols;
 
 namespace Balu.Binding;
 sealed class BoundScope
