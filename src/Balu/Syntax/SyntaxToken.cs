@@ -76,6 +76,17 @@ public sealed class SyntaxToken : SyntaxNode
     /// <exception cref="ArgumentNullException"><paramref name="text"/> is <c>null</c>.</exception>
     public static SyntaxToken Number(TextSpan span, int value, string text) => new(SyntaxKind.NumberToken, span, text ?? throw new ArgumentNullException(nameof(text)), value);
     /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.StringToken"/>.
+    /// </summary>
+    /// <param name="value">The integer value of this string token.</param>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <param name="text">The original text of this token from the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.StringToken"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="text"/> or <paramref name="value"/> is <c>null</c>.</exception>
+    public static SyntaxToken String(TextSpan span, string value, string text) => new(SyntaxKind.StringToken, span,
+                                                                                      text ?? throw new ArgumentNullException(nameof(text)),
+                                                                                      value ?? throw new ArgumentNullException(nameof(value)));
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.PlusToken"/>.
     /// </summary>
     /// <param name="span">The position of this token in the input code.</param>

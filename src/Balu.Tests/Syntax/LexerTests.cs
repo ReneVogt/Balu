@@ -58,6 +58,19 @@ public class LexerTests
         Assert.Equal(text2, tokens[2].Text);
     }
 
+    [Theory]
+    [InlineData("\"\"", "")]
+    [InlineData("\"normal string\"", "normal string")]
+    [InlineData("\"Escaped\\\"String\"", "Escaped\"String")]
+    public void Lexer_Lexes_Strings(string input, string result)
+    {
+        var tokens = SyntaxTree.ParseTokens(input);
+        var token = Assert.Single(tokens);
+        Assert.Equal(SyntaxKind.StringToken, token.Kind);
+        Assert.Equal(result, token.Value);
+        Assert.Equal(input, token.Text);
+    }
+
     public static IEnumerable<object[]> ProvideSingleTokens() => GetSingleTokens().Concat(GetSeparators()).Select(x => new object[] { x.text, x.kind });
     public static IEnumerable<(string text, SyntaxKind kind)> GetSingleTokens() =>
         Enum.GetValues(typeof(SyntaxKind))
@@ -73,7 +86,8 @@ public class LexerTests
                     ("myNameIs", kind: SyntaxKind.IdentifierToken),
                     ("x", kind: SyntaxKind.IdentifierToken),
                     ("true", kind: SyntaxKind.TrueKeyword),
-                    ("false", kind: SyntaxKind.FalseKeyword)
+                    ("false", kind: SyntaxKind.FalseKeyword),
+                    ("\"Escaped\\\"String\"", SyntaxKind.StringToken)
                 });
     static IEnumerable<(string text, SyntaxKind kind)> GetSeparators() => new (string text, SyntaxKind kind)[]
     {
