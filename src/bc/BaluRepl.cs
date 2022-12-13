@@ -123,14 +123,13 @@ sealed class BaluRepl : Repl
         var tokens = SyntaxTree.ParseTokens(line);
         foreach (var token in tokens)
         {
-            if (token.Kind.ToString().EndsWith("Keyword"))
-                Console.ForegroundColor = ConsoleColor.Blue;
-            else if (token.Kind == SyntaxKind.IdentifierToken)
-                Console.ForegroundColor = ConsoleColor.DarkYellow;
-            else if (token.Kind == SyntaxKind.NumberToken || token.Kind == SyntaxKind.StringToken)
-                Console.ForegroundColor = ConsoleColor.Cyan;
-            else
-                Console.ForegroundColor = ConsoleColor.DarkGray;
+            Console.ForegroundColor = token.Kind switch
+            {
+                >= SyntaxKind.TrueKeyword and <= SyntaxKind.ToKeyword => ConsoleColor.Blue,
+                SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow,
+                SyntaxKind.NumberToken or SyntaxKind.StringToken => ConsoleColor.Cyan,
+                _ => ConsoleColor.DarkGray
+            };
 
             Console.Write(token.Text);
             Console.ResetColor();

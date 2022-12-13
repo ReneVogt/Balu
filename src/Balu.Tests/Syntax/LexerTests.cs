@@ -1,4 +1,5 @@
 using Balu.Syntax;
+using Balu.Tests.TestHelper;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +22,7 @@ public class LexerTests
         Assert.Empty(untestedTokenKinds);
     }
     [Fact]
-    public void Lexer_Lexes_EmptyString()
+    public void Lexer_Lexes_EmptyInput()
     {
         Assert.Empty(SyntaxTree.ParseTokens(string.Empty));
     }
@@ -62,7 +63,7 @@ public class LexerTests
     [InlineData("\"\"", "")]
     [InlineData("\"normal string\"", "normal string")]
     [InlineData("\"Escaped\\\"String\"", "Escaped\"String")]
-    public void Lexer_Lexes_Strings(string input, string result)
+    public void Lexer_String(string input, string result)
     {
         var tokens = SyntaxTree.ParseTokens(input);
         var token = Assert.Single(tokens);
@@ -70,6 +71,27 @@ public class LexerTests
         Assert.Equal(result, token.Value);
         Assert.Equal(input, token.Text);
     }
+    [Fact]
+    public void Lexer_String_Reports_InvalidEscapeSequence()
+    {
+        "\"test\\[u]yeah\"".AssertLexerDiagnostics("Invalid escape sequence 'u'.");
+    }
+    [Fact]
+    public void Lexer_String_Reports_UnterminatedString()
+    {
+        "var x = [\"test]".AssertLexerDiagnostics("String literal not terminated.");
+    }
+    [Fact]
+    public void Lexer_String_Reports_UnterminatedStringForMultiline()
+    {
+        const string input = @"
+            {
+                var x = [""test       ]
+                var z = 12
+            }";
+        input.AssertLexerDiagnostics("String literal not terminated.");
+    }
+
 
     public static IEnumerable<object[]> ProvideSingleTokens() => GetSingleTokens().Concat(GetSeparators()).Select(x => new object[] { x.text, x.kind });
     public static IEnumerable<(string text, SyntaxKind kind)> GetSingleTokens() =>
@@ -87,14 +109,12 @@ public class LexerTests
                     ("x", kind: SyntaxKind.IdentifierToken),
                     ("true", kind: SyntaxKind.TrueKeyword),
                     ("false", kind: SyntaxKind.FalseKeyword),
-                    ("\"Escaped\\\"String\"", SyntaxKind.StringToken)
+                    ("\"Escaped\\\"String with even \\r and \\n, \\t and \\v\"", SyntaxKind.StringToken)
                 });
     static IEnumerable<(string text, SyntaxKind kind)> GetSeparators() => new (string text, SyntaxKind kind)[]
     {
         (" ", kind: SyntaxKind.WhiteSpaceToken),
         ("  ", kind: SyntaxKind.WhiteSpaceToken),
-        ("\r", kind: SyntaxKind.WhiteSpaceToken),
-        ("\n", kind: SyntaxKind.WhiteSpaceToken),
         ("\r\n ", kind: SyntaxKind.WhiteSpaceToken),
         ("\t\v", kind: SyntaxKind.WhiteSpaceToken)
     };

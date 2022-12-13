@@ -1,6 +1,5 @@
 ﻿using Balu.Text;
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -60,7 +59,15 @@ public sealed class SyntaxTree
     /// <param name="tokens">The input string to parse.</param>
     /// <returns>A sequence of <see cref="SyntaxToken"/> representing the input code.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="tokens"/> is <c>null</c>.</exception>
-    public static IEnumerable<SyntaxToken> ParseTokens(string tokens) => ParseTokens(SourceText.From(tokens ?? throw new ArgumentNullException(nameof(tokens))));
+    public static ImmutableArray<SyntaxToken> ParseTokens(string tokens) => ParseTokens(SourceText.From(tokens ?? throw new ArgumentNullException(nameof(tokens))));
+    /// <summary>
+    /// Parses an input string into a sequence of Balu <see cref="SyntaxToken"/>.
+    /// </summary>
+    /// <param name="tokens">The input string to parse.</param>
+    /// <param name="diagnostics">Receives the <see cref="ImmutableArray{Diagnostic}"/> with parsing error messages.</param>
+    /// <returns>A sequence of <see cref="SyntaxToken"/> representing the input code.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="tokens"/> is <c>null</c>.</exception>
+    public static ImmutableArray<SyntaxToken> ParseTokens(string tokens, out ImmutableArray<Diagnostic> diagnostics) => ParseTokens(SourceText.From(tokens ?? throw new ArgumentNullException(nameof(tokens))), out diagnostics);
 
     /// <summary>
     /// Parses an input string into a sequence of Balu <see cref="SyntaxToken"/>.
@@ -68,6 +75,19 @@ public sealed class SyntaxTree
     /// <param name="source">The input <see cref="Text"/> to parse.</param>
     /// <returns>A sequence of <see cref="SyntaxToken"/> representing the input code.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
-    public static IEnumerable<SyntaxToken> ParseTokens(SourceText source) =>
-        new Lexer(source ?? throw new ArgumentNullException(nameof(source))).Lex().TakeWhile(token => token.Kind != SyntaxKind.EndOfFileToken);
+    public static ImmutableArray<SyntaxToken> ParseTokens(SourceText source) => ParseTokens(source, out _);
+    /// <summary>
+    /// Parses an input string into a sequence of Balu <see cref="SyntaxToken"/>.
+    /// </summary>
+    /// <param name="source">The input <see cref="Text"/> to parse.</param>
+    /// <param name="diagnostics">Receives the <see cref="ImmutableArray{Diagnostic}"/> with parsing error messages.</param>
+    /// <returns>A sequence of <see cref="SyntaxToken"/> representing the input code.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
+    public static ImmutableArray<SyntaxToken> ParseTokens(SourceText source, out ImmutableArray<Diagnostic> diagnostics)
+    {
+        var lexer = new Lexer(source ?? throw new ArgumentNullException(nameof(source)));
+        var tokens = lexer.Lex().TakeWhile(token => token.Kind != SyntaxKind.EndOfFileToken).ToImmutableArray();
+        diagnostics = lexer.Diagnostics.ToImmutableArray();
+        return tokens;
+    }
 }
