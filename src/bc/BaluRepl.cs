@@ -11,7 +11,7 @@ sealed class BaluRepl : Repl
     bool showSyntax, showBound, showLowered, showVars;
     Compilation? previous;
 
-    protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || !SyntaxTree.Parse(text).IsLastTokenMissing;
+    protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine) || !SyntaxTree.Parse(text).IsLastTokenMissing;
 
     protected override void EvaluateMetaCommand(string text)
     {
@@ -96,7 +96,7 @@ sealed class BaluRepl : Repl
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.Write(syntaxTree.Text.ToString(diagnostic.Span));
                     Console.ResetColor();
-                    Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Span.End, syntaxLine.End - diagnostic.Span.End));
+                    Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Span.End, Math.Max(0, syntaxLine.End - diagnostic.Span.End)));
                     Console.ResetColor();
                 }
             }
