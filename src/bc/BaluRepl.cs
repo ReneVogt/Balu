@@ -127,7 +127,7 @@ sealed class BaluRepl : Repl
                 Console.ForegroundColor = ConsoleColor.Blue;
             else if (token.Kind == SyntaxKind.IdentifierToken)
                 Console.ForegroundColor = ConsoleColor.DarkYellow;
-            else if (token.Kind == SyntaxKind.NumberToken)
+            else if (token.Kind == SyntaxKind.NumberToken || token.Kind == SyntaxKind.StringToken)
                 Console.ForegroundColor = ConsoleColor.Cyan;
             else
                 Console.ForegroundColor = ConsoleColor.DarkGray;
