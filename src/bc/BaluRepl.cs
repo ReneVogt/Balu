@@ -11,7 +11,7 @@ sealed class BaluRepl : Repl
     bool showSyntax, showBound, showLowered, showVars;
     Compilation? previous;
 
-    protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || !SyntaxTree.Parse(text).Diagnostics.Any();
+    protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || !SyntaxTree.Parse(text).IsLastTokenMissing;
 
     protected override void EvaluateMetaCommand(string text)
     {
@@ -104,7 +104,7 @@ sealed class BaluRepl : Repl
         else
         {
             previous = compilation;
-            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.ForegroundColor = ConsoleColor.Cyan;
             Console.WriteLine(result.Value);
             if (showVars)
             {
@@ -125,6 +125,8 @@ sealed class BaluRepl : Repl
         {
             if (token.Kind.ToString().EndsWith("Keyword"))
                 Console.ForegroundColor = ConsoleColor.Blue;
+            else if (token.Kind == SyntaxKind.IdentifierToken)
+                Console.ForegroundColor = ConsoleColor.DarkYellow;
             else if (token.Kind != SyntaxKind.NumberToken)
                 Console.ForegroundColor = ConsoleColor.DarkGray;
 

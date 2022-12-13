@@ -27,6 +27,12 @@ public sealed class SyntaxToken : SyntaxNode
     public object? Value { get; }
 
     /// <summary>
+    /// Indicates that this token was made up by the parser
+    /// but is missing in the original source code.
+    /// </summary>
+    public bool IsMissing => string.IsNullOrEmpty(Text);
+
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> with the given values.
     /// </summary>
     /// <param name="kind">The <see cref="SyntaxKind"/> of this token.</param>
