@@ -110,12 +110,8 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Expression);
         var expression = (BoundExpression)boundNode!;
-        string name = node.IdentifierToken.Text;
         bool readOnly = node.KeywordToken.Kind == SyntaxKind.LetKeyword;
-
-        var variable = new VariableSymbol(name, readOnly, expression.Type);
-        if (!scope.TryDeclare(variable))
-            diagnostics.ReportVariableAlreadyDeclared(node.IdentifierToken);
+        var variable = BindVariable(node.IdentifierToken, readOnly, expression.Type);
         boundNode = new BoundVariableDeclarationStatement(variable, expression);
         return node;
     }
@@ -161,24 +157,28 @@ sealed class Binder : SyntaxVisitor
         if (lowerBound.Type != TypeSymbol.Integer)
             diagnostics.ReportCannotConvert(node.LowerBound.Span, lowerBound.Type, TypeSymbol.Integer);
         Visit(node.UpperBound);
-        if (IsError) return node;
         var upperBound = (BoundExpression)boundNode!;
         if (upperBound.Type != TypeSymbol.Integer)
             diagnostics.ReportCannotConvert(node.UpperBound.Span, upperBound.Type, TypeSymbol.Integer);
 
-        var name = node.IdentifierToken.Text;
-        var variable = new VariableSymbol(name, true, TypeSymbol.Integer);
         scope = new (scope);
-        scope.TryDeclare(variable);
-
+        var variable = BindVariable(node.IdentifierToken, true, TypeSymbol.Integer);
         Visit(node.Body);
         var body = (BoundStatement)boundNode!;
-
         boundNode = new BoundForStatement(variable, lowerBound, upperBound, body);
 
         scope = scope.Parent!;
 
         return node;
+    }
+
+    VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type)
+    {
+        var name = identifier.IsMissing ? "?" : identifier.Text;
+        var variable = new VariableSymbol(name, isReadonly, type);
+        if (!identifier.IsMissing && !scope.TryDeclare(variable))
+            diagnostics.ReportVariableAlreadyDeclared(identifier);
+        return variable;
     }
 
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
