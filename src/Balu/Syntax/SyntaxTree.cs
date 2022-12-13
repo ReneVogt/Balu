@@ -28,7 +28,7 @@ public sealed class SyntaxTree
     /// Returns if the last token of this tree
     /// was actually missing in the original source code.
     /// </summary>
-    public bool IsLastTokenMissing => GetLastToken(Root.Statement).IsMissing;
+    public bool IsLastTokenMissing => Root.Statement.LastToken.IsMissing;
 
     SyntaxTree(SourceText text)
     {
@@ -70,6 +70,4 @@ public sealed class SyntaxTree
     /// <exception cref="ArgumentNullException"><paramref name="source"/> is <c>null</c>.</exception>
     public static IEnumerable<SyntaxToken> ParseTokens(SourceText source) =>
         new Lexer(source ?? throw new ArgumentNullException(nameof(source))).Lex().TakeWhile(token => token.Kind != SyntaxKind.EndOfFileToken);
-
-    static SyntaxToken GetLastToken(SyntaxNode node) => node is SyntaxToken token ? token : GetLastToken(node.Children.Last());
 }

@@ -36,10 +36,17 @@ public abstract class SyntaxNode
     /// Enumerates the child nodes of this <see cref="SyntaxNode"/>.
     /// </summary>
     public abstract IEnumerable<SyntaxNode> Children { get; }
+    /// <summary>
+    /// Returns the last <see cref="SyntaxToken"/> of this <see cref="SyntaxNode"/>.
+    /// </summary>
+    public SyntaxToken LastToken => GetLastToken();
 
     internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
 
+    SyntaxToken GetLastToken() => this is SyntaxToken token ? token : Children.Last().GetLastToken();
+
     public override string ToString() => $"{Kind}{Span}";
+
 
     /// <summary>
     /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="StatementSyntax"/>.
