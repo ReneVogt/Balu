@@ -5,12 +5,12 @@ namespace Balu.Binding;
 
 sealed class BoundLabelStatement : BoundStatement
 {
-    public LabelSymbol Label { get; }
+    public BoundLabel Label { get; }
 
     public override BoundNodeKind Kind => BoundNodeKind.LabelStatement;
     public override IEnumerable<BoundNode> Children { get; } = Array.Empty<BoundNode>();
 
-    public BoundLabelStatement(LabelSymbol label) => Label = label;
+    public BoundLabelStatement(BoundLabel label) => Label = label;
 
     internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
 

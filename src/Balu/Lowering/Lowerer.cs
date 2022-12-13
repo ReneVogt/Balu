@@ -7,7 +7,7 @@ namespace Balu.Lowering;
 sealed class Lowerer : BoundTreeVisitor
 {
     int labelCount;
-    LabelSymbol GenerateNextLabel() => new($"Label{labelCount++}");
+    BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet)
     {
