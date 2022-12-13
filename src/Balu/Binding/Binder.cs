@@ -57,9 +57,11 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitNameExpression(NameExpressionSyntax node)
     {
         var name = node.IdentifierrToken.Text;
-        if (!scope.TryLookup(name, out var variable))
+        if (node.IdentifierrToken.IsMissing)
+            boundNode = new BoundErrorExpression();
+        else if (!scope.TryLookup(name, out var variable))
         {
-            if (!string.IsNullOrEmpty(name)) diagnostics.ReportUndefinedName(node.IdentifierrToken);
+            diagnostics.ReportUndefinedName(node.IdentifierrToken);
             boundNode = new BoundErrorExpression();
         }
         else
