@@ -12,6 +12,8 @@ sealed class Binder : SyntaxVisitor
     BoundScope scope;
     BoundNode? boundNode;
 
+    bool IsError => boundNode is BoundExpression { Type: var type } && type == TypeSymbol.Error;
+
     Binder(BoundScope? parent) => scope = new(parent);
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
@@ -21,8 +23,8 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node)
     {
-        
         Visit(node.Expression);
+        if (IsError) return node;
         var expression = (BoundExpression)boundNode!;
         var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression.Type);
         if (op is null)
@@ -35,12 +37,17 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Left);
         var left = (BoundExpression)boundNode!;
+        bool error = IsError;
         Visit(node.Right);
+        if (error || IsError) return node;
         var right = (BoundExpression)boundNode!;
 
         var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, left.Type, right.Type);
         if (op is null)
+        {
             diagnostics.ReportBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type);
+            boundNode = new BoundErrorExpression();
+        }
         else
             boundNode = new BoundBinaryExpression(left, op, right);
         return node;
@@ -62,6 +69,7 @@ sealed class Binder : SyntaxVisitor
     {
         var name = node.IdentifierToken.Text;
         Visit(node.Expression);
+        if (IsError) return node;
 
         var expression = (BoundExpression)boundNode!;
 
@@ -150,6 +158,7 @@ sealed class Binder : SyntaxVisitor
         if (lowerBound.Type != TypeSymbol.Integer)
             diagnostics.ReportCannotConvert(node.LowerBound.Span, lowerBound.Type, TypeSymbol.Integer);
         Visit(node.UpperBound);
+        if (IsError) return node;
         var upperBound = (BoundExpression)boundNode!;
         if (upperBound.Type != TypeSymbol.Integer)
             diagnostics.ReportCannotConvert(node.UpperBound.Span, upperBound.Type, TypeSymbol.Integer);
