@@ -4,7 +4,7 @@ namespace Balu.Binding;
 
 sealed class BoundConditionalGotoStatement : BoundStatement
 {
-    public LabelSymbol Label { get; }
+    public BoundLabel Label { get; }
     public BoundExpression Condition { get; }
     public bool JumpIfTrue { get; }
 
@@ -14,7 +14,7 @@ sealed class BoundConditionalGotoStatement : BoundStatement
         get { yield return Condition; }
     }
     
-    public BoundConditionalGotoStatement(LabelSymbol label, BoundExpression condition, bool jumpIfTrue = true) => (Label, Condition, JumpIfTrue) = (label, condition, jumpIfTrue);
+    public BoundConditionalGotoStatement(BoundLabel label, BoundExpression condition, bool jumpIfTrue = true) => (Label, Condition, JumpIfTrue) = (label, condition, jumpIfTrue);
 
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {

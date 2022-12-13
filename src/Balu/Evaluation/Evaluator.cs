@@ -7,7 +7,7 @@ namespace Balu.Evaluation;
 sealed class Evaluator : BoundTreeVisitor
 {
     readonly VariableDictionary variables;
-    readonly Dictionary<LabelSymbol, int> labelsToIndices = new();
+    readonly Dictionary<BoundLabel, int> labelsToIndices = new();
 
     public object? Result { get; private set; }
 
