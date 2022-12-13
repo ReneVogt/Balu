@@ -133,27 +133,6 @@ public class EvaluatorTests
     public void Evaluate_BinaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
 
     [Fact]
-    public void Evaluate_String_Reports_InvalidEscapeSequence()
-    {
-        "\"test\\[u]yeah\"".AssertEvaluation("Invalid escape sequence 'u'.");
-    }
-    [Fact]
-    public void Evaluate_String_Reports_UnterminatedString()
-    {
-        "var x = [\"test]".AssertEvaluation("String literal not terminated.");
-    }
-    [Fact]
-    public void Evaluate_String_Reports_UnterminatedStringForMultiline()
-    {
-        const string input = @"
-            {
-                var x = [""test       ]
-                var z = 12
-            }";
-        input.AssertEvaluation("String literal not terminated.");
-    }
-
-    [Fact]
     public void Evaluate_Name_Reports_UndefinedName() => "var a = [bxy]".AssertEvaluation("Undefined name 'bxy'.");
     [Fact]
     public void Evaluate_Name_Reports_NoErrorForInsertedToken() => "[]".AssertEvaluation("Unexpected EndOfFileToken ('\0'), expected IdentifierToken.");

@@ -43,7 +43,7 @@ public abstract class SyntaxNode
 
     internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
 
-    SyntaxToken GetLastToken() => this is SyntaxToken token ? token : Children.Last().GetLastToken();
+    SyntaxToken GetLastToken() => this as SyntaxToken ?? Children.Last().GetLastToken();
 
     public override string ToString() => $"{Kind}{Span}";
 
