@@ -134,6 +134,14 @@ sealed class Lexer
             _ => null
         };
     }
+
+    readonly Dictionary<char, char> escapedCharacters = new()
+    {
+        ['r'] = '\r',
+        ['n'] = '\n',
+        ['t'] = '\t',
+        ['v'] = '\v'
+    };
     void ReadString()
     {
         position++; 
@@ -141,33 +149,45 @@ sealed class Lexer
         bool escaped = false;
         while (Current != '"' || escaped)
         {
-            if (position == input.Length)
+            switch (Current)
             {
-                diagnostics.ReportUnterminatedString(start, position - start);
-                text = input.ToString(start, position - start);
-                kind = SyntaxKind.StringToken;
-                return;
-            }
-            if (escaped)
-            {
-                escaped = false;
-                switch (Current)
-                {
-                    case '"': valueBuilder.Append('"');
-                        break;
-                    case '\\':
+                case '\0':
+                case '\r':
+                case '\n':
+                    diagnostics.ReportUnterminatedString(start, position - start);
+                    text = input.ToString(start, position - start);
+                    kind = SyntaxKind.StringToken;
+                    return;
+                case '"': 
+                    valueBuilder.Append('"');
+                    escaped = false;
+                    break;
+                case '\\':
+                    if (escaped)
+                    {
                         valueBuilder.Append('\\');
-                        break;
-                    default:
+                        escaped = false;
+                    }
+                    else
+                        escaped = true; 
+                    break;
+                case 'r': 
+                case 'n':
+                case 't':
+                case 'v':
+                    valueBuilder.Append(escaped ? escapedCharacters[Current] : Current);
+                    escaped = false;
+                    break;
+                default:
+                    if (escaped)
+                    {
                         diagnostics.ReportInvalidEscapeSequence(position, 1, Current.ToString());
                         valueBuilder.Append('\\');
-                        valueBuilder.Append(Current);
-                        break;
-                }
+                        escaped = false;
+                    }
+                    valueBuilder.Append(Current);
+                    break;
             }
-            else if (Current == '\\')
-                escaped = true;
-            else valueBuilder.Append(Current);
 
             Next();
         }
