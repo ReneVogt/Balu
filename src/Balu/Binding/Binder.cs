@@ -28,7 +28,10 @@ sealed class Binder : SyntaxVisitor
         var expression = (BoundExpression)boundNode!;
         var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression.Type);
         if (op is null)
+        {
             diagnostics.ReportUnaryOperatorTypeMismatch(node.OperatorToken, expression.Type);
+            boundNode = new BoundErrorExpression();
+        }
         else
             boundNode = new BoundUnaryExpression(op, expression);
         return node;
@@ -58,7 +61,7 @@ sealed class Binder : SyntaxVisitor
         if (!scope.TryLookup(name, out var variable))
         {
             if (!string.IsNullOrEmpty(name)) diagnostics.ReportUndefinedName(node.IdentifierrToken);
-            boundNode = new BoundLiteralExpression(0);
+            boundNode = new BoundErrorExpression();
         }
         else
             boundNode = new BoundVariableExpression(variable);
