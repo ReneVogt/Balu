@@ -40,15 +40,14 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Left);
         var left = (BoundExpression)boundNode!;
-        bool error = IsError;
         Visit(node.Right);
-        if (error || IsError) return node;
         var right = (BoundExpression)boundNode!;
 
         var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, left.Type, right.Type);
         if (op is null)
         {
-            diagnostics.ReportBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type);
+            if (left.Type != TypeSymbol.Error && right.Type != TypeSymbol.Error)
+                diagnostics.ReportBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type);
             boundNode = new BoundErrorExpression();
         }
         else
@@ -72,16 +71,28 @@ sealed class Binder : SyntaxVisitor
     {
         var name = node.IdentifierToken.Text;
         Visit(node.Expression);
-        if (IsError) return node;
+        bool error = IsError;
 
         var expression = (BoundExpression)boundNode!;
 
         if (!scope.TryLookup(name, out var variable))
-            diagnostics.ReportUndefinedName(node.IdentifierToken);
+        {
+            if (!error)
+                diagnostics.ReportUndefinedName(node.IdentifierToken);
+            boundNode = new BoundErrorExpression();
+        }
         else if (variable.ReadOnly)
-            diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
+        {
+            if (!error)
+                diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
+            boundNode = new BoundErrorExpression();
+        }
         else if (expression.Type != variable.Type)
-            diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression.Type, variable.Type);
+        {
+            if (!error)
+                diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression.Type, variable.Type);
+            boundNode = new BoundErrorExpression();
+        }
         else
             boundNode = new BoundAssignmentExpression(variable, expression);
         return node;
@@ -119,7 +130,7 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
-        if (condition.Type != TypeSymbol.Boolean)
+        if (condition.Type != TypeSymbol.Boolean && !IsError)
             diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
 
         Visit(node.ThenStatement);
@@ -140,7 +151,7 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
-        if (condition.Type != TypeSymbol.Boolean)
+        if (condition.Type != TypeSymbol.Boolean && !IsError)
             diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
 
         Visit(node.Body);
@@ -154,11 +165,11 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.LowerBound);
         var lowerBound = (BoundExpression)boundNode!;
-        if (lowerBound.Type != TypeSymbol.Integer)
+        if (lowerBound.Type != TypeSymbol.Integer && !IsError)
             diagnostics.ReportCannotConvert(node.LowerBound.Span, lowerBound.Type, TypeSymbol.Integer);
         Visit(node.UpperBound);
         var upperBound = (BoundExpression)boundNode!;
-        if (upperBound.Type != TypeSymbol.Integer)
+        if (upperBound.Type != TypeSymbol.Integer && !IsError)
             diagnostics.ReportCannotConvert(node.UpperBound.Span, upperBound.Type, TypeSymbol.Integer);
 
         scope = new (scope);
