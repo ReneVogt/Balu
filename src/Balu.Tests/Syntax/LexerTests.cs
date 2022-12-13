@@ -38,7 +38,7 @@ public class LexerTests
     [MemberData(nameof(ProvideTokenPairs))]
     public void Lexer_Lexes_TokenPairs(string text1, SyntaxKind kind1, string text2, SyntaxKind kind2)
     {
-        var tokens = SyntaxTree.ParseTokens(text1 + text2).ToArray();
+        var tokens = SyntaxTree.ParseTokens(text1 + text2);
         Assert.Equal(2, tokens.Length);
         Assert.Equal(kind1, tokens[0].Kind);
         Assert.Equal(text1, tokens[0].Text);
@@ -49,7 +49,7 @@ public class LexerTests
     [MemberData(nameof(ProvideSeparatedTokenPairs))]
     public void Lexer_Lexes_SeparatedTokenPairs(string text1, SyntaxKind kind1, string separatorText, SyntaxKind separatorKind, string text2, SyntaxKind kind2)
     {
-        var tokens = SyntaxTree.ParseTokens(text1 + separatorText + text2).ToArray();
+        var tokens = SyntaxTree.ParseTokens(text1 + separatorText + text2);
         Assert.Equal(3, tokens.Length);
         Assert.Equal(kind1, tokens[0].Kind);
         Assert.Equal(text1, tokens[0].Text);
