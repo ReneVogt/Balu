@@ -100,7 +100,7 @@ sealed class Lowerer : BoundTreeVisitor
         var loopVariable = new BoundVariableExpression(forStatement.Variable);
         var loopVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Variable, forStatement.LowerBound);
 
-        var upperVariableSymbol = new VariableSymbol("upperBound", false, typeof(int));
+        var upperVariableSymbol = new VariableSymbol("upperBound", false, TypeSymbol.Integer);
         var upperVariableDeclaration = new BoundVariableDeclarationStatement(upperVariableSymbol, forStatement.UpperBound);
 
         var increment = new BoundExpressionStatement(

@@ -7,7 +7,7 @@ namespace Balu.Binding;
 sealed class BoundVariableExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.VariableExpression;
-    public override Type Type => Variable.Type;
+    public override TypeSymbol Type => Variable.Type;
     public override IEnumerable<BoundNode> Children { get; } = Array.Empty<BoundNode>();
 
     public VariableSymbol Variable { get; }
