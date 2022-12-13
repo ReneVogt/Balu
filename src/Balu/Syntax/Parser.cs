@@ -157,6 +157,7 @@ sealed class Parser
         Current.Kind switch
         {
             SyntaxKind.NumberToken => ParseNumberExpression(),
+            SyntaxKind.StringToken => ParseStringExpression(),
             SyntaxKind.OpenParenthesisToken => ParseParenthesizedExpression(),
             SyntaxKind.TrueKeyword or
                 SyntaxKind.FalseKeyword => ParseBooleanExpression(),
@@ -166,7 +167,12 @@ sealed class Parser
     LiteralExpressionSyntax ParseNumberExpression()
     {
         var numberToken = MatchToken(SyntaxKind.NumberToken);
-        return new (numberToken);
+        return new(numberToken);
+    }
+    LiteralExpressionSyntax ParseStringExpression()
+    {
+        var stringToken = MatchToken(SyntaxKind.StringToken);
+        return new(stringToken);
     }
     ParenthesizedExpressionSyntax ParseParenthesizedExpression()
     {
