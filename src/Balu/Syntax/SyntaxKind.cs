@@ -26,6 +26,12 @@ public enum SyntaxKind
     /// </summary>
     NumberToken,
 
+
+    /// <summary>
+    /// A string token, delimited by double-quotes.
+    /// </summary>
+    StringToken,
+
     /// <summary>
     /// The plus (+) token.
     /// </summary>

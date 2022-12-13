@@ -1,6 +1,7 @@
 ﻿using Balu.Text;
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Balu.Syntax;
 
@@ -50,6 +51,8 @@ sealed class Lexer
                 ReadWhiteSpaceToken();
             else if (char.IsLetter(Current))
                 ReadIdentifierOrKeywordToken();
+            else if (Current == '"')
+                ReadString();
             else
             {
                 kind = (Current, Peek(1)) switch
@@ -130,5 +133,47 @@ sealed class Lexer
             SyntaxKind.FalseKeyword => false,
             _ => null
         };
+    }
+    void ReadString()
+    {
+        position++; 
+        var valueBuilder = new StringBuilder();
+        bool escaped = false;
+        while (Current != '"' || escaped)
+        {
+            if (position == input.Length)
+            {
+                diagnostics.ReportUnterminatedString(start, position - start);
+                text = input.ToString(start, position - start);
+                kind = SyntaxKind.StringToken;
+                return;
+            }
+            if (escaped)
+            {
+                escaped = false;
+                switch (Current)
+                {
+                    case '"': valueBuilder.Append('"');
+                        break;
+                    case '\\':
+                        valueBuilder.Append('\\');
+                        break;
+                    default:
+                        diagnostics.ReportInvalidEscapeSequence(position, 1, Current.ToString());
+                        valueBuilder.Append('\\');
+                        valueBuilder.Append(Current);
+                        break;
+                }
+            }
+            else if (Current == '\\')
+                escaped = true;
+            else valueBuilder.Append(Current);
+
+            Next();
+        }
+        Next(); // skip closing "
+        text = input.ToString(start, position - start);
+        kind = SyntaxKind.StringToken;
+        value = valueBuilder.ToString();
     }
 }
