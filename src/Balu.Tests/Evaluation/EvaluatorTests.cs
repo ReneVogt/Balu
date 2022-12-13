@@ -79,7 +79,7 @@ public class EvaluatorTests
     [InlineData("5 > 5", false)]
     [InlineData("5 <= 5", true)]
     [InlineData("5 >= 5", true)]
-    [InlineData("\"help\"", "help")]
+    [InlineData("\"escapedChars: \\r\\n \\v\\t\"", "escapedChars: \r\n \v\t")]
     public void Evaluate_Expression_CorrectResults(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
 
     [Theory]
@@ -141,6 +141,16 @@ public class EvaluatorTests
     public void Evaluate_String_Reports_UnterminatedString()
     {
         "var x = [\"test]".AssertEvaluation("String literal not terminated.");
+    }
+    [Fact]
+    public void Evaluate_String_Reports_UnterminatedStringForMultiline()
+    {
+        const string input = @"
+            {
+                var x = [""test       ]
+                var z = 12
+            }";
+        input.AssertEvaluation("String literal not terminated.");
     }
 
     [Fact]
