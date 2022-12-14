@@ -80,6 +80,7 @@ sealed class BaluRepl : Repl
 
         var result = compilation.Evaluate(variables);
         Console.ResetColor();
+        Console.WriteLine();
         if (result.Diagnostics.Any())
         {
             foreach (var diagnostic in result.Diagnostics)
