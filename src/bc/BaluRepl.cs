@@ -1,6 +1,7 @@
 ﻿using Balu.Syntax;
 using System.Linq;
 using System;
+#pragma warning disable CA1303
 
 namespace Balu;
 
@@ -11,7 +12,7 @@ sealed class BaluRepl : Repl
     bool showSyntax, showBound, showLowered, showVars;
     Compilation? previous;
 
-    protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine) || !SyntaxTree.Parse(text).IsLastTokenMissing;
+    protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine, StringComparison.InvariantCultureIgnoreCase) || !SyntaxTree.Parse(text).IsLastTokenMissing;
 
     protected override void EvaluateMetaCommand(string text)
     {

@@ -1,4 +1,5 @@
 ﻿using Balu.Binding;
+#pragma warning disable CA1032
 
 namespace Balu.Evaluation;
 
@@ -12,4 +13,5 @@ public sealed class EvaluationException : BaluException
 
     internal static EvaluationException UnaryOperatorCannotBeEvaluated(BoundUnaryOperatorKind operatorKind) => new ($"Unary operator {operatorKind} cannot be evaluated.");
     internal static EvaluationException BinaryOperatorCannotBeEvaluated(BoundBinaryOperatorKind operatorKind) => new ($"Binary operator {operatorKind} cannot be evaluated.");
+
 }

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Balu.Text;
+#pragma warning disable CA1720
 
 namespace Balu.Syntax;
 

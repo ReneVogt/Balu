@@ -222,6 +222,11 @@ public enum SyntaxKind
     /// An assignment expression (x = 42).
     /// </summary>
     AssignmentExpression,
+
+    /// <summary>
+    /// A function call expression.
+    /// </summary>
+    CallExpression,
     #endregion
     #region Statements
     /// <summary>

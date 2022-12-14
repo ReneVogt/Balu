@@ -1,4 +1,5 @@
 ﻿using System;
+#pragma warning disable CA1032
 
 namespace Balu;
 
@@ -7,9 +8,5 @@ namespace Balu;
 /// </summary>
 public abstract class BaluException : Exception
 {
-    /// <summary>
-    /// Creates a new instance of an exception derived from <see cref="BaluException"/>.
-    /// </summary>
-    /// <param name="message">The exception message.</param>
-    protected BaluException(string message) : base(message) { }
+    private protected BaluException(string message) : base(message) { }
 }

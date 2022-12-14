@@ -7,7 +7,7 @@ using Balu.Evaluation;
 using Balu.Lowering;
 using Balu.Syntax;
 using Balu.Visualization;
-
+#pragma warning disable CA1724
 namespace Balu;
 
 /// <summary>
