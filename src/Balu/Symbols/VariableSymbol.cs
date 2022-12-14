@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a named and typed bound variable.
 /// </summary>
-public sealed class VariableSymbol : Symbol
+public class VariableSymbol : Symbol
 {
     /// <inheritdoc />
     public override SymbolKind Kind => SymbolKind.Variable;
