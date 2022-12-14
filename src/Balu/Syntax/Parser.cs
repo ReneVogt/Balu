@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using Balu.Text;
 
@@ -198,23 +197,25 @@ sealed class Parser
     {
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
         var open = MatchToken(SyntaxKind.OpenParenthesisToken);
-        if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
-            return new(identifier, open, new (Array.Empty<SyntaxNode>()),
-                       MatchToken(SyntaxKind.ClosedParenthesisToken));
-
-        var parameters = new List<SyntaxNode>();
-        while (Current.Kind != SyntaxKind.ClosedParenthesisToken)
-        {
-            var parameter = ParseExpression();
-            parameters.Add(parameter);
-            if (Current.Kind == SyntaxKind.CommaToken)
-                parameters.Add(MatchToken(SyntaxKind.CommaToken));
-            else if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
-                diagnostics.ReportUnexpectedToken(Current, SyntaxKind.CommaToken);
-        }
-
+        var arguments = ParseArguments();
         var closed = MatchToken(SyntaxKind.ClosedParenthesisToken);
-        return new(identifier, open, new(parameters), closed);
+        return new(identifier, open, arguments, closed);
+    }
+    SeparatedSyntaxList<ExpressionSyntax> ParseArguments()
+    {
+        List<SyntaxNode> arguments = new();
+        while(Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
+        {
+            arguments.Add(ParseExpression());
+            if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
+            {
+                var comma = MatchToken(SyntaxKind.CommaToken);
+                arguments.Add(comma);
+                if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
+                    diagnostics.ReportUnexpectedToken(comma, SyntaxKind.ClosedBraceToken);
+            }
+        }
+        return new(arguments);
     }
     NameExpressionSyntax ParseNameExpression() => new(MatchToken(SyntaxKind.IdentifierToken));
     SyntaxToken MatchToken(SyntaxKind kind)

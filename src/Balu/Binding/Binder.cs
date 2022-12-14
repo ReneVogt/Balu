@@ -99,6 +99,28 @@ sealed class Binder : SyntaxVisitor
             boundNode = new BoundAssignmentExpression(variable, expression);
         return node;
     }
+    protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
+    {
+        var builtInFunctions = BuiltInFunctions.GetBuiltInFunctions().ToArray();
+        var function = builtInFunctions.FirstOrDefault(f => f.Name == node.Identifier.Text);
+        if (function is null)
+        {
+            diagnostics.ReportUndefinedName(node.Identifier);
+            boundNode = new BoundErrorExpression();
+            return node;
+        }
+
+        List<BoundExpression> arguments = new();
+        foreach (var argument in node.Arguments)
+        {
+            Visit(argument);
+            arguments.Add((BoundExpression)boundNode!);
+        }
+
+        boundNode = new BoundCallExpression(function, arguments);
+        
+        return node;
+    }
     protected override SyntaxNode VisitBlockStatement(BlockStatementSyntax node)
     {
         var statements = new List<BoundStatement>();

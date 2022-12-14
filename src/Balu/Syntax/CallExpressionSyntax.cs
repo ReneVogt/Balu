@@ -12,7 +12,7 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
         {
             yield return Identifier;
             yield return OpenParenthesis;
-            foreach (var node in Parameters.ElementsWithSeparators)
+            foreach (var node in Arguments.ElementsWithSeparators)
                 yield return node;
             yield return ClosedParenthesis;
         }
@@ -26,17 +26,17 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
     /// The open parenthesis of the call expression.
     /// </summary>
     public SyntaxToken OpenParenthesis { get; }
-    public SeparatedSyntaxList<ExpressionSyntax> Parameters { get; }
+    public SeparatedSyntaxList<ExpressionSyntax> Arguments { get; }
     /// <summary>
     /// The closed parenthesis of the call expression.
     /// </summary>
     public SyntaxToken ClosedParenthesis { get; }
 
-    internal CallExpressionSyntax(SyntaxToken identifier, SyntaxToken openParenthesis, SeparatedSyntaxList<ExpressionSyntax> parameters, SyntaxToken closedParenthesis)
+    internal CallExpressionSyntax(SyntaxToken identifier, SyntaxToken openParenthesis, SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closedParenthesis)
     {
         Identifier = identifier;
         OpenParenthesis = openParenthesis;
-        Parameters = parameters;
+        Arguments = arguments;
         ClosedParenthesis = closedParenthesis;
     }
 
@@ -46,23 +46,23 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
         var open = (SyntaxToken)visitor.Visit(OpenParenthesis);
         List<SyntaxNode>? p = null;
         
-        for (int i=0; i<Parameters.ElementsWithSeparators.Length; i++)
+        for (int i=0; i<Arguments.ElementsWithSeparators.Length; i++)
         {
-            var node = visitor.Visit(Parameters.ElementsWithSeparators[i]);
+            var node = visitor.Visit(Arguments.ElementsWithSeparators[i]);
             if (p is not null)
             {
                 p.Add(node);
                 continue;
             }
 
-            if (node == Parameters.ElementsWithSeparators[i]) continue;
-            p = Parameters.ElementsWithSeparators.Take(i).ToList();
+            if (node == Arguments.ElementsWithSeparators[i]) continue;
+            p = Arguments.ElementsWithSeparators.Take(i+1).ToList();
         }
         var close = (SyntaxToken)visitor.Visit(ClosedParenthesis);
         return identifier == Identifier && open == OpenParenthesis && p is null &&
                close == ClosedParenthesis
                    ? this
-                   : Call(identifier, open, p is null ? Parameters : new (p), close);
+                   : Call(identifier, open, p is null ? Arguments : new (p), close);
     }
 
     /// <inheritdoc />
