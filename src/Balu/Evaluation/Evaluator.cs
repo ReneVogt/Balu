@@ -83,7 +83,7 @@ sealed class Evaluator : BoundTreeVisitor
         object right = Result!;
         Result = binaryExpression.Operator.OperatorKind switch
         {
-            BoundBinaryOperatorKind.Addition => (int)left + (int)right,
+            BoundBinaryOperatorKind.Addition => binaryExpression.Type == TypeSymbol.String ? (string)left + (string)right : (int)left + (int)right,
             BoundBinaryOperatorKind.Substraction => (int)left - (int)right,
             BoundBinaryOperatorKind.Multiplication => (int)left * (int)right,
             BoundBinaryOperatorKind.Division => (int)left / (int)right,
