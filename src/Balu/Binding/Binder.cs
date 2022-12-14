@@ -74,7 +74,6 @@ sealed class Binder : SyntaxVisitor
         var name = node.IdentifierToken.Text;
         Visit(node.Expression);
         bool error = IsError;
-
         var expression = (BoundExpression)boundNode!;
 
         if (!scope.TryLookup(name, out var variable))
@@ -160,6 +159,8 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Expression);
         var expression = (BoundExpression)boundNode!;
+        if (expression.Type == TypeSymbol.Void)
+            diagnostics.ReportExpressionMustHaveValue(node.Expression.Span);
         bool readOnly = node.KeywordToken.Kind == SyntaxKind.LetKeyword;
         var variable = BindVariable(node.IdentifierToken, readOnly, expression.Type);
         boundNode = new BoundVariableDeclarationStatement(variable, expression);
