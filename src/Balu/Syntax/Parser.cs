@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Balu.Text;
 
@@ -161,7 +162,7 @@ sealed class Parser
             SyntaxKind.OpenParenthesisToken => ParseParenthesizedExpression(),
             SyntaxKind.TrueKeyword or
                 SyntaxKind.FalseKeyword => ParseBooleanExpression(),
-            SyntaxKind.IdentifierToken => ParseNameExpression(),
+            SyntaxKind.IdentifierToken => ParseIdentifier(),
             _ => ParseNameExpression()
         };
     LiteralExpressionSyntax ParseNumberExpression()
@@ -186,6 +187,34 @@ sealed class Parser
         var value = Current.Kind == SyntaxKind.TrueKeyword;
         var token = MatchToken(value ? SyntaxKind.TrueKeyword : SyntaxKind.FalseKeyword);
         return new (token, value);
+    }
+    ExpressionSyntax ParseIdentifier()
+    {
+        if (Current.Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenParenthesisToken)
+            return ParseCallExpression();
+        return ParseNameExpression();
+    }
+    CallExpressionSyntax ParseCallExpression()
+    {
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        var open = MatchToken(SyntaxKind.OpenParenthesisToken);
+        if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
+            return new(identifier, open, new (Array.Empty<SyntaxNode>()),
+                       MatchToken(SyntaxKind.ClosedParenthesisToken));
+
+        var parameters = new List<SyntaxNode>();
+        while (Current.Kind != SyntaxKind.ClosedParenthesisToken)
+        {
+            var parameter = ParseExpression();
+            parameters.Add(parameter);
+            if (Current.Kind == SyntaxKind.CommaToken)
+                parameters.Add(MatchToken(SyntaxKind.CommaToken));
+            else if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
+                diagnostics.ReportUnexpectedToken(Current, SyntaxKind.CommaToken);
+        }
+
+        var closed = MatchToken(SyntaxKind.ClosedParenthesisToken);
+        return new(identifier, open, new(parameters), closed);
     }
     NameExpressionSyntax ParseNameExpression() => new(MatchToken(SyntaxKind.IdentifierToken));
     SyntaxToken MatchToken(SyntaxKind kind)
