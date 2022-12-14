@@ -9,6 +9,10 @@ public sealed class TypeSymbol : Symbol
     public override SymbolKind Kind => SymbolKind.Type;
 
     /// <summary>
+    /// The 'void' type.
+    /// </summary>
+    public static TypeSymbol Void { get; } = new TypeSymbol("void");
+    /// <summary>
     /// The 'int' type.
     /// </summary>
     public static TypeSymbol Integer { get; } = new TypeSymbol("int");
