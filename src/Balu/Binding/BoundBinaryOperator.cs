@@ -8,6 +8,8 @@ sealed class BoundBinaryOperator
     static readonly Dictionary<(SyntaxKind syntaxKind, TypeSymbol leftType, TypeSymbol rightType), BoundBinaryOperator> operators = new()
     {
         [(SyntaxKind.PlusToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, TypeSymbol.Integer),
+        [(SyntaxKind.PlusToken, TypeSymbol.String, TypeSymbol.String)] = new(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, TypeSymbol.String),
+
         [(SyntaxKind.MinusToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Substraction, TypeSymbol.Integer),
         [(SyntaxKind.StarToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.StarToken, BoundBinaryOperatorKind.Multiplication, TypeSymbol.Integer),
         [(SyntaxKind.SlashToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.SlashToken, BoundBinaryOperatorKind.Division, TypeSymbol.Integer),
