@@ -44,7 +44,7 @@ sealed class DiagnosticBag : List<Diagnostic>
                 span,
                 $"Function '{syntax.Identifier.Text}' takes {function.Parameters.Length} parameters, but is invoked with {syntax.Arguments.Count} arguments."));
     }
-    public void ReportWrongArgumentType(CallExpressionSyntax syntax, FunctionSymbol function, int argumentIndex, TypeSymbol actualType) => Add(
-        new(Diagnostic.BND0007, syntax.Arguments[argumentIndex].Span,
-            $"Argument {argumentIndex+1} of function '{syntax.Identifier.Text}' should be '{function.Parameters[argumentIndex].Type}', but '{actualType}' is passed."));
+    public void ReportWrongArgumentType(TextSpan span, string functionName, string parameterName, TypeSymbol expectedType, TypeSymbol actualType) => Add(
+        new(Diagnostic.BND0007, span,
+            $"Parameter '{parameterName}' of function '{functionName}' requires a value of type '{expectedType}', but was given a value of type '{actualType}'."));
 }

@@ -126,7 +126,7 @@ sealed class Binder : SyntaxVisitor
             var argument = (BoundExpression)boundNode!;
             if (argument.Type != function.Parameters[i].Type)
             {
-                diagnostics.ReportWrongArgumentType(node, function, i, argument.Type);
+                diagnostics.ReportWrongArgumentType(node.Arguments[i].Span, function.Name, function.Parameters[i].Name, function.Parameters[i].Type, argument.Type);
                 errors = true;
             }
             arguments.Add((BoundExpression)boundNode!);
