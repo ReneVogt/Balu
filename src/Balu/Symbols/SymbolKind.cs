@@ -13,5 +13,10 @@ public enum SymbolKind
     /// <summary>
     /// Type symbols.
     /// </summary>
-    Type
+    Type,
+
+    /// <summary>
+    /// Function symbols.
+    /// </summary>
+    Function
 }
