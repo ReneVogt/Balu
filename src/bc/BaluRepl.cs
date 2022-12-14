@@ -127,7 +127,9 @@ sealed class BaluRepl : Repl
             {
                 >= SyntaxKind.TrueKeyword and <= SyntaxKind.ToKeyword => ConsoleColor.Blue,
                 SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow,
-                SyntaxKind.NumberToken or SyntaxKind.StringToken => ConsoleColor.Cyan,
+                SyntaxKind.NumberToken => ConsoleColor.Cyan,
+                SyntaxKind.StringToken => ConsoleColor.Magenta,
+
                 _ => ConsoleColor.DarkGray
             };
 
