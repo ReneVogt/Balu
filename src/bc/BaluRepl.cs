@@ -104,7 +104,7 @@ sealed class BaluRepl : Repl
         else
         {
             previous = compilation;
-            Console.ForegroundColor = ConsoleColor.Magenta;
+            Console.ForegroundColor = ConsoleColor.White;
             Console.WriteLine(result.Value);
             if (showVars)
             {
