@@ -96,6 +96,7 @@ public static class SyntaxFacts
         SyntaxKind.GreaterOrEqualsToken => ">=",
         SyntaxKind.LessToken => "<",
         SyntaxKind.LessOrEqualsToken => "<=",
+        SyntaxKind.CommaToken => ",",
         SyntaxKind.TrueKeyword => "true",
         SyntaxKind.FalseKeyword => "false",
         SyntaxKind.LetKeyword => "let",

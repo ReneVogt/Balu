@@ -144,6 +144,11 @@ public enum SyntaxKind
     /// An arbitrary identifier token.
     /// </summary>
     IdentifierToken,
+
+    /// <summary>
+    /// A ',' token.
+    /// </summary>
+    CommaToken,
     #endregion
     #region Keywords
     /// <summary>
