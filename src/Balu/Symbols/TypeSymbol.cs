@@ -1,4 +1,5 @@
-﻿namespace Balu.Symbols;
+﻿#pragma warning disable CA1720
+namespace Balu.Symbols;
 
 /// <summary>
 /// Represents a type in Balu.

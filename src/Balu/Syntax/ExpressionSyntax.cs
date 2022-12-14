@@ -51,8 +51,24 @@ public abstract class ExpressionSyntax : SyntaxNode
     /// <summary>
     /// Creates a new <see cref="AssignmentExpressionSyntax"/>.
     /// </summary>
-    /// <param name="identifierToken">The <see cref="SyntaxToken"/> representing name.</param>
+    /// <param name="identifierToken">The <see cref="SyntaxToken"/> representing the variable name.</param>
+    /// <param name="equalsToken">The <see cref="SyntaxToken"/> representing the equals token.</param>
+    /// <param name="expression">The expression of which the result is assigned.</param>
     /// <returns>The <see cref="AssignmentExpressionSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="identifierToken"/>, <paramref name="equalsToken"/> or <paramref name="expression"/> is <c>null</c>.</exception>
     public static AssignmentExpressionSyntax Assignment(SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression) => new(identifierToken ?? throw new ArgumentNullException(nameof(identifierToken)), equalsToken ?? throw new ArgumentNullException(nameof(equalsToken)), expression ?? throw new ArgumentNullException(nameof(expression)));
+    /// <summary>
+    /// Creates a new <see cref="CallExpressionSyntax"/>.
+    /// </summary>
+    /// <param name="identifierToken">The <see cref="SyntaxToken"/> representing the function's name.</param>
+    /// <param name="openParenthesisToken">The <see cref="SyntaxToken"/> representing the opening parenthesis.</param>
+    /// <param name="parameters">The comma separated list of arguments.</param>
+    /// <param name="closedParenthesisToken">The <see cref="SyntaxToken"/> representing the closing parenthesis.</param>
+    /// <returns>The <see cref="CallExpressionSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">On or more of the arguments are <c>null</c>.</exception>
+    public static CallExpressionSyntax Call(SyntaxToken identifierToken, SyntaxToken openParenthesisToken, SeparatedSyntaxList<ExpressionSyntax> parameters, SyntaxToken closedParenthesisToken) => 
+        new(identifierToken ?? throw new ArgumentNullException(nameof(identifierToken)), 
+            openParenthesisToken ?? throw new ArgumentNullException(nameof(openParenthesisToken)), 
+            parameters ?? throw new ArgumentNullException(nameof(parameters)),
+            closedParenthesisToken ?? throw new ArgumentNullException(nameof(closedParenthesisToken)));
 }

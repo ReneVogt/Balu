@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Diagnostics.CodeAnalysis;
+#pragma warning disable CA1303
 
 namespace Balu;
 
@@ -345,6 +347,7 @@ abstract class Repl
         return editDone;
     }
 
+    [SuppressMessage("Design", "CA1031", Justification = "This is the application's main method.")]
     public void Run()
     {
         Console.ResetColor();

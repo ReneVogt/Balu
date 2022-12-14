@@ -55,6 +55,16 @@ public class SyntaxVisitorTests
         AssertVisits(assignment);
     }
     [Fact]
+    public void SyntaxVisitor_CallExpressionSyntax_AcceptVisitsChildren()
+    {
+        var identifier = SyntaxToken.Identifier(default, string.Empty);
+        var open = SyntaxToken.OpenParenthesis(default);
+        var parameter = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));
+        var close = SyntaxToken.ClosedParenthesis(default);
+        var call = ExpressionSyntax.Call(identifier, open, new (new SyntaxNode[] { parameter }), close);
+        AssertVisits(call);
+    }
+    [Fact]
     public void SyntaxVisitor_BinaryExpressionSyntax_AcceptVisitsChildren()
     {
         var left = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));

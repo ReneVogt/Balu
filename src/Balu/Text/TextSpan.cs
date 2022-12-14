@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a span of text in a Balu code string.
 /// </summary>
-public readonly struct TextSpan
+public readonly record struct TextSpan
 {
     /// <summary>
     /// The start position in the Balu string.
