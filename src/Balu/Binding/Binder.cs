@@ -118,6 +118,7 @@ sealed class Binder : SyntaxVisitor
         }
 
         List<BoundExpression> arguments = new();
+        bool errors = false;
         for(int i=0; i<node.Arguments.Count; i++)
         {
             Visit(node.Arguments[i]);
@@ -126,13 +127,12 @@ sealed class Binder : SyntaxVisitor
             if (argument.Type != function.Parameters[i].Type)
             {
                 diagnostics.ReportWrongArgumentType(node, function, i, argument.Type);
-                boundNode = new BoundErrorExpression();
-                return node;
+                errors = true;
             }
             arguments.Add((BoundExpression)boundNode!);
         }
 
-        boundNode = new BoundCallExpression(function, arguments);
+        boundNode = errors ? new BoundErrorExpression() : new BoundCallExpression(function, arguments);
         
         return node;
     }

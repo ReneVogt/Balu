@@ -2,6 +2,7 @@
 using Balu.Syntax;
 using Balu.Text;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Balu;
 
@@ -28,8 +29,22 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportCannotConvert(TextSpan span, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(Diagnostic.BND0003, span, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'."));
     public void ReportVariableAlreadyDeclared(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Variable '{identifierToken.Text}' is already declared."));
     public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0005, identifierToken.Span, $"Variable '{identifierToken.Text}' is readonly and cannot be assigned to."));
-    public void ReportWrongNumberOfArguments(CallExpressionSyntax syntax, FunctionSymbol function) => Add(new(Diagnostic.BND0006, syntax.Span, $"Method '{syntax.Identifier.Text}' takes {function.Parameters.Length} parameters, but is invoked with {syntax.Arguments.Count}  arguments."));
+    public void ReportWrongNumberOfArguments(CallExpressionSyntax syntax, FunctionSymbol function)
+    {
+        var span = syntax.Span;
+        if (syntax.Arguments.ElementsWithSeparators.Any())
+        {
+            var start = syntax.Arguments.ElementsWithSeparators.First().Span.Start;
+            var last = syntax.Arguments.ElementsWithSeparators.Last();
+            var end = last.Span.Start + last.Span.Length;
+            span = new(start, end - start);
+        }
+        Add(
+            new(Diagnostic.BND0006,
+                span,
+                $"Function '{syntax.Identifier.Text}' takes {function.Parameters.Length} parameters, but is invoked with {syntax.Arguments.Count} arguments."));
+    }
     public void ReportWrongArgumentType(CallExpressionSyntax syntax, FunctionSymbol function, int argumentIndex, TypeSymbol actualType) => Add(
         new(Diagnostic.BND0007, syntax.Arguments[argumentIndex].Span,
-            $"Argument {argumentIndex+1} of method '{syntax.Identifier.Text}' should be '{function.Parameters[argumentIndex].Type}', but '{actualType}' is passed."));
+            $"Argument {argumentIndex+1} of function '{syntax.Identifier.Text}' should be '{function.Parameters[argumentIndex].Type}', but '{actualType}' is passed."));
 }
