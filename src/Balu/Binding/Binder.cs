@@ -102,7 +102,7 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
     {
         var builtInFunctions = BuiltInFunctions.GetBuiltInFunctions().ToArray();
-        var function = builtInFunctions.FirstOrDefault(f => f.Name == node.Identifier.Text);
+        var function = builtInFunctions.SingleOrDefault(f => f.Name == node.Identifier.Text);
         if (function is null)
         {
             diagnostics.ReportUndefinedName(node.Identifier);
@@ -110,10 +110,25 @@ sealed class Binder : SyntaxVisitor
             return node;
         }
 
-        List<BoundExpression> arguments = new();
-        foreach (var argument in node.Arguments)
+        if (function.Parameters.Length != node.Arguments.Count)
         {
-            Visit(argument);
+            diagnostics.ReportWrongNumberOfArguments(node, function);
+            boundNode = new BoundErrorExpression();
+            return node;
+        }
+
+        List<BoundExpression> arguments = new();
+        for(int i=0; i<node.Arguments.Count; i++)
+        {
+            Visit(node.Arguments[i]);
+            if (IsError) return node;
+            var argument = (BoundExpression)boundNode!;
+            if (argument.Type != function.Parameters[i].Type)
+            {
+                diagnostics.ReportWrongArgumentType(node, function, i, argument.Type);
+                boundNode = new BoundErrorExpression();
+                return node;
+            }
             arguments.Add((BoundExpression)boundNode!);
         }
 
