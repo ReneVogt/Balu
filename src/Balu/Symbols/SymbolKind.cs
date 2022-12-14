@@ -18,5 +18,6 @@ public enum SymbolKind
     /// <summary>
     /// Function symbols.
     /// </summary>
-    Function
+    Function,
+    Parameter
 }
