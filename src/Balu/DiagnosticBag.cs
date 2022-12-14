@@ -47,4 +47,5 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportWrongArgumentType(TextSpan span, string functionName, string parameterName, TypeSymbol expectedType, TypeSymbol actualType) => Add(
         new(Diagnostic.BND0007, span,
             $"Parameter '{parameterName}' of function '{functionName}' requires a value of type '{expectedType}', but was given a value of type '{actualType}'."));
+    public void ReportExpressionMustHaveValue(TextSpan expressionSpan) => Add(new(Diagnostic.BND0008, expressionSpan,"Expression must return a value."));
 }
