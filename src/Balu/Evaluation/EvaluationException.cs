@@ -13,5 +13,6 @@ public sealed class EvaluationException : BaluException
 
     internal static EvaluationException UnaryOperatorCannotBeEvaluated(BoundUnaryOperatorKind operatorKind) => new ($"Unary operator {operatorKind} cannot be evaluated.");
     internal static EvaluationException BinaryOperatorCannotBeEvaluated(BoundBinaryOperatorKind operatorKind) => new ($"Binary operator {operatorKind} cannot be evaluated.");
+    internal static EvaluationException UndefinedMethod(string name) => new($"Method '{name}' is not defined.");
 
 }

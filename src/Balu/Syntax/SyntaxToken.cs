@@ -235,7 +235,6 @@ public sealed class SyntaxToken : SyntaxNode
     /// </summary>
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.CommaToken"/>.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="name"/> is <c>null</c>.</exception>
     public static SyntaxToken Comma(TextSpan span) => new(SyntaxKind.CommaToken, span, SyntaxKind.CommaToken.GetText()!);
 
     /// <summary>

@@ -119,6 +119,35 @@ sealed class Evaluator : BoundTreeVisitor
         variables[variableDeclarationStatement.Variable] = Result;
         return variableDeclarationStatement;
     }
+    protected override BoundNode VisitBoundCallExpression(BoundCallExpression callExpression)
+    {
+        if (callExpression.Function == BuiltInFunctions.Print)
+            ExecutePrint(callExpression.Arguments);
+        else if (callExpression.Function == BuiltInFunctions.Input)
+            ExecuteInput();
+        else
+            throw EvaluationException.UndefinedMethod(callExpression.Function.Name);
+        return callExpression;
+    }
+    void ExecutePrint(IEnumerable<BoundExpression> arguments)
+    {
+        List<object?> args = new();
+        foreach (BoundExpression argument in arguments)
+        {
+            Visit(argument);
+            args.Add(Result);
+        }
+
+        Result = null;
+        Console.ForegroundColor = ConsoleColor.White;
+        Console.Write(string.Join(string.Empty, args));
+        Console.ResetColor();
+    }
+    void ExecuteInput()
+    {
+        Result = Console.ReadLine();
+    }
+
     public static object? Evaluate(BoundBlockStatement statement, VariableDictionary variables)
     {
         var evaluator = new Evaluator(variables);

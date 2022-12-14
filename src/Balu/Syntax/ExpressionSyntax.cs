@@ -62,13 +62,13 @@ public abstract class ExpressionSyntax : SyntaxNode
     /// </summary>
     /// <param name="identifierToken">The <see cref="SyntaxToken"/> representing the function's name.</param>
     /// <param name="openParenthesisToken">The <see cref="SyntaxToken"/> representing the opening parenthesis.</param>
-    /// <param name="parameters">The comma separated list of arguments.</param>
+    /// <param name="arguments">The comma separated list of arguments.</param>
     /// <param name="closedParenthesisToken">The <see cref="SyntaxToken"/> representing the closing parenthesis.</param>
     /// <returns>The <see cref="CallExpressionSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException">On or more of the arguments are <c>null</c>.</exception>
-    public static CallExpressionSyntax Call(SyntaxToken identifierToken, SyntaxToken openParenthesisToken, SeparatedSyntaxList<ExpressionSyntax> parameters, SyntaxToken closedParenthesisToken) => 
+    public static CallExpressionSyntax Call(SyntaxToken identifierToken, SyntaxToken openParenthesisToken, SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closedParenthesisToken) => 
         new(identifierToken ?? throw new ArgumentNullException(nameof(identifierToken)), 
             openParenthesisToken ?? throw new ArgumentNullException(nameof(openParenthesisToken)), 
-            parameters ?? throw new ArgumentNullException(nameof(parameters)),
+            arguments ?? throw new ArgumentNullException(nameof(arguments)),
             closedParenthesisToken ?? throw new ArgumentNullException(nameof(closedParenthesisToken)));
 }
