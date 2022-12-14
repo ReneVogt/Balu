@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Balu.Symbols;
@@ -8,6 +9,11 @@ namespace Balu.Symbols;
 /// </summary>
 public sealed class FunctionSymbol : Symbol
 {
+    public static FunctionSymbol Print { get; } =
+        new FunctionSymbol("print", new[] { new ParameterSymbol("text", TypeSymbol.String) }, TypeSymbol.Void);
+    public static FunctionSymbol Input { get; } =
+        new FunctionSymbol("input", Array.Empty<ParameterSymbol>(), TypeSymbol.String);
+
     /// <inheritdoc />
     public override SymbolKind Kind => SymbolKind.Function;
 
