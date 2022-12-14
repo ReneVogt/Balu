@@ -27,5 +27,9 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportUndefinedName(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0002, identifierToken.Span, $"Undefined name '{identifierToken.Text}'."));
     public void ReportCannotConvert(TextSpan span, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(Diagnostic.BND0003, span, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'."));
     public void ReportVariableAlreadyDeclared(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Variable '{identifierToken.Text}' is already declared."));
-    public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Variable '{identifierToken.Text}' is readonly and cannot be assigned to."));
+    public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0005, identifierToken.Span, $"Variable '{identifierToken.Text}' is readonly and cannot be assigned to."));
+    public void ReportWrongNumberOfArguments(CallExpressionSyntax syntax, FunctionSymbol function) => Add(new(Diagnostic.BND0006, syntax.Span, $"Method '{syntax.Identifier.Text}' takes {function.Parameters.Length} parameters, but is invoked with {syntax.Arguments.Count}  arguments."));
+    public void ReportWrongArgumentType(CallExpressionSyntax syntax, FunctionSymbol function, int argumentIndex, TypeSymbol actualType) => Add(
+        new(Diagnostic.BND0007, syntax.Arguments[argumentIndex].Span,
+            $"Argument {argumentIndex+1} of method '{syntax.Identifier.Text}' should be '{function.Parameters[argumentIndex].Type}', but '{actualType}' is passed."));
 }
