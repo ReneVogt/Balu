@@ -48,4 +48,5 @@ sealed class DiagnosticBag : List<Diagnostic>
         new(Diagnostic.BND0007, span,
             $"Parameter '{parameterName}' of function '{functionName}' requires a value of type '{expectedType}', but was given a value of type '{actualType}'."));
     public void ReportExpressionMustHaveValue(TextSpan expressionSpan) => Add(new(Diagnostic.BND0008, expressionSpan,"Expression must return a value."));
+    public void ReportInvalidCast(TextSpan span, TypeSymbol fromType, TypeSymbol castType) => Add(new(Diagnostic.BND0009, span, $"No conversion exists from type '{fromType}' to type '{castType}'."));
 }
