@@ -100,9 +100,7 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
     {
-        var builtInFunctions = BuiltInFunctions.GetBuiltInFunctions().ToArray();
-        var function = builtInFunctions.SingleOrDefault(f => f.Name == node.Identifier.Text);
-        if (function is null)
+        if (!scope.TryLookupFunction(node.Identifier.Text, out var function))
         {
             diagnostics.ReportUndefinedName(node.Identifier);
             boundNode = new BoundErrorExpression();
