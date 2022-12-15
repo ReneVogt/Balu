@@ -246,7 +246,10 @@ sealed class Binder : SyntaxVisitor
             previous = previous.Previous;
         }
 
-        BoundScope? parentScope = null;
+        BoundScope parentScope = new BoundScope(null);
+        foreach (var builtInFunction in BuiltInFunctions.GetBuiltInFunctions())
+            parentScope.TryDeclareFunction(builtInFunction);
+
         while (stack.Count > 0)
         {
             previous = stack.Pop();
