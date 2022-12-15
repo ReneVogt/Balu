@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Balu.Symbols;
 
 namespace Balu.Binding;
@@ -13,8 +12,6 @@ sealed class BoundScope
     public BoundScope(BoundScope? parent)
     {
         Parent = parent;
-        if (Parent is null)
-            functions = BuiltInFunctions.GetBuiltInFunctions().ToDictionary(function => function.Name, function => function);
     }
 
     public bool TryLookupVariable(string name, out VariableSymbol variable)
