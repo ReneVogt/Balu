@@ -11,6 +11,8 @@ static class BuiltInFunctions
         new FunctionSymbol("print", new[] { new ParameterSymbol("text", TypeSymbol.String) }, TypeSymbol.Void);
     public static FunctionSymbol Input { get; } =
         new FunctionSymbol("input", Array.Empty<ParameterSymbol>(), TypeSymbol.String);
+    public static FunctionSymbol Random { get; } =
+        new FunctionSymbol("random", new []{new ParameterSymbol("maximum", TypeSymbol.Integer)}, TypeSymbol.Integer);
 
     public static IEnumerable<FunctionSymbol> GetBuiltInFunctions() => typeof(BuiltInFunctions)
                                                                        .GetProperties(BindingFlags.Public | BindingFlags.Static)
