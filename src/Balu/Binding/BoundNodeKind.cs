@@ -8,6 +8,7 @@ enum BoundNodeKind
     VariableExpression,
     AssignmentExpression,
     CallExpression,
+    ConversionExpression,
     ErrorExpression,
 
     BlockStatement,

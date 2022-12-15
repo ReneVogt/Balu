@@ -100,6 +100,24 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
     {
+        if (node.Arguments.Count == 1 && LookupType(node.Identifier.Text) is { } castType)
+        {
+            Visit(node.Arguments[0]);
+            if (IsError) return node;
+            var argument = (BoundExpression)boundNode!;
+
+            var conversion = Conversion.Classify(argument.Type, castType);
+            if (!conversion.Exists)
+            {
+                diagnostics.ReportInvalidCast(node.Span, argument.Type, castType);
+                boundNode = new BoundErrorExpression();
+                return node;
+            }
+
+            boundNode = new BoundConversionExpression(castType, argument);
+            return node;
+        }
+
         if (!scope.TryLookupFunction(node.Identifier.Text, out var function))
         {
             diagnostics.ReportUndefinedName(node.Identifier);
@@ -229,6 +247,14 @@ sealed class Binder : SyntaxVisitor
             diagnostics.ReportVariableAlreadyDeclared(identifier);
         return variable;
     }
+
+    static TypeSymbol? LookupType(string name) => name == TypeSymbol.Integer.Name
+                                                      ? TypeSymbol.Integer
+                                                      : name == TypeSymbol.Boolean.Name
+                                                          ? TypeSymbol.Boolean
+                                                          : name == TypeSymbol.String.Name
+                                                              ? TypeSymbol.String
+                                                              : null;
 
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {

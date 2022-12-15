@@ -135,6 +135,21 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             throw EvaluationException.UndefinedMethod(callExpression.Function.Name);
         return callExpression;
     }
+    protected override BoundNode VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
+    {
+        Visit(conversionExpression.Expression);
+
+        if (conversionExpression.Type == TypeSymbol.String)
+            if (conversionExpression.Expression.Type == TypeSymbol.String ||
+                conversionExpression.Expression.Type == TypeSymbol.Integer ||
+                conversionExpression.Expression.Type == TypeSymbol.Boolean)
+            {
+                Result = Result!.ToString();
+                return conversionExpression;
+            }
+
+        throw EvaluationException.InvalidCast(conversionExpression.Expression.Type, conversionExpression.Type);
+    }
     void ExecutePrint(IEnumerable<BoundExpression> arguments)
     {
         Visit(arguments.Single());
