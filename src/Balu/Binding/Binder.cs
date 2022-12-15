@@ -59,7 +59,7 @@ sealed class Binder : SyntaxVisitor
         var name = node.IdentifierrToken.Text;
         if (node.IdentifierrToken.IsMissing)
             boundNode = new BoundErrorExpression();
-        else if (!scope.TryLookup(name, out var variable))
+        else if (!scope.TryLookupVariable(name, out var variable))
         {
             diagnostics.ReportUndefinedName(node.IdentifierrToken);
             boundNode = new BoundErrorExpression();
@@ -76,7 +76,7 @@ sealed class Binder : SyntaxVisitor
         bool error = IsError;
         var expression = (BoundExpression)boundNode!;
 
-        if (!scope.TryLookup(name, out var variable))
+        if (!scope.TryLookupVariable(name, out var variable))
         {
             if (!error)
                 diagnostics.ReportUndefinedName(node.IdentifierToken);
@@ -227,7 +227,7 @@ sealed class Binder : SyntaxVisitor
     {
         var name = identifier.IsMissing ? "?" : identifier.Text;
         var variable = new VariableSymbol(name, isReadonly, type);
-        if (!identifier.IsMissing && !scope.TryDeclare(variable))
+        if (!identifier.IsMissing && !scope.TryDeclareVariable(variable))
             diagnostics.ReportVariableAlreadyDeclared(identifier);
         return variable;
     }
@@ -237,7 +237,7 @@ sealed class Binder : SyntaxVisitor
         var binder = new Binder(CreateParentScopes(previous));
         binder.Visit(syntax);
         var diagnostics = previous is null ? binder.diagnostics : previous.Diagnostics.Concat(binder.diagnostics);
-        return new (previous, (BoundStatement)binder.boundNode!, binder.scope.GetDeclaredVariables(), diagnostics);
+        return new (previous, (BoundStatement)binder.boundNode!, binder.scope.GetDeclaredVariables(), binder.scope.GetDeclaredFunctions(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {
@@ -254,7 +254,9 @@ sealed class Binder : SyntaxVisitor
             previous = stack.Pop();
             var scope = new BoundScope(parentScope);
             foreach (var variable in previous.Variables)
-                scope.TryDeclare(variable);
+                scope.TryDeclareVariable(variable);
+            foreach (var function in previous.Functions)
+                scope.TryDeclareFunction(function);
             parentScope = scope;
         }
 
