@@ -26,6 +26,8 @@ sealed class Conversion
         if (from == to) return Identity;
         if ((from == TypeSymbol.Boolean || from == TypeSymbol.Integer) && to == TypeSymbol.String)
             return Explicit;
+        if (from == TypeSymbol.String && (to == TypeSymbol.Boolean || to == TypeSymbol.Integer))
+            return Explicit;
         return None;
     }
 }
