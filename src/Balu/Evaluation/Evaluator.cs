@@ -1,18 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
 using Balu.Binding;
 using Balu.Symbols;
 
 namespace Balu.Evaluation;
 
-sealed class Evaluator : BoundTreeVisitor
+sealed class Evaluator : BoundTreeVisitor, IDisposable
 {
     readonly VariableDictionary variables;
     readonly Dictionary<BoundLabel, int> labelsToIndices = new();
+    readonly RNGCryptoServiceProvider rng = new();
 
     public object? Result { get; private set; }
 
     Evaluator(VariableDictionary variables) => this.variables = variables;
+    public void Dispose() => rng.Dispose();
 
     protected override BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement)
     {
@@ -125,22 +129,18 @@ sealed class Evaluator : BoundTreeVisitor
             ExecutePrint(callExpression.Arguments);
         else if (callExpression.Function == BuiltInFunctions.Input)
             ExecuteInput();
+        else if (callExpression.Function == BuiltInFunctions.Random)
+            ExecuteRandom(callExpression.Arguments);
         else
             throw EvaluationException.UndefinedMethod(callExpression.Function.Name);
         return callExpression;
     }
     void ExecutePrint(IEnumerable<BoundExpression> arguments)
     {
-        List<object?> args = new();
-        foreach (BoundExpression argument in arguments)
-        {
-            Visit(argument);
-            args.Add(Result);
-        }
-
-        Result = null;
+        Visit(arguments.Single());
+        string argument = (string)Result!;
         Console.ForegroundColor = ConsoleColor.White;
-        Console.Write(string.Join(string.Empty, args));
+        Console.Write(argument);
         Console.ResetColor();
     }
     void ExecuteInput()
@@ -148,9 +148,19 @@ sealed class Evaluator : BoundTreeVisitor
         Result = Console.ReadLine();
     }
 
+    readonly byte[] randomArray = new byte[4];
+    void ExecuteRandom(IEnumerable<BoundExpression> arguments)
+    {
+        Visit(arguments.Single());
+        int maximum = (int)Result!;
+        rng.GetBytes(randomArray);
+        int random = BitConverter.ToInt32(randomArray, 0);
+        Result = (random & 0x7FFFFFFF) % maximum; // TODO: avoid modulo bias
+    }
+
     public static object? Evaluate(BoundBlockStatement statement, VariableDictionary variables)
     {
-        var evaluator = new Evaluator(variables);
+        using var evaluator = new Evaluator(variables);
         evaluator.VisitBoundBlockStatement(statement ?? throw new ArgumentNullException(nameof(statement)));
         return evaluator.Result;
     }
