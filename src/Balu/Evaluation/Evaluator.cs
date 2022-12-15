@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using Balu.Binding;
@@ -138,17 +139,15 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
     protected override BoundNode VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
     {
         Visit(conversionExpression.Expression);
-
         if (conversionExpression.Type == TypeSymbol.String)
-            if (conversionExpression.Expression.Type == TypeSymbol.String ||
-                conversionExpression.Expression.Type == TypeSymbol.Integer ||
-                conversionExpression.Expression.Type == TypeSymbol.Boolean)
-            {
-                Result = Result!.ToString();
-                return conversionExpression;
-            }
-
-        throw EvaluationException.InvalidCast(conversionExpression.Expression.Type, conversionExpression.Type);
+            Result = Convert.ToString(Result, CultureInfo.InvariantCulture);
+        else if (conversionExpression.Type == TypeSymbol.Integer)
+            Result = Convert.ToInt32(Result, CultureInfo.InvariantCulture);
+        else if (conversionExpression.Type == TypeSymbol.Boolean)
+            Result = Convert.ToBoolean(Result, CultureInfo.InvariantCulture);
+        else
+            throw EvaluationException.InvalidCast(conversionExpression.Expression.Type, conversionExpression.Type);
+        return conversionExpression;
     }
     void ExecutePrint(IEnumerable<BoundExpression> arguments)
     {
