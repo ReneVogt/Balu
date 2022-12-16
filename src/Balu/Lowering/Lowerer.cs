@@ -54,7 +54,6 @@ sealed class Lowerer : BoundTreeVisitor
 
         return Visit(result);
     }
-    /// <inheritdoc />
     protected override BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement)
     {
         /*
@@ -75,6 +74,24 @@ sealed class Lowerer : BoundTreeVisitor
             whileStatement.Body,
             gotoCheck,
             endLabel
+        );
+        return Visit(result);
+    }
+    protected override BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
+    {
+        /*
+         * do                      start:
+         *   <body>                <body>
+         * while <condition>       <condition>
+         *                         GotoTrue <start>
+         */
+
+        var startLabel = new BoundLabelStatement(GenerateNextLabel());
+        var gotoStart = new BoundConditionalGotoStatement(startLabel.Label, doWhileStatement.Condition);
+        var result = new BoundBlockStatement(
+            startLabel,
+            doWhileStatement.Body,
+            gotoStart
         );
         return Visit(result);
     }

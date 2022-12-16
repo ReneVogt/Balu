@@ -186,6 +186,11 @@ public enum SyntaxKind
     WhileKeyword,
 
     /// <summary>
+    /// The 'do' keyword.
+    /// </summary>
+    DoKeyword,
+
+    /// <summary>
     /// The 'for' keyword.
     /// </summary>
     ForKeyword,
@@ -262,6 +267,11 @@ public enum SyntaxKind
     /// The 'while' statement.
     /// </summary>
     WhileStatement,
+
+    /// <summary>
+    /// The 'do...while' statement.
+    /// </summary>
+    DoWhileStatement,
 
     /// <summary>
     /// The 'for' statement.

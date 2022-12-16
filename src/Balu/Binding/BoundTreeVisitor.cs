@@ -19,6 +19,7 @@ abstract class BoundTreeVisitor
         BoundNodeKind.VariableDeclarationStatement => VisitBoundVariableDeclarationStatement((BoundVariableDeclarationStatement)node),
         BoundNodeKind.IfStatement => VisitBoundIfStatement((BoundIfStatement)node),
         BoundNodeKind.WhileStatement => VisitBoundWhileStatement((BoundWhileStatement)node),
+        BoundNodeKind.DoWhileStatement => VisitBoundDoWhileStatement((BoundDoWhileStatement)node),
         BoundNodeKind.ForStatement => VisitBoundForStatement((BoundForStatement)node),
         BoundNodeKind.LabelStatement => VisitBoundLabelStatement((BoundLabelStatement)node),
         BoundNodeKind.GotoStatement => VisitBoundGotoStatement((BoundGotoStatement)node),
@@ -38,6 +39,7 @@ abstract class BoundTreeVisitor
     protected virtual BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement) => variableDeclarationStatement.Accept(this);
     protected virtual BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet) => ifStatemnet.Accept(this);
     protected virtual BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement) => whileStatement.Accept(this);
+    protected virtual BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement) => doWhileStatement.Accept(this);
     protected virtual BoundNode VisitBoundForStatement(BoundForStatement forStatement) => forStatement.Accept(this);
     protected virtual BoundNode VisitBoundLabelStatement(BoundLabelStatement labelStatement) => labelStatement.Accept(this);
     protected virtual BoundNode VisitBoundGotoStatement(BoundGotoStatement gotoStatement) => gotoStatement.Accept(this);

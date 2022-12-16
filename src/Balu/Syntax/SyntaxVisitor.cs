@@ -37,6 +37,7 @@ public abstract class SyntaxVisitor
             SyntaxKind.IfStatement => VisitIfStatement((IfStatementSyntax)node),
             SyntaxKind.ElseClause => VisitElseClause((ElseClauseSyntax)node),
             SyntaxKind.WhileStatement => VisitWhileStatement((WhileStatementSyntax)node),
+            SyntaxKind.DoWhileStatement => VisitDoWhileStatement((DoWhileStatementSyntax)node),
             SyntaxKind.ForStatement => VisitForStatement((ForStatementSyntax)node),
             _ => node is SyntaxToken token ? token.Accept(this) : throw new ArgumentException($"Unknown {nameof(SyntaxKind)} '{node.Kind}'.")
         };
@@ -148,6 +149,13 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
     protected virtual SyntaxNode VisitWhileStatement(WhileStatementSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
+    /// <summary>
+    /// Visits a <see cref="DoWhileStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="DoWhileStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
+    protected virtual SyntaxNode VisitDoWhileStatement(DoWhileStatementSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
     /// <summary>
     /// Visits a <see cref="ForStatementSyntax"/>.
     /// </summary>

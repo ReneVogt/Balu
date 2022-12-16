@@ -217,6 +217,19 @@ sealed class Binder : SyntaxVisitor
 
         return node;
     }
+    protected override SyntaxNode VisitDoWhileStatement(DoWhileStatementSyntax node)
+    {
+        Visit(node.Body);
+        var statement = (BoundStatement)boundNode!;
+        Visit(node.Condition);
+        var condition = (BoundExpression)boundNode!;
+        if (condition.Type != TypeSymbol.Boolean && !IsError)
+            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
+
+        boundNode = new BoundDoWhileStatement(statement, condition);
+
+        return node;
+    }
     protected override SyntaxNode VisitForStatement(ForStatementSyntax node)
     {
         Visit(node.LowerBound);
@@ -272,7 +285,7 @@ sealed class Binder : SyntaxVisitor
             previous = previous.Previous;
         }
 
-        BoundScope parentScope = new BoundScope(null);
+        BoundScope parentScope = new (null);
         foreach (var builtInFunction in BuiltInFunctions.GetBuiltInFunctions())
             parentScope.TryDeclareFunction(builtInFunction);
 

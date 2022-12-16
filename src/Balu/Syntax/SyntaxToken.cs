@@ -280,6 +280,12 @@ public sealed class SyntaxToken : SyntaxNode
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.WhileKeyword"/>.</returns>
     public static SyntaxToken WhileKeyword(TextSpan span) => new(SyntaxKind.WhileKeyword, span, SyntaxKind.WhileKeyword.GetText()!);
     /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.DoKeyword"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.DoKeyword"/>.</returns>
+    public static SyntaxToken DoKeyword(TextSpan span) => new(SyntaxKind.DoKeyword, span, SyntaxKind.DoKeyword.GetText()!);
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ForKeyword"/>.
     /// </summary>
     /// <param name="span">The position of this token in the input code.</param>

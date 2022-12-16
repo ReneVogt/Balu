@@ -170,6 +170,16 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
+    public void SyntaxVisitor_DoWhileStatementSyntax_AcceptVisitsChildren()
+    {
+        var doKeyword = SyntaxToken.DoKeyword(default);
+        var condition = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
+        var body = StatementSyntax.ExpressionStatement(condition);
+        var whileKeyword = SyntaxToken.WhileKeyword(default);
+        var statement = StatementSyntax.DoWhileStatement(doKeyword, body, whileKeyword, condition);
+        AssertVisits(statement);
+    }
+    [Fact]
     public void SyntaxVisitor_ForStatementSyntax_AcceptVisitsChildren()
     {
         var forKeyword = SyntaxToken.ForKeyword(default);

@@ -77,6 +77,21 @@ public abstract class StatementSyntax : SyntaxNode
         body ?? throw new ArgumentNullException(nameof(body)));
 
     /// <summary>
+    /// Creates a new <see cref="DoWhileStatementSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="doKeyword">The <see cref="SyntaxToken"/> of the 'do' keyword.</param>
+    /// <param name="body">The <see cref="StatementSyntax"/> to execute while the <paramref name="condition"/> is true.</param>
+    /// <param name="whileKeyword">The <see cref="SyntaxToken"/> of the 'while' keyword.</param>
+    /// <param name="condition">The <see cref="ExpressionSyntax"/> for the condition.</param>
+    /// <returns>The parsed <see cref="DoWhileStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static DoWhileStatementSyntax
+        DoWhileStatement(SyntaxToken doKeyword, StatementSyntax body, SyntaxToken whileKeyword, ExpressionSyntax condition) => new(
+        doKeyword ?? throw new ArgumentNullException(nameof(doKeyword)),
+        body ?? throw new ArgumentNullException(nameof(body)),
+        whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword)), condition ?? throw new ArgumentNullException(nameof(condition)));
+
+    /// <summary>
     /// Creates a new <see cref="ForStatementSyntax"/> from the given elements.
     /// </summary>
     /// <param name="forKeyword">The <see cref="SyntaxToken"/> of the 'for' keyword.</param>
