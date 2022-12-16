@@ -59,13 +59,18 @@ sealed class Binder : SyntaxVisitor
         var name = node.IdentifierrToken.Text;
         if (node.IdentifierrToken.IsMissing)
             boundNode = new BoundErrorExpression();
-        else if (!scope.TryLookupVariable(name, out var variable))
+        else if (!scope.TryLookupSymbol(name, out var symbol))
         {
             diagnostics.ReportUndefinedName(node.IdentifierrToken);
             boundNode = new BoundErrorExpression();
         }
+        else if (symbol.Kind != SymbolKind.Variable)
+        {
+            diagnostics.ReportSymbolTypeMismatch(node.IdentifierrToken, SymbolKind.Variable, symbol.Kind);
+            boundNode = new BoundErrorExpression();
+        }
         else
-            boundNode = new BoundVariableExpression(variable);
+            boundNode = new BoundVariableExpression((VariableSymbol)symbol);
 
         return node;
     }
@@ -76,26 +81,38 @@ sealed class Binder : SyntaxVisitor
         bool error = IsError;
         var expression = (BoundExpression)boundNode!;
 
-        if (!scope.TryLookupVariable(name, out var variable))
+        if (!scope.TryLookupSymbol(name, out var symbol))
         {
             if (!error)
                 diagnostics.ReportUndefinedName(node.IdentifierToken);
             boundNode = new BoundErrorExpression();
+            return node;
         }
-        else if (variable.ReadOnly)
+        if (symbol.Kind != SymbolKind.Variable)
+        {
+            if (!error)
+                diagnostics.ReportSymbolTypeMismatch(node.IdentifierToken, SymbolKind.Variable, symbol.Kind);
+            boundNode = new BoundErrorExpression();
+            return node;
+        }
+
+        var variable = (VariableSymbol)symbol;
+        if (variable.ReadOnly)
         {
             if (!error)
                 diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
             boundNode = new BoundErrorExpression();
+            return node;
         }
-        else if (expression.Type != variable.Type)
+        if (expression.Type != variable.Type)
         {
             if (!error)
                 diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression.Type, variable.Type);
             boundNode = new BoundErrorExpression();
+            return node;
         }
-        else
-            boundNode = new BoundAssignmentExpression(variable, expression);
+        
+        boundNode = new BoundAssignmentExpression(variable, expression);
         return node;
     }
     protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
@@ -118,13 +135,21 @@ sealed class Binder : SyntaxVisitor
             return node;
         }
 
-        if (!scope.TryLookupFunction(node.Identifier.Text, out var function))
+        if (!scope.TryLookupSymbol(node.Identifier.Text, out var symbol))
         {
             diagnostics.ReportUndefinedName(node.Identifier);
             boundNode = new BoundErrorExpression();
             return node;
         }
 
+        if (symbol.Kind != SymbolKind.Function)
+        {
+            diagnostics.ReportSymbolTypeMismatch(node.Identifier, SymbolKind.Function, symbol.Kind);
+            boundNode = new BoundErrorExpression();
+            return node;
+        }
+
+        var function = (FunctionSymbol)symbol;
         if (function.Parameters.Length != node.Arguments.Count)
         {
             diagnostics.ReportWrongNumberOfArguments(node, function);
@@ -256,8 +281,8 @@ sealed class Binder : SyntaxVisitor
     {
         var name = identifier.IsMissing ? "?" : identifier.Text;
         var variable = new VariableSymbol(name, isReadonly, type);
-        if (!identifier.IsMissing && !scope.TryDeclareVariable(variable))
-            diagnostics.ReportVariableAlreadyDeclared(identifier);
+        if (!identifier.IsMissing && !scope.TryDeclareSymbol(variable))
+            diagnostics.ReportSymbolAlreadyDeclared(identifier);
         return variable;
     }
 
@@ -274,7 +299,7 @@ sealed class Binder : SyntaxVisitor
         var binder = new Binder(CreateParentScopes(previous));
         binder.Visit(syntax);
         var diagnostics = previous is null ? binder.diagnostics : previous.Diagnostics.Concat(binder.diagnostics);
-        return new (previous, (BoundStatement)binder.boundNode!, binder.scope.GetDeclaredVariables(), binder.scope.GetDeclaredFunctions(), diagnostics);
+        return new (previous, (BoundStatement)binder.boundNode!, binder.scope.GetDeclaredSymbols(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {
@@ -287,16 +312,14 @@ sealed class Binder : SyntaxVisitor
 
         BoundScope parentScope = new (null);
         foreach (var builtInFunction in BuiltInFunctions.GetBuiltInFunctions())
-            parentScope.TryDeclareFunction(builtInFunction);
+            parentScope.TryDeclareSymbol(builtInFunction);
 
         while (stack.Count > 0)
         {
             previous = stack.Pop();
             var scope = new BoundScope(parentScope);
-            foreach (var variable in previous.Variables)
-                scope.TryDeclareVariable(variable);
-            foreach (var function in previous.Functions)
-                scope.TryDeclareFunction(function);
+            foreach (var symbol in previous.Symbols)
+                scope.TryDeclareSymbol(symbol);
             parentScope = scope;
         }
 

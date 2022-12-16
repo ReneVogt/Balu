@@ -149,7 +149,6 @@ public class EvaluatorTests
     [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'int' to 'bool'.")]
     public void Evaluate_Assignment_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
 
-
     [Fact]
     public void Evaluate_BlockStatement_NoInfiniteLoop()
     {
@@ -174,7 +173,7 @@ public class EvaluatorTests
                 }
 ";
         const string diagnostics = @"
-            Variable 'x' is already declared.
+            Symbol 'x' is already declared.
 ";
         text.AssertEvaluation(diagnostics);
     }
@@ -256,4 +255,9 @@ public class EvaluatorTests
 ";
         text.AssertEvaluation(diagnostics);
     }
+
+    [Theory]
+    [InlineData("{ [print] = 12 }", "Unexpected symbol kind 'Function', expected 'print' to be of kind 'Variable'.")]
+    [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'Variable', expected 'a' to be of kind 'Function'.")]
+    public void Evaluate_Reports_SymbolTypeMisatch(string text, string diagnostics) => text.AssertEvaluation(diagnostics);
 }
