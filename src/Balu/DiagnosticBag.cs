@@ -50,4 +50,7 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportExpressionMustHaveValue(TextSpan expressionSpan) => Add(new(Diagnostic.BND0008, expressionSpan,"Expression must return a value."));
     public void ReportInvalidCast(TextSpan span, TypeSymbol fromType, TypeSymbol castType) => Add(new(Diagnostic.BND0009, span, $"No conversion exists from type '{fromType}' to type '{castType}'."));
     public void ReportSymbolTypeMismatch(SyntaxToken identifier, SymbolKind expected, SymbolKind actual) => Add(new(Diagnostic.BND0010, identifier.Span, $"Unexpected symbol kind '{actual}', expected '{identifier.Text}' to be of kind '{expected}'."));
+    public void ReportUndefinedType(SyntaxToken identifier) => Add(new(Diagnostic.BND0011, identifier.Span, $"Undefined type '{identifier.Text}'."));
+    public void ReportUndefinedVariable(SyntaxToken identifier) => Add(new(Diagnostic.BND0012, identifier.Span, $"Undefined variable '{identifier.Text}'."));
+    public void ReportUndefinedFunction(SyntaxToken identifier) => Add(new(Diagnostic.BND0013, identifier.Span, $"Undefined function '{identifier.Text}'."));
 }

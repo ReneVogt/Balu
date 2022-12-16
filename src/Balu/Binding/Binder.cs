@@ -81,7 +81,7 @@ sealed class Binder : SyntaxVisitor
 
         if (!scope.TryLookupSymbol(name, out var symbol))
         {
-            diagnostics.ReportUndefinedName(node.IdentifierToken);
+            diagnostics.ReportUndefinedVariable(node.IdentifierToken);
             SetErrorExpression();
             return node;
         }
@@ -129,7 +129,7 @@ sealed class Binder : SyntaxVisitor
 
         if (!scope.TryLookupSymbol(node.Identifier.Text, out var symbol))
         {
-            diagnostics.ReportUndefinedName(node.Identifier);
+            diagnostics.ReportUndefinedFunction(node.Identifier);
             SetErrorExpression();
             return node;
         }
@@ -313,7 +313,7 @@ sealed class Binder : SyntaxVisitor
         if (syntax is null) return null;
         var type = LookupType(syntax.Identifier.Text);
         if (type is null)
-            diagnostics.ReportUndefinedName(syntax.Identifier);
+            diagnostics.ReportUndefinedType(syntax.Identifier);
         return type;
     }
 
