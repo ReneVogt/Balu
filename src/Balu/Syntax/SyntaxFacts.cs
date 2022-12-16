@@ -98,6 +98,7 @@ public static class SyntaxFacts
         SyntaxKind.LessToken => "<",
         SyntaxKind.LessOrEqualsToken => "<=",
         SyntaxKind.CommaToken => ",",
+        SyntaxKind.ColonToken => ":",
         SyntaxKind.TrueKeyword => "true",
         SyntaxKind.FalseKeyword => "false",
         SyntaxKind.LetKeyword => "let",

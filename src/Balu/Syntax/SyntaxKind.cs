@@ -149,6 +149,11 @@ public enum SyntaxKind
     /// A ',' token.
     /// </summary>
     CommaToken,
+
+    /// <summary>
+    /// A ':' token.
+    /// </summary>
+    ColonToken,
     #endregion
     #region Keywords
     /// <summary>

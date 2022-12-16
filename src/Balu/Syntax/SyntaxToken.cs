@@ -236,6 +236,12 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.CommaToken"/>.</returns>
     public static SyntaxToken Comma(TextSpan span) => new(SyntaxKind.CommaToken, span, SyntaxKind.CommaToken.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ColonToken"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ColonToken"/>.</returns>
+    public static SyntaxToken Colon(TextSpan span) => new(SyntaxKind.ColonToken, span, SyntaxKind.ColonToken.GetText()!);
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.TrueKeyword"/>.

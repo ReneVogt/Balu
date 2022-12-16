@@ -81,6 +81,7 @@ sealed class Lexer
                     ('<', '=') => SyntaxKind.LessOrEqualsToken,
                     ('<', _) => SyntaxKind.LessToken,
                     (',',_) => SyntaxKind.CommaToken,
+                    (':',_) => SyntaxKind.ColonToken,
                     _ => SyntaxKind.BadToken
                 };
 
