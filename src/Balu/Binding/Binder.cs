@@ -30,7 +30,7 @@ sealed class Binder : SyntaxVisitor
         if (op is null)
         {
             diagnostics.ReportUnaryOperatorTypeMismatch(node.OperatorToken, expression.Type);
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
         }
         else
             boundNode = new BoundUnaryExpression(op, expression);
@@ -48,7 +48,7 @@ sealed class Binder : SyntaxVisitor
         {
             if (left.Type != TypeSymbol.Error && right.Type != TypeSymbol.Error)
                 diagnostics.ReportBinaryOperatorTypeMismatch(node.OperatorToken, left.Type, right.Type);
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
         }
         else
             boundNode = new BoundBinaryExpression(left, op, right);
@@ -58,16 +58,16 @@ sealed class Binder : SyntaxVisitor
     {
         var name = node.IdentifierrToken.Text;
         if (node.IdentifierrToken.IsMissing)
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
         else if (!scope.TryLookupSymbol(name, out var symbol))
         {
             diagnostics.ReportUndefinedName(node.IdentifierrToken);
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
         }
         else if (symbol.Kind != SymbolKind.Variable)
         {
             diagnostics.ReportSymbolTypeMismatch(node.IdentifierrToken, SymbolKind.Variable, symbol.Kind);
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
         }
         else
             boundNode = new BoundVariableExpression((VariableSymbol)symbol);
@@ -78,41 +78,35 @@ sealed class Binder : SyntaxVisitor
     {
         var name = node.IdentifierToken.Text;
         Visit(node.Expression);
-        bool error = IsError;
-        var expression = (BoundExpression)boundNode!;
 
         if (!scope.TryLookupSymbol(name, out var symbol))
         {
-            if (!error)
-                diagnostics.ReportUndefinedName(node.IdentifierToken);
-            boundNode = new BoundErrorExpression();
+            diagnostics.ReportUndefinedName(node.IdentifierToken);
+            SetErrorExpression();
             return node;
         }
         if (symbol.Kind != SymbolKind.Variable)
         {
-            if (!error)
-                diagnostics.ReportSymbolTypeMismatch(node.IdentifierToken, SymbolKind.Variable, symbol.Kind);
-            boundNode = new BoundErrorExpression();
+            diagnostics.ReportSymbolTypeMismatch(node.IdentifierToken, SymbolKind.Variable, symbol.Kind);
+            SetErrorExpression();
             return node;
         }
 
         var variable = (VariableSymbol)symbol;
         if (variable.ReadOnly)
         {
-            if (!error)
-                diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
-            boundNode = new BoundErrorExpression();
+            diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
+            SetErrorExpression();
             return node;
         }
-        if (expression.Type != variable.Type)
+        if (!TryConversion(variable.Type))
         {
-            if (!error)
-                diagnostics.ReportCannotConvert(node.EqualsToken.Span, expression.Type, variable.Type);
-            boundNode = new BoundErrorExpression();
+            diagnostics.ReportCannotConvert(node.EqualsToken.Span, ((BoundExpression)boundNode!).Type, variable.Type);
+            SetErrorExpression();
             return node;
         }
         
-        boundNode = new BoundAssignmentExpression(variable, expression);
+        boundNode = new BoundAssignmentExpression(variable, (BoundExpression)boundNode!);
         return node;
     }
     protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
@@ -122,30 +116,26 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[0]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-
-            var conversion = Conversion.Classify(argument.Type, castType);
-            if (!conversion.Exists)
+            if (!TryConversion(castType))
             {
                 diagnostics.ReportInvalidCast(node.Span, argument.Type, castType);
-                boundNode = new BoundErrorExpression();
+                SetErrorExpression();
                 return node;
             }
-
-            boundNode = new BoundConversionExpression(castType, argument);
             return node;
         }
 
         if (!scope.TryLookupSymbol(node.Identifier.Text, out var symbol))
         {
             diagnostics.ReportUndefinedName(node.Identifier);
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
             return node;
         }
 
         if (symbol.Kind != SymbolKind.Function)
         {
             diagnostics.ReportSymbolTypeMismatch(node.Identifier, SymbolKind.Function, symbol.Kind);
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
             return node;
         }
 
@@ -153,7 +143,7 @@ sealed class Binder : SyntaxVisitor
         if (function.Parameters.Length != node.Arguments.Count)
         {
             diagnostics.ReportWrongNumberOfArguments(node, function);
-            boundNode = new BoundErrorExpression();
+            SetErrorExpression();
             return node;
         }
 
@@ -164,7 +154,7 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[i]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            if (argument.Type != function.Parameters[i].Type)
+            if (!TryConversion(function.Parameters[i].Type))
             {
                 diagnostics.ReportWrongArgumentType(node.Arguments[i].Span, function.Name, function.Parameters[i].Name, function.Parameters[i].Type, argument.Type);
                 errors = true;
@@ -172,7 +162,10 @@ sealed class Binder : SyntaxVisitor
             arguments.Add((BoundExpression)boundNode!);
         }
 
-        boundNode = errors ? new BoundErrorExpression() : new BoundCallExpression(function, arguments);
+        if (errors)
+            SetErrorExpression();
+        else
+            boundNode = new BoundCallExpression(function, arguments);
         
         return node;
     }
@@ -210,9 +203,9 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitIfStatement(IfStatementSyntax node)
     {
         Visit(node.Condition);
+        if (!TryConversion(TypeSymbol.Boolean) && !IsError)
+            diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Boolean);
         var condition = (BoundExpression)boundNode!;
-        if (condition.Type != TypeSymbol.Boolean && !IsError)
-            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
 
         Visit(node.ThenStatement);
         var thenStatement = (BoundStatement)boundNode!;
@@ -231,9 +224,9 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
     {
         Visit(node.Condition);
+        if (!TryConversion(TypeSymbol.Boolean) && !IsError)
+            diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Boolean);
         var condition = (BoundExpression)boundNode!;
-        if (condition.Type != TypeSymbol.Boolean && !IsError)
-            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
 
         Visit(node.Body);
         var statement = (BoundStatement)boundNode!;
@@ -247,9 +240,9 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Body);
         var statement = (BoundStatement)boundNode!;
         Visit(node.Condition);
+        if (!TryConversion(TypeSymbol.Boolean) && !IsError)
+            diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Boolean);
         var condition = (BoundExpression)boundNode!;
-        if (condition.Type != TypeSymbol.Boolean && !IsError)
-            diagnostics.ReportCannotConvert(node.Condition.Span, condition.Type, TypeSymbol.Boolean);
 
         boundNode = new BoundDoWhileStatement(statement, condition);
 
@@ -258,13 +251,13 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitForStatement(ForStatementSyntax node)
     {
         Visit(node.LowerBound);
+        if (!TryConversion(TypeSymbol.Integer) && !IsError)
+            diagnostics.ReportCannotConvert(node.LowerBound.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Integer);
         var lowerBound = (BoundExpression)boundNode!;
-        if (lowerBound.Type != TypeSymbol.Integer && !IsError)
-            diagnostics.ReportCannotConvert(node.LowerBound.Span, lowerBound.Type, TypeSymbol.Integer);
         Visit(node.UpperBound);
+        if (!TryConversion(TypeSymbol.Integer) && !IsError)
+            diagnostics.ReportCannotConvert(node.UpperBound.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Integer);
         var upperBound = (BoundExpression)boundNode!;
-        if (upperBound.Type != TypeSymbol.Integer && !IsError)
-            diagnostics.ReportCannotConvert(node.UpperBound.Span, upperBound.Type, TypeSymbol.Integer);
 
         scope = new (scope);
         var variable = BindVariable(node.IdentifierToken, true, TypeSymbol.Integer);
@@ -293,6 +286,20 @@ sealed class Binder : SyntaxVisitor
                                                           : name == TypeSymbol.String.Name
                                                               ? TypeSymbol.String
                                                               : null;
+    void SetErrorExpression()
+    {
+        if (boundNode?.Kind != BoundNodeKind.ErrorExpression) boundNode = new BoundErrorExpression();
+    }
+    bool TryConversion(TypeSymbol targetType)
+    {
+        var expression = (BoundExpression)boundNode!;
+        var conversion = Conversion.Classify(expression.Type, targetType);
+        if (!conversion.Exists)
+            return false;
+
+        boundNode = new BoundConversionExpression(targetType, expression);
+        return true;
+    }
 
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {

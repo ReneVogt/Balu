@@ -28,6 +28,6 @@ sealed class Conversion
             return Explicit;
         if (from == TypeSymbol.String && (to == TypeSymbol.Boolean || to == TypeSymbol.Integer))
             return Explicit;
-        return None;
+        return Explicit;
     }
 }
