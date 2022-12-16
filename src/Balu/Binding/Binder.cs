@@ -99,14 +99,16 @@ sealed class Binder : SyntaxVisitor
             SetErrorExpression();
             return node;
         }
-        if (!TryConversion(variable.Type))
+
+        var expression = (BoundExpression)boundNode!;
+        if (!IsError)
         {
-            diagnostics.ReportCannotConvert(node.EqualsToken.Span, ((BoundExpression)boundNode!).Type, variable.Type);
-            SetErrorExpression();
-            return node;
+            expression = BindConversion(expression, variable.Type);
+            if (expression.Type == TypeSymbol.Error)
+                diagnostics.ReportCannotConvert(node.EqualsToken.Span, ((BoundExpression)boundNode!).Type, variable.Type);
         }
-        
-        boundNode = new BoundAssignmentExpression(variable, (BoundExpression)boundNode!);
+
+        boundNode = new BoundAssignmentExpression(variable, expression);
         return node;
     }
     protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
@@ -116,10 +118,10 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[0]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            if (!TryConversion(castType))
+            boundNode = BindConversion(argument, castType);
+            if (IsError)
             {
                 diagnostics.ReportInvalidCast(node.Span, argument.Type, castType);
-                SetErrorExpression();
                 return node;
             }
             return node;
@@ -154,7 +156,8 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[i]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            if (!TryConversion(function.Parameters[i].Type))
+            boundNode = BindConversion(argument, function.Parameters[i].Type);
+            if (IsError)
             {
                 diagnostics.ReportWrongArgumentType(node.Arguments[i].Span, function.Name, function.Parameters[i].Name, function.Parameters[i].Type, argument.Type);
                 errors = true;
@@ -203,9 +206,13 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitIfStatement(IfStatementSyntax node)
     {
         Visit(node.Condition);
-        if (!TryConversion(TypeSymbol.Boolean) && !IsError)
-            diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Boolean);
         var condition = (BoundExpression)boundNode!;
+        if (!IsError)
+        {
+            condition = BindConversion(condition, TypeSymbol.Boolean);
+            if (condition.Type == TypeSymbol.Error)
+                diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundExpression)boundNode!).Type, TypeSymbol.Boolean);
+        }
 
         Visit(node.ThenStatement);
         var thenStatement = (BoundStatement)boundNode!;
@@ -224,9 +231,13 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
     {
         Visit(node.Condition);
-        if (!TryConversion(TypeSymbol.Boolean) && !IsError)
-            diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Boolean);
         var condition = (BoundExpression)boundNode!;
+        if (!IsError)
+        {
+            condition = BindConversion(condition, TypeSymbol.Boolean);
+            if (condition.Type == TypeSymbol.Error)
+                diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundExpression)boundNode!).Type, TypeSymbol.Boolean);
+        }
 
         Visit(node.Body);
         var statement = (BoundStatement)boundNode!;
@@ -240,9 +251,13 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Body);
         var statement = (BoundStatement)boundNode!;
         Visit(node.Condition);
-        if (!TryConversion(TypeSymbol.Boolean) && !IsError)
-            diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Boolean);
         var condition = (BoundExpression)boundNode!;
+        if (!IsError)
+        {
+            condition = BindConversion(condition, TypeSymbol.Boolean);
+            if (condition.Type == TypeSymbol.Error)
+                diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundExpression)boundNode!).Type, TypeSymbol.Boolean);
+        }
 
         boundNode = new BoundDoWhileStatement(statement, condition);
 
@@ -251,13 +266,21 @@ sealed class Binder : SyntaxVisitor
     protected override SyntaxNode VisitForStatement(ForStatementSyntax node)
     {
         Visit(node.LowerBound);
-        if (!TryConversion(TypeSymbol.Integer) && !IsError)
-            diagnostics.ReportCannotConvert(node.LowerBound.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Integer);
         var lowerBound = (BoundExpression)boundNode!;
+        if (!IsError)
+        {
+            lowerBound = BindConversion(lowerBound, TypeSymbol.Integer);
+            if (lowerBound.Type == TypeSymbol.Error)
+                diagnostics.ReportCannotConvert(node.LowerBound.Span, ((BoundExpression)boundNode!).Type, TypeSymbol.Integer);
+        }
         Visit(node.UpperBound);
-        if (!TryConversion(TypeSymbol.Integer) && !IsError)
-            diagnostics.ReportCannotConvert(node.UpperBound.Span, ((BoundErrorExpression)boundNode!).Type, TypeSymbol.Integer);
         var upperBound = (BoundExpression)boundNode!;
+        if (!IsError)
+        {
+            upperBound = BindConversion(upperBound, TypeSymbol.Integer);
+            if (upperBound.Type == TypeSymbol.Error)
+                diagnostics.ReportCannotConvert(node.UpperBound.Span, ((BoundExpression)boundNode!).Type, TypeSymbol.Integer);
+        }
 
         scope = new (scope);
         var variable = BindVariable(node.IdentifierToken, true, TypeSymbol.Integer);
@@ -290,15 +313,15 @@ sealed class Binder : SyntaxVisitor
     {
         if (boundNode?.Kind != BoundNodeKind.ErrorExpression) boundNode = new BoundErrorExpression();
     }
-    bool TryConversion(TypeSymbol targetType)
+    static BoundExpression BindConversion(BoundExpression expression, TypeSymbol targetType)
     {
-        var expression = (BoundExpression)boundNode!;
+        if (expression.Type == TypeSymbol.Error) return expression;
         var conversion = Conversion.Classify(expression.Type, targetType);
         if (!conversion.Exists)
-            return false;
-
-        boundNode = new BoundConversionExpression(targetType, expression);
-        return true;
+            return new BoundErrorExpression();
+        if (conversion.IsIdentity || conversion.IsImplicit)
+            return expression;
+        return new BoundConversionExpression(targetType, expression);
     }
 
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
