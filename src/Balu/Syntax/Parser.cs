@@ -96,10 +96,19 @@ sealed class Parser
         var expectedKeyword = Current.Kind == SyntaxKind.LetKeyword ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword;
         var keyword = MatchToken(expectedKeyword);
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        var typeClause = ParseTypeClause();
         var equals = MatchToken(SyntaxKind.EqualsToken);
         var expression = ParseExpression();
-        return StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression);
+        return StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression, typeClause);
     }
+    TypeClauseSyntax? ParseTypeClause()
+    {
+        if (Current.Kind != SyntaxKind.ColonToken) return null;
+        var colonToken = MatchToken(SyntaxKind.ColonToken);
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        return new(colonToken, identifier);
+    }
+
     IfStatementSyntax ParseIfStatement()
     {
         var keyword = MatchToken(SyntaxKind.IfKeyword);
@@ -110,7 +119,7 @@ sealed class Parser
         {
             var elseKeyword = MatchToken(SyntaxKind.ElseKeyword);
             var elseStatement = ParseStatement();
-            elseClause = StatementSyntax.Else(elseKeyword, elseStatement);
+            elseClause = SyntaxNode.Else(elseKeyword, elseStatement);
         }
         return StatementSyntax.IfStatement(keyword, condition, thenStatement, elseClause);
     }

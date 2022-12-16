@@ -30,15 +30,20 @@ public abstract class StatementSyntax : SyntaxNode
     /// <summary>
     /// Creates a new <see cref="VariableDeclarationStatementSyntax"/> from the given elements.
     /// </summary>
+    /// <param name="keyword">The 'let' or 'var' keyword token.</param>
+    /// <param name="identifier">The variable name identifier token.</param>
+    /// <param name="equals">The '=' token.</param>
     /// <param name="expression">The underlying <see cref="ExpressionSyntax"/> of the statement.</param>
+    /// <param name="typeClause">The optional type clause.</param>
     /// <returns>The parsed <see cref="ExpressionStatementSyntax"/>.</returns>
-    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException">An argument (except <paramref name="typeClause"/>) is <c>null</c>.</exception>
     public static VariableDeclarationStatementSyntax VariableDeclarationStatement(SyntaxToken keyword, SyntaxToken identifier, SyntaxToken equals,
-                                                                ExpressionSyntax expression) => new(
+                                                                ExpressionSyntax expression, TypeClauseSyntax? typeClause) => new(
         keyword ?? throw new ArgumentNullException(nameof(keyword)),
         identifier ?? throw new ArgumentNullException(nameof(identifier)),
         equals ?? throw new ArgumentNullException(nameof(equals)),
-        expression ?? throw new ArgumentNullException(nameof(expression)));
+        expression ?? throw new ArgumentNullException(nameof(expression)),
+        typeClause);
 
     /// <summary>
     /// Creates a new <see cref="IfStatementSyntax"/> from the given elements.
@@ -53,16 +58,6 @@ public abstract class StatementSyntax : SyntaxNode
         IfStatement(SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause = null) => new(
         ifKeyword ?? throw new ArgumentNullException(nameof(ifKeyword)), condition ?? throw new ArgumentNullException(nameof(condition)),
         thenStatement ?? throw new ArgumentNullException(nameof(thenStatement)), elseClause);
-    /// <summary>
-    /// Creates a new <see cref="ElseClauseSyntax"/> from the given elements.
-    /// </summary>
-    /// <param name="elseKeyword">The <see cref="SyntaxToken"/> of the 'else' keyword.</param>
-    /// <param name="statement">The <see cref="StatementSyntax"/> for the 'else' part.</param>
-    /// <returns>The parsed <see cref="ElseClauseSyntax"/>.</returns>
-    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
-    public static ElseClauseSyntax Else(SyntaxToken elseKeyword, StatementSyntax statement) => new(
-        elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword)), statement ?? throw new ArgumentNullException(nameof(statement)));
-
     /// <summary>
     /// Creates a new <see cref="WhileStatementSyntax"/> from the given elements.
     /// </summary>
@@ -112,5 +107,4 @@ public abstract class StatementSyntax : SyntaxNode
         toKeyword ?? throw new ArgumentNullException(nameof(toKeyword)),
         upperBound ?? throw new ArgumentNullException(nameof(upperBound)),
         body ?? throw new ArgumentNullException(nameof(body)));
-
 }

@@ -15,8 +15,8 @@ public sealed class SyntaxNodeTests
                                         !typeof(ExpressionSyntax).IsAssignableFrom(type) &&
                                         !typeof(StatementSyntax).IsAssignableFrom(type) &&
                                         type != typeof(SyntaxToken) &&
-                                        type.IsPublic && !type.IsAbstract && type != typeof(ElseClauseSyntax)
-                                  select type.Name[..^6];
+                                        type.IsPublic && !type.IsAbstract
+                                  select type.Name.EndsWith("ClauseSyntax") ? type.Name[..^12] : type.Name[..^6];
         var actualMethodNames = from method in typeof(SyntaxNode).GetMethods(BindingFlags.Public | BindingFlags.Static)
                                 where typeof(SyntaxNode).IsAssignableFrom(method.ReturnType)
                                 select method.Name;

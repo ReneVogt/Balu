@@ -28,12 +28,12 @@ public sealed class ElseClauseSyntax : SyntaxNode
     /// </summary>
     public StatementSyntax Statement { get; }
 
-    internal ElseClauseSyntax(SyntaxToken elifKeyword, StatementSyntax statement) => (ElseKeyword, Statement) = (elifKeyword, statement);
+    internal ElseClauseSyntax(SyntaxToken elseKeyword, StatementSyntax statement) => (ElseKeyword, Statement) = (elseKeyword, statement);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var keyword = (SyntaxToken)visitor.Visit(ElseKeyword);
         var statement = (StatementSyntax)visitor.Visit(Statement);
-        return keyword == ElseKeyword && statement == Statement ? this : StatementSyntax.Else(keyword, statement);
+        return keyword == ElseKeyword && statement == Statement ? this : Else(keyword, statement);
     }
 }

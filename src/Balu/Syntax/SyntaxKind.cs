@@ -263,10 +263,6 @@ public enum SyntaxKind
     /// The 'if' statement.
     /// </summary>
     IfStatement,
-    /// <summary>
-    /// The 'else' clause.
-    /// </summary>
-    ElseClause,
 
     /// <summary>
     /// The 'while' statement.
@@ -281,6 +277,17 @@ public enum SyntaxKind
     /// <summary>
     /// The 'for' statement.
     /// </summary>
-    ForStatement
+    ForStatement,
+    #endregion
+    #region Clauses
+    /// <summary>
+    /// The 'else' clause.
+    /// </summary>
+    ElseClause,
+
+    /// <summary>
+    /// The ': type' clause.
+    /// </summary>
+    TypeClause
     #endregion
 }

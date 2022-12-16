@@ -177,6 +177,24 @@ public class EvaluatorTests
 ";
         text.AssertEvaluation(diagnostics);
     }
+    [Fact]
+    public void Evaluate_VariableDeclaration_Reports_UnknownType()
+    {
+        const string text = "var x : [unknown] = 10";
+        const string diagnostics = @"
+            Undefined name 'unknown'.
+";
+        text.AssertEvaluation(diagnostics);
+    }
+    [Fact]
+    public void Evaluate_VariableDeclaration_Reports_InvalidCast()
+    {
+        const string text = "var x : int [=] true";
+        const string diagnostics = @"
+            Cannot convert 'bool' to 'int'.
+";
+        text.AssertEvaluation(diagnostics);
+    }
 
     [Theory]
     [InlineData("if true 1", 1)]

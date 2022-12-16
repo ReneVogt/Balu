@@ -199,7 +199,14 @@ sealed class Binder : SyntaxVisitor
         if (expression.Type == TypeSymbol.Void)
             diagnostics.ReportExpressionMustHaveValue(node.Expression.Span);
         bool readOnly = node.KeywordToken.Kind == SyntaxKind.LetKeyword;
-        var variable = BindVariable(node.IdentifierToken, readOnly, expression.Type);
+        var type = BindTypeClause(node.TypeClause) ?? expression.Type;
+        var variable = BindVariable(node.IdentifierToken, readOnly, type);
+        if (type != expression.Type && expression.Type != TypeSymbol.Error)
+        {
+            expression = BindConversion(expression, type);
+            if (expression.Type == TypeSymbol.Error)
+                diagnostics.ReportCannotConvert(node.EqualsToken.Span, ((BoundExpression)boundNode!).Type, type);
+        }
         boundNode = new BoundVariableDeclarationStatement(variable, expression);
         return node;
     }
@@ -300,6 +307,14 @@ sealed class Binder : SyntaxVisitor
         if (!identifier.IsMissing && !scope.TryDeclareSymbol(variable))
             diagnostics.ReportSymbolAlreadyDeclared(identifier);
         return variable;
+    }
+    TypeSymbol? BindTypeClause(TypeClauseSyntax? syntax)
+    {
+        if (syntax is null) return null;
+        var type = LookupType(syntax.Identifier.Text);
+        if (type is null)
+            diagnostics.ReportUndefinedName(syntax.Identifier);
+        return type;
     }
 
     static TypeSymbol? LookupType(string name) => name == TypeSymbol.Integer.Name

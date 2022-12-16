@@ -46,8 +46,7 @@ public abstract class SyntaxNode
     SyntaxToken GetLastToken() => this as SyntaxToken ?? Children.Last().GetLastToken();
 
     public override string ToString() => $"{Kind}{Span}";
-
-
+    
     /// <summary>
     /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="StatementSyntax"/>.
     /// </summary>
@@ -57,4 +56,25 @@ public abstract class SyntaxNode
     /// <exception cref="ArgumentNullException"><paramref name="statement"/> or <paramref name="endOfFileToken"/> is <c>null</c>.</exception>
     public static CompilationUnitSyntax CompilationUnit(StatementSyntax statement, SyntaxToken endOfFileToken) =>
         new (statement ?? throw new ArgumentNullException(nameof(statement)), endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken)));
+    /// <summary>
+    /// Creates a new <see cref="ElseClauseSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="elseKeyword">The <see cref="SyntaxToken"/> of the 'else' keyword.</param>
+    /// <param name="statement">The <see cref="StatementSyntax"/> for the 'else' part.</param>
+    /// <returns>The parsed <see cref="ElseClauseSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static ElseClauseSyntax Else(SyntaxToken elseKeyword, StatementSyntax statement) => new(
+        elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword)), statement ?? throw new ArgumentNullException(nameof(statement)));
+
+    /// <summary>
+    /// Creates a new <see cref="TypeClauseSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="colonToken">The <see cref="SyntaxToken"/> of the ':' token.</param>
+    /// <param name="identifier">The <see cref="StatementSyntax"/> for the type name.</param>
+    /// <returns>The parsed <see cref="TypeClauseSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static TypeClauseSyntax Type(SyntaxToken colonToken, SyntaxToken identifier) => new(
+        colonToken ?? throw new ArgumentNullException(nameof(colonToken)), identifier ?? throw new ArgumentNullException(nameof(identifier)));
+
+
 }

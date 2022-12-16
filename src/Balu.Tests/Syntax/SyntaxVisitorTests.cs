@@ -97,7 +97,7 @@ public class SyntaxVisitorTests
     {
         var elseToken = SyntaxToken.ElseKeyword(default);
         var statement = StatementSyntax.ExpressionStatement(ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty)));
-        var elseClause = StatementSyntax.Else(elseToken, statement);
+        var elseClause = SyntaxNode.Else(elseToken, statement);
         AssertVisits(elseClause);
     }
     [Fact]
@@ -115,7 +115,7 @@ public class SyntaxVisitorTests
         var thenStatement = StatementSyntax.ExpressionStatement(condition);
         var elseToken = SyntaxToken.ElseKeyword(default);
         var elseStatement = StatementSyntax.ExpressionStatement(condition);
-        var elseClause = StatementSyntax.Else(elseToken, elseStatement);
+        var elseClause = SyntaxNode.Else(elseToken, elseStatement);
         var statement = StatementSyntax.IfStatement(ifToken, condition, thenStatement, elseClause);
         AssertVisits(statement);
     }
@@ -157,7 +157,10 @@ public class SyntaxVisitorTests
         var identifier = SyntaxToken.Identifier(default, string.Empty);
         var equals = SyntaxToken.Equals(default);
         var expression = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var statement = StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression);
+        var typeClause = SyntaxNode.Type(SyntaxToken.Colon(default), SyntaxToken.Identifier(default, string.Empty));
+        var statement = StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression, typeClause);
+        AssertVisits(statement);
+        statement = StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression, null);
         AssertVisits(statement);
     }
     [Fact]
@@ -192,6 +195,14 @@ public class SyntaxVisitorTests
         var body = StatementSyntax.ExpressionStatement(upperBound);
         var statement = StatementSyntax.ForStatement(forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
         AssertVisits(statement);
+    }
+    [Fact]
+    public void SyntaxVisitor_TypeClauseSyntax_AcceptVisitsChildren()
+    {
+        var colon = SyntaxToken.Colon(default);
+        var identifier = SyntaxToken.Identifier(default, string.Empty);
+        var typeClause = SyntaxNode.Type(colon, identifier);
+        AssertVisits(typeClause);
     }
 
     static readonly Regex visitMethodRegex = new("Visit(.*?)", RegexOptions.Compiled);
