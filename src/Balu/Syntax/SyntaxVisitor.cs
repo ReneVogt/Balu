@@ -24,6 +24,7 @@ public abstract class SyntaxVisitor
         return node.Kind switch
         {
             SyntaxKind.CompilationUnit => VisitCompilationUnit((CompilationUnitSyntax)node),
+            SyntaxKind.GlobalStatement => VisitGlobalStatement((GlobalStatementSyntax)node),
             SyntaxKind.LiteralExpression => VisitLiteralExpression((LiteralExpressionSyntax)node),
             SyntaxKind.UnaryExpression => VisitUnaryExpression((UnaryExpressionSyntax)node),
             SyntaxKind.BinaryExpression=> VisitBinaryExpression((BinaryExpressionSyntax)node),
@@ -51,6 +52,13 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxToken"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
     protected virtual SyntaxNode VisitToken(SyntaxToken node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
+    /// <summary>
+    /// Visits a <see cref="GlobalStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="GlobalStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
+    protected virtual SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
     /// <summary>
     /// Visits a <see cref="CompilationUnitSyntax"/>.
     /// </summary>

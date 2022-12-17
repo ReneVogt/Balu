@@ -206,6 +206,7 @@ public enum SyntaxKind
     #endregion
     #region Nodes
     CompilationUnit,
+    GlobalStatement,
     #endregion
     #region Expressions
     /// <summary>

@@ -93,6 +93,13 @@ public class SyntaxVisitorTests
         AssertVisits(compilationUnit);
     }
     [Fact]
+    public void SyntaxVisitor_GlobalStatementSyntax_AcceptVisitsChildren()
+    {
+        var statement = StatementSyntax.ExpressionStatement(ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty)));
+        var globalStatement = MemberSyntax.GlobalStatement(statement);
+        AssertVisits(globalStatement);
+    }
+    [Fact]
     public void SyntaxVisitor_ElseClauseSyntax_AcceptVisitsChildren()
     {
         var elseToken = SyntaxToken.ElseKeyword(default);

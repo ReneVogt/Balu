@@ -11,9 +11,7 @@ public sealed class SyntaxNodeTests
     public void SyntaxNode_ProvidesFactoryForDirectlyDerivedNodes()
     {
         var expectedMethodNames = from type in typeof(SyntaxNode).Assembly.GetExportedTypes()
-                                  where typeof(SyntaxNode).IsAssignableFrom(type) && 
-                                        !typeof(ExpressionSyntax).IsAssignableFrom(type) &&
-                                        !typeof(StatementSyntax).IsAssignableFrom(type) &&
+                                  where type.BaseType == typeof(SyntaxNode) &&
                                         type != typeof(SyntaxToken) &&
                                         type.IsPublic && !type.IsAbstract
                                   select type.Name.EndsWith("ClauseSyntax") ? type.Name[..^12] : type.Name[..^6];
