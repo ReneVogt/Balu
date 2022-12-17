@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace Balu.Syntax;
 
@@ -44,25 +43,13 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
     {
         var identifier = (SyntaxToken)visitor.Visit(Identifier);
         var open = (SyntaxToken)visitor.Visit(OpenParenthesis);
-        List<SyntaxNode>? p = null;
-        
-        for (int i=0; i<Arguments.ElementsWithSeparators.Length; i++)
-        {
-            var node = visitor.Visit(Arguments.ElementsWithSeparators[i]);
-            if (p is not null)
-            {
-                p.Add(node);
-                continue;
-            }
 
-            if (node == Arguments.ElementsWithSeparators[i]) continue;
-            p = Arguments.ElementsWithSeparators.Take(i+1).ToList();
-        }
+        var arguments = VisitList(visitor, Arguments);
         var close = (SyntaxToken)visitor.Visit(ClosedParenthesis);
-        return identifier == Identifier && open == OpenParenthesis && p is null &&
+        return identifier == Identifier && open == OpenParenthesis && arguments == Arguments &&
                close == ClosedParenthesis
                    ? this
-                   : Call(identifier, open, p is null ? Arguments : new (p), close);
+                   : Call(identifier, open, arguments, close);
     }
 
     /// <inheritdoc />

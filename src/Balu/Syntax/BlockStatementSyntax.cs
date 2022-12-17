@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Balu.Syntax;
 
@@ -26,21 +25,21 @@ public sealed class BlockStatementSyntax : StatementSyntax
     public ImmutableArray<StatementSyntax> Statements { get; }
     public SyntaxToken ClosedBraceToken { get; }
 
-    internal BlockStatementSyntax(SyntaxToken openBraceToken, IEnumerable<StatementSyntax> statements, SyntaxToken closedBraceToken)
+    internal BlockStatementSyntax(SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken)
     {
         OpenBraceToken = openBraceToken;
-        Statements = statements.ToImmutableArray();
+        Statements = statements;
         ClosedBraceToken = closedBraceToken;
     }
 
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
-        var originals = Children.ToList();
-        var transformed = originals.Select(visitor.Visit).ToList();
-        return originals.SequenceEqual(transformed)
+        var openBrace = (SyntaxToken)visitor.Visit(OpenBraceToken);
+        var transformed = VisitList(visitor, Statements);
+        var closedBrace = (SyntaxToken)visitor.Visit(ClosedBraceToken);
+        return openBrace == OpenBraceToken && transformed == Statements && closedBrace == ClosedBraceToken
                    ? this
-                   : BlockStatement((SyntaxToken)transformed[0], transformed.Skip(1).SkipLast(1).Cast<StatementSyntax>(),
-                                    (SyntaxToken)transformed[^1]);
+                   : BlockStatement(openBrace, transformed, closedBrace);
     }
 }

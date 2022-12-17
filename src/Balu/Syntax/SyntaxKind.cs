@@ -203,10 +203,20 @@ public enum SyntaxKind
     /// The 'to' keyword.
     /// </summary>
     ToKeyword,
+
+    /// <summary>
+    /// The 'function' keyword.
+    /// </summary>
+    FunctionKeyword,
     #endregion
     #region Nodes
     CompilationUnit,
-    GlobalStatement,
+
+    /// <summary>
+    /// A function parameter.
+    /// </summary>
+    Parameter,
+
     #endregion
     #region Expressions
     /// <summary>
@@ -289,6 +299,17 @@ public enum SyntaxKind
     /// <summary>
     /// The ': type' clause.
     /// </summary>
-    TypeClause
+    TypeClause,
+    #endregion
+    #region Members
+    /// <summary>
+    /// A global statement.
+    /// </summary>
+    GlobalStatement,
+
+    /// <summary>
+    /// A function declaration.
+    /// </summary>
+    FunctionDeclaration
     #endregion
 }

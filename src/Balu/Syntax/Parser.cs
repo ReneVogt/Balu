@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Balu.Text;
 
@@ -221,19 +222,19 @@ sealed class Parser
     }
     SeparatedSyntaxList<ExpressionSyntax> ParseArguments()
     {
-        List<SyntaxNode> arguments = new();
+        var argumentsBuilder = ImmutableArray.CreateBuilder<SyntaxNode>();
         while(Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
         {
-            arguments.Add(ParseExpression());
+            argumentsBuilder.Add(ParseExpression());
             if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
             {
                 var comma = MatchToken(SyntaxKind.CommaToken);
-                arguments.Add(comma);
+                argumentsBuilder.Add(comma);
                 if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
                     diagnostics.ReportUnexpectedToken(comma, SyntaxKind.ClosedBraceToken);
             }
         }
-        return new(arguments);
+        return new(argumentsBuilder.ToImmutable());
     }
     NameExpressionSyntax ParseNameExpression() => new(MatchToken(SyntaxKind.IdentifierToken));
     SyntaxToken MatchToken(SyntaxKind kind)

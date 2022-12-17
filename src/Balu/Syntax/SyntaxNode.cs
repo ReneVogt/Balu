@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Balu.Text;
 
@@ -43,10 +44,54 @@ public abstract class SyntaxNode
 
     internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
 
+    protected static ImmutableArray<T> VisitList<T>(SyntaxVisitor visitor, ImmutableArray<T> nodes) where T : SyntaxNode
+    {
+        _ = visitor ?? throw new ArgumentNullException(nameof(visitor));
+
+        ImmutableArray<T>.Builder? resultBuilder = null;
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            var node = (T)visitor.Visit(nodes[i]);
+            if (resultBuilder != null)
+            {
+                resultBuilder.Add(node);
+                continue;
+            }
+
+            if (node == nodes[i]) continue;
+            resultBuilder = ImmutableArray.CreateBuilder<T>(nodes.Length);
+            resultBuilder.AddRange(nodes.Take(i+1));
+        }
+
+        return resultBuilder?.ToImmutable() ?? nodes;
+    }
+    protected static SeparatedSyntaxList<T> VisitList<T>(SyntaxVisitor visitor, SeparatedSyntaxList<T> list) where T : SyntaxNode
+    {
+        _ = visitor ?? throw new ArgumentNullException(nameof(visitor));
+        _ = list ?? throw new ArgumentNullException(nameof(list));
+
+        ImmutableArray<SyntaxNode>.Builder? resultBuilder = null;
+        for (int i = 0; i < list.ElementsWithSeparators.Length; i++)
+        {
+            var node = (T)visitor.Visit(list.ElementsWithSeparators[i]);
+            if (resultBuilder != null)
+            {
+                resultBuilder.Add(node);
+                continue;
+            }
+
+            if (node == list.ElementsWithSeparators[i]) continue;
+            resultBuilder = ImmutableArray.CreateBuilder<SyntaxNode>(list.ElementsWithSeparators.Length);
+            resultBuilder.AddRange(list.ElementsWithSeparators.Take(i + 1));
+        }
+
+        return resultBuilder is null ? list : new (resultBuilder.ToImmutable());
+    }
+
     SyntaxToken GetLastToken() => this as SyntaxToken ?? Children.Last().GetLastToken();
 
     public override string ToString() => $"{Kind}{Span}";
-    
+
     /// <summary>
     /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="StatementSyntax"/>.
     /// </summary>
@@ -70,11 +115,19 @@ public abstract class SyntaxNode
     /// Creates a new <see cref="TypeClauseSyntax"/> from the given elements.
     /// </summary>
     /// <param name="colonToken">The <see cref="SyntaxToken"/> of the ':' token.</param>
-    /// <param name="identifier">The <see cref="StatementSyntax"/> for the type name.</param>
+    /// <param name="identifier">The <see cref="SyntaxToken"/> for the type name.</param>
     /// <returns>The parsed <see cref="TypeClauseSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
     public static TypeClauseSyntax Type(SyntaxToken colonToken, SyntaxToken identifier) => new(
         colonToken ?? throw new ArgumentNullException(nameof(colonToken)), identifier ?? throw new ArgumentNullException(nameof(identifier)));
 
-
+    /// <summary>
+    /// Creates a new <see cref="ParameterSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="identifier">The <see cref="StatementSyntax"/> for the parameter's name.</param>
+    /// <param name="type">The <see cref="SyntaxToken"/> for the paramter's type.</param>
+    /// <returns>The parsed <see cref="ParameterSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static ParameterSyntax Parameter(SyntaxToken identifier, TypeClauseSyntax type) => new(
+        identifier ?? throw new ArgumentNullException(nameof(identifier)), type ?? throw new ArgumentNullException(nameof(type)));
 }

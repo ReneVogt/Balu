@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 using System.Text.RegularExpressions;
@@ -61,7 +62,7 @@ public class SyntaxVisitorTests
         var open = SyntaxToken.OpenParenthesis(default);
         var parameter = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));
         var close = SyntaxToken.ClosedParenthesis(default);
-        var call = ExpressionSyntax.Call(identifier, open, new (new SyntaxNode[] { parameter }), close);
+        var call = ExpressionSyntax.Call(identifier, open, new (new SyntaxNode[] { parameter }.ToImmutableArray()), close);
         AssertVisits(call);
     }
     [Fact]
@@ -98,6 +99,28 @@ public class SyntaxVisitorTests
         var statement = StatementSyntax.ExpressionStatement(ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty)));
         var globalStatement = MemberSyntax.GlobalStatement(statement);
         AssertVisits(globalStatement);
+    }
+    [Fact]
+    public void SyntaxVisitor_FunctionDeclarationSyntax_AcceptVisitsChildren()
+    {
+        var functionKeyword = SyntaxToken.FunctionKeyword(default);
+        var identifier = SyntaxToken.Identifier(default, string.Empty);
+        var openParenthesis = SyntaxToken.OpenParenthesis(default);
+        var type = SyntaxNode.Type(identifier, identifier);
+        var parameters =
+            new SeparatedSyntaxList<ParameterSyntax>(new SyntaxNode[] { SyntaxNode.Parameter(identifier, type) }
+                                                         .ToImmutableArray());
+        var closeParenthesis = SyntaxToken.OpenParenthesis(default);
+        var functionDelcaration = MemberSyntax.FunctionDeclaration(functionKeyword, identifier, openParenthesis, parameters, closeParenthesis, type);
+        AssertVisits(functionDelcaration);
+    }
+    [Fact]
+    public void SyntaxVisitor_ParameterSyntax_AcceptVisitsChildren()
+    {
+        var identifier = SyntaxToken.Identifier(default, string.Empty);
+        var type = SyntaxNode.Type(SyntaxToken.Colon(default), SyntaxToken.Identifier(default, string.Empty));
+        var parameter = SyntaxNode.Parameter(identifier, type);
+        AssertVisits(parameter);
     }
     [Fact]
     public void SyntaxVisitor_ElseClauseSyntax_AcceptVisitsChildren()

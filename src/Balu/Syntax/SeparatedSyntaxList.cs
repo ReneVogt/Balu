@@ -28,9 +28,9 @@ public sealed class SeparatedSyntaxList<T> : IEnumerable<T> where T : SyntaxNode
     /// Creates a new <see cref="SeparatedSyntaxList{T}"/> from the given <see cref="SyntaxNode"/> sequence.
     /// </summary>
     /// <param name="separatorsAndNodes">The sequence of <see cref="SyntaxNode"/> and their separating <see cref="SyntaxToken"/>.</param>
-    public SeparatedSyntaxList(IEnumerable<SyntaxNode> separatorsAndNodes)
+    public SeparatedSyntaxList(ImmutableArray<SyntaxNode> separatorsAndNodes)
     {
-        ElementsWithSeparators = separatorsAndNodes.ToImmutableArray();
+        ElementsWithSeparators = separatorsAndNodes;
         Count = (ElementsWithSeparators.Length + 1) / 2;
     }
 
