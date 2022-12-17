@@ -1,7 +1,6 @@
 ﻿using Balu.Symbols;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 
 namespace Balu.Binding;
 
@@ -16,29 +15,16 @@ sealed class BoundCallExpression : BoundExpression
     public FunctionSymbol Function { get; }
     public ImmutableArray<BoundExpression> Arguments { get; }
 
-    internal BoundCallExpression(FunctionSymbol function, IEnumerable<BoundExpression> arguments)
+    internal BoundCallExpression(FunctionSymbol function, ImmutableArray<BoundExpression> arguments)
     {
         Function = function;
-        Arguments = arguments.ToImmutableArray();
+        Arguments = arguments;
     }
 
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
-        List<BoundExpression>? arguments = null;
-        for (int i = 0; i < Arguments.Length; i++)
-        {
-            var expression = (BoundExpression)visitor.Visit(Arguments[i]);
-            if (arguments is not null)
-            {
-                arguments.Add(expression);
-                continue;
-            }
-
-            if (expression == Arguments[i]) continue;
-            arguments = Arguments.Take(i+1).ToList();
-        }
-
-        return arguments is null ? this : new(Function, arguments);
+        var arguments = VisitList(visitor, Arguments);
+        return arguments == Arguments ? this : new(Function, arguments);
     }
 
     /// <inheritdoc />

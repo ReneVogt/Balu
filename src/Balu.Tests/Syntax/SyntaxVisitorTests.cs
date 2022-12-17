@@ -82,7 +82,7 @@ public class SyntaxVisitorTests
                                    .Select(_ => StatementSyntax.ExpressionStatement(
                                                ExpressionSyntax.Name(SyntaxToken.Identifier(default, string.Empty))));
         var closedBraceToken = SyntaxToken.ClosedBrace(default);
-        var statement = StatementSyntax.BlockStatement(openBraceToken, statements, closedBraceToken);
+        var statement = StatementSyntax.BlockStatement(openBraceToken, statements.ToImmutableArray<StatementSyntax>(), closedBraceToken);
         AssertVisits(statement);
     }
     [Fact]
@@ -90,7 +90,7 @@ public class SyntaxVisitorTests
     {
         var statement = StatementSyntax.ExpressionStatement(ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty)));
         var eof = SyntaxToken.EndOfFile(default);
-        var compilationUnit = SyntaxNode.CompilationUnit(statement, eof);
+        var compilationUnit = SyntaxNode.CompilationUnit(new MemberSyntax[]{MemberSyntax.GlobalStatement(statement)}.ToImmutableArray(), eof);
         AssertVisits(compilationUnit);
     }
     [Fact]
@@ -111,7 +111,8 @@ public class SyntaxVisitorTests
             new SeparatedSyntaxList<ParameterSyntax>(new SyntaxNode[] { SyntaxNode.Parameter(identifier, type) }
                                                          .ToImmutableArray());
         var closeParenthesis = SyntaxToken.OpenParenthesis(default);
-        var functionDelcaration = MemberSyntax.FunctionDeclaration(functionKeyword, identifier, openParenthesis, parameters, closeParenthesis, type);
+        var body = StatementSyntax.BlockStatement(SyntaxToken.OpenBrace(default), ImmutableArray<StatementSyntax>.Empty, SyntaxToken.ClosedBrace(default));
+        var functionDelcaration = MemberSyntax.FunctionDeclaration(functionKeyword, identifier, openParenthesis, parameters, closeParenthesis, type, body);
         AssertVisits(functionDelcaration);
     }
     [Fact]

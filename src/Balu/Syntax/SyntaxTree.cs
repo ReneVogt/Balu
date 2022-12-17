@@ -27,7 +27,7 @@ public sealed class SyntaxTree
     /// Returns if the last token of this tree
     /// was actually missing in the original source code.
     /// </summary>
-    public bool IsLastTokenMissing => Root.Statement.LastToken.IsMissing;
+    public bool IsLastTokenMissing => Root.Members.Last().LastToken.IsMissing;
 
     SyntaxTree(SourceText text)
     {

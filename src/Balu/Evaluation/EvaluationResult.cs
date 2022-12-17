@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 
 namespace Balu.Evaluation;
 
@@ -19,6 +17,6 @@ public sealed class EvaluationResult
     public object? Value { get; }
 
     internal EvaluationResult(object? value)
-        : this(Array.Empty<Diagnostic>(), value) { }
-    internal EvaluationResult(IEnumerable<Diagnostic> diagnostics, object? value) => (Diagnostics, Value) = (diagnostics.ToImmutableArray(), value);
+        : this(ImmutableArray<Diagnostic>.Empty, value) { }
+    internal EvaluationResult(ImmutableArray<Diagnostic> diagnostics, object? value) => (Diagnostics, Value) = (diagnostics, value);
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using Balu.Binding;
 using Balu.Symbols;
@@ -23,10 +24,7 @@ sealed class Lowerer : BoundTreeVisitor
              */
             var endLabel = new BoundLabelStatement(GenerateNextLabel());
             var gotoStatement = new BoundConditionalGotoStatement(endLabel.Label, ifStatemnet.Condition, false);
-            result = new BoundBlockStatement(
-                gotoStatement,
-                ifStatemnet.ThenStatement,
-                endLabel);
+            result = new BoundBlockStatement(ImmutableArray.Create(gotoStatement, ifStatemnet.ThenStatement, endLabel));
         }
         else
         {
@@ -43,13 +41,14 @@ sealed class Lowerer : BoundTreeVisitor
             var endLabel = new BoundLabelStatement(GenerateNextLabel());
             var gotoElse = new BoundConditionalGotoStatement(elseLabel.Label, ifStatemnet.Condition, false);
             var gotoEnd = new BoundGotoStatement(endLabel.Label);
-            result = new BoundBlockStatement(
-                gotoElse,
-                ifStatemnet.ThenStatement,
-                gotoEnd,
-                elseLabel,
-                ifStatemnet.ElseStatement,
-                endLabel);
+            var builder = ImmutableArray.CreateBuilder<BoundStatement>(6);
+            builder.Add(gotoElse);
+            builder.Add(ifStatemnet.ThenStatement);
+            builder.Add(gotoEnd);
+            builder.Add(elseLabel);
+            builder.Add(ifStatemnet.ElseStatement);
+            builder.Add(endLabel);
+            result = new BoundBlockStatement(builder.ToImmutable());
         }
 
         return Visit(result);
@@ -68,13 +67,13 @@ sealed class Lowerer : BoundTreeVisitor
         var endLabel = new BoundLabelStatement(GenerateNextLabel());
         var gotoEnd = new BoundConditionalGotoStatement(endLabel.Label, whileStatement.Condition, false);
         var gotoCheck = new BoundGotoStatement(checkLabel.Label);
-        var result = new BoundBlockStatement(
-            checkLabel,
-            gotoEnd,
-            whileStatement.Body,
-            gotoCheck,
-            endLabel
-        );
+        var builder = ImmutableArray.CreateBuilder<BoundStatement>(5);
+        builder.Add(checkLabel);
+        builder.Add(gotoEnd);
+        builder.Add(whileStatement.Body);
+        builder.Add(gotoCheck);
+        builder.Add(endLabel);
+        var result = new BoundBlockStatement(builder.ToImmutable());
         return Visit(result);
     }
     protected override BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
@@ -88,11 +87,7 @@ sealed class Lowerer : BoundTreeVisitor
 
         var startLabel = new BoundLabelStatement(GenerateNextLabel());
         var gotoStart = new BoundConditionalGotoStatement(startLabel.Label, doWhileStatement.Condition);
-        var result = new BoundBlockStatement(
-            startLabel,
-            doWhileStatement.Body,
-            gotoStart
-        );
+        var result = new BoundBlockStatement(ImmutableArray.Create(startLabel, doWhileStatement.Body, gotoStart));
         return Visit(result);
     }
     protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
@@ -132,16 +127,16 @@ sealed class Lowerer : BoundTreeVisitor
             loopVariable,
             BoundBinaryOperator.LessOrEquals,
             new BoundVariableExpression(upperVariableSymbol));
-        var whileBody = new BoundBlockStatement(forStatement.Body, increment);
+        var whileBody = new BoundBlockStatement(ImmutableArray.Create(forStatement.Body, increment));
         var whileStatement = new BoundWhileStatement(whileCondition, whileBody);
 
-        var rewritten = new BoundBlockStatement(loopVariableDeclaration, upperVariableDeclaration, whileStatement);
+        var rewritten = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(loopVariableDeclaration, upperVariableDeclaration, whileStatement));
         return Visit(rewritten);
     }
 
     static BoundBlockStatement Flatten(BoundStatement statement)
     {
-        List<BoundStatement> result = new();
+        var resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
         Stack<BoundStatement> stack = new();
         stack.Push(statement);
 
@@ -152,10 +147,10 @@ sealed class Lowerer : BoundTreeVisitor
                 foreach (var s in statements.Reverse())
                     stack.Push(s);
             else
-                result.Add(current);
+                resultBuilder.Add(current);
         }
 
-        return new (result);
+        return new (resultBuilder.ToImmutable());
     }
     public static BoundBlockStatement Lower(BoundStatement statement) => Flatten((BoundStatement)new Lowerer().Visit(statement));
 }

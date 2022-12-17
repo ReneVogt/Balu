@@ -7,7 +7,7 @@ namespace Balu;
 
 sealed class BaluRepl : Repl
 {
-    readonly VariableDictionary variables = new();
+    readonly VariableDictionary globals = new();
 
     bool showSyntax, showBound, showLowered, showVars;
     Compilation? previous;
@@ -32,14 +32,14 @@ sealed class BaluRepl : Repl
                 break;
             case "#showVars":
                 showVars = !showVars;
-                Console.WriteLine(showVars ? "Showing variables after evaluationn." : "Not showing variables after evaluation.");
+                Console.WriteLine(showVars ? "Showing globals after evaluationn." : "Not showing globals after evaluation.");
                 break;
             case "#cls":
                 Console.Clear();
                 break;
             case "#reset":
                 previous = null;
-                variables.Clear();
+                globals.Clear();
                 break;
             case "#clearHistory":
                 ClearHistory();
@@ -78,7 +78,7 @@ sealed class BaluRepl : Repl
             compilation.WriteLoweredTree(Console.Out);
         }
 
-        var result = compilation.Evaluate(variables);
+        var result = compilation.Evaluate(globals);
         Console.ResetColor();
         Console.WriteLine();
         if (result.Diagnostics.Any())
@@ -115,8 +115,8 @@ sealed class BaluRepl : Repl
                 Console.ForegroundColor = ConsoleColor.Yellow;
                 Console.WriteLine("Variables:");
                 Console.ResetColor();
-                if (variables.Any())
-                    Console.WriteLine(string.Join(Environment.NewLine, variables.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
+                if (globals.Any())
+                    Console.WriteLine(string.Join(Environment.NewLine, globals.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
             }
             Console.ResetColor();
         }
@@ -129,7 +129,7 @@ sealed class BaluRepl : Repl
         {
             Console.ForegroundColor = token.Kind switch
             {
-                >= SyntaxKind.TrueKeyword and <= SyntaxKind.ToKeyword => ConsoleColor.Blue,
+                >= SyntaxKind.TrueKeyword and < SyntaxKind.CompilationUnit => ConsoleColor.Blue,
                 SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow,
                 SyntaxKind.NumberToken => ConsoleColor.Cyan,
                 SyntaxKind.StringToken => ConsoleColor.Magenta,

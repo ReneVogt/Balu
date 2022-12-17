@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Balu.Syntax;
@@ -18,8 +17,8 @@ public abstract class StatementSyntax : SyntaxNode
     /// <returns>The parsed <see cref="BlockStatementSyntax"/>.</returns>
     /// <exception cref="ArgumentNullException">Any argument is <c>null</c>.</exception>
     public static BlockStatementSyntax
-        BlockStatement(SyntaxToken openBraceToken, IEnumerable<StatementSyntax> statements, SyntaxToken closedBraceToken) => new(
-        openBraceToken ?? throw new ArgumentNullException(nameof(openBraceToken)), (statements ?? throw new ArgumentNullException(nameof(statements))).ToImmutableArray(),
+        BlockStatement(SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken) => new(
+        openBraceToken ?? throw new ArgumentNullException(nameof(openBraceToken)), statements,
         closedBraceToken ?? throw new ArgumentNullException(nameof(closedBraceToken)));
     /// <summary>
     /// Creates a new <see cref="ExpressionStatementSyntax"/> from the given <see cref="ExpressionSyntax"/>.

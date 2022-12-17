@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
+using System.Collections.Immutable;
 using Balu.Symbols;
 using Balu.Syntax;
 
@@ -149,7 +149,7 @@ sealed class Binder : SyntaxVisitor
             return node;
         }
 
-        List<BoundExpression> arguments = new();
+        var arguments = ImmutableArray.CreateBuilder<BoundExpression>();
         bool errors = false;
         for(int i=0; i<node.Arguments.Count; i++)
         {
@@ -168,13 +168,13 @@ sealed class Binder : SyntaxVisitor
         if (errors)
             SetErrorExpression();
         else
-            boundNode = new BoundCallExpression(function, arguments);
+            boundNode = new BoundCallExpression(function, arguments.ToImmutable());
         
         return node;
     }
     protected override SyntaxNode VisitBlockStatement(BlockStatementSyntax node)
     {
-        var statements = new List<BoundStatement>();
+        var statements = ImmutableArray.CreateBuilder<BoundStatement>();
         scope = new (scope);
         foreach (var statement in node.Statements)
         {
@@ -183,7 +183,7 @@ sealed class Binder : SyntaxVisitor
         }
 
         scope = scope.Parent!;
-        boundNode = new BoundBlockStatement(statements);
+        boundNode = new BoundBlockStatement(statements.ToImmutable());
         return node;
     }
     protected override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
@@ -339,12 +339,67 @@ sealed class Binder : SyntaxVisitor
         return new BoundConversionExpression(targetType, expression);
     }
 
+    void BindFunctionDeclarations(IEnumerable<FunctionDeclarationSyntax> declarations)
+    {
+        foreach( var declaration in declarations) BindFunctionDeclaration(declaration);
+    }
+    void BindFunctionDeclaration(FunctionDeclarationSyntax declaration)
+    {
+        var parameters = ImmutableArray.CreateBuilder<ParameterSymbol>();
+        var seenParameterNames = new HashSet<string>();
+        foreach (var parameter in declaration.Parameters)
+        {
+            var name = parameter.Identifier.Text;
+            if (!seenParameterNames.Add(name))
+                diagnostics.ReportParameterAlreadyDeclared(parameter.Identifier);
+
+            var type = BindTypeClause(parameter.TypeClause) ?? TypeSymbol.Error;
+            parameters.Add(new (name, type));
+        }
+
+        var returnType = declaration.TypeClause is null ? TypeSymbol.Void : BindTypeClause(declaration.TypeClause) ?? TypeSymbol.Error;
+        if (returnType != TypeSymbol.Error && returnType != TypeSymbol.Void)
+            diagnostics.ReportLanguageSupportIssue(declaration.TypeClause?.Span ?? declaration.Span, "Functions with non-void return types are not yet supported.");
+        var function = new FunctionSymbol(declaration.Identifier.Text, parameters, returnType);
+        if (!scope.TryDeclareSymbol(function))
+            diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
+    }
+
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {
-        var binder = new Binder(CreateParentScopes(previous));
-        binder.Visit(syntax);
-        var diagnostics = previous is null ? binder.diagnostics : previous.Diagnostics.Concat(binder.diagnostics);
-        return new (previous, (BoundStatement)binder.boundNode!, binder.scope.GetDeclaredSymbols(), diagnostics);
+        var parentScope = CreateParentScopes(previous);
+        var binder = new Binder(parentScope);
+
+        binder.BindFunctionDeclarations(syntax.Members.OfType<FunctionDeclarationSyntax>());
+        var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
+        foreach (var globalStatement in syntax.Members.OfType<GlobalStatementSyntax>())
+        {
+            binder.Visit(globalStatement);
+            statementBuilder.Add((BoundStatement)binder.boundNode!);
+        }
+
+        var statement = new BoundBlockStatement(statementBuilder.ToImmutable());
+
+        var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
+        return new(previous, statement, binder.scope.GetDeclaredSymbols(), diagnostics);
+    }
+    public static BoundProgram BindProgram(BoundGlobalScope globalScope)
+    {
+        //var parentScope = CreateParentScopes(globalScope);
+        //var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
+        //var diagnostics = globalScope.Diagnostics;
+
+        //foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
+        //{
+        //    var functionBinder = new Binder(parentScope);
+        //    functionBinder.Visit(function.Declaration!.Body);
+        //    var body = (BoundStatement)functionBinder.boundNode!;
+        //    var lowered = Lowerer.Lower(body);
+        //    functionBodyBuilder.Add(function, lowered);
+        //    diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
+        //}
+        return new(globalScope, ImmutableDictionary<FunctionSymbol, BoundBlockStatement>.Empty, globalScope.Diagnostics);
+        //return new(globalScope, functionBodyBuilder.ToImmutable(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {

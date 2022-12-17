@@ -42,9 +42,9 @@ sealed class Parser
     /// <returns>The resulting <see cref="CompilationUnitSyntax"/> representing the text Balu code.</returns>
     public CompilationUnitSyntax ParseCompilationUnit()
     {
-        var statement = ParseStatement();
+        var members = ParseMembers();
         var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
-        return new(statement, endOfFileToken);
+        return new(members, endOfFileToken);
     }
 
     SyntaxToken Peek(int offset)
@@ -60,6 +60,65 @@ sealed class Parser
         return current;
     }
 
+    ImmutableArray<MemberSyntax> ParseMembers()
+    {
+        var members = ImmutableArray.CreateBuilder<MemberSyntax>();
+        while (Current.Kind != SyntaxKind.EndOfFileToken)
+        {
+            var currentToken = Current;
+            members.Add(ParseMember());
+
+            // Check if we consumend a token.
+            // If not, we need to skip this, because
+            // othwrwise we end up in an infinit loop.
+            // Error will be reported by the unfinished
+            // statement.
+            if (currentToken == Current) NextToken();
+        }
+
+        return members.ToImmutable();
+    }
+    MemberSyntax ParseMember() => Current.Kind switch
+    {
+        SyntaxKind.FunctionKeyword => ParseFunctionDeclaration(),
+        _ => ParseGlobalStatement()
+    };
+    GlobalStatementSyntax ParseGlobalStatement() => new (ParseStatement());
+    FunctionDeclarationSyntax ParseFunctionDeclaration()
+    {
+        var keyword = MatchToken(SyntaxKind.FunctionKeyword);
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        var openParenthesis = MatchToken(SyntaxKind.OpenParenthesisToken);
+        var parameters = ParseParameters();
+        var closedParenthesis = MatchToken(SyntaxKind.ClosedParenthesisToken);
+        var type = ParseOptionalTypeClause();
+        var body = ParseBlockStatement();
+        return MemberSyntax.FunctionDeclaration(keyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
+    }
+    SeparatedSyntaxList<ParameterSyntax> ParseParameters()
+    {
+        if (Current.Kind == SyntaxKind.ClosedParenthesisToken) return new(ImmutableArray<SyntaxNode>.Empty);
+
+        var parameters = ImmutableArray.CreateBuilder<SyntaxNode>();
+        while (Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
+        {
+            parameters.Add(ParseParameter());
+            if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
+            {
+                var comma = MatchToken(SyntaxKind.CommaToken);
+                parameters.Add(comma);
+                if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
+                    diagnostics.ReportUnexpectedToken(comma, SyntaxKind.ClosedBraceToken);
+            }
+        }
+        return new(parameters.ToImmutable());
+    }
+    ParameterSyntax ParseParameter()
+    {
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        var type = ParseTypeClause();
+        return SyntaxNode.Parameter(identifier, type);
+    }
     StatementSyntax ParseStatement() => Current.Kind switch
     {
         SyntaxKind.OpenBraceToken => ParseBlockStatement(), 
@@ -74,11 +133,11 @@ sealed class Parser
     BlockStatementSyntax ParseBlockStatement()
     {
         var open = MatchToken(SyntaxKind.OpenBraceToken);
-        var statements = new List<StatementSyntax>();
+        var statementsBuilder = ImmutableArray.CreateBuilder<StatementSyntax>();
         while (Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.ClosedBraceToken)
         {
             var currentToken = Current;
-            statements.Add(ParseStatement());
+            statementsBuilder.Add(ParseStatement());
             
             // Check if we consumend a token.
             // If not, we need to skip this, because
@@ -89,7 +148,7 @@ sealed class Parser
         }
 
         var closed = MatchToken(SyntaxKind.ClosedBraceToken);
-        return StatementSyntax.BlockStatement(open, statements, closed);
+        return StatementSyntax.BlockStatement(open, statementsBuilder.ToImmutable(), closed);
     }
     ExpressionStatementSyntax ParseExpressionStatement() => StatementSyntax.ExpressionStatement(ParseExpression());
     VariableDeclarationStatementSyntax ParseVariableDeclarationStatement()
@@ -97,14 +156,20 @@ sealed class Parser
         var expectedKeyword = Current.Kind == SyntaxKind.LetKeyword ? SyntaxKind.LetKeyword : SyntaxKind.VarKeyword;
         var keyword = MatchToken(expectedKeyword);
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
-        var typeClause = ParseTypeClause();
+        var typeClause = ParseOptionalTypeClause();
         var equals = MatchToken(SyntaxKind.EqualsToken);
         var expression = ParseExpression();
         return StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression, typeClause);
     }
-    TypeClauseSyntax? ParseTypeClause()
+    TypeClauseSyntax? ParseOptionalTypeClause()
     {
         if (Current.Kind != SyntaxKind.ColonToken) return null;
+        var colonToken = MatchToken(SyntaxKind.ColonToken);
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        return new(colonToken, identifier);
+    }
+    TypeClauseSyntax ParseTypeClause()
+    {
         var colonToken = MatchToken(SyntaxKind.ColonToken);
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
         return new(colonToken, identifier);

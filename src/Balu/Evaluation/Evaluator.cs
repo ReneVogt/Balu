@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
@@ -10,13 +11,15 @@ namespace Balu.Evaluation;
 
 sealed class Evaluator : BoundTreeVisitor, IDisposable
 {
-    readonly VariableDictionary variables;
+    readonly VariableDictionary globals;
+    readonly Stack<VariableDictionary> locals = new();
     readonly Dictionary<BoundLabel, int> labelsToIndices = new();
+    readonly ImmutableDictionary<FunctionSymbol, BoundBlockStatement> functions;
     readonly RNGCryptoServiceProvider rng = new();
 
     public object? Result { get; private set; }
 
-    Evaluator(VariableDictionary variables) => this.variables = variables;
+    Evaluator(VariableDictionary globals, ImmutableDictionary<FunctionSymbol,BoundBlockStatement> functions) => (this.globals, this.functions) = (globals, functions);
     public void Dispose() => rng.Dispose();
 
     protected override BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement)
@@ -109,31 +112,58 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
     }
     protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
-        Result = variables[variableExpression.Variable];
+        //Result = locals.TryPeek(out var frame) && frame.TryGetValue(variableExpression.Variable, out var result) ? result : globals[variableExpression.Variable];
+        Result = globals[variableExpression.Variable];
         return variableExpression;
     }
     protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
         Visit(assignmentExpression.Expression);
-        variables[assignmentExpression.Symbol] = Result;
+        //if (locals.TryPeek(out var frame) && frame.ContainsKey(assignmentExpression.Symbol))
+        //    frame[assignmentExpression.Symbol] = Result;
+        //else 
+        //    globals[assignmentExpression.Symbol] = Result;
+        globals[assignmentExpression.Symbol] = Result;
         return assignmentExpression;
     }
     protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
         Visit(variableDeclarationStatement.Expression);
-        variables[variableDeclarationStatement.Variable] = Result;
+        globals[variableDeclarationStatement.Variable] = Result;
         return variableDeclarationStatement;
     }
     protected override BoundNode VisitBoundCallExpression(BoundCallExpression callExpression)
     {
         if (callExpression.Function == BuiltInFunctions.Print)
+        {
             ExecutePrint(callExpression.Arguments);
-        else if (callExpression.Function == BuiltInFunctions.Input)
+            return callExpression;
+        }
+
+        if (callExpression.Function == BuiltInFunctions.Input)
+        {
             ExecuteInput();
-        else if (callExpression.Function == BuiltInFunctions.Random)
+            return callExpression;
+        }
+        
+        if (callExpression.Function == BuiltInFunctions.Random)
+        {
             ExecuteRandom(callExpression.Arguments);
-        else
-            throw EvaluationException.UndefinedMethod(callExpression.Function.Name);
+            return callExpression;
+        }
+
+        var frame = new VariableDictionary();
+        for (int i = 0; i < callExpression.Arguments.Length; i++)
+        {
+            Visit(callExpression.Arguments[i]);
+            frame.Add(callExpression.Function.Parameters[i], Result);
+        }
+
+        if (!functions.ContainsKey(callExpression.Function))
+            throw EvaluationException.MissingMethod(callExpression.Function.Name);
+        locals.Push(frame);
+        Visit(functions[callExpression.Function]);
+        locals.Pop();
         return callExpression;
     }
     protected override BoundNode VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
@@ -172,9 +202,9 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
         Result = (random & 0x7FFFFFFF) % maximum; // TODO: avoid modulo bias
     }
 
-    public static object? Evaluate(BoundBlockStatement statement, VariableDictionary variables)
+    public static object? Evaluate(BoundBlockStatement statement, VariableDictionary globals, ImmutableDictionary<FunctionSymbol, BoundBlockStatement> functions)
     {
-        using var evaluator = new Evaluator(variables);
+        using var evaluator = new Evaluator(globals, functions);
         evaluator.VisitBoundBlockStatement(statement ?? throw new ArgumentNullException(nameof(statement)));
         return evaluator.Result;
     }

@@ -11,7 +11,9 @@ public sealed class Diagnostic
     public const string LEX0001 = nameof(LEX0001);
     public const string LEX0002 = nameof(LEX0002);
     public const string LEX0003 = nameof(LEX0003);
+
     public const string SYX0000 = nameof(SYX0000);
+    
     public const string BND0000 = nameof(BND0000);
     public const string BND0001 = nameof(BND0001);
     public const string BND0002 = nameof(BND0002);
@@ -26,7 +28,10 @@ public sealed class Diagnostic
     public const string BND0011 = nameof(BND0011);
     public const string BND0012 = nameof(BND0012);
     public const string BND0013 = nameof(BND0013);
+    public const string BND0014 = nameof(BND0014);
+    public const string BND0015 = nameof(BND0015);
 
+    public const string LNG0001 = nameof(LNG0001);
 
     /// <summary>
     /// An id to identify the kind of error message.

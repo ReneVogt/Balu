@@ -6,6 +6,7 @@ namespace Balu.Tests.Evaluation;
 public class EvaluatorTests
 {
     [Theory]
+    [InlineData("", null)]
     [InlineData("42", 42)]
     [InlineData("-42", -42)]
     [InlineData("+--+3", 3)]
@@ -136,8 +137,6 @@ public class EvaluatorTests
 
     [Fact]
     public void Evaluate_Name_Reports_UndefinedName() => "var a = [bxy]".AssertEvaluation("Undefined name 'bxy'.");
-    [Fact]
-    public void Evaluate_Name_Reports_NoErrorForInsertedToken() => "[]".AssertEvaluation("Unexpected EndOfFileToken ('\0'), expected IdentifierToken.");
 
     [Fact]
     public void Evaluate_Assignment_Reports_UndefinedName() => " [abc] = 12".AssertEvaluation("Undefined variable 'abc'.");

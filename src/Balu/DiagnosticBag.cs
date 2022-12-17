@@ -53,4 +53,9 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportUndefinedType(SyntaxToken identifier) => Add(new(Diagnostic.BND0011, identifier.Span, $"Undefined type '{identifier.Text}'."));
     public void ReportUndefinedVariable(SyntaxToken identifier) => Add(new(Diagnostic.BND0012, identifier.Span, $"Undefined variable '{identifier.Text}'."));
     public void ReportUndefinedFunction(SyntaxToken identifier) => Add(new(Diagnostic.BND0013, identifier.Span, $"Undefined function '{identifier.Text}'."));
+    public void ReportParameterAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0014, identifier.Span, $"Parameter '{identifier.Text}' is already declared."));
+    public void ReportFunctionAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0015, identifier.Span, $"Function '{identifier.Text}' is already declared."));
+
+
+    public void ReportLanguageSupportIssue(TextSpan span, string message) => Add(new(Diagnostic.LNG0001, span, message));
 }

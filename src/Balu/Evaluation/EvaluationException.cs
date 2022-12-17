@@ -18,4 +18,5 @@ public sealed class EvaluationException : BaluException
     internal static EvaluationException UndefinedMethod(string name) => new($"Method '{name}' is not defined.");
 
     public static EvaluationException InvalidCast(TypeSymbol fromType, TypeSymbol toType) => new($"Invalid cast from '{fromType}' to '{toType}'.");
+    public static EvaluationException MissingMethod(string functionName) => new($"Function '{functionName}' has no compiled body.");
 }

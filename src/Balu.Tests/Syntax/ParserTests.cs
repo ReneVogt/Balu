@@ -24,6 +24,7 @@ public class ParserTests
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
             e.AssertNode(SyntaxKind.CompilationUnit);
+            e.AssertNode(SyntaxKind.GlobalStatement);
             e.AssertNode(SyntaxKind.ExpressionStatement);
             e.AssertNode(SyntaxKind.BinaryExpression);
             e.AssertNode(SyntaxKind.BinaryExpression);
@@ -41,6 +42,7 @@ public class ParserTests
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
             e.AssertNode(SyntaxKind.CompilationUnit);
+            e.AssertNode(SyntaxKind.GlobalStatement);
             e.AssertNode(SyntaxKind.ExpressionStatement);
             e.AssertNode(SyntaxKind.BinaryExpression);
             e.AssertNode(SyntaxKind.NameExpression);
@@ -72,6 +74,7 @@ public class ParserTests
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
             e.AssertNode(SyntaxKind.CompilationUnit);
+            e.AssertNode(SyntaxKind.GlobalStatement);
             e.AssertNode(SyntaxKind.ExpressionStatement);
             e.AssertNode(SyntaxKind.BinaryExpression);
             e.AssertNode(SyntaxKind.UnaryExpression);
@@ -87,6 +90,7 @@ public class ParserTests
         {
             using var e = new SyntaxTreeAsserter(tree.Root);
             e.AssertNode(SyntaxKind.CompilationUnit);
+            e.AssertNode(SyntaxKind.GlobalStatement);
             e.AssertNode(SyntaxKind.ExpressionStatement);
             e.AssertNode(SyntaxKind.UnaryExpression);
             e.AssertToken(unaryKind, unaryText);
@@ -109,6 +113,7 @@ public class ParserTests
         var tree = SyntaxTree.Parse(text);
         using var e = new SyntaxTreeAsserter(tree.Root);
         e.AssertNode(SyntaxKind.CompilationUnit);
+        e.AssertNode(SyntaxKind.GlobalStatement);
         e.AssertNode(SyntaxKind.ExpressionStatement);
         e.AssertNode(SyntaxKind.LiteralExpression);
         e.AssertToken(kind, text, value);

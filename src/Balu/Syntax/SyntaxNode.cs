@@ -52,15 +52,13 @@ public abstract class SyntaxNode
         for (int i = 0; i < nodes.Length; i++)
         {
             var node = (T)visitor.Visit(nodes[i]);
-            if (resultBuilder != null)
+            if (node != nodes[i] && resultBuilder is null)
             {
-                resultBuilder.Add(node);
-                continue;
+                resultBuilder = ImmutableArray.CreateBuilder<T>(nodes.Length);
+                resultBuilder.AddRange(nodes.Take(i));
             }
 
-            if (node == nodes[i]) continue;
-            resultBuilder = ImmutableArray.CreateBuilder<T>(nodes.Length);
-            resultBuilder.AddRange(nodes.Take(i+1));
+            resultBuilder?.Add(node);
         }
 
         return resultBuilder?.ToImmutable() ?? nodes;
@@ -74,15 +72,12 @@ public abstract class SyntaxNode
         for (int i = 0; i < list.ElementsWithSeparators.Length; i++)
         {
             var node = (T)visitor.Visit(list.ElementsWithSeparators[i]);
-            if (resultBuilder != null)
+            if (node != list.ElementsWithSeparators[i] && resultBuilder is null)
             {
-                resultBuilder.Add(node);
-                continue;
+                resultBuilder = ImmutableArray.CreateBuilder<SyntaxNode>(list.ElementsWithSeparators.Length);
+                resultBuilder.AddRange(list.ElementsWithSeparators.Take(i));
             }
-
-            if (node == list.ElementsWithSeparators[i]) continue;
-            resultBuilder = ImmutableArray.CreateBuilder<SyntaxNode>(list.ElementsWithSeparators.Length);
-            resultBuilder.AddRange(list.ElementsWithSeparators.Take(i + 1));
+            resultBuilder?.Add(node);
         }
 
         return resultBuilder is null ? list : new (resultBuilder.ToImmutable());
@@ -95,12 +90,12 @@ public abstract class SyntaxNode
     /// <summary>
     /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="StatementSyntax"/>.
     /// </summary>
-    /// <param name="statement">The root <see cref="StatementSyntax"/> of the compilation unit.</param>
+    /// <param name="members">The member declarations at the root of the compilation unit.</param>
     /// <param name="endOfFileToken">The eof token of the compilation unit.</param>
     /// <returns>A new <see cref="CompilationUnitSyntax"/> instance.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="statement"/> or <paramref name="endOfFileToken"/> is <c>null</c>.</exception>
-    public static CompilationUnitSyntax CompilationUnit(StatementSyntax statement, SyntaxToken endOfFileToken) =>
-        new (statement ?? throw new ArgumentNullException(nameof(statement)), endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken)));
+    /// <exception cref="ArgumentNullException"><paramref name="members"/> or <paramref name="endOfFileToken"/> is <c>null</c>.</exception>
+    public static CompilationUnitSyntax CompilationUnit(IEnumerable<MemberSyntax> members, SyntaxToken endOfFileToken) =>
+        new ((members ?? throw new ArgumentNullException(nameof(members))).ToImmutableArray(), endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken)));
     /// <summary>
     /// Creates a new <see cref="ElseClauseSyntax"/> from the given elements.
     /// </summary>

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 
 namespace Balu.Syntax;
 
@@ -8,9 +9,9 @@ namespace Balu.Syntax;
 public sealed class CompilationUnitSyntax : SyntaxNode
 {
     /// <summary>
-    /// The root statement of this compilation unit.
+    /// The member declarations at the top level.
     /// </summary>
-    public StatementSyntax Statement { get; }
+    public ImmutableArray<MemberSyntax> Members { get; }
     /// <summary>
     /// The eof token of this compilation unit.
     /// </summary>
@@ -23,18 +24,19 @@ public sealed class CompilationUnitSyntax : SyntaxNode
     {
         get
         {
-            yield return Statement;
+            foreach (var member in Members)
+                yield return member;
             yield return EndOfFileToken;
         }
     }
 
-    internal CompilationUnitSyntax(StatementSyntax statement, SyntaxToken endOfFileToken) =>
-        (Statement, EndOfFileToken) = (statement, endOfFileToken);
+    internal CompilationUnitSyntax(ImmutableArray<MemberSyntax> members, SyntaxToken endOfFileToken) =>
+        (Members, EndOfFileToken) = (members, endOfFileToken);
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
-        var statement = (StatementSyntax)visitor.Visit(Statement);
+        var members = VisitList(visitor, Members);
         var eof = (SyntaxToken)visitor.Visit(EndOfFileToken);
-        return statement != Statement || eof != EndOfFileToken ? CompilationUnit(statement, eof) : this;
+        return members != Members || eof != EndOfFileToken ? CompilationUnit(members, eof) : this;
     }
 }

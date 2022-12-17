@@ -20,7 +20,8 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
             foreach(var node in Parameters.ElementsWithSeparators)
                 yield return node;
             yield return ClosedParenthesis;
-            yield return TypeClause;
+            if (TypeClause is not null) yield return TypeClause;
+            yield return Body;
         }
     }
 
@@ -47,10 +48,14 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
     /// <summary>
     /// The function's type clause.
     /// </summary>
-    public TypeClauseSyntax TypeClause { get; }
+    public TypeClauseSyntax? TypeClause { get; }
+    /// <summary>
+    /// The function's body.
+    /// </summary>
+    public BlockStatementSyntax Body { get; }
 
     internal FunctionDeclarationSyntax(SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
-                                       SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax type)
+                                       SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? type, BlockStatementSyntax body)
     {
         FunctionKeyword = functionKeyword;
         Identifier = identifier;
@@ -58,6 +63,7 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
         Parameters = parameters;
         ClosedParenthesis = closedParenthesis;
         TypeClause = type;
+        Body = body;
     }
 
     /// <inheritdoc />
@@ -68,11 +74,12 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
         var openParenthesis = (SyntaxToken)visitor.Visit(OpenParenthesis);
         var parameters = VisitList(visitor, Parameters);
         var closedParenthesis = (SyntaxToken)visitor.Visit(ClosedParenthesis);
-        var type = (TypeClauseSyntax)visitor.Visit(TypeClause);
+        var type = TypeClause is null ? null :  (TypeClauseSyntax)visitor.Visit(TypeClause);
+        var body = (BlockStatementSyntax)visitor.Visit(Body);
 
         return functionKeyword == FunctionKeyword && identifier == Identifier && openParenthesis == OpenParenthesis && parameters == Parameters &&
-               closedParenthesis == ClosedParenthesis && TypeClause == type
+               closedParenthesis == ClosedParenthesis && TypeClause == type && Body == body
                    ? this
-                   : FunctionDeclaration(functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type);
+                   : FunctionDeclaration(functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
     }
 }
