@@ -284,7 +284,7 @@ public class EvaluatorTests
     }
 
     [Theory]
-    [InlineData("{ [print] = 12 }", "Unexpected symbol kind 'Function', expected 'print' to be of kind 'Variable'.")]
-    [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'Variable', expected 'a' to be of kind 'Function'.")]
+    [InlineData("{ [print] = 12 }", "Unexpected symbol kind 'Function', expected 'print' to be a variable or argument.")]
+    [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'GlobalVariable', expected 'a' to be a function.")]
     public void Evaluate_Reports_SymbolTypeMisatch(string text, string diagnostics) => text.AssertEvaluation(diagnostics);
 }

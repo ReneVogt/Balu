@@ -17,6 +17,7 @@ public sealed class EvaluationException : BaluException
     internal static EvaluationException BinaryOperatorCannotBeEvaluated(BoundBinaryOperatorKind operatorKind) => new ($"Binary operator {operatorKind} cannot be evaluated.");
     internal static EvaluationException UndefinedMethod(string name) => new($"Method '{name}' is not defined.");
 
-    public static EvaluationException InvalidCast(TypeSymbol fromType, TypeSymbol toType) => new($"Invalid cast from '{fromType}' to '{toType}'.");
-    public static EvaluationException MissingMethod(string functionName) => new($"Function '{functionName}' has no compiled body.");
+    internal static EvaluationException InvalidCast(TypeSymbol fromType, TypeSymbol toType) => new($"Invalid cast from '{fromType}' to '{toType}'.");
+    internal static EvaluationException MissingMethod(string functionName) => new($"Function '{functionName}' has no compiled body.");
+    internal static EvaluationException InvalidSymbolKind(Symbol symbol) => new($"Symbol '{symbol.Name}' has invalid kind '{symbol.Kind}'.");
 }

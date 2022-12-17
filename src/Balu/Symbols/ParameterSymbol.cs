@@ -3,7 +3,7 @@
 /// <summary>
 /// Represents a function parameter in Balu.
 /// </summary>
-public sealed class ParameterSymbol : VariableSymbol
+public sealed class ParameterSymbol : LocalVariableSymbol
 {
     /// <inheritdoc />
     public override SymbolKind Kind => SymbolKind.Parameter;

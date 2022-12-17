@@ -38,7 +38,7 @@ public sealed class Compilation
         {
             if (loweredStatement is null)
             {
-                var statement = Lowerer.Lower(GlobalScope.Statement);
+                var statement = Lowerer.Lower(GlobalScope.Statement, null);
                 Interlocked.CompareExchange(ref loweredStatement, statement, null);
             }
 

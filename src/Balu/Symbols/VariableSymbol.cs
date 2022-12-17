@@ -1,13 +1,10 @@
 ﻿namespace Balu.Symbols;
 
 /// <summary>
-/// Represents a named and typed bound variable.
+/// Abstract base class for named and typed bound variable.
 /// </summary>
-public class VariableSymbol : Symbol
+public abstract class VariableSymbol : Symbol
 {
-    /// <inheritdoc />
-    public override SymbolKind Kind => SymbolKind.Variable;
-
     /// <summary>
     /// The type of the variable.
     /// </summary>
@@ -17,7 +14,7 @@ public class VariableSymbol : Symbol
     /// </summary>
     public bool ReadOnly { get; }
 
-    internal VariableSymbol(string name, bool readOnly, TypeSymbol type) : base (name)
+    private protected VariableSymbol(string name, bool readOnly, TypeSymbol type) : base (name)
     {
         ReadOnly = readOnly;
         Type = type;

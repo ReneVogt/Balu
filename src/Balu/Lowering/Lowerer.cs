@@ -8,7 +8,11 @@ namespace Balu.Lowering;
 
 sealed class Lowerer : BoundTreeVisitor
 {
+    readonly FunctionSymbol? containingFunction;
     int labelCount;
+
+    Lowerer(FunctionSymbol? containingFunction) => this.containingFunction = containingFunction;
+
     BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet)
@@ -112,7 +116,7 @@ sealed class Lowerer : BoundTreeVisitor
         var loopVariable = new BoundVariableExpression(forStatement.Variable);
         var loopVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Variable, forStatement.LowerBound);
 
-        var upperVariableSymbol = new VariableSymbol("upperBound", false, TypeSymbol.Integer);
+        var upperVariableSymbol = CreateVariable("upperBound", false, TypeSymbol.Integer);
         var upperVariableDeclaration = new BoundVariableDeclarationStatement(upperVariableSymbol, forStatement.UpperBound);
 
         var increment = new BoundExpressionStatement(
@@ -134,6 +138,9 @@ sealed class Lowerer : BoundTreeVisitor
         return Visit(rewritten);
     }
 
+    VariableSymbol CreateVariable(string name, bool readOnly, TypeSymbol type) =>
+        containingFunction is null ? new GlobalVariableSymbol(name, readOnly, type) : new LocalVariableSymbol(name, readOnly, type);
+
     static BoundBlockStatement Flatten(BoundStatement statement)
     {
         var resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
@@ -152,5 +159,5 @@ sealed class Lowerer : BoundTreeVisitor
 
         return new (resultBuilder.ToImmutable());
     }
-    public static BoundBlockStatement Lower(BoundStatement statement) => Flatten((BoundStatement)new Lowerer().Visit(statement));
+    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => Flatten((BoundStatement)new Lowerer(containingFunction).Visit(statement));
 }

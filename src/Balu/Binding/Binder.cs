@@ -1,5 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
+using Balu.Lowering;
 using Balu.Symbols;
 using Balu.Syntax;
 
@@ -8,13 +10,14 @@ namespace Balu.Binding;
 sealed class Binder : SyntaxVisitor
 {
     readonly DiagnosticBag diagnostics = new();
+    readonly FunctionSymbol? containingFunction;
 
     BoundScope scope;
     BoundNode? boundNode;
 
     bool IsError => boundNode is BoundExpression { Type: var type } && type == TypeSymbol.Error;
 
-    Binder(BoundScope? parent) => scope = new(parent);
+    Binder(BoundScope? parent, FunctionSymbol? containingFunction = null) => (scope, this.containingFunction) = (new(parent), containingFunction);
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
@@ -64,9 +67,9 @@ sealed class Binder : SyntaxVisitor
             diagnostics.ReportUndefinedName(node.IdentifierrToken);
             SetErrorExpression();
         }
-        else if (symbol.Kind != SymbolKind.Variable)
+        else if (symbol.Kind != SymbolKind.GlobalVariable && symbol.Kind != SymbolKind.LocalVariable && symbol.Kind != SymbolKind.Parameter)
         {
-            diagnostics.ReportSymbolTypeMismatch(node.IdentifierrToken, SymbolKind.Variable, symbol.Kind);
+            diagnostics.ReportSymbolNoVariable(node.IdentifierrToken, symbol.Kind);
             SetErrorExpression();
         }
         else
@@ -85,9 +88,9 @@ sealed class Binder : SyntaxVisitor
             SetErrorExpression();
             return node;
         }
-        if (symbol.Kind != SymbolKind.Variable)
+        if (symbol.Kind != SymbolKind.GlobalVariable && symbol.Kind != SymbolKind.LocalVariable && symbol.Kind != SymbolKind.Parameter)
         {
-            diagnostics.ReportSymbolTypeMismatch(node.IdentifierToken, SymbolKind.Variable, symbol.Kind);
+            diagnostics.ReportSymbolNoVariable(node.IdentifierToken, symbol.Kind);
             SetErrorExpression();
             return node;
         }
@@ -136,7 +139,7 @@ sealed class Binder : SyntaxVisitor
 
         if (symbol.Kind != SymbolKind.Function)
         {
-            diagnostics.ReportSymbolTypeMismatch(node.Identifier, SymbolKind.Function, symbol.Kind);
+            diagnostics.ReportSymbolNoFunction(node.Identifier, symbol.Kind);
             SetErrorExpression();
             return node;
         }
@@ -303,7 +306,9 @@ sealed class Binder : SyntaxVisitor
     VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type)
     {
         var name = identifier.IsMissing ? "?" : identifier.Text;
-        var variable = new VariableSymbol(name, isReadonly, type);
+        VariableSymbol variable = containingFunction is null
+                           ? new GlobalVariableSymbol(name, isReadonly, type)
+                           : new LocalVariableSymbol(name, isReadonly, type);
         if (!identifier.IsMissing && !scope.TryDeclareSymbol(variable))
             diagnostics.ReportSymbolAlreadyDeclared(identifier);
         return variable;
@@ -385,21 +390,20 @@ sealed class Binder : SyntaxVisitor
     }
     public static BoundProgram BindProgram(BoundGlobalScope globalScope)
     {
-        //var parentScope = CreateParentScopes(globalScope);
-        //var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
-        //var diagnostics = globalScope.Diagnostics;
+        var parentScope = CreateParentScopes(globalScope);
+        var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
+        var diagnostics = globalScope.Diagnostics;
 
-        //foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
-        //{
-        //    var functionBinder = new Binder(parentScope);
-        //    functionBinder.Visit(function.Declaration!.Body);
-        //    var body = (BoundStatement)functionBinder.boundNode!;
-        //    var lowered = Lowerer.Lower(body);
-        //    functionBodyBuilder.Add(function, lowered);
-        //    diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
-        //}
-        return new(globalScope, ImmutableDictionary<FunctionSymbol, BoundBlockStatement>.Empty, globalScope.Diagnostics);
-        //return new(globalScope, functionBodyBuilder.ToImmutable(), diagnostics);
+        foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
+        {
+            var functionBinder = new Binder(parentScope, function);
+            functionBinder.Visit(function.Declaration!.Body);
+            var body = (BoundStatement)functionBinder.boundNode!;
+            var lowered = Lowerer.Lower(body, function);
+            functionBodyBuilder.Add(function, lowered);
+            diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
+        }
+        return new(globalScope, functionBodyBuilder.ToImmutable(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {

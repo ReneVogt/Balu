@@ -6,9 +6,19 @@
 public enum SymbolKind
 {
     /// <summary>
-    /// Variable symbols.
+    /// Global variable symbols.
     /// </summary>
-    Variable,
+    GlobalVariable,
+
+    /// <summary>
+    /// Local variable symbols.
+    /// </summary>
+    LocalVariable, 
+
+    /// <summary>
+    /// Function parameter symbols.
+    /// </summary>
+    Parameter,
 
     /// <summary>
     /// Type symbols.
@@ -18,6 +28,5 @@ public enum SymbolKind
     /// <summary>
     /// Function symbols.
     /// </summary>
-    Function,
-    Parameter
+    Function
 }

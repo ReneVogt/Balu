@@ -112,25 +112,41 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
     }
     protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
-        //Result = locals.TryPeek(out var frame) && frame.TryGetValue(variableExpression.Variable, out var result) ? result : globals[variableExpression.Variable];
-        Result = globals[variableExpression.Variable];
+        Result = variableExpression.Variable.Kind switch
+        {
+            SymbolKind.GlobalVariable => globals[variableExpression.Variable],
+            SymbolKind.LocalVariable or
+                SymbolKind.Parameter => locals.Peek()[variableExpression.Variable],
+            _ => throw EvaluationException.InvalidSymbolKind(variableExpression.Variable)
+        };
         return variableExpression;
     }
     protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
         Visit(assignmentExpression.Expression);
-        //if (locals.TryPeek(out var frame) && frame.ContainsKey(assignmentExpression.Symbol))
-        //    frame[assignmentExpression.Symbol] = Result;
-        //else 
-        //    globals[assignmentExpression.Symbol] = Result;
-        globals[assignmentExpression.Symbol] = Result;
+        AssignVariable(assignmentExpression.Symbol, Result);
         return assignmentExpression;
     }
     protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
         Visit(variableDeclarationStatement.Expression);
-        globals[variableDeclarationStatement.Variable] = Result;
+        AssignVariable(variableDeclarationStatement.Variable, Result);
         return variableDeclarationStatement;
+    }
+    void AssignVariable(VariableSymbol variable, object? value)
+    {
+        switch (variable.Kind)
+        {
+            case SymbolKind.GlobalVariable:
+                globals[variable] = value;
+                break;
+            case SymbolKind.LocalVariable:
+            case SymbolKind.Parameter:
+                locals.Peek()[variable] = value;
+                break;
+            default:
+                throw EvaluationException.InvalidSymbolKind(variable);
+        }
     }
     protected override BoundNode VisitBoundCallExpression(BoundCallExpression callExpression)
     {
