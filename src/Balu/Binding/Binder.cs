@@ -17,7 +17,14 @@ sealed class Binder : SyntaxVisitor
 
     bool IsError => boundNode is BoundExpression { Type: var type } && type == TypeSymbol.Error;
 
-    Binder(BoundScope? parent, FunctionSymbol? containingFunction = null) => (scope, this.containingFunction) = (new(parent), containingFunction);
+    Binder(BoundScope? parent, FunctionSymbol? containingFunction = null)
+    {
+        scope = new(parent);
+        this.containingFunction = containingFunction;
+        if (this.containingFunction is null) return;
+        foreach (var parameter in this.containingFunction.Parameters)
+            scope.TryDeclareSymbol(parameter);
+    }
 
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
@@ -390,19 +397,26 @@ sealed class Binder : SyntaxVisitor
     }
     public static BoundProgram BindProgram(BoundGlobalScope globalScope)
     {
-        var parentScope = CreateParentScopes(globalScope);
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         var diagnostics = globalScope.Diagnostics;
 
-        foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
+        var scope = globalScope;
+        while (scope is not null)
         {
-            var functionBinder = new Binder(parentScope, function);
-            functionBinder.Visit(function.Declaration!.Body);
-            var body = (BoundStatement)functionBinder.boundNode!;
-            var lowered = Lowerer.Lower(body, function);
-            functionBodyBuilder.Add(function, lowered);
-            diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
+            foreach (var function in scope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
+            {
+                var parentScope = CreateParentScopes(globalScope);
+                var functionBinder = new Binder(parentScope, function);
+                functionBinder.Visit(function.Declaration!.Body);
+                var body = (BoundStatement)functionBinder.boundNode!;
+                var lowered = Lowerer.Lower(body, function);
+                functionBodyBuilder.Add(function, lowered);
+                diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
+            }
+
+            scope = scope.Previous;
         }
+
         return new(globalScope, functionBodyBuilder.ToImmutable(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
