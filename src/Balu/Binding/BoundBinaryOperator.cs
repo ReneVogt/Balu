@@ -25,6 +25,8 @@ sealed class BoundBinaryOperator
         [(SyntaxKind.BangEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, TypeSymbol.Integer, TypeSymbol.Boolean),
         [(SyntaxKind.EqualsEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, TypeSymbol.Boolean),
         [(SyntaxKind.BangEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, TypeSymbol.Boolean),
+        [(SyntaxKind.EqualsEqualsToken, TypeSymbol.String, TypeSymbol.String)] = new(SyntaxKind.EqualsEqualsToken, BoundBinaryOperatorKind.Equals, TypeSymbol.String, TypeSymbol.Boolean),
+        [(SyntaxKind.BangEqualsToken, TypeSymbol.String, TypeSymbol.String)] = new(SyntaxKind.BangEqualsToken, BoundBinaryOperatorKind.NotEqual, TypeSymbol.String, TypeSymbol.Boolean),
         [(SyntaxKind.LessToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.LessToken, BoundBinaryOperatorKind.Less, TypeSymbol.Integer, TypeSymbol.Boolean),
         [(SyntaxKind.LessOrEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.LessOrEqualsToken, BoundBinaryOperatorKind.LessOrEquals, TypeSymbol.Integer, TypeSymbol.Boolean),
         [(SyntaxKind.GreaterToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.GreaterToken, BoundBinaryOperatorKind.Greater, TypeSymbol.Integer, TypeSymbol.Boolean),

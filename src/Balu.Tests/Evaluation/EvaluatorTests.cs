@@ -83,6 +83,10 @@ public class EvaluatorTests
     [InlineData("\"escapedChars: \\r\\n \\v\\t\"", "escapedChars: \r\n \v\t")]
     [InlineData("\"hello \" + \"world\"", "hello world")]
     [InlineData("\"hello\" + \" \" + \"world\"", "hello world")]
+    [InlineData("\"test\" == \"test\"", true)]
+    [InlineData("\"test\" != \"test\"", false)]
+    [InlineData("\"test\" == \"diff\"", false)]
+    [InlineData("\"test\" != \"diff\"", true)]
     public void Evaluate_Expression_CorrectResults(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
 
     [Theory]
