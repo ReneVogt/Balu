@@ -228,6 +228,20 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
+    public void SyntaxVisitor_ContinueStatementSyntax_AcceptVisitsChildren()
+    {
+        var continueKeyword = SyntaxToken.ContinueKeyword(default);
+        var statement = StatementSyntax.ContinueStatement(continueKeyword);
+        AssertVisits(statement);
+    }
+    [Fact]
+    public void SyntaxVisitor_BreakStatementSyntax_AcceptVisitsChildren()
+    {
+        var breakKeyword = SyntaxToken.BreakKeyword(default);
+        var statement = StatementSyntax.BreakStatement(breakKeyword);
+        AssertVisits(statement);
+    }
+    [Fact]
     public void SyntaxVisitor_TypeClauseSyntax_AcceptVisitsChildren()
     {
         var colon = SyntaxToken.Colon(default);

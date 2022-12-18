@@ -128,6 +128,8 @@ sealed class Parser
         SyntaxKind.WhileKeyword => ParseWhileStatement(),
         SyntaxKind.DoKeyword => ParseDoWhileStatement(),
         SyntaxKind.ForKeyword => ParseForStatement(),
+        SyntaxKind.ContinueStatement => ParseContinueStatement(),
+        SyntaxKind.BreakStatement => ParseBreakStatement(),
         _ => ParseExpressionStatement()
     };
     BlockStatementSyntax ParseBlockStatement()
@@ -160,6 +162,16 @@ sealed class Parser
         var equals = MatchToken(SyntaxKind.EqualsToken);
         var expression = ParseExpression();
         return StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression, typeClause);
+    }
+    ContinueStatementSyntax ParseContinueStatement()
+    {
+        var keyword = MatchToken(SyntaxKind.ContinueKeyword);
+        return StatementSyntax.ContinueStatement(keyword);
+    }
+    BreakStatementSyntax ParseBreakStatement()
+    {
+        var keyword = MatchToken(SyntaxKind.BreakKeyword);
+        return StatementSyntax.BreakStatement(keyword);
     }
     TypeClauseSyntax? ParseOptionalTypeClause()
     {

@@ -1,5 +1,4 @@
-﻿using Balu;
-using Balu.Interactive;
+﻿using Balu.Interactive;
 
 #pragma warning disable CA1852
 

@@ -205,6 +205,15 @@ public enum SyntaxKind
     ToKeyword,
 
     /// <summary>
+    /// The 'continue' keyword.
+    /// </summary>
+    ContinueKeyword,
+    /// <summary>
+    /// The 'break' keyword.
+    /// </summary>
+    BreakKeyword,
+
+    /// <summary>
     /// The 'function' keyword.
     /// </summary>
     FunctionKeyword,
@@ -289,6 +298,15 @@ public enum SyntaxKind
     /// The 'for' statement.
     /// </summary>
     ForStatement,
+
+    /// <summary>
+    /// The 'continue' statement.
+    /// </summary>
+    ContinueStatement,
+    /// <summary>
+    /// The 'break' statement.
+    /// </summary>
+    BreakStatement,
     #endregion
     #region Clauses
     /// <summary>

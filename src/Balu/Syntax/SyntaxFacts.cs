@@ -65,6 +65,8 @@ public static class SyntaxFacts
         "var" => SyntaxKind.VarKeyword,
         "while" => SyntaxKind.WhileKeyword,
         "do" => SyntaxKind.DoKeyword,
+        "continue" => SyntaxKind.ContinueKeyword,
+        "break" => SyntaxKind.BreakKeyword,
         "function" => SyntaxKind.FunctionKeyword,
         _ => SyntaxKind.IdentifierToken
     };
@@ -110,6 +112,8 @@ public static class SyntaxFacts
         SyntaxKind.DoKeyword => "do",
         SyntaxKind.ForKeyword => "for",
         SyntaxKind.ToKeyword => "to",
+        SyntaxKind.ContinueKeyword => "continue",
+        SyntaxKind.BreakKeyword => "break",
         SyntaxKind.FunctionKeyword => "function",
         _ => null
     };

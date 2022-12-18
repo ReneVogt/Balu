@@ -304,6 +304,18 @@ public sealed class SyntaxToken : SyntaxNode
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ToKeyword"/>.</returns>
     public static SyntaxToken ToKeyword(TextSpan span) => new(SyntaxKind.ToKeyword, span, SyntaxKind.ToKeyword.GetText()!);
     /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ContinueKeyword"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ContinueKeyword"/>.</returns>
+    public static SyntaxToken ContinueKeyword(TextSpan span) => new(SyntaxKind.ContinueKeyword, span, SyntaxKind.ContinueKeyword.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BreakKeyword"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.BreakKeyword"/>.</returns>
+    public static SyntaxToken BreakKeyword(TextSpan span) => new(SyntaxKind.BreakKeyword, span, SyntaxKind.BreakKeyword.GetText()!);
+    /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.FunctionKeyword"/>.
     /// </summary>
     /// <param name="span">The position of this token in the input code.</param>

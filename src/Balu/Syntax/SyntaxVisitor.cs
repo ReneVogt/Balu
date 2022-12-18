@@ -42,6 +42,8 @@ public abstract class SyntaxVisitor
             SyntaxKind.WhileStatement => VisitWhileStatement((WhileStatementSyntax)node),
             SyntaxKind.DoWhileStatement => VisitDoWhileStatement((DoWhileStatementSyntax)node),
             SyntaxKind.ForStatement => VisitForStatement((ForStatementSyntax)node),
+            SyntaxKind.ContinueStatement => VisitContinueStatement((ContinueStatementSyntax)node),
+            SyntaxKind.BreakStatement => VisitBreakStatement((BreakStatementSyntax)node),
             SyntaxKind.TypeClause => VisitTypeClause((TypeClauseSyntax)node),
             _ => node is SyntaxToken token ? token.Accept(this) : throw new ArgumentException($"Unknown {nameof(SyntaxKind)} '{node.Kind}'.")
         };
@@ -188,6 +190,20 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
     protected virtual SyntaxNode VisitForStatement(ForStatementSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
+    /// <summary>
+    /// Visits a <see cref="ContinueStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="ContinueStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
+    protected virtual SyntaxNode VisitContinueStatement(ContinueStatementSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
+    /// <summary>
+    /// Visits a <see cref="BreakStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="BreakStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
+    protected virtual SyntaxNode VisitBreakStatement(BreakStatementSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
     /// <summary>
     /// Visits a <see cref="TypeClauseSyntax"/>.
     /// </summary>

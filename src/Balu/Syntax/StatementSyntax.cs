@@ -107,4 +107,21 @@ public abstract class StatementSyntax : SyntaxNode
         toKeyword ?? throw new ArgumentNullException(nameof(toKeyword)),
         upperBound ?? throw new ArgumentNullException(nameof(upperBound)),
         body ?? throw new ArgumentNullException(nameof(body)));
+
+    /// <summary>
+    /// Creates a new <see cref="ContinueStatementSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="continueKeyword">The <see cref="SyntaxToken"/> of the 'continue' keyword.</param>
+    /// <returns>The parsed <see cref="ContinueStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="continueKeyword"/> is <c>null</c>.</exception>
+    public static ContinueStatementSyntax
+        ContinueStatement(SyntaxToken continueKeyword) => new(continueKeyword ?? throw new ArgumentNullException(nameof(continueKeyword)));
+    /// <summary>
+    /// Creates a new <see cref="BreakStatementSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="breakKeyword">The <see cref="SyntaxToken"/> of the 'break' keyword.</param>
+    /// <returns>The parsed <see cref="ContinueStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="breakKeyword"/> is <c>null</c>.</exception>
+    public static BreakStatementSyntax
+        BreakStatement(SyntaxToken breakKeyword) => new(breakKeyword ?? throw new ArgumentNullException(nameof(breakKeyword)));
 }
