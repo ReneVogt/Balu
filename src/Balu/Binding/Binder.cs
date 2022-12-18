@@ -372,7 +372,7 @@ sealed class Binder : SyntaxVisitor
         var returnType = declaration.TypeClause is null ? TypeSymbol.Void : BindTypeClause(declaration.TypeClause) ?? TypeSymbol.Error;
         if (returnType != TypeSymbol.Error && returnType != TypeSymbol.Void)
             diagnostics.ReportLanguageSupportIssue(declaration.TypeClause?.Span ?? declaration.Span, "Functions with non-void return types are not yet supported.");
-        var function = new FunctionSymbol(declaration.Identifier.Text, parameters, returnType);
+        var function = new FunctionSymbol(declaration.Identifier.Text, parameters, returnType, declaration);
         if (!scope.TryDeclareSymbol(function))
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
     }
@@ -399,13 +399,13 @@ sealed class Binder : SyntaxVisitor
     {
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         var diagnostics = globalScope.Diagnostics;
+        var parentScope = CreateParentScopes(globalScope);
 
         var scope = globalScope;
         while (scope is not null)
         {
             foreach (var function in scope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
             {
-                var parentScope = CreateParentScopes(globalScope);
                 var functionBinder = new Binder(parentScope, function);
                 functionBinder.Visit(function.Declaration!.Body);
                 var body = (BoundStatement)functionBinder.boundNode!;

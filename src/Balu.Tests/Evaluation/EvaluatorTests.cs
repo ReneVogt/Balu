@@ -283,6 +283,23 @@ public class EvaluatorTests
         text.AssertEvaluation(diagnostics);
     }
 
+    [Fact]
+    public void Evaluate_Recursion_Works()
+    {
+        @"
+              var sum = 0
+                
+              function inner(x:int)
+              {
+                var b = x
+                if x > 0 inner(x-1)
+                sum = sum + b
+              }
+              function outer() { inner(5) }
+
+              { outer() sum }".AssertEvaluation(value: 15);
+    }
+
     [Theory]
     [InlineData("{ [print] = 12 }", "Unexpected symbol kind 'Function', expected 'print' to be a variable or argument.")]
     [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'GlobalVariable', expected 'a' to be a function.")]
