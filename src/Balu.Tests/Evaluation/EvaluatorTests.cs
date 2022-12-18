@@ -284,7 +284,41 @@ public class EvaluatorTests
     }
 
     [Fact]
-    public void Evaluate_Recursion_Works()
+    public void Evaluate_FunctionCall_LocalVariables()
+    {
+        @"
+              var sum = 0
+                
+              function inner(x:int)
+              {
+                var b = x
+                sum = sum + b
+              }
+
+              inner(42) inner(17) sum".AssertEvaluation(value: 17+42);
+    }
+    [Fact]
+    public void Evaluate_FunctionCall_LocalVariablesNested()
+    {
+        @"
+              var sum = 0 var sumx = 0
+                
+              function inner(x:int)
+              {
+                var b = x
+                sum = sum + b
+              }
+              function outer(x: int)
+              {
+                 var b = x
+                 inner(x)
+                 sumx = sumx + 2*b
+              }
+
+              outer(42) outer(17) sum + sumx".AssertEvaluation(value: 17 + 42 + 2 * (17+42));
+    }
+    [Fact]
+    public void Evaluate_FunctionCall_Recursion()
     {
         @"
               var sum = 0
@@ -295,9 +329,28 @@ public class EvaluatorTests
                 if x > 0 inner(x-1)
                 sum = sum + b
               }
-              function outer() { inner(5) }
 
-              { outer() sum }".AssertEvaluation(value: 15);
+              inner(5) sum".AssertEvaluation(value: 15);
+    }
+    [Fact]
+    public void Evaluate_FunctionCall_RecursionNested()
+    {
+        @"
+              var sum = 0 var sumb = 0
+                
+              function inner(x:int)
+              {
+                var b = x
+                if x > 0 inner(x-1)
+                sum = sum + b
+              }
+              function outer(x:int) { 
+                var b = x
+                inner(5)
+                sumb = sum + b                              
+              }
+
+              outer(42) sumb".AssertEvaluation(value: 15+42);
     }
 
     [Theory]

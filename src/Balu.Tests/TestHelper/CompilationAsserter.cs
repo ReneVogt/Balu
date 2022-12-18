@@ -14,6 +14,9 @@ static class CompilationAsserter
         if (expectedDiagnostics.Length != annotatedText.Spans.Length)
             throw new ArgumentException("The number of expected diagnostics must match the number of marked spans.");
 
+        if (annotatedText.Spans.Length == 0)
+            Assert.Empty(result.Diagnostics);
+
         Assert.Equal(annotatedText.Spans.Length, result.Diagnostics.Length);
 
         for (int i = 0; i < expectedDiagnostics.Length; i++)
