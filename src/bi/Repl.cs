@@ -3,9 +3,10 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+
 #pragma warning disable CA1303
 
-namespace Balu;
+namespace Balu.Interactive;
 
 abstract class Repl
 {

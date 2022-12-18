@@ -12,7 +12,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Pr
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bc", "bc\bc.csproj", "{63C76643-8652-48CA-9084-E2E7DC746D2B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bi", "bi\bi.csproj", "{63C76643-8652-48CA-9084-E2E7DC746D2B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balu.Tests", "Balu.Tests\Balu.Tests.csproj", "{B591ADA3-AFBE-46D8-98F0-6B0455F690EC}"
 EndProject

@@ -1,9 +1,10 @@
-﻿using Balu.Syntax;
+﻿using System;
 using System.Linq;
-using System;
+using Balu.Syntax;
+
 #pragma warning disable CA1303
 
-namespace Balu;
+namespace Balu.Interactive;
 
 sealed class BaluRepl : Repl
 {
