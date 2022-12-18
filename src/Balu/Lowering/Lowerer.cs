@@ -144,7 +144,7 @@ sealed class Lowerer : BoundTreeVisitor
             BoundBinaryOperator.LessOrEquals,
             new BoundVariableExpression(upperVariableSymbol));
         var whileBody = new BoundBlockStatement(ImmutableArray.Create(forStatement.Body, continueLabel, increment));
-        var whileStatement = new BoundWhileStatement(whileCondition, whileBody, forStatement.BreakLabel, new ("continue_unused"));
+        var whileStatement = new BoundWhileStatement(whileCondition, whileBody, forStatement.BreakLabel, new ($"lowcontinue{labelCount++}"));
 
         var rewritten = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(loopVariableDeclaration, upperVariableDeclaration, whileStatement));
         return Visit(rewritten);

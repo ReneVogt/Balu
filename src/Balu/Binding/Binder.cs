@@ -13,6 +13,7 @@ sealed class Binder : SyntaxVisitor
     readonly FunctionSymbol? containingFunction;
     readonly Stack<(BoundLabel breakLabel, BoundLabel continueLabel)> loopStack = new ();
 
+    int labelCounter;
     BoundScope scope;
     BoundNode? boundNode;
 
@@ -349,8 +350,9 @@ sealed class Binder : SyntaxVisitor
     }
     BoundStatement BindLoopStatement(StatementSyntax statement, out BoundLabel breakLabel, out BoundLabel continueLabel)
     {
-        breakLabel = new ("break");
-        continueLabel = new ("continue");
+        breakLabel = new ($"break{labelCounter}");
+        continueLabel = new ($"continue{labelCounter}");
+        labelCounter++;
         loopStack.Push((breakLabel, continueLabel));
         Visit(statement);
         loopStack.Pop();
