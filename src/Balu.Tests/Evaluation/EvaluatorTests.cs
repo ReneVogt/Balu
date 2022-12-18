@@ -148,6 +148,7 @@ public class EvaluatorTests
     [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'int' to 'bool'.")]
     public void Evaluate_Assignment_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
 
+
     [Fact]
     public void Evaluate_Call_Reports_UndefinedFunction()
     {
@@ -159,12 +160,22 @@ public class EvaluatorTests
     }
 
     [Fact]
-    public void Evaluate_BlockStatement_NoInfiniteLoop()
+    public void Evaluate_BlockStatement_NoInfiniteLoopIfClosedBraceMissing()
     {
         const string text = "{[)][]";
         var diagnostics = $@"
             Unexpected ClosedParenthesisToken (')'), expected IdentifierToken.
             Unexpected EndOfFileToken ('{'\0'}'), expected ClosedBraceToken.";
+        text.AssertEvaluation(diagnostics);
+    }
+    [Fact]
+    public void Evaluate_CallExpression_NoInfiniteLoopIfClosedParenthesisMissing()
+    {
+        const string text = "{print([[}]]";
+        const string diagnostics = @"
+            Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
+            Unexpected ClosedBraceToken ('}'), expected ClosedParenthesisToken.
+";
         text.AssertEvaluation(diagnostics);
     }
 

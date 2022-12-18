@@ -288,16 +288,16 @@ sealed class Parser
     SeparatedSyntaxList<ExpressionSyntax> ParseArguments()
     {
         var argumentsBuilder = ImmutableArray.CreateBuilder<SyntaxNode>();
-        while(Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
+        var parseNextArgument = true;
+        while(parseNextArgument && Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
         {
             argumentsBuilder.Add(ParseExpression());
-            if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
+            if (Current.Kind == SyntaxKind.CommaToken)
             {
                 var comma = MatchToken(SyntaxKind.CommaToken);
                 argumentsBuilder.Add(comma);
-                if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
-                    diagnostics.ReportUnexpectedToken(comma, SyntaxKind.ClosedBraceToken);
             }
+            else parseNextArgument = false;
         }
         return new(argumentsBuilder.ToImmutable());
     }
