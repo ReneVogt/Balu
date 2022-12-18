@@ -37,7 +37,7 @@ abstract class BoundTreeVisitor
     protected virtual BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement) => blockStatement.Accept(this);
     protected virtual BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement) => expressionStatement.Accept(this);
     protected virtual BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement) => variableDeclarationStatement.Accept(this);
-    protected virtual BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet) => ifStatemnet.Accept(this);
+    protected virtual BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement) => ifStatement.Accept(this);
     protected virtual BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement) => whileStatement.Accept(this);
     protected virtual BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement) => doWhileStatement.Accept(this);
     protected virtual BoundNode VisitBoundForStatement(BoundForStatement forStatement) => forStatement.Accept(this);

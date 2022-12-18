@@ -15,11 +15,11 @@ sealed class Lowerer : BoundTreeVisitor
 
     BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
-    protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatemnet)
+    protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
     {
         BoundStatement result;
 
-        if (ifStatemnet.ElseStatement is null)
+        if (ifStatement.ElseStatement is null)
         {
             /*
              *   if <condition>         GotoIfFalse <condition> <end>
@@ -27,8 +27,8 @@ sealed class Lowerer : BoundTreeVisitor
              *                          end:
              */
             var endLabel = new BoundLabelStatement(GenerateNextLabel());
-            var gotoStatement = new BoundConditionalGotoStatement(endLabel.Label, ifStatemnet.Condition, false);
-            result = new BoundBlockStatement(ImmutableArray.Create(gotoStatement, ifStatemnet.ThenStatement, endLabel));
+            var gotoStatement = new BoundConditionalGotoStatement(endLabel.Label, ifStatement.Condition, false);
+            result = new BoundBlockStatement(ImmutableArray.Create(gotoStatement, ifStatement.ThenStatement, endLabel));
         }
         else
         {
@@ -43,14 +43,14 @@ sealed class Lowerer : BoundTreeVisitor
 
             var elseLabel = new BoundLabelStatement(GenerateNextLabel());
             var endLabel = new BoundLabelStatement(GenerateNextLabel());
-            var gotoElse = new BoundConditionalGotoStatement(elseLabel.Label, ifStatemnet.Condition, false);
+            var gotoElse = new BoundConditionalGotoStatement(elseLabel.Label, ifStatement.Condition, false);
             var gotoEnd = new BoundGotoStatement(endLabel.Label);
             var builder = ImmutableArray.CreateBuilder<BoundStatement>(6);
             builder.Add(gotoElse);
-            builder.Add(ifStatemnet.ThenStatement);
+            builder.Add(ifStatement.ThenStatement);
             builder.Add(gotoEnd);
             builder.Add(elseLabel);
-            builder.Add(ifStatemnet.ElseStatement);
+            builder.Add(ifStatement.ElseStatement);
             builder.Add(endLabel);
             result = new BoundBlockStatement(builder.ToImmutable());
         }
