@@ -67,8 +67,8 @@ sealed class Lowerer : BoundTreeVisitor
          *                         end:
          */
 
-        var checkLabel = new BoundLabelStatement(GenerateNextLabel());
-        var endLabel = new BoundLabelStatement(GenerateNextLabel());
+        var checkLabel = new BoundLabelStatement(whileStatement.ContinueLabel);
+        var endLabel = new BoundLabelStatement(whileStatement.BreakLabel);
         var gotoEnd = new BoundConditionalGotoStatement(endLabel.Label, whileStatement.Condition, false);
         var gotoCheck = new BoundGotoStatement(checkLabel.Label);
         var builder = ImmutableArray.CreateBuilder<BoundStatement>(5);
@@ -85,13 +85,23 @@ sealed class Lowerer : BoundTreeVisitor
         /*
          * do                      start:
          *   <body>                <body>
+         *                         continue:
          * while <condition>       <condition>
          *                         GotoTrue <start>
+         *                         break:
          */
 
         var startLabel = new BoundLabelStatement(GenerateNextLabel());
+        var continueLabel = new BoundLabelStatement(doWhileStatement.ContinueLabel);
         var gotoStart = new BoundConditionalGotoStatement(startLabel.Label, doWhileStatement.Condition);
-        var result = new BoundBlockStatement(ImmutableArray.Create(startLabel, doWhileStatement.Body, gotoStart));
+        var breakLabel = new BoundLabelStatement(doWhileStatement.BreakLabel);
+        var builder = ImmutableArray.CreateBuilder<BoundStatement>(5);
+        builder.Add(startLabel);
+        builder.Add(doWhileStatement.Body);
+        builder.Add(continueLabel);
+        builder.Add(gotoStart);
+        builder.Add(breakLabel);
+        var result = new BoundBlockStatement(builder.ToImmutable());
         return Visit(result);
     }
     protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
@@ -108,6 +118,7 @@ sealed class Lowerer : BoundTreeVisitor
          *     while <var> <= <tmp>
          *     {
          *       <body>
+         *       continue:
          *       <var> = <var> + 1
          *     }
          *   }
@@ -119,6 +130,7 @@ sealed class Lowerer : BoundTreeVisitor
         var upperVariableSymbol = CreateVariable("upperBound", false, TypeSymbol.Integer);
         var upperVariableDeclaration = new BoundVariableDeclarationStatement(upperVariableSymbol, forStatement.UpperBound);
 
+        var continueLabel = new BoundLabelStatement(forStatement.ContinueLabel);
         var increment = new BoundExpressionStatement(
             new BoundAssignmentExpression(
                 forStatement.Variable,
@@ -131,8 +143,8 @@ sealed class Lowerer : BoundTreeVisitor
             loopVariable,
             BoundBinaryOperator.LessOrEquals,
             new BoundVariableExpression(upperVariableSymbol));
-        var whileBody = new BoundBlockStatement(ImmutableArray.Create(forStatement.Body, increment));
-        var whileStatement = new BoundWhileStatement(whileCondition, whileBody);
+        var whileBody = new BoundBlockStatement(ImmutableArray.Create(forStatement.Body, continueLabel, increment));
+        var whileStatement = new BoundWhileStatement(whileCondition, whileBody, forStatement.BreakLabel, new ("continue_unused"));
 
         var rewritten = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(loopVariableDeclaration, upperVariableDeclaration, whileStatement));
         return Visit(rewritten);

@@ -11,6 +11,7 @@ sealed class Binder : SyntaxVisitor
 {
     readonly DiagnosticBag diagnostics = new();
     readonly FunctionSymbol? containingFunction;
+    readonly Stack<(BoundLabel breakLabel, BoundLabel continueLabel)> loopStack = new ();
 
     BoundScope scope;
     BoundNode? boundNode;
@@ -256,17 +257,15 @@ sealed class Binder : SyntaxVisitor
                 diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundExpression)boundNode!).Type, TypeSymbol.Boolean);
         }
 
-        Visit(node.Body);
-        var statement = (BoundStatement)boundNode!;
+        var statement = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
 
-        boundNode = new BoundWhileStatement(condition, statement);
+        boundNode = new BoundWhileStatement(condition, statement, breakLabel, continueLabel);
 
         return node;
     }
     protected override SyntaxNode VisitDoWhileStatement(DoWhileStatementSyntax node)
     {
-        Visit(node.Body);
-        var statement = (BoundStatement)boundNode!;
+        var statement = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
         if (!IsError)
@@ -276,7 +275,7 @@ sealed class Binder : SyntaxVisitor
                 diagnostics.ReportCannotConvert(node.Condition.Span, ((BoundExpression)boundNode!).Type, TypeSymbol.Boolean);
         }
 
-        boundNode = new BoundDoWhileStatement(statement, condition);
+        boundNode = new BoundDoWhileStatement(statement, condition, breakLabel, continueLabel);
 
         return node;
     }
@@ -301,15 +300,35 @@ sealed class Binder : SyntaxVisitor
 
         scope = new (scope);
         var variable = BindVariable(node.IdentifierToken, true, TypeSymbol.Integer);
-        Visit(node.Body);
-        var body = (BoundStatement)boundNode!;
-        boundNode = new BoundForStatement(variable, lowerBound, upperBound, body);
+        var body = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
+        boundNode = new BoundForStatement(variable, lowerBound, upperBound, body, breakLabel, continueLabel);
 
         scope = scope.Parent!;
 
         return node;
     }
+    protected override SyntaxNode VisitContinueStatement(ContinueStatementSyntax node)
+    {
+        if (!loopStack.TryPeek(out var frame))
+        {
+            diagnostics.ReportInvalidBreakOrContinue(node.ContinueKeyword);
+            boundNode = BindErrorStatement();
+        }
 
+        boundNode = new BoundGotoStatement(frame.continueLabel);
+        return node;
+    }
+    protected override SyntaxNode VisitBreakStatement(BreakStatementSyntax node)
+    {
+        if (!loopStack.TryPeek(out var frame))
+        {
+            diagnostics.ReportInvalidBreakOrContinue(node.BreakKeyword);
+            boundNode = BindErrorStatement();
+        }
+
+        boundNode = new BoundGotoStatement(frame.breakLabel);
+        return node;
+    }
     VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type)
     {
         var name = identifier.IsMissing ? "?" : identifier.Text;
@@ -327,6 +346,15 @@ sealed class Binder : SyntaxVisitor
         if (type is null)
             diagnostics.ReportUndefinedType(syntax.Identifier);
         return type;
+    }
+    BoundStatement BindLoopStatement(StatementSyntax statement, out BoundLabel breakLabel, out BoundLabel continueLabel)
+    {
+        breakLabel = new ("break");
+        continueLabel = new ("continue");
+        loopStack.Push((breakLabel, continueLabel));
+        Visit(statement);
+        loopStack.Pop();
+        return (BoundStatement)boundNode!;
     }
 
     static TypeSymbol? LookupType(string name) => name == TypeSymbol.Integer.Name
@@ -350,6 +378,7 @@ sealed class Binder : SyntaxVisitor
             return expression;
         return new BoundConversionExpression(targetType, expression);
     }
+    static BoundStatement BindErrorStatement() => new BoundExpressionStatement(new BoundErrorExpression());
 
     void BindFunctionDeclarations(IEnumerable<FunctionDeclarationSyntax> declarations)
     {

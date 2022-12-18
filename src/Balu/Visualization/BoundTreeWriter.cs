@@ -58,7 +58,6 @@ sealed class BoundTreeWriter : BoundTreeVisitor
             Visit(callExpression.Arguments[i]);
         }
         writer.WritePunctuation(")");
-        writer.WriteLine();
         return callExpression;
     }
 
@@ -127,7 +126,6 @@ sealed class BoundTreeWriter : BoundTreeVisitor
             writer.WriteKeyword("else");
             writer.WriteLine();
             WriteNestedStatement(ifStatement.ElseStatement);
-            writer.WriteLine();
         }
         return ifStatement;
     }
@@ -195,10 +193,23 @@ sealed class BoundTreeWriter : BoundTreeVisitor
 
     void WriteNestedStatement(BoundStatement statement)
     {
-        bool block = statement is BoundBlockStatement;
-        if (!block) writer.Indent++;
-        statement.Accept(this);
-        if (!block) writer.Indent--;
+        if (statement is BoundBlockStatement block)
+        {
+            writer.WritePunctuation("{");
+            writer.WriteLine();
+            writer.Indent++;
+            foreach (var child in block.Statements)
+            {
+                Visit(child);
+                writer.WriteLine();
+            }
+            writer.Indent--;
+            writer.WritePunctuation("}");
+            return;
+        }
+        writer.Indent++;
+        Visit(statement);
+        writer.Indent--;
     }
     void WriteNestedExpression(BoundExpression expression, int parentPrecedence)
     {

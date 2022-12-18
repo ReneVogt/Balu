@@ -3,7 +3,7 @@ using Balu.Symbols;
 
 namespace Balu.Binding;
 
-sealed class BoundForStatement : BoundStatement
+sealed class BoundForStatement : BoundLoopStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.ForStatement;
     public override IEnumerable<BoundNode> Children
@@ -21,7 +21,7 @@ sealed class BoundForStatement : BoundStatement
     public BoundExpression UpperBound { get; }
     public BoundStatement Body { get; }
 
-    public BoundForStatement(VariableSymbol variable, BoundExpression lowerBound, BoundExpression upperBound, BoundStatement body)
+    public BoundForStatement(VariableSymbol variable, BoundExpression lowerBound, BoundExpression upperBound, BoundStatement body, BoundLabel breakLabel, BoundLabel continueLabel) : base(breakLabel, continueLabel)
     {
         Variable = variable;
         LowerBound = lowerBound; 
@@ -36,7 +36,7 @@ sealed class BoundForStatement : BoundStatement
         var body = (BoundStatement)visitor.Visit(Body);
         return lowerBound == LowerBound && upperBound == UpperBound && body == Body
                    ? this
-                   : new (Variable, lowerBound, upperBound, body);
+                   : new (Variable, lowerBound, upperBound, body, BreakLabel, ContinueLabel);
     }
 
     public override string ToString() => $"{Kind} \"{Variable.Name}\"";

@@ -128,8 +128,8 @@ sealed class Parser
         SyntaxKind.WhileKeyword => ParseWhileStatement(),
         SyntaxKind.DoKeyword => ParseDoWhileStatement(),
         SyntaxKind.ForKeyword => ParseForStatement(),
-        SyntaxKind.ContinueStatement => ParseContinueStatement(),
-        SyntaxKind.BreakStatement => ParseBreakStatement(),
+        SyntaxKind.ContinueKeyword => ParseContinueStatement(),
+        SyntaxKind.BreakKeyword=> ParseBreakStatement(),
         _ => ParseExpressionStatement()
     };
     BlockStatementSyntax ParseBlockStatement()

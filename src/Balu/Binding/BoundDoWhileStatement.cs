@@ -2,7 +2,7 @@
 
 namespace Balu.Binding;
 
-sealed class BoundDoWhileStatement : BoundStatement
+sealed class BoundDoWhileStatement : BoundLoopStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.DoWhileStatement;
     public override IEnumerable<BoundNode> Children
@@ -17,7 +17,11 @@ sealed class BoundDoWhileStatement : BoundStatement
     public BoundStatement Body { get; }
     public BoundExpression Condition { get; }
 
-    public BoundDoWhileStatement(BoundStatement body, BoundExpression condition) => (Body, Condition) = (body, condition);
+    public BoundDoWhileStatement(BoundStatement body, BoundExpression condition, BoundLabel breakLabel, BoundLabel continueLabel) : base(breakLabel, continueLabel)
+    {
+        Body = body;
+        Condition = condition;
+    }
 
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
@@ -25,6 +29,6 @@ sealed class BoundDoWhileStatement : BoundStatement
         var condition = (BoundExpression)visitor.Visit(Condition);
         return body == Body && condition == Condition
                    ? this
-                   : new (body, condition);
+                   : new (body, condition, BreakLabel, ContinueLabel);
     }
 }

@@ -30,6 +30,7 @@ public sealed class Diagnostic
     public const string BND0013 = nameof(BND0013);
     public const string BND0014 = nameof(BND0014);
     public const string BND0015 = nameof(BND0015);
+    public const string BND0016 = nameof(BND0016);
 
     public const string LNG0001 = nameof(LNG0001);
 

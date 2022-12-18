@@ -56,7 +56,7 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportUndefinedFunction(SyntaxToken identifier) => Add(new(Diagnostic.BND0013, identifier.Span, $"Undefined function '{identifier.Text}'."));
     public void ReportParameterAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0014, identifier.Span, $"Parameter '{identifier.Text}' is already declared."));
     public void ReportFunctionAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0015, identifier.Span, $"Function '{identifier.Text}' is already declared."));
-
+    public void ReportInvalidBreakOrContinue(SyntaxToken keyword) => Add(new(Diagnostic.BND0016, keyword.Span, $"Invalid '{keyword.Text}' outside any loop."));
 
     public void ReportLanguageSupportIssue(TextSpan span, string message) => Add(new(Diagnostic.LNG0001, span, message));
 }
