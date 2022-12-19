@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading;
 
 namespace Balu.Syntax;
@@ -11,27 +12,48 @@ namespace Balu.Syntax;
 /// </summary>
 public static class SyntaxFacts
 {
-    static ImmutableDictionary<char, char>? escapedStringCharacters;
-    public static ImmutableDictionary<char, char> EscapedStringCharacters
+    static readonly (string escaped, string unescaped)[] escapingCharacters = { ("r", "\r"), ("n", "\n"), ("t", "\t"), ("v", "\v") };
+    static ImmutableDictionary<string, string>? escapedToUnescaped;
+    static ImmutableDictionary<string, string>? unescapedToEscaped;
+    public static ImmutableDictionary<string, string> EscapedCharactersToUnescaped
     {
         get
         {
-            if (escapedStringCharacters is not null) return escapedStringCharacters;
-            var builder = ImmutableDictionary.CreateBuilder<char, char>();
-            builder.Add('r', '\r');
-            builder.Add('n', '\n');
-            builder.Add('t', '\t');
-            builder.Add('v', '\v');
-            Interlocked.CompareExchange(ref escapedStringCharacters, builder.ToImmutable(), null);
-            return escapedStringCharacters;
+            if (escapedToUnescaped is not null) return escapedToUnescaped;
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            builder.AddRange(escapingCharacters.Select(pair => new KeyValuePair<string, string>(pair.escaped, pair.unescaped)));
+            Interlocked.CompareExchange(ref escapedToUnescaped, builder.ToImmutable(), null);
+            return escapedToUnescaped;
         }
     }
-    
+    public static ImmutableDictionary<string, string> UnescapedCharactersToEscaped
+    {
+        get
+        {
+            if (unescapedToEscaped is not null) return unescapedToEscaped;
+            var builder = ImmutableDictionary.CreateBuilder<string, string>();
+            builder.AddRange(escapingCharacters.Select(pair => new KeyValuePair<string, string>(pair.unescaped, $"\\{pair.escaped}")));
+            Interlocked.CompareExchange(ref unescapedToEscaped, builder.ToImmutable(), null);
+            return unescapedToEscaped;
+        }
+    }
+    static Regex? escapingRegex;
+    static Regex EscapingRegex
+    {
+        get
+        {
+            if (escapingRegex is not null) return escapingRegex;
+            var regex = new Regex(string.Join("|", escapingCharacters.Select(pair => pair.unescaped)), RegexOptions.Compiled);
+            Interlocked.CompareExchange(ref escapingRegex, regex, null);
+            return escapingRegex;
+        }
+    }
+
     /// <summary>
     /// Determines the precedence of an unary operator.
     /// </summary>
     /// <param name="kind">The <see cref="SyntaxKind"/> of the unary operator.</param>
-    /// <returns>The precedence of the given operator or 0 if it's not a unary operator.</returns>
+    /// <returns>The precedence of the given operator or 0 if it"s not a unary operator.</returns>
     public static int UnaryOperatorPrecedence(this SyntaxKind kind) => kind switch
     {
         SyntaxKind.PlusToken or
@@ -155,13 +177,8 @@ public static class SyntaxFacts
     /// Escapes special characters in the input string.
     /// </summary>
     /// <param name="unescaped">The input string.</param>
-    /// <returns>A string with escaped characters according to <see cref="EscapedStringCharacters"/>.</returns>
+    /// <returns>A string with escaped characters.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="unescaped"/> is <c>null</c>.</exception>
-    public static string EscapeString(this string unescaped)
-    {
-        var result = unescaped ?? throw new ArgumentNullException(nameof(unescaped));
-        foreach (var kvp in EscapedStringCharacters)
-            result = result.Replace(kvp.Value.ToString(), $"\\{kvp.Key}", StringComparison.InvariantCulture);
-        return result;
-    }
+    public static string EscapeString(this string unescaped) =>
+        EscapingRegex.Replace(unescaped, match => UnescapedCharactersToEscaped[match.Value]);
 }

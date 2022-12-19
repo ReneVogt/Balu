@@ -307,10 +307,10 @@ public class EvaluatorTests
               function inner(x:int)
               {
                 var b = x
-                sum = sum + b
+                sum = 100*sum + b
               }
 
-              inner(42) inner(17) sum".AssertEvaluation(value: 17+42);
+              inner(42) inner(17) sum".AssertEvaluation(value: 4217);
     }
     [Fact]
     public void Evaluate_FunctionCall_LocalVariablesNested()
@@ -321,16 +321,16 @@ public class EvaluatorTests
               function inner(x:int)
               {
                 var b = x
-                sum = sum + b
+                sum = 100*sum + b
               }
               function outer(x: int)
               {
                  var b = x
                  inner(x)
-                 sumx = sumx + 2*b
+                 sumx = 100*sumx + 2*b
               }
 
-              outer(42) outer(17) sum + sumx".AssertEvaluation(value: 17 + 42 + 2 * (17+42));
+              outer(42) outer(17) 10000*sum + sumx".AssertEvaluation(value: 42178434);
     }
     [Fact]
     public void Evaluate_FunctionCall_Recursion()
@@ -362,10 +362,49 @@ public class EvaluatorTests
               function outer(x:int) { 
                 var b = x
                 inner(5)
-                sumb = sum + b                              
+                sumb = 100*sum + b                              
               }
 
-              outer(42) sumb".AssertEvaluation(value: 15+42);
+              outer(42) sumb".AssertEvaluation(value: 1542);
+    }
+
+    [Fact]
+    public void Evaluate_Break_BreaksCorrectLoop()
+    {
+        @"
+            {
+                var result = 0
+                for i = 1 to 10
+                {
+                    if i > 5 break
+                    for j = 11 to 15
+                    {
+                       if (j > 13) break
+                       result = result + i + j
+                    }
+                 }
+                result
+            }".AssertEvaluation(value: 225);
+
+    }
+    [Fact]
+    public void Evaluate_Continue_ContinuesCorrectLoop()
+    {
+        @"
+            {
+                var result = 0
+                for i = 1 to 10
+                {
+                    if i/2*2 == i continue
+                    for j = 11 to 15
+                    {
+                       if j == 13 || j == 14 continue
+                       result = result + i + j
+                    }
+                 }
+                result
+            }".AssertEvaluation(value: 265);
+
     }
 
     [Theory]

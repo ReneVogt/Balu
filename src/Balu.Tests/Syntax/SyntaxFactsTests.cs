@@ -19,6 +19,11 @@ public class SyntaxFactsTests
         Assert.Equal(text, token.Text);
     }
 
+    [Theory]
+    [InlineData("\r\n\v\t", "\\r\\n\\v\\t")]
+    [InlineData("a\rb\nc\vd\te", "a\\rb\\nc\\vd\\te")]
+    public void SyntaxFacts_EscapeString_EscapesCorrectly(string input, string expected) => Assert.Equal(expected, input.EscapeString());
+
     public static IEnumerable<object[]> GetSyntaxKinds() =>
         Enum.GetValues(typeof(SyntaxKind)).Cast<object>().Select(enumValue => new[] { enumValue });
 }

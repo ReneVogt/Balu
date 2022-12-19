@@ -170,7 +170,7 @@ sealed class Lexer
                 case 'n':
                 case 't':
                 case 'v':
-                    valueBuilder.Append(escaped ? SyntaxFacts.EscapedStringCharacters[Current] : Current);
+                    valueBuilder.Append(escaped ? SyntaxFacts.EscapedCharactersToUnescaped[Current.ToString()] : Current);
                     escaped = false;
                     break;
                 default:

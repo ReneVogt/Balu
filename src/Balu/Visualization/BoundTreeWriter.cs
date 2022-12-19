@@ -5,8 +5,6 @@ using Balu.Binding;
 using Balu.Symbols;
 using Balu.Syntax;
 
-#pragma warning disable CA1001 // The BoundTreeVisitor does not hold the dispose ownership of the textwriter.
-
 namespace Balu.Visualization;
 
 sealed class BoundTreeWriter : BoundTreeVisitor
