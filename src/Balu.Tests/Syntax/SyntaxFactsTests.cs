@@ -20,8 +20,8 @@ public class SyntaxFactsTests
     }
 
     [Theory]
-    [InlineData("\r\n\v\t", "\\r\\n\\v\\t")]
-    [InlineData("a\rb\nc\vd\te", "a\\rb\\nc\\vd\\te")]
+    [InlineData("\r\n\v\\\t\"", "\\r\\n\\v\\\\\\t\\\"")]
+    [InlineData("a\rb\nc\vd\te\\f\"g", "a\\rb\\nc\\vd\\te\\\\f\\\"g")]
     public void SyntaxFacts_EscapeString_EscapesCorrectly(string input, string expected) => Assert.Equal(expected, input.EscapeString());
 
     public static IEnumerable<object[]> GetSyntaxKinds() =>

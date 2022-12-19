@@ -72,6 +72,17 @@ public class LexerTests
         Assert.Equal(input, token.Text);
     }
     [Fact]
+    public void Lexer_String_UnescapesAllRequired()
+    {
+        var escaped = SyntaxFacts.EscapedToUnescapedCharacter.Keys.ToArray();
+        var code = "\"\\" + string.Join("\\", escaped) + "\"";
+        var expected = string.Join(string.Empty, escaped.Select(esc => SyntaxFacts.EscapedToUnescapedCharacter[esc]));
+        var tokens = SyntaxTree.ParseTokens(code).ToArray();
+        var token = Assert.Single(tokens);
+        Assert.Equal(expected, token.Value);
+        Assert.Equal(code, token.Text);
+    }
+    [Fact]
     public void Lexer_String_Reports_InvalidEscapeSequence()
     {
         "\"test\\[u]yeah\"".AssertLexerDiagnostics("Invalid escape sequence 'u'.");

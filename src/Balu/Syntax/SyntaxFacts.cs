@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
 
 namespace Balu.Syntax;
 
@@ -12,41 +11,22 @@ namespace Balu.Syntax;
 /// </summary>
 public static class SyntaxFacts
 {
-    static readonly (string escaped, string unescaped)[] escapingCharacters = { ("r", "\r"), ("n", "\n"), ("t", "\t"), ("v", "\v") };
-    static ImmutableDictionary<string, string>? escapedToUnescaped;
-    static ImmutableDictionary<string, string>? unescapedToEscaped;
-    public static ImmutableDictionary<string, string> EscapedCharactersToUnescaped
+    static readonly (string escaped, string unescaped)[] escapingCharacters = { ("r", "\r"), ("n", "\n"), ("t", "\t"), ("v", "\v"), ("\\", "\\"), ("\"", "\"") };
+    static readonly Regex escapingRegex;
+    public static ImmutableDictionary<string, string> EscapedToUnescapedCharacter { get; }
+    public static ImmutableDictionary<string, string> UnescapedToEscapedCharacter { get; }
+    static SyntaxFacts()
     {
-        get
-        {
-            if (escapedToUnescaped is not null) return escapedToUnescaped;
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder.AddRange(escapingCharacters.Select(pair => new KeyValuePair<string, string>(pair.escaped, pair.unescaped)));
-            Interlocked.CompareExchange(ref escapedToUnescaped, builder.ToImmutable(), null);
-            return escapedToUnescaped;
-        }
-    }
-    public static ImmutableDictionary<string, string> UnescapedCharactersToEscaped
-    {
-        get
-        {
-            if (unescapedToEscaped is not null) return unescapedToEscaped;
-            var builder = ImmutableDictionary.CreateBuilder<string, string>();
-            builder.AddRange(escapingCharacters.Select(pair => new KeyValuePair<string, string>(pair.unescaped, $"\\{pair.escaped}")));
-            Interlocked.CompareExchange(ref unescapedToEscaped, builder.ToImmutable(), null);
-            return unescapedToEscaped;
-        }
-    }
-    static Regex? escapingRegex;
-    static Regex EscapingRegex
-    {
-        get
-        {
-            if (escapingRegex is not null) return escapingRegex;
-            var regex = new Regex(string.Join("|", escapingCharacters.Select(pair => pair.unescaped)), RegexOptions.Compiled);
-            Interlocked.CompareExchange(ref escapingRegex, regex, null);
-            return escapingRegex;
-        }
+        var builder = ImmutableDictionary.CreateBuilder<string, string>();
+        builder.AddRange(escapingCharacters.Select(pair => new KeyValuePair<string, string>(pair.escaped, pair.unescaped)));
+        EscapedToUnescapedCharacter = builder.ToImmutable();
+
+        builder.Clear();
+        builder.AddRange(escapingCharacters.Select(pair => new KeyValuePair<string, string>(pair.unescaped, $"\\{pair.escaped}")));
+        UnescapedToEscapedCharacter = builder.ToImmutable();
+
+
+        escapingRegex = new (string.Join("|", escapingCharacters.Select(pair => Regex.Escape(pair.unescaped))), RegexOptions.Compiled);
     }
 
     /// <summary>
@@ -180,5 +160,5 @@ public static class SyntaxFacts
     /// <returns>A string with escaped characters.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="unescaped"/> is <c>null</c>.</exception>
     public static string EscapeString(this string unescaped) =>
-        EscapingRegex.Replace(unescaped, match => UnescapedCharactersToEscaped[match.Value]);
+        escapingRegex.Replace(unescaped, match => UnescapedToEscapedCharacter[match.Value]);
 }

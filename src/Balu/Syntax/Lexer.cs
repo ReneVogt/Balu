@@ -141,8 +141,7 @@ sealed class Lexer
     {
         position++; 
         var valueBuilder = new StringBuilder();
-        bool escaped = false;
-        while (Current != '"' || escaped)
+        while (Current != '"')
         {
             switch (Current)
             {
@@ -153,33 +152,17 @@ sealed class Lexer
                     text = input.ToString(start, position - start);
                     kind = SyntaxKind.StringToken;
                     return;
-                case '"': 
-                    valueBuilder.Append('"');
-                    escaped = false;
-                    break;
                 case '\\':
-                    if (escaped)
+                    char next = Peek(1);
+                    if (SyntaxFacts.EscapedToUnescapedCharacter.TryGetValue(next.ToString(), out var unescaped))
                     {
-                        valueBuilder.Append('\\');
-                        escaped = false;
+                        valueBuilder.Append(unescaped);
+                        Next();
                     }
                     else
-                        escaped = true; 
-                    break;
-                case 'r': 
-                case 'n':
-                case 't':
-                case 'v':
-                    valueBuilder.Append(escaped ? SyntaxFacts.EscapedCharactersToUnescaped[Current.ToString()] : Current);
-                    escaped = false;
+                        diagnostics.ReportInvalidEscapeSequence(position+1, 1, next.ToString());
                     break;
                 default:
-                    if (escaped)
-                    {
-                        diagnostics.ReportInvalidEscapeSequence(position, 1, Current.ToString());
-                        valueBuilder.Append('\\');
-                        escaped = false;
-                    }
                     valueBuilder.Append(Current);
                     break;
             }
