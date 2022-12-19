@@ -11,9 +11,10 @@ namespace Balu.Visualization;
 
 sealed class BoundTreeWriter : BoundTreeVisitor
 {
+    const string TABSTRING = "  ";
     readonly IndentedTextWriter writer;
 
-    BoundTreeWriter(TextWriter writer) => this.writer = new (writer, "  ");
+    BoundTreeWriter(IndentedTextWriter writer) => this.writer = writer;
 
     protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
@@ -240,11 +241,35 @@ sealed class BoundTreeWriter : BoundTreeVisitor
             writer.WritePunctuation(")");
     }
 
-    /// <summary>
-    /// Writes a text-based tree representation of <paramref name="boundNode"/> to <paramref name="textWriter"/>.
-    /// </summary>
-    /// <param name="boundNode">The <see cref="ExpressionSyntax"/> to represent.</param>
-    /// <param name="textWriter">The <see cref="TextWriter"/> to write the output to.</param>
-    public static void Print(BoundNode boundNode, TextWriter textWriter) => new BoundTreeWriter(textWriter).Visit(boundNode);
+    static void WriteFunction(IndentedTextWriter writer, FunctionSymbol function, BoundBlockStatement body)
+    {
+        writer.WriteKeyword("function ");
+        writer.WriteIdentifier(function.Name);
+        writer.WritePunctuation("(");
+        for (int i = 0; i < function.Parameters.Length; i++)
+        {
+            if (i > 0) writer.WritePunctuation(", ");
+            writer.WriteIdentifier(function.Parameters[i].Name);
+            writer.WritePunctuation(" : ");
+            writer.WriteIdentifier(function.Parameters[i].Type.Name);
+        }
+        writer.WritePunctuation(")");
+        writer.WriteLine();
+        Print(body, writer);
+        writer.WriteLine();
+    }
 
+    public static void Print(BoundNode boundNode, TextWriter textWriter)
+    {
+        var indentedTextWriter = textWriter as IndentedTextWriter ?? new IndentedTextWriter(textWriter, TABSTRING);
+        new BoundTreeWriter(indentedTextWriter).Visit(boundNode);
+    }
+    public static void Print(BoundProgram boundProgram, TextWriter textWriter)
+    {
+        var indentedTextWriter = textWriter as IndentedTextWriter ?? new IndentedTextWriter(textWriter, TABSTRING);
+        foreach (var function in boundProgram.Functions)
+            WriteFunction(indentedTextWriter, function.Key, function.Value);
+        Print(boundProgram.GlobalScope.Statement, indentedTextWriter);
+        indentedTextWriter.WriteLine();
+    }
 }

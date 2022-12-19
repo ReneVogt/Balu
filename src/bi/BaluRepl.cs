@@ -10,7 +10,7 @@ sealed class BaluRepl : Repl
 {
     readonly VariableDictionary globals = new();
 
-    bool showSyntax, showBound, showLowered, showVars;
+    bool showSyntax, showBound, showLowered, showVars, showProgram;
     Compilation? previous;
 
     protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine, StringComparison.InvariantCultureIgnoreCase) || !SyntaxTree.Parse(text).IsLastTokenMissing;
@@ -30,6 +30,10 @@ sealed class BaluRepl : Repl
             case "#showLowered":
                 showLowered = !showLowered;
                 Console.WriteLine(showLowered ? "Showing lowered tree." : "Not showing lowered tree.");
+                break;
+            case "#showProgram":
+                showProgram = !showProgram;
+                Console.WriteLine(showProgram ? "Showing program tree." : "Not showing program tree.");
                 break;
             case "#showVars":
                 showVars = !showVars;
@@ -77,6 +81,14 @@ sealed class BaluRepl : Repl
             Console.WriteLine("Lowered:");
             Console.ResetColor();
             compilation.WriteLoweredTree(Console.Out);
+        }
+
+        if (showProgram)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine("Program:");
+            Console.ResetColor();
+            compilation.WriteProgramTree(Console.Out);
         }
 
         var result = compilation.Evaluate(globals);
