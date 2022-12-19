@@ -311,6 +311,8 @@ sealed class Parser
             }
             else parseNextArgument = false;
         }
+        if (argumentsBuilder.Count % 2 == 0 && argumentsBuilder.Count > 0)
+            diagnostics.ReportUnexpectedToken((SyntaxToken)argumentsBuilder.Last(), SyntaxKind.ClosedParenthesisToken);
         return new(argumentsBuilder.ToImmutable());
     }
     NameExpressionSyntax ParseNameExpression() => new(MatchToken(SyntaxKind.IdentifierToken));

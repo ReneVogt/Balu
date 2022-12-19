@@ -1,4 +1,5 @@
-﻿using Balu.Symbols;
+﻿using System;
+using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Text;
 using System.Collections.Generic;
@@ -31,14 +32,11 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0005, identifierToken.Span, $"Variable '{identifierToken.Text}' is readonly and cannot be assigned to."));
     public void ReportWrongNumberOfArguments(CallExpressionSyntax syntax, FunctionSymbol function)
     {
-        var span = syntax.Span;
-        if (syntax.Arguments.ElementsWithSeparators.Any())
-        {
-            var start = syntax.Arguments.ElementsWithSeparators.First().Span.Start;
-            var last = syntax.Arguments.ElementsWithSeparators.Last();
-            var end = last.Span.Start + last.Span.Length;
-            span = new(start, end - start);
-        }
+        var span = syntax.Arguments.Count < function.Parameters.Length
+                   ? syntax.ClosedParenthesis.Span
+                   : new(
+                       syntax.Arguments.ElementsWithSeparators[Math.Max(0, function.Parameters.Length*2-1)].Span.Start,
+                       syntax.Arguments.ElementsWithSeparators.Skip(function.Parameters.Length*2-1).Aggregate(0, (acc, token) => acc + token.Span.Length));
         Add(
             new(Diagnostic.BND0006,
                 span,

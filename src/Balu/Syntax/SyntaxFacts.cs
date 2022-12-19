@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
 
@@ -15,6 +16,8 @@ public static class SyntaxFacts
     static readonly Regex escapingRegex;
     public static ImmutableDictionary<string, string> EscapedToUnescapedCharacter { get; }
     public static ImmutableDictionary<string, string> UnescapedToEscapedCharacter { get; }
+
+    [SuppressMessage("Performance", "CA1810:Statische Felder für Referenztyp inline initialisieren", Justification = "<Ausstehend>")]
     static SyntaxFacts()
     {
         var builder = ImmutableDictionary.CreateBuilder<string, string>();
