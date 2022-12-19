@@ -44,7 +44,7 @@ public sealed class SyntaxToken : SyntaxNode
     internal override SyntaxNode Accept(SyntaxVisitor visitor) => this;
 
     /// <inheritdoc />
-    public override string ToString() => $"{Kind}{Span} \"{Text}\" ({Value})";
+    public override string ToString() => $"{Kind}{Span} \"{Text}\" ({(Value is string v ? v.EscapeString() : Value?.ToString())})";
 
     /// <summary>
     /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.EndOfFileToken"/>.

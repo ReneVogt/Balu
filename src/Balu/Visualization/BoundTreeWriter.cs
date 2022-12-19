@@ -148,14 +148,7 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         else if (literalExpression.Type == TypeSymbol.Integer)
             writer.WriteNumber(value);
         else if (literalExpression.Type == TypeSymbol.String)
-        {
-            string escaped = "\"" + value.Replace("\r", "\\r", StringComparison.InvariantCulture)
-                                         .Replace("\n", "\\n", StringComparison.InvariantCulture)
-                                         .Replace("\v", "\\v", StringComparison.InvariantCulture)
-                                         .Replace("\t", "\\t", StringComparison.InvariantCulture)
-                                         .Replace("\"", "\\\"", StringComparison.InvariantCulture) + "\"";
-            writer.WriteString(escaped);
-        }
+            writer.WriteString($"\"{value.EscapeString()}\"");
         else throw new ArgumentException($"Unsupported literal expression type '{literalExpression.Type}'.");
         return literalExpression;
     }

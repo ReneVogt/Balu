@@ -137,13 +137,6 @@ sealed class Lexer
         };
     }
 
-    readonly Dictionary<char, char> escapedCharacters = new()
-    {
-        ['r'] = '\r',
-        ['n'] = '\n',
-        ['t'] = '\t',
-        ['v'] = '\v'
-    };
     void ReadString()
     {
         position++; 
@@ -177,7 +170,7 @@ sealed class Lexer
                 case 'n':
                 case 't':
                 case 'v':
-                    valueBuilder.Append(escaped ? escapedCharacters[Current] : Current);
+                    valueBuilder.Append(escaped ? SyntaxFacts.EscapedStringCharacters[Current] : Current);
                     escaped = false;
                     break;
                 default:

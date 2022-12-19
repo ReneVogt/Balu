@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 
 namespace Balu.Syntax;
 
@@ -9,6 +11,22 @@ namespace Balu.Syntax;
 /// </summary>
 public static class SyntaxFacts
 {
+    static ImmutableDictionary<char, char>? escapedStringCharacters;
+    public static ImmutableDictionary<char, char> EscapedStringCharacters
+    {
+        get
+        {
+            if (escapedStringCharacters is not null) return escapedStringCharacters;
+            var builder = ImmutableDictionary.CreateBuilder<char, char>();
+            builder.Add('r', '\r');
+            builder.Add('n', '\n');
+            builder.Add('t', '\t');
+            builder.Add('v', '\v');
+            Interlocked.CompareExchange(ref escapedStringCharacters, builder.ToImmutable(), null);
+            return escapedStringCharacters;
+        }
+    }
+    
     /// <summary>
     /// Determines the precedence of an unary operator.
     /// </summary>
@@ -133,5 +151,17 @@ public static class SyntaxFacts
                                                                   where kind.BinaryOperatorPrecedence() > 0
                                                                   select kind;
 
-
+    /// <summary>
+    /// Escapes special characters in the input string.
+    /// </summary>
+    /// <param name="unescaped">The input string.</param>
+    /// <returns>A string with escaped characters according to <see cref="EscapedStringCharacters"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="unescaped"/> is <c>null</c>.</exception>
+    public static string EscapeString(this string unescaped)
+    {
+        var result = unescaped ?? throw new ArgumentNullException(nameof(unescaped));
+        foreach (var kvp in EscapedStringCharacters)
+            result = result.Replace(kvp.Value.ToString(), $"\\{kvp.Key}", StringComparison.InvariantCulture);
+        return result;
+    }
 }
