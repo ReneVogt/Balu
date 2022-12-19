@@ -17,7 +17,9 @@ sealed class BoundTreeWriter : BoundTreeVisitor
     protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
         writer.WriteIdentifier(assignmentExpression.Symbol.Name);
-        writer.WritePunctuation(" = ");
+        writer.WriteSpace();
+        writer.WritePunctuation(SyntaxKind.EqualsToken.GetText());
+        writer.WriteSpace();
         Visit(assignmentExpression.Expression);
         return assignmentExpression;
     }
@@ -27,14 +29,16 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         var op = binaryExpression.Operator.SyntaxKind;
         var precedence = op.BinaryOperatorPrecedence();
         WriteNestedExpression(binaryExpression.Left, precedence);
-        writer.WritePunctuation(" " + op.GetText()! + " ");
+        writer.WriteSpace();
+        writer.WritePunctuation(op.GetText());
+        writer.WriteSpace();
         WriteNestedExpression(binaryExpression.Right, precedence);
         return binaryExpression;
     }
 
     protected override BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement)
     {
-        writer.WritePunctuation("{");
+        writer.WritePunctuation(SyntaxKind.OpenBraceToken.GetText());
         writer.WriteLine();
         writer.Indent++;
         foreach (var statement in blockStatement.Statements)
@@ -43,28 +47,35 @@ sealed class BoundTreeWriter : BoundTreeVisitor
             writer.WriteLine();
         }
         writer.Indent--;
-        writer.WritePunctuation("}");
+        writer.WritePunctuation(SyntaxKind.ClosedBraceToken.GetText());
         return blockStatement;
     }
 
     protected override BoundNode VisitBoundCallExpression(BoundCallExpression callExpression)
     {
         writer.WriteIdentifier(callExpression.Function.Name);
-        writer.WritePunctuation("(");
+        writer.WritePunctuation(SyntaxKind.OpenParenthesisToken.GetText());
         for (int i = 0; i < callExpression.Arguments.Length; i++)
         {
-            if (i > 0) writer.WritePunctuation(", ");
+            if (i > 0)
+            {
+                writer.WritePunctuation(SyntaxKind.CommaToken.GetText());
+                writer.WriteSpace();
+            }
             Visit(callExpression.Arguments[i]);
         }
-        writer.WritePunctuation(")");
+        writer.WritePunctuation(SyntaxKind.ClosedParenthesisToken.GetText());
         return callExpression;
     }
 
     protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
     {
-        writer.WriteKeyword("goto ");
+        writer.WriteKeyword("goto");
+        writer.WriteSpace();
         writer.WriteIdentifier(conditionalGotoStatement.Label.Name);
-        writer.WriteKeyword(conditionalGotoStatement.JumpIfTrue ? " if " : " unless ");
+        writer.WriteSpace();
+        writer.WriteKeyword(conditionalGotoStatement.JumpIfTrue ? "if" : "unless");
+        writer.WriteSpace();
         Visit(conditionalGotoStatement.Condition);
         return conditionalGotoStatement;
     }
@@ -72,17 +83,21 @@ sealed class BoundTreeWriter : BoundTreeVisitor
     protected override BoundNode VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
     {
         writer.WriteIdentifier(conversionExpression.Type.Name);
-        writer.WritePunctuation("(");
+        writer.WritePunctuation(SyntaxKind.OpenParenthesisToken.GetText());
         Visit(conversionExpression.Expression);
-        writer.WritePunctuation(")");
+        writer.WritePunctuation(SyntaxKind.ClosedParenthesisToken.GetText());
         return conversionExpression;
     }
 
     protected override BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
     {
-        writer.WriteKeyword("do ");
+        writer.WriteKeyword(SyntaxKind.DoKeyword.GetText());
         writer.WriteLine();
         WriteNestedStatement(doWhileStatement.Body);
+        if (doWhileStatement.Body.Kind == BoundNodeKind.BlockStatement) writer.WriteSpace();
+        else writer.WriteLine();
+        writer.WriteKeyword(SyntaxKind.WhileKeyword.GetText());
+        writer.WriteSpace();
         Visit(doWhileStatement.Condition);
         return doWhileStatement;
     }
@@ -95,11 +110,16 @@ sealed class BoundTreeWriter : BoundTreeVisitor
 
     protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
     {
-        writer.WriteKeyword("for ");
+        writer.WriteKeyword(SyntaxKind.ForKeyword.GetText());
+        writer.WriteSpace();
         writer.WriteIdentifier(forStatement.Variable.Name);
-        writer.WritePunctuation(" = ");
+        writer.WriteSpace();
+        writer.WritePunctuation(SyntaxKind.EqualsToken.GetText());
+        writer.WriteSpace();
         Visit(forStatement.LowerBound);
-        writer.WriteKeyword(" to ");
+        writer.WriteSpace();
+        writer.WriteKeyword(SyntaxKind.ToKeyword.GetText());
+        writer.WriteSpace();
         Visit(forStatement.UpperBound);
         writer.WriteLine();
         WriteNestedStatement(forStatement.Body);
@@ -108,21 +128,23 @@ sealed class BoundTreeWriter : BoundTreeVisitor
 
     protected override BoundNode VisitBoundGotoStatement(BoundGotoStatement gotoStatement)
     {
-        writer.WriteKeyword("goto ");
+        writer.WriteKeyword("goto");
+        writer.WriteSpace();
         writer.WriteIdentifier(gotoStatement.Label.Name);
         return gotoStatement;
     }
 
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
     {
-        writer.WriteKeyword("if ");
+        writer.WriteKeyword(SyntaxKind.IfKeyword.GetText());
+        writer.WriteSpace();
         Visit(ifStatement.Condition);
         writer.WriteLine();
         WriteNestedStatement(ifStatement.ThenStatement);
         writer.WriteLine();
         if (ifStatement.ElseStatement is not null)
         {
-            writer.WriteKeyword("else");
+            writer.WriteKeyword(SyntaxKind.ElseKeyword.GetText());
             writer.WriteLine();
             WriteNestedStatement(ifStatement.ElseStatement);
         }
@@ -133,7 +155,7 @@ sealed class BoundTreeWriter : BoundTreeVisitor
     {
         bool indent = writer.Indent > 0;
         if (indent) writer.Indent--;
-        writer.WritePunctuation(labelStatement.Label.Name + ":");
+        writer.WritePunctuation(labelStatement.Label.Name + SyntaxKind.ColonToken.GetText());
         if (indent) writer.Indent++;
         return labelStatement;
     }
@@ -161,9 +183,12 @@ sealed class BoundTreeWriter : BoundTreeVisitor
 
     protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
-        writer.WriteKeyword(variableDeclarationStatement.Variable.ReadOnly ? "let " : "var ");
+        writer.WriteKeyword(variableDeclarationStatement.Variable.ReadOnly ? SyntaxKind.LetKeyword.GetText() : SyntaxKind.VarKeyword.GetText()!);
+        writer.WriteSpace();
         writer.WriteIdentifier(variableDeclarationStatement.Variable.Name);
-        writer.WritePunctuation(" = ");
+        writer.WriteSpace();
+        writer.WritePunctuation(SyntaxKind.EqualsToken.GetText());
+        writer.WriteSpace();
         variableDeclarationStatement.Accept(this);
         return variableDeclarationStatement;
     }
@@ -176,7 +201,8 @@ sealed class BoundTreeWriter : BoundTreeVisitor
 
     protected override BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement)
     {
-        writer.WriteKeyword("while ");
+        writer.WriteKeyword(SyntaxKind.WhileKeyword.GetText());
+        writer.WriteSpace();
         Visit(whileStatement.Condition);
         writer.WriteLine();
         WriteNestedStatement(whileStatement.Body);
@@ -187,7 +213,7 @@ sealed class BoundTreeWriter : BoundTreeVisitor
     {
         if (statement is BoundBlockStatement block)
         {
-            writer.WritePunctuation("{");
+            writer.WritePunctuation(SyntaxKind.OpenBraceToken.GetText());
             writer.WriteLine();
             writer.Indent++;
             foreach (var child in block.Statements)
@@ -196,7 +222,7 @@ sealed class BoundTreeWriter : BoundTreeVisitor
                 writer.WriteLine();
             }
             writer.Indent--;
-            writer.WritePunctuation("}");
+            writer.WritePunctuation(SyntaxKind.ClosedBraceToken.GetText());
             return;
         }
         writer.Indent++;
@@ -224,27 +250,34 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         bool parenthesis = parentPrecedence >= currentPrecedence;
 
         if (parenthesis)
-            writer.WritePunctuation("(");
+            writer.WritePunctuation(SyntaxKind.OpenParenthesisToken.GetText());
 
         Visit(expression);
 
         if (parenthesis)
-            writer.WritePunctuation(")");
+            writer.WritePunctuation(SyntaxKind.ClosedParenthesisToken.GetText());
     }
 
     static void WriteFunction(IndentedTextWriter writer, FunctionSymbol function, BoundBlockStatement body)
     {
-        writer.WriteKeyword("function ");
+        writer.WriteKeyword(SyntaxKind.FunctionKeyword.GetText());
+        writer.WriteSpace();
         writer.WriteIdentifier(function.Name);
-        writer.WritePunctuation("(");
+        writer.WritePunctuation(SyntaxKind.OpenParenthesisToken.GetText());
         for (int i = 0; i < function.Parameters.Length; i++)
         {
-            if (i > 0) writer.WritePunctuation(", ");
+            if (i > 0)
+            {
+                writer.WritePunctuation(SyntaxKind.CommaToken.GetText());
+                writer.WriteSpace();
+            }
             writer.WriteIdentifier(function.Parameters[i].Name);
-            writer.WritePunctuation(" : ");
+            writer.WriteSpace();
+            writer.WritePunctuation(SyntaxKind.ColonToken.GetText());
+            writer.WriteSpace();
             writer.WriteIdentifier(function.Parameters[i].Type.Name);
         }
-        writer.WritePunctuation(")");
+        writer.WritePunctuation(SyntaxKind.ClosedParenthesisToken.GetText());
         writer.WriteLine();
         Print(body, writer);
         writer.WriteLine();
