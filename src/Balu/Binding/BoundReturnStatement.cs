@@ -21,7 +21,7 @@ sealed class BoundReturnStatement : BoundStatement
     internal override BoundNode Accept(BoundTreeVisitor visitor)
     {
         var expression = Expression is null ? null : (BoundExpression)visitor.Visit(Expression);
-        return expression == Expression ? this : new BoundReturnStatement(expression);
+        return expression == Expression ? this : new (expression);
     }
 
     public override string ToString() => $"{Kind} ({Expression?.Type.Name ?? "void"})";
