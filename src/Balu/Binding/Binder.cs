@@ -339,7 +339,19 @@ sealed class Binder : SyntaxVisitor
             return node;
         }
 
-        if (node.Expression is null)
+        BoundExpression? expression = null;
+        if (node.Expression is not null)
+        {
+            Visit(node.Expression);
+            if (IsError)
+            {
+                SetErrorStatement();
+                return node;
+            }
+            expression = (BoundExpression)boundNode!;
+        }
+
+        if (expression is null)
         {
             if (containingFunction.ReturnType != TypeSymbol.Void)
             {
@@ -352,17 +364,9 @@ sealed class Binder : SyntaxVisitor
             return node;
         }
 
-        Visit(node.Expression);
-        if (IsError)
-        {
-            SetErrorStatement();
-            return node;
-        }
-
-        var expression = (BoundExpression)boundNode!;
         if (expression.Type != containingFunction.ReturnType)
         {
-            diagnostics.ReportReturnTypeMismatch(node.Expression.Span, containingFunction, expression.Type);
+            diagnostics.ReportReturnTypeMismatch(node.Expression!.Span, containingFunction, expression.Type);
             SetErrorStatement();
             return node;
         }
