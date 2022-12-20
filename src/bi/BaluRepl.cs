@@ -97,7 +97,7 @@ sealed class BaluRepl : Repl
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.Write("Result: ");
             Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(result.Value);
+            Console.WriteLine(result.Value is string s ? $"\"{s.EscapeString()}\"" : result.Value);
             if (showVars)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;

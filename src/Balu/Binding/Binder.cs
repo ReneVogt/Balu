@@ -126,7 +126,7 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[0]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            boundNode = BindConversion(node.Span, argument, castType);
+            boundNode = BindConversion(node.Span, argument, castType, true);
             return node;
         }
 
