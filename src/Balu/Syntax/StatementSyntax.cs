@@ -128,8 +128,9 @@ public abstract class StatementSyntax : SyntaxNode
     /// Creates a new <see cref="ReturnStatementSyntax"/> from the given elements.
     /// </summary>
     /// <param name="returnKeyword">The <see cref="SyntaxToken"/> of the 'return' keyword.</param>
+    /// <param name="expression">The optional return expression.</param>
     /// <returns>The parsed <see cref="ReturnStatementSyntax"/>.</returns>
-    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    /// <exception cref="ArgumentNullException"><paramref name="returnKeyword"/> is <c>null</c>.</exception>
     public static ReturnStatementSyntax
-        ReturnStatement(SyntaxToken returnKeyword) => new(returnKeyword ?? throw new ArgumentNullException(nameof(returnKeyword)));
+        ReturnStatement(SyntaxToken returnKeyword, ExpressionSyntax? expression) => new(returnKeyword ?? throw new ArgumentNullException(nameof(returnKeyword)), expression);
 }

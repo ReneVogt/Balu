@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Balu.Syntax;
@@ -119,7 +120,8 @@ public class SyntaxVisitorTests
     public void SyntaxVisitor_ReturnStatementSyntax_AcceptVisitsChildren()
     {
         var returnKeyword = SyntaxToken.ReturnKeyword(default);
-        var returnStatement = StatementSyntax.ReturnStatement(returnKeyword);
+        var expression = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, "0"));
+        var returnStatement = StatementSyntax.ReturnStatement(returnKeyword, expression);
         AssertVisits(returnStatement);
     }
     [Fact]
