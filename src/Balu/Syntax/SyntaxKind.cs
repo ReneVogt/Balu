@@ -217,6 +217,10 @@ public enum SyntaxKind
     /// The 'function' keyword.
     /// </summary>
     FunctionKeyword,
+    /// <summary>
+    /// The 'return' keyword.
+    /// </summary>
+    ReturnKeyword,
     #endregion
     #region Nodes
     CompilationUnit,
@@ -307,6 +311,11 @@ public enum SyntaxKind
     /// The 'break' statement.
     /// </summary>
     BreakStatement,
+
+    /// <summary>
+    /// The 'return' statement.
+    /// </summary>
+    ReturnStatement,
     #endregion
     #region Clauses
     /// <summary>

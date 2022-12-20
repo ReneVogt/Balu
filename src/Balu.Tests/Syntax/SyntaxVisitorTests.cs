@@ -116,6 +116,13 @@ public class SyntaxVisitorTests
         AssertVisits(functionDelcaration);
     }
     [Fact]
+    public void SyntaxVisitor_ReturnStatementSyntax_AcceptVisitsChildren()
+    {
+        var returnKeyword = SyntaxToken.ReturnKeyword(default);
+        var returnStatement = StatementSyntax.ReturnStatement(returnKeyword);
+        AssertVisits(returnStatement);
+    }
+    [Fact]
     public void SyntaxVisitor_ParameterSyntax_AcceptVisitsChildren()
     {
         var identifier = SyntaxToken.Identifier(default, string.Empty);

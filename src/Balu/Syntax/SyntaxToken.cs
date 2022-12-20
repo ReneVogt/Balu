@@ -321,4 +321,10 @@ public sealed class SyntaxToken : SyntaxNode
     /// <param name="span">The position of this token in the input code.</param>
     /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.FunctionKeyword"/>.</returns>
     public static SyntaxToken FunctionKeyword(TextSpan span) => new(SyntaxKind.FunctionKeyword, span, SyntaxKind.FunctionKeyword.GetText()!);
+    /// <summary>
+    /// Creates a new <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ReturnKeyword"/>.
+    /// </summary>
+    /// <param name="span">The position of this token in the input code.</param>
+    /// <returns>A <see cref="SyntaxToken"/> of <see cref="SyntaxKind"/> <see cref="SyntaxKind.ReturnKeyword"/>.</returns>
+    public static SyntaxToken ReturnKeyword(TextSpan span) => new(SyntaxKind.ReturnKeyword, span, SyntaxKind.ReturnKeyword.GetText()!);
 }

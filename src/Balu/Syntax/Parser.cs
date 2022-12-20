@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Balu.Text;
@@ -130,6 +131,7 @@ sealed class Parser
         SyntaxKind.ForKeyword => ParseForStatement(),
         SyntaxKind.ContinueKeyword => ParseContinueStatement(),
         SyntaxKind.BreakKeyword=> ParseBreakStatement(),
+        SyntaxKind.ReturnKeyword => ParseReturnStatement(),
         _ => ParseExpressionStatement()
     };
     BlockStatementSyntax ParseBlockStatement()
@@ -172,6 +174,10 @@ sealed class Parser
     {
         var keyword = MatchToken(SyntaxKind.BreakKeyword);
         return StatementSyntax.BreakStatement(keyword);
+    }
+    ReturnStatementSyntax ParseReturnStatement()
+    {
+        throw new NotImplementedException();
     }
     TypeClauseSyntax? ParseOptionalTypeClause()
     {

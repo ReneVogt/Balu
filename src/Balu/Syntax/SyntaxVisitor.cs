@@ -26,6 +26,7 @@ public abstract class SyntaxVisitor
             SyntaxKind.CompilationUnit => VisitCompilationUnit((CompilationUnitSyntax)node),
             SyntaxKind.GlobalStatement => VisitGlobalStatement((GlobalStatementSyntax)node),
             SyntaxKind.FunctionDeclaration => VisitFunctionDeclaration((FunctionDeclarationSyntax)node),
+            SyntaxKind.ReturnStatement => VisitReturnStatement((ReturnStatementSyntax)node),
             SyntaxKind.Parameter => VisitParameter((ParameterSyntax)node),
             SyntaxKind.LiteralExpression => VisitLiteralExpression((LiteralExpressionSyntax)node),
             SyntaxKind.UnaryExpression => VisitUnaryExpression((UnaryExpressionSyntax)node),
@@ -77,6 +78,13 @@ public abstract class SyntaxVisitor
     /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
     /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
     protected virtual SyntaxNode VisitFunctionDeclaration(FunctionDeclarationSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
+    /// <summary>
+    /// Visits a <see cref="ReturnStatementSyntax"/>.
+    /// </summary>
+    /// <param name="node">The <see cref="ReturnStatementSyntax"/> to visit.</param>
+    /// <returns>The original <paramref name="node"/> or a transformed <see cref="SyntaxNode"/>.</returns>
+    /// <exception cref="ArgumentNullException"><paramref name="node"/> is <c>null</c>.</exception>
+    protected virtual SyntaxNode VisitReturnStatement(ReturnStatementSyntax node) => (node ?? throw new ArgumentNullException(nameof(node))).Accept(this);
     /// <summary>
     /// Visits a <see cref="ParameterSyntax"/>.
     /// </summary>

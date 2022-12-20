@@ -124,4 +124,12 @@ public abstract class StatementSyntax : SyntaxNode
     /// <exception cref="ArgumentNullException"><paramref name="breakKeyword"/> is <c>null</c>.</exception>
     public static BreakStatementSyntax
         BreakStatement(SyntaxToken breakKeyword) => new(breakKeyword ?? throw new ArgumentNullException(nameof(breakKeyword)));
+    /// <summary>
+    /// Creates a new <see cref="ReturnStatementSyntax"/> from the given elements.
+    /// </summary>
+    /// <param name="returnKeyword">The <see cref="SyntaxToken"/> of the 'return' keyword.</param>
+    /// <returns>The parsed <see cref="ReturnStatementSyntax"/>.</returns>
+    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
+    public static ReturnStatementSyntax
+        ReturnStatement(SyntaxToken returnKeyword) => new(returnKeyword ?? throw new ArgumentNullException(nameof(returnKeyword)));
 }
