@@ -14,5 +14,5 @@ sealed class BoundGotoStatement : BoundStatement
 
     internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
 
-    public override string ToString() => $"{Kind} => {Label}";
+    public override string ToString() => $"goto {Label}";
 }

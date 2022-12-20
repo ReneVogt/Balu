@@ -26,5 +26,5 @@ sealed class BoundAssignmentExpression : BoundExpression
         return expression == Expression ? this : new (Symbol, expression);
     }
 
-    public override string ToString() => $"{Kind} \"{Symbol.Name}\" ({Type.Name})";
+    public override string ToString() => $"{Symbol.Name} = {Expression}";
 }

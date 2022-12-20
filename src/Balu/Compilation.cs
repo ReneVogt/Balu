@@ -99,8 +99,20 @@ public sealed class Compilation
     /// </summary>
     /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
-    public void WriteProgramTree(TextWriter writer) =>
-        BoundTreeWriter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
+    public void WriteProgramTree(TextWriter writer) => BoundTreeWriter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
+    /// <summary>
+    /// Writes a GraphViz representation of the control flow of the program to the provided <see cref="TextWriter"/>.
+    /// </summary>
+    /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
+    /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
+    public void WriteControlFlowGraph(TextWriter writer)
+    {
+        _ = writer ?? throw new ArgumentNullException(nameof(writer));
+        var cfg = ControlFlowGraph.Create(!Program.GlobalScope.Statement.Statements.Any() && Program.Functions.Any()
+                                              ? Program.Functions.Last().Value
+                                              : Program.GlobalScope.Statement);
+        cfg.WriteTo(writer);
+    }
     /// <summary>
     /// Evaluates the given Balu <paramref name="input"/> string.
     /// </summary>

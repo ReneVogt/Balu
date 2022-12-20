@@ -25,4 +25,6 @@ sealed class BoundExpressionStatement : BoundStatement
         var expression = (BoundExpression)visitor.Visit(Expression);
         return expression == Expression ? this : new (expression);
     }
+
+    public override string ToString() => Expression.ToString();
 }

@@ -16,5 +16,5 @@ sealed class BoundVariableExpression : BoundExpression
 
     internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
 
-    public override string ToString() => $"{Kind} \"{Variable.Name}\" ({Type.Name})";
+    public override string ToString() => Variable.Name;
 }

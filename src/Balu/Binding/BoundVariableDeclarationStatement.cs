@@ -29,5 +29,5 @@ sealed class BoundVariableDeclarationStatement : BoundStatement
         return expression == Expression ? this : new (Variable, expression);
     }
 
-    public override string ToString() => $"{Kind} \"{Variable.Name}\" ({Expression.Type.Name})";
+    public override string ToString() => $"{(Variable.ReadOnly ? "let" : "var")} {Variable.Name} =  {Expression}";
 }

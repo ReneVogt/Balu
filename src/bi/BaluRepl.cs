@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Balu.Syntax;
 
@@ -65,6 +66,10 @@ sealed class BaluRepl : Repl
             Console.ResetColor();
             compilation.WriteProgramTree(Console.Out);
         }
+
+
+        using var writer = new StreamWriter(Path.Combine(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])!, "graph.dot"));
+        compilation.WriteControlFlowGraph(writer);
 
         var result = compilation.Evaluate(globals);
         Console.ResetColor();

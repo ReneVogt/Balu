@@ -24,5 +24,5 @@ sealed class BoundReturnStatement : BoundStatement
         return expression == Expression ? this : new (expression);
     }
 
-    public override string ToString() => $"{Kind} ({Expression?.Type.Name ?? "void"})";
+    public override string ToString() => $"return {Expression}";
 }

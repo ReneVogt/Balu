@@ -22,5 +22,5 @@ sealed class BoundConditionalGotoStatement : BoundStatement
         return condition == Condition ? this : new (Label, condition, JumpIfTrue);
     }
 
-    public override string ToString() => $"{Kind} ({(JumpIfTrue ? "on true" : "on false")}) => {Label}";
+    public override string ToString() => $"goto {Label} {(JumpIfTrue ? "if" : "if not")} {Condition}";
 }

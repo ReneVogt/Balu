@@ -24,4 +24,6 @@ sealed class BoundConversionExpression : BoundExpression
         var expression = (BoundExpression)visitor.Visit(Expression);
         return expression == Expression ? this : new(Type, expression);
     }
+
+    public override string ToString() => $"{Type}({Expression})";
 }

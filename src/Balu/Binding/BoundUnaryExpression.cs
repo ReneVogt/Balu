@@ -1,5 +1,6 @@
 ﻿using Balu.Symbols;
 using System.Collections.Generic;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -26,5 +27,5 @@ sealed class BoundUnaryExpression : BoundExpression
         return operand == Operand ? this : new (Operator, operand);
     }
 
-    public override string ToString() => $"{Kind} {Operator.OperatorKind} ({Operand.Type.Name} => {Type.Name})";
+    public override string ToString() => $"{Operator.SyntaxKind.GetText()} {Operand}";
 }

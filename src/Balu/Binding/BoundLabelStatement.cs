@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Xml.Linq;
 
 namespace Balu.Binding;
 
@@ -14,5 +15,5 @@ sealed class BoundLabelStatement : BoundStatement
 
     internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
 
-    public override string ToString() => $"{Kind} {Label.Name}";
+    public override string ToString() => Label.ToString();
 }

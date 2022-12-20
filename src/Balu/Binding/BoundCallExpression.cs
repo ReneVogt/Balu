@@ -28,5 +28,5 @@ sealed class BoundCallExpression : BoundExpression
     }
 
     /// <inheritdoc />
-    public override string ToString() => $"{Kind} ({Type}) {Function.Name}";
+    public override string ToString() => $"{Function.Name}({string.Join(", ", Arguments)})";
 }
