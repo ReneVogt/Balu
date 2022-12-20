@@ -28,6 +28,7 @@ sealed class DiagnosticBag : List<Diagnostic>
         new(Diagnostic.BND0001, operatorToken.Span, $"Binary operator '{operatorToken.Text}' cannot be applied to types '{left.Name}' and '{right.Name}'."));
     public void ReportUndefinedName(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0002, identifierToken.Span, $"Undefined name '{identifierToken.Text}'."));
     public void ReportCannotConvert(TextSpan span, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(Diagnostic.BND0003, span, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'."));
+    public void ReportCannotConvertImplicit(TextSpan span, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(Diagnostic.BND0003, span, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'. An explicit conversion exists, are you missing a cast?"));
     public void ReportSymbolAlreadyDeclared(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0004, identifierToken.Span, $"Symbol '{identifierToken.Text}' is already declared."));
     public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(Diagnostic.BND0005, identifierToken.Span, $"Variable '{identifierToken.Text}' is readonly and cannot be assigned to."));
     public void ReportWrongNumberOfArguments(CallExpressionSyntax syntax, FunctionSymbol function)
@@ -46,7 +47,6 @@ sealed class DiagnosticBag : List<Diagnostic>
         new(Diagnostic.BND0007, span,
             $"Parameter '{parameterName}' of function '{functionName}' requires a value of type '{expectedType}', but was given a value of type '{actualType}'."));
     public void ReportExpressionMustHaveValue(TextSpan expressionSpan) => Add(new(Diagnostic.BND0008, expressionSpan,"Expression must return a value."));
-    public void ReportInvalidCast(TextSpan span, TypeSymbol fromType, TypeSymbol castType) => Add(new(Diagnostic.BND0009, span, $"No conversion exists from type '{fromType}' to type '{castType}'."));
     public void ReportSymbolNoVariable(SyntaxToken identifier, SymbolKind actual) => Add(new(Diagnostic.BND0010, identifier.Span, $"Unexpected symbol kind '{actual}', expected '{identifier.Text}' to be a variable or argument."));
     public void ReportSymbolNoFunction(SyntaxToken identifier, SymbolKind actual) => Add(new(Diagnostic.BND0010, identifier.Span, $"Unexpected symbol kind '{actual}', expected '{identifier.Text}' to be a function."));
     public void ReportUndefinedType(SyntaxToken identifier) => Add(new(Diagnostic.BND0011, identifier.Span, $"Undefined type '{identifier.Text}'."));

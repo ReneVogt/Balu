@@ -126,12 +126,7 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[0]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            boundNode = BindConversion(node.Span, argument, castType, false);
-            if (IsError)
-            {
-                diagnostics.ReportInvalidCast(node.Span, argument.Type, castType);
-                return node;
-            }
+            boundNode = BindConversion(node.Span, argument, castType);
             return node;
         }
 
@@ -164,7 +159,7 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[i]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            boundNode = BindConversion(node.Arguments[i].Span, argument, function.Parameters[i].Type, false);
+            boundNode = BindConversion(node.Arguments[i].Span, argument, function.Parameters[i].Type);
             if (IsError)
             {
                 diagnostics.ReportWrongArgumentType(node.Arguments[i].Span, function.Name, function.Parameters[i].Name, function.Parameters[i].Type, argument.Type);
@@ -322,9 +317,9 @@ sealed class Binder : SyntaxVisitor
         }
         else
         {
-            expression = BindConversion(node.Expression!.Span, expression, containingFunction.ReturnType, false);
+            expression = BindConversion(node.Expression!.Span, expression, containingFunction.ReturnType);
             if (expression.Type == TypeSymbol.Error)
-                diagnostics.ReportReturnTypeMismatch(node.Expression!.Span, containingFunction, expression.Type);
+                diagnostics.ReportReturnTypeMismatch(node.Expression!.Span, containingFunction, ((BoundExpression)boundNode!).Type);
         }
         
         boundNode = new BoundReturnStatement(expression);
@@ -377,19 +372,25 @@ sealed class Binder : SyntaxVisitor
         if (boundNode is BoundExpressionStatement { Expression.Kind : BoundNodeKind.ErrorExpression }) return;
         boundNode = new BoundExpressionStatement(new BoundErrorExpression());
     }
-    BoundExpression BindConversion(TextSpan span, BoundExpression expression, TypeSymbol targetType, bool reportError = true)
+    BoundExpression BindConversion(TextSpan span, BoundExpression expression, TypeSymbol targetType, bool allowExplicit = false)
     {
         if (expression.Type == TypeSymbol.Error) return expression;
         var conversion = Conversion.Classify(expression.Type, targetType);
         if (!conversion.Exists)
         {
-            if (reportError)
-                diagnostics.ReportCannotConvert(span, expression.Type, targetType);
+            diagnostics.ReportCannotConvert(span, expression.Type, targetType);
             return new BoundErrorExpression();
         }
 
         if (conversion.IsIdentity || conversion.IsImplicit)
             return expression;
+
+        if (!allowExplicit)
+        {
+            diagnostics.ReportCannotConvertImplicit(span, expression.Type, targetType);
+            return new BoundErrorExpression();
+        }
+
         return new BoundConversionExpression(targetType, expression);
     }
     void BindFunctionDeclarations(IEnumerable<FunctionDeclarationSyntax> declarations)
