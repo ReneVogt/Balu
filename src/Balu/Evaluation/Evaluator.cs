@@ -33,6 +33,10 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             var current = blockStatement.Statements[index];
             switch (current.Kind)
             {
+                case BoundNodeKind.ReturnStatement:
+                    var returnStatement = (BoundReturnStatement)current;
+                    if (returnStatement.Expression is not null) Visit(returnStatement.Expression);
+                    return blockStatement;
                 case BoundNodeKind.GotoStatement:
                     index = labelsToIndices[((BoundGotoStatement)current).Label];
                     break;

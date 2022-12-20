@@ -56,8 +56,6 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportFunctionAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0015, identifier.Span, $"Function '{identifier.Text}' is already declared."));
     public void ReportInvalidBreakOrContinue(SyntaxToken keyword) => Add(new(Diagnostic.BND0016, keyword.Span, $"Invalid '{keyword.Text}' outside any loop."));
     public void ReportReturnOutsideOfFunction(ReturnStatementSyntax returnStatement) => Add(new(Diagnostic.BND0017, returnStatement.ReturnKeyword.Span, $"Invalid '{returnStatement.ReturnKeyword.Kind.GetText()}' outside any function."));
-    public void ReportReturnMissingValue(TextSpan span, FunctionSymbol function) => Add(new(Diagnostic.BND0018, span, $"'{function.Declaration!.Identifier.Text}' needs to return a value of type '{function.ReturnType}'."));
-    public void ReportReturnTypeMismatch(TextSpan span, FunctionSymbol function, TypeSymbol actualType) => Add(new(Diagnostic.BND0019, span, $"'{function.Declaration!.Identifier.Text}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
-
-    public void ReportLanguageSupportIssue(TextSpan span, string message) => Add(new(Diagnostic.LNG0001, span, message));
+    public void ReportReturnMissingValue(TextSpan span, FunctionSymbol function) => Add(new(Diagnostic.BND0018, span, $"'{function.Name}' needs to return a value of type '{function.ReturnType}'."));
+    public void ReportReturnTypeMismatch(TextSpan span, FunctionSymbol function, TypeSymbol actualType) => Add(new(Diagnostic.BND0019, span, $"'{function.Name}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
 }

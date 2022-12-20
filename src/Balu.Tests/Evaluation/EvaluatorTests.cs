@@ -375,6 +375,12 @@ public class EvaluatorTests
         "function test() {} {var result = true while result { test() result = false } }".AssertEvaluation(value: false);
     }
     [Fact]
+    public void Evaluate_FunctionCall_ReturnInsideLoop()
+    {
+        "function increase(i:int) : int { return i+1 } {var result = 0 while result < 12 { result = increase(result) } result }".AssertEvaluation(value: 12);
+    }
+
+    [Fact]
     public void Evaluate_Break_BreaksCorrectLoop()
     {
         @"

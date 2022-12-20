@@ -173,6 +173,18 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         return literalExpression;
     }
 
+    protected override BoundNode VisitBoundReturnStatement(BoundReturnStatement returnStatement)
+    {
+        writer.WriteKeyword(SyntaxKind.ReturnKeyword.GetText());
+        if (returnStatement.Expression is not null)
+        {
+            writer.WriteSpace();
+            Visit(returnStatement.Expression);
+        }
+
+        return returnStatement;
+    }
+
     protected override BoundNode VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
         var op = unaryExpression.Operator.SyntaxKind;

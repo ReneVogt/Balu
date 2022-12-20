@@ -412,8 +412,6 @@ sealed class Binder : SyntaxVisitor
         }
 
         var returnType = declaration.TypeClause is null ? TypeSymbol.Void : BindTypeClause(declaration.TypeClause) ?? TypeSymbol.Error;
-        if (returnType != TypeSymbol.Error && returnType != TypeSymbol.Void)
-            diagnostics.ReportLanguageSupportIssue(declaration.TypeClause?.Span ?? declaration.Span, "Functions with non-void return types are not yet supported.");
         var function = new FunctionSymbol(declaration.Identifier.Text, parameters, returnType, declaration);
         if (!scope.TryDeclareSymbol(function))
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
