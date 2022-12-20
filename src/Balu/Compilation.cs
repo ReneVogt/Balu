@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading;
 using Balu.Binding;
 using Balu.Evaluation;
-using Balu.Lowering;
 using Balu.Syntax;
 using Balu.Visualization;
 #pragma warning disable CA1724
@@ -17,7 +16,6 @@ namespace Balu;
 public sealed class Compilation
 {
     BoundGlobalScope? globalScope;
-    BoundBlockStatement? loweredStatement;
     BoundProgram? program;
 
     internal BoundGlobalScope GlobalScope
@@ -31,19 +29,6 @@ public sealed class Compilation
             }
 
             return globalScope;
-        }
-    }
-    internal BoundBlockStatement LoweredStatement
-    {
-        get
-        {
-            if (loweredStatement is null)
-            {
-                var statement = Lowerer.Lower(GlobalScope.Statement, null);
-                Interlocked.CompareExchange(ref loweredStatement, statement, null);
-            }
-
-            return loweredStatement;
         }
     }
     internal BoundProgram Program
@@ -96,11 +81,11 @@ public sealed class Compilation
         var diagnostics = SyntaxTree.Diagnostics.AddRange(GlobalScope.Diagnostics);
         if (diagnostics.Any())
             return new(diagnostics, null);
-
-        if (Program.Diagnostics.Any())
+        diagnostics = Program.Diagnostics;
+        if (diagnostics.Any())
             return new(diagnostics, null);
 
-        return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(LoweredStatement, globals, Program.Functions));
+        return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(GlobalScope.Statement, globals, Program.Functions));
     }
 
     /// <summary>
@@ -109,20 +94,6 @@ public sealed class Compilation
     /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
     /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
     public void WriteSyntaxTree(TextWriter writer) => SyntaxTreeWriter.Print(SyntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
-    /// <summary>
-    /// Writes a text representation of the bound program tree to the provided <see cref="TextWriter"/>.
-    /// </summary>
-    /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
-    public void WriteBoundTree(TextWriter writer) =>
-        BoundTreeWriter.Print(GlobalScope.Statement, writer ?? throw new ArgumentNullException(nameof(writer)));
-    /// <summary>
-    /// Writes a text representation of the lowered global statement tree to the provided <see cref="TextWriter"/>.
-    /// </summary>
-    /// <param name="writer">The <see cref="TextWriter"/> to write to.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="writer"/> is <c>null</c>.</exception>
-    public void WriteLoweredTree(TextWriter writer) =>
-        BoundTreeWriter.Print(LoweredStatement, writer ?? throw new ArgumentNullException(nameof(writer)));
     /// <summary>
     /// Writes a text representation of the lowered program tree to the provided <see cref="TextWriter"/>.
     /// </summary>

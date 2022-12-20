@@ -1,4 +1,5 @@
-﻿using Balu.Tests.TestHelper;
+﻿
+using Balu.Tests.TestHelper;
 using Xunit;
 
 namespace Balu.Tests.Evaluation;
@@ -368,6 +369,11 @@ public class EvaluatorTests
               outer(42) sumb".AssertEvaluation(value: 1542);
     }
 
+    [Fact]
+    public void Evaluate_FunctionCall_InsideLoop()
+    {
+        "function test() {} {var result = true while result { test() result = false } }".AssertEvaluation(value: false);
+    }
     [Fact]
     public void Evaluate_Break_BreaksCorrectLoop()
     {

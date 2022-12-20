@@ -13,7 +13,6 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
 {
     readonly VariableDictionary globals;
     readonly Stack<VariableDictionary> locals = new();
-    readonly Dictionary<BoundLabel, int> labelsToIndices = new();
     readonly ImmutableDictionary<FunctionSymbol, BoundBlockStatement> functions;
     readonly RNGCryptoServiceProvider rng = new();
 
@@ -24,10 +23,9 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
 
     protected override BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement)
     {
-        labelsToIndices.Clear();
-        for (int i = 0; i < blockStatement.Statements.Length; i++)
-            if (blockStatement.Statements[i] is BoundLabelStatement { Label: var label })
-                labelsToIndices[label] = i;
+        var labelsToIndices = blockStatement.Statements.Select((statement, index) => (statement, index))
+                                            .Where(x => x.statement.Kind == BoundNodeKind.LabelStatement)
+                                            .ToDictionary(x => ((BoundLabelStatement)x.statement).Label, x => x.index);
 
         var index = 0;
         while(index < blockStatement.Statements.Length)

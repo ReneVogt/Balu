@@ -421,7 +421,7 @@ sealed class Binder : SyntaxVisitor
             statementBuilder.Add((BoundStatement)binder.boundNode!);
         }
 
-        var statement = new BoundBlockStatement(statementBuilder.ToImmutable());
+        var statement = Lowerer.Lower(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
 
         var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
         return new(previous, statement, binder.scope.GetDeclaredSymbols(), diagnostics);

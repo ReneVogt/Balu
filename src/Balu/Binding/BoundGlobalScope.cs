@@ -6,11 +6,11 @@ namespace Balu.Binding;
 sealed class BoundGlobalScope
 {
     public BoundGlobalScope? Previous { get; }
-    public BoundStatement Statement { get; }
+    public BoundBlockStatement Statement { get; }
     public ImmutableArray<Symbol> Symbols { get; }
     public ImmutableArray<Diagnostic> Diagnostics { get; }
 
-    public BoundGlobalScope(BoundGlobalScope? previous, BoundStatement statement, IEnumerable<Symbol> symbols, IEnumerable<Diagnostic> diagnostics)
+    public BoundGlobalScope(BoundGlobalScope? previous, BoundBlockStatement statement, IEnumerable<Symbol> symbols, IEnumerable<Diagnostic> diagnostics)
     {
         Previous = previous;
         Statement = statement;

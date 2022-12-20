@@ -10,7 +10,7 @@ sealed class BaluRepl : Repl
 {
     readonly VariableDictionary globals = new();
 
-    bool showSyntax, showBound, showLowered, showVars, showProgram;
+    bool showSyntax, showVars, showProgram;
     Compilation? previous;
 
     protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine, StringComparison.InvariantCultureIgnoreCase) || !SyntaxTree.Parse(text).IsLastTokenMissing;
@@ -22,14 +22,6 @@ sealed class BaluRepl : Repl
             case "#showSyntax":
                 showSyntax = !showSyntax;
                 Console.WriteLine(showSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
-                break;
-            case "#showBound":
-                showBound = !showBound;
-                Console.WriteLine(showBound ? "Showing bound tree." : "Not showing bound tree.");
-                break;
-            case "#showLowered":
-                showLowered = !showLowered;
-                Console.WriteLine(showLowered ? "Showing lowered tree." : "Not showing lowered tree.");
                 break;
             case "#showProgram":
                 showProgram = !showProgram;
@@ -66,23 +58,6 @@ sealed class BaluRepl : Repl
             Console.ResetColor();
             compilation.WriteSyntaxTree(Console.Out);
         }
-
-        if (showBound)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Bound:");
-            Console.ResetColor();
-            compilation.WriteBoundTree(Console.Out);
-        }
-
-        if (showLowered)
-        {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Lowered:");
-            Console.ResetColor();
-            compilation.WriteLoweredTree(Console.Out);
-        }
-
         if (showProgram)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
