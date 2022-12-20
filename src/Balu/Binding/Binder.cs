@@ -313,7 +313,7 @@ sealed class Binder : SyntaxVisitor
         if (!loopStack.TryPeek(out var frame))
         {
             diagnostics.ReportInvalidBreakOrContinue(node.ContinueKeyword);
-            boundNode = BindErrorStatement();
+            SetErrorStatement();
         }
 
         boundNode = new BoundGotoStatement(frame.continueLabel);
@@ -324,12 +324,53 @@ sealed class Binder : SyntaxVisitor
         if (!loopStack.TryPeek(out var frame))
         {
             diagnostics.ReportInvalidBreakOrContinue(node.BreakKeyword);
-            boundNode = BindErrorStatement();
+            SetErrorStatement();
         }
 
         boundNode = new BoundGotoStatement(frame.breakLabel);
         return node;
     }
+    protected override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
+    {
+        if (containingFunction is null)
+        {
+            diagnostics.ReportReturnOutsideOfFunction(node);
+            boundNode = new BoundExpressionStatement(new BoundErrorExpression());
+            return node;
+        }
+
+        if (node.Expression is null)
+        {
+            if (containingFunction.ReturnType != TypeSymbol.Void)
+            {
+                diagnostics.ReportReturnMissingValue(node.Span, containingFunction);
+                SetErrorStatement();
+                return node;
+            }
+
+            boundNode = new BoundReturnStatement(null);
+            return node;
+        }
+
+        Visit(node.Expression);
+        if (IsError)
+        {
+            SetErrorStatement();
+            return node;
+        }
+
+        var expression = (BoundExpression)boundNode!;
+        if (expression.Type != containingFunction.ReturnType)
+        {
+            diagnostics.ReportReturnTypeMismatch(node.Expression.Span, containingFunction, expression.Type);
+            SetErrorStatement();
+            return node;
+        }
+        
+        boundNode = new BoundReturnStatement(expression);
+        return node;
+    }
+
     VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type)
     {
         var name = identifier.IsMissing ? "?" : identifier.Text;
@@ -370,6 +411,12 @@ sealed class Binder : SyntaxVisitor
     {
         if (boundNode?.Kind != BoundNodeKind.ErrorExpression) boundNode = new BoundErrorExpression();
     }
+
+    void SetErrorStatement()
+    {
+        if (boundNode is BoundExpressionStatement { Expression : { Kind: BoundNodeKind.ErrorExpression } }) return;
+        boundNode = new BoundExpressionStatement(new BoundErrorExpression());
+    }
     static BoundExpression BindConversion(BoundExpression expression, TypeSymbol targetType)
     {
         if (expression.Type == TypeSymbol.Error) return expression;
@@ -380,8 +427,6 @@ sealed class Binder : SyntaxVisitor
             return expression;
         return new BoundConversionExpression(targetType, expression);
     }
-    static BoundStatement BindErrorStatement() => new BoundExpressionStatement(new BoundErrorExpression());
-
     void BindFunctionDeclarations(IEnumerable<FunctionDeclarationSyntax> declarations)
     {
         foreach( var declaration in declarations) BindFunctionDeclaration(declaration);

@@ -20,5 +20,6 @@ enum BoundNodeKind
     ForStatement,
     GotoStatement,
     ConditionalGotoStatement,
-    LabelStatement
+    LabelStatement,
+    ReturnStatement
 }

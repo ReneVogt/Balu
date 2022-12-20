@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Balu.Text;
@@ -13,6 +12,7 @@ sealed class Parser
 {
     readonly DiagnosticBag diagnostics = new();
     readonly List<SyntaxToken> tokens = new();
+    readonly SourceText sourceText;
 
     int position;
 
@@ -27,6 +27,7 @@ sealed class Parser
     /// <param name="text">The text Balu code to parse.</param>
     public Parser(SourceText text)
     {
+        sourceText = text;
         var lexer = new Lexer(text);
         foreach (var token in lexer.Lex().Where(token => token.Kind != SyntaxKind.BadToken && token.Kind != SyntaxKind.WhiteSpaceToken))
         {
@@ -177,7 +178,12 @@ sealed class Parser
     }
     ReturnStatementSyntax ParseReturnStatement()
     {
-        throw new NotImplementedException();
+        var keyword = MatchToken(SyntaxKind.ReturnKeyword);
+        return StatementSyntax.ReturnStatement(
+            keyword,
+            Current.Kind == SyntaxKind.EndOfFileToken || sourceText.GetLineIndex(keyword.Span.Start) != sourceText.GetLineIndex(Current.Span.Start)
+                ? null
+                : ParseExpression());
     }
     TypeClauseSyntax? ParseOptionalTypeClause()
     {

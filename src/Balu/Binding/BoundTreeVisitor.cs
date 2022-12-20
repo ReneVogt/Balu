@@ -24,6 +24,7 @@ abstract class BoundTreeVisitor
         BoundNodeKind.LabelStatement => VisitBoundLabelStatement((BoundLabelStatement)node),
         BoundNodeKind.GotoStatement => VisitBoundGotoStatement((BoundGotoStatement)node),
         BoundNodeKind.ConditionalGotoStatement => VisitBoundConditionalGotoStatement((BoundConditionalGotoStatement)node),
+        BoundNodeKind.ReturnStatement => VisitBoundReturnStatement((BoundReturnStatement)node),
         _ => throw new ArgumentException($"Unknown {nameof(BoundNodeKind)} '{node.Kind}'.")
     };
     protected virtual BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression) => literalExpression.Accept(this);
@@ -44,4 +45,5 @@ abstract class BoundTreeVisitor
     protected virtual BoundNode VisitBoundLabelStatement(BoundLabelStatement labelStatement) => labelStatement.Accept(this);
     protected virtual BoundNode VisitBoundGotoStatement(BoundGotoStatement gotoStatement) => gotoStatement.Accept(this);
     protected virtual BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement) => conditionalGotoStatement.Accept(this);
+    protected virtual BoundNode VisitBoundReturnStatement(BoundReturnStatement returnStatement) => returnStatement.Accept(this);
 }
