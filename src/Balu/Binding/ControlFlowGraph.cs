@@ -258,6 +258,6 @@ sealed class ControlFlowGraph
     public static bool AllPathsReturn(BoundBlockStatement body) => Create(body)
                                                                    .End.Incoming
                                                                    .All(incoming =>
-                                                                            incoming.From.Statements.Last().Kind ==
+                                                                            incoming.From.Statements.LastOrDefault()?.Kind ==
                                                                             BoundNodeKind.ReturnStatement);
 }
