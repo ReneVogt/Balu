@@ -57,8 +57,11 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportParameterAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0014, identifier.Span, $"Parameter '{identifier.Text}' is already declared."));
     public void ReportFunctionAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0015, identifier.Span, $"Function '{identifier.Text}' is already declared."));
     public void ReportInvalidBreakOrContinue(SyntaxToken keyword) => Add(new(Diagnostic.BND0016, keyword.Span, $"Invalid '{keyword.Text}' outside any loop."));
-    public void ReportReturnOutsideOfFunction(ReturnStatementSyntax returnStatement) => Add(new(Diagnostic.BND0017, returnStatement.ReturnKeyword.Span, $"Invalid '{returnStatement.ReturnKeyword.Kind.GetText()}' outside any function."));
+    public void ReportReturnOutsideOfFunction(ReturnStatementSyntax returnStatement) => Add(new(Diagnostic.BND0017, returnStatement.ReturnKeyword.Span, $"The '{returnStatement.ReturnKeyword.Kind.GetText()}' keyword can only be used in functions."));
     public void ReportReturnMissingValue(TextSpan span, FunctionSymbol function) => Add(new(Diagnostic.BND0018, span, $"'{function.Name}' needs to return a value of type '{function.ReturnType}'."));
-    public void ReportReturnTypeMismatch(TextSpan span, FunctionSymbol function, TypeSymbol actualType) => Add(new(Diagnostic.BND0019, span, $"'{function.Name}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
+    public void ReportReturnTypeMismatch(TextSpan span, FunctionSymbol function, TypeSymbol actualType) => Add(new(Diagnostic.BND0019, span,
+        function.ReturnType == TypeSymbol.Void
+            ? $"'{function.Name}' does not have a return type and cannot return a value of type '{actualType}'."
+            : $"'{function.Name}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
     public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(Diagnostic.BND0020, function.Declaration!.Identifier.Span, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
 }

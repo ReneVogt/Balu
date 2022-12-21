@@ -381,6 +381,59 @@ public class EvaluatorTests
     }
 
     [Fact]
+    public void Evaluate_Function_ReportsMissingName()
+    {
+        "function [(]) : int { var i = 0 return i }".AssertEvaluation(" Unexpected OpenParenthesisToken ('('), expected IdentifierToken.");
+    }
+
+    [Fact]
+    public void Evaluate_Return_ReportsErrorOutsideFunction()
+    {
+        "{ var i = 0 [return] i }".AssertEvaluation("The 'return' keyword can only be used in functions.");
+    }
+    [Fact]
+    public void Evaluate_Return_ReportsUnexpectedExpression()
+    {
+        "function test() { return [[25]] }".AssertEvaluation(@"
+            Cannot convert 'int' to 'void'.
+            'test' does not have a return type and cannot return a value of type 'int'.");
+    }
+    [Fact]
+    public void Evaluate_Return_ReportsMissingExpression()
+    {
+        @"
+            function test() : int 
+            { 
+                [return] 
+            }".AssertEvaluation("'test' needs to return a value of type 'int'.");
+    }
+    [Fact]
+    public void Evaluate_Return_ReportsUnexpectedTokenIfEspressionIsMissing()
+    {
+        @"
+            function test() : int 
+            { 
+                return [}]".AssertEvaluation("Unexpected ClosedBraceToken ('}'), expected IdentifierToken.");
+    }
+    [Fact]
+    public void Evaluate_Return_ReportsWrongExpressionType()
+    {
+        "function test() : int { return [[true]] }".AssertEvaluation(@"
+                Cannot convert 'bool' to 'int'.
+                'test' needs to return a value of type 'int', not 'bool'.");
+    }
+    [Fact]
+    public void Evaluate_Return_ReportsNotAllPathsReturn()
+    {
+        "function [test]() : int { if false return 0 }".AssertEvaluation("Not all code paths of function 'test' return a value of type 'int'.");
+    }
+    [Fact]
+    public void Evaluate_Return_DetectsDeadPaths()
+    {
+        "function test() : int { if true return 47 } test()".AssertEvaluation(value: 47);
+    }
+
+    [Fact]
     public void Evaluate_Break_BreaksCorrectLoop()
     {
         @"
