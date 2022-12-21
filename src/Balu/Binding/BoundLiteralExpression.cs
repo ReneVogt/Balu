@@ -27,5 +27,5 @@ sealed class BoundLiteralExpression : BoundExpression
 
     internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
 
-    public override string ToString() => Value?.ToString() ?? string.Empty;
+    public override string ToString() => Value.ToString() ?? string.Empty;
 }

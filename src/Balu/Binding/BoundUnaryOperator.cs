@@ -33,4 +33,25 @@ sealed class BoundUnaryOperator
 
     public static BoundUnaryOperator? Bind(SyntaxKind syntaxKind, TypeSymbol operandType) =>
         operators.TryGetValue((syntaxKind, operandType), out var op) ? op : null;
+
+    public object Apply(object? value)
+    {
+        if (OperandType == TypeSymbol.Integer && Type == TypeSymbol.Integer) 
+            return Apply((int)value!);
+        if (OperandType == TypeSymbol.Boolean && Type == TypeSymbol.Boolean)
+            return Apply((bool)value!);
+        throw new BindingException($"Unexpected unary operator '{OperatorKind}' from '{OperandType}' to '{Type}'.");
+    }
+    int Apply(int value) => OperatorKind switch
+    {
+        BoundUnaryOperatorKind.Identity => value,
+        BoundUnaryOperatorKind.Negation => -value,
+        BoundUnaryOperatorKind.BitwiseNegation => ~value,
+        _ => throw new BindingException($"Unexpected unary operator kind '{OperatorKind}' for operand type '{OperandType}'.")
+    };
+    bool Apply(bool value) => OperatorKind switch
+    {
+        BoundUnaryOperatorKind.LogicalNegation => !value,
+        _ => throw new BindingException($"Unexpected unary operator kind '{OperatorKind}' for operand type '{OperandType}'.")
+    };
 }

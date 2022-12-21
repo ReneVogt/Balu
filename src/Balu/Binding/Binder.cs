@@ -261,7 +261,7 @@ sealed class Binder : SyntaxVisitor
         upperBound = BindConversion(node.UpperBound.Span, upperBound, TypeSymbol.Integer);
 
         scope = new (scope);
-        var variable = BindVariable(node.IdentifierToken, true, TypeSymbol.Integer);
+        var variable = BindVariable(node.IdentifierToken, false, TypeSymbol.Integer);
         var body = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
         boundNode = new BoundForStatement(variable, lowerBound, upperBound, body, breakLabel, continueLabel);
 
@@ -417,6 +417,13 @@ sealed class Binder : SyntaxVisitor
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
     }
 
+
+    static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction)
+    {
+        var result = Lowerer.Lower(statement, containingFunction);
+        result = ConstantReducer.ReduceConstants(result);
+        return result;
+    }
     public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
     {
         var parentScope = CreateParentScopes(previous);
@@ -430,7 +437,7 @@ sealed class Binder : SyntaxVisitor
             statementBuilder.Add((BoundStatement)binder.boundNode!);
         }
 
-        var statement = Lowerer.Lower(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
+        var statement = Refactor(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
 
         var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
         return new(previous, statement, binder.scope.GetDeclaredSymbols(), diagnostics);
@@ -449,8 +456,8 @@ sealed class Binder : SyntaxVisitor
                 var functionBinder = new Binder(parentScope, function);
                 functionBinder.Visit(function.Declaration!.Body);
                 var body = (BoundStatement)functionBinder.boundNode!;
-                var lowered = Lowerer.Lower(body, function);
-                functionBodyBuilder.Add(function, lowered);
+                var refactored = Refactor(body, function);
+                functionBodyBuilder.Add(function, refactored);
                 diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
             }
 

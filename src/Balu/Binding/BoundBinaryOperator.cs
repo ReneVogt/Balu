@@ -56,4 +56,49 @@ sealed class BoundBinaryOperator
 
     public static BoundBinaryOperator? Bind(SyntaxKind syntaxKind, TypeSymbol leftType, TypeSymbol rightType) =>
         operators.TryGetValue((syntaxKind, leftType, rightType), out var op) ? op : null;
+    public object Apply(object? left, object? right)
+    {
+        if (LeftType == TypeSymbol.Integer && RightType == TypeSymbol.Integer)
+            return Apply((int)left!, (int)right!);
+        if (LeftType == TypeSymbol.Boolean && RightType == TypeSymbol.Boolean)
+            return Apply((bool)left!, (bool)right!);
+        if (LeftType == TypeSymbol.String && RightType == TypeSymbol.String)
+            return Apply((string)left!, (string)right!);
+        throw new BindingException($"Unexpected binary operand types '{LeftType}' and '{RightType}' for operator '{OperatorKind}' to target type '{Type}'.");
+    }
+    object Apply(int left, int right) => OperatorKind switch
+    {
+        BoundBinaryOperatorKind.Addition => left + right,
+        BoundBinaryOperatorKind.BitwiseAnd => left & right,
+        BoundBinaryOperatorKind.BitwiseOr => left | right,
+        BoundBinaryOperatorKind.BitwiseXor => left ^ right,
+        BoundBinaryOperatorKind.Division => left /right,
+        BoundBinaryOperatorKind.Equals => left == right,
+        BoundBinaryOperatorKind.Greater => left > right,
+        BoundBinaryOperatorKind.GreaterOrEquals => left >= right,
+        BoundBinaryOperatorKind.Less => left < right,
+        BoundBinaryOperatorKind.LessOrEquals => left <= right,
+        BoundBinaryOperatorKind.Multiplication => left * right,
+        BoundBinaryOperatorKind.NotEqual => left != right,
+        BoundBinaryOperatorKind.Substraction => left - right,
+        _ => throw new BindingException($"Unexpected binary operator kind '{OperatorKind}' for operands of type '{LeftType}'.")
+    };
+    bool Apply(bool left, bool right) => OperatorKind switch
+    {
+        BoundBinaryOperatorKind.NotEqual => left != right,
+        BoundBinaryOperatorKind.Equals => left == right,
+        BoundBinaryOperatorKind.LogicalAnd => left && right,
+        BoundBinaryOperatorKind.LogicalOr => left || right,
+        BoundBinaryOperatorKind.BitwiseAnd => left & right,
+        BoundBinaryOperatorKind.BitwiseOr => left | right,
+        BoundBinaryOperatorKind.BitwiseXor => left ^ right,
+        _ => throw new BindingException($"Unexpected binary operator kind '{OperatorKind}' for operands of type '{LeftType}'.")
+    };
+    object Apply(string left, string right) => OperatorKind switch
+    {
+        BoundBinaryOperatorKind.NotEqual => left != right,
+        BoundBinaryOperatorKind.Equals => left == right,
+        BoundBinaryOperatorKind.Addition => left + right,
+        _ => throw new BindingException($"Unexpected binary operator kind '{OperatorKind}' for operands of type '{LeftType}'.")
+    };
 }
