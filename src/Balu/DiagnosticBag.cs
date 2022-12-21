@@ -9,6 +9,8 @@ namespace Balu;
 
 sealed class DiagnosticBag : List<Diagnostic>
 {
+    public DiagnosticBag(){}
+    public DiagnosticBag(IEnumerable<Diagnostic> diagnostics) : base(diagnostics){}
 
     public void ReportUnexpectedToken(int start, int length, string text) =>
         Add(new(Diagnostic.LEX0000, new(start, length), $"Unexpected token '{text}'."));
@@ -58,4 +60,5 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportReturnOutsideOfFunction(ReturnStatementSyntax returnStatement) => Add(new(Diagnostic.BND0017, returnStatement.ReturnKeyword.Span, $"Invalid '{returnStatement.ReturnKeyword.Kind.GetText()}' outside any function."));
     public void ReportReturnMissingValue(TextSpan span, FunctionSymbol function) => Add(new(Diagnostic.BND0018, span, $"'{function.Name}' needs to return a value of type '{function.ReturnType}'."));
     public void ReportReturnTypeMismatch(TextSpan span, FunctionSymbol function, TypeSymbol actualType) => Add(new(Diagnostic.BND0019, span, $"'{function.Name}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
+    public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(Diagnostic.BND0020, function.Declaration!.Identifier.Span, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
 }

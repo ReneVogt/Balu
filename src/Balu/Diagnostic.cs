@@ -34,6 +34,7 @@ public sealed class Diagnostic
     public const string BND0017 = nameof(BND0017);
     public const string BND0018 = nameof(BND0018);
     public const string BND0019 = nameof(BND0019);
+    public const string BND0020 = nameof(BND0020);
 
     /// <summary>
     /// An id to identify the kind of error message.

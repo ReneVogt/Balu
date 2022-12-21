@@ -457,6 +457,8 @@ sealed class Binder : SyntaxVisitor
                 functionBinder.Visit(function.Declaration!.Body);
                 var body = (BoundStatement)functionBinder.boundNode!;
                 var refactored = Refactor(body, function);
+                if (function.ReturnType != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(refactored))
+                    functionBinder.diagnostics.ReportNotAllPathsReturn(function);
                 functionBodyBuilder.Add(function, refactored);
                 diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
             }

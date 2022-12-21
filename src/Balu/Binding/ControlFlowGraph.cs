@@ -254,4 +254,10 @@ sealed class ControlFlowGraph
         var blocks = new BlockBuilder().Build(statement);
         return new GraphBuilder().Build(blocks);
     }
+
+    public static bool AllPathsReturn(BoundBlockStatement body) => Create(body)
+                                                                   .End.Incoming
+                                                                   .All(incoming =>
+                                                                            incoming.From.Statements.Last().Kind ==
+                                                                            BoundNodeKind.ReturnStatement);
 }
