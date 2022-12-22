@@ -1,21 +1,15 @@
 ﻿using Balu.Text;
-using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// A lexer for the Balu language.
-/// </summary>
 sealed class Lexer
 {
-    readonly SourceText input;
+    readonly SyntaxTree syntaxTree;
+    readonly SourceText sourceText;
     readonly DiagnosticBag diagnostics = new();
 
-    /// <summary>
-    /// The list of error messages.
-    /// </summary>
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
     int position, start;
@@ -23,20 +17,12 @@ sealed class Lexer
     SyntaxKind kind;
     object? value;
 
-    /// <summary>
-    /// Creates a new <see cref="Lexer"/> instance.
-    /// </summary>
-    /// <param name="input">The input Balu code.</param>
-    /// <exception cref="ArgumentNullException"><paramref name="input"/> is <c>null</c>.</exception>
-    internal Lexer(SourceText input)
+    internal Lexer(SyntaxTree syntaxTree)
     {
-        this.input = input ?? throw new ArgumentNullException(nameof(input));
+        this.syntaxTree = syntaxTree;
+        sourceText = this.syntaxTree.Text;
     }
 
-    /// <summary>
-    /// Enumerates the <see cref="SyntaxToken">syntax tokens</see> from the input Balu code.
-    /// </summary>
-    /// <returns>A sequence of <see cref="SyntaxToken">syntax tokens</see>.</returns>
     public IEnumerable<SyntaxToken> Lex()
     {
         do
@@ -90,7 +76,7 @@ sealed class Lexer
             }
 
             if (kind == SyntaxKind.BadToken)
-                diagnostics.ReportUnexpectedToken(start, position - start, input[start].ToString());
+                diagnostics.ReportUnexpectedToken(start, position - start, sourceText[start].ToString());
 
             yield return new(kind, new(start, kind == SyntaxKind.EndOfFileToken ? 0 :  position - start), text, value);
 
@@ -99,19 +85,19 @@ sealed class Lexer
     char Peek(int offset)
     {
         var index = position + offset;
-        return index >= input.Length ? '\0' : input[index];
+        return index >= sourceText.Length ? '\0' : sourceText[index];
     }
     char Current => Peek(0);
     void Next()
     {
-        if (position < input.Length) position++;
+        if (position < sourceText.Length) position++;
     }
 
     void ReadNumberToken()
     {
         kind = SyntaxKind.NumberToken;
         while (char.IsDigit(Current)) Next();
-        text = input.ToString(start, position - start);
+        text = sourceText.ToString(start, position - start);
         if (int.TryParse(text, out var v))
             value = v;
         else
@@ -121,12 +107,12 @@ sealed class Lexer
     {
         kind = SyntaxKind.WhiteSpaceToken;
         while (char.IsWhiteSpace(Current)) Next();
-        text = input.ToString(start, position - start);
+        text = sourceText.ToString(start, position - start);
     }
     void ReadIdentifierOrKeywordToken()
     {
         while (char.IsLetter(Current)) Next();
-        text = input.ToString(start, position - start);
+        text = sourceText.ToString(start, position - start);
         kind = text.KeywordKind();
         value = kind switch
         {
@@ -149,7 +135,7 @@ sealed class Lexer
                 case '\r':
                 case '\n':
                     diagnostics.ReportUnterminatedString(start, position - start);
-                    text = input.ToString(start, position - start);
+                    text = sourceText.ToString(start, position - start);
                     kind = SyntaxKind.StringToken;
                     return;
                 case '\\':
@@ -170,7 +156,7 @@ sealed class Lexer
             Next();
         }
         Next(); // skip closing "
-        text = input.ToString(start, position - start);
+        text = sourceText.ToString(start, position - start);
         kind = SyntaxKind.StringToken;
         value = valueBuilder.ToString();
     }

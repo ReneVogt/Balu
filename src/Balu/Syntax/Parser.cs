@@ -5,30 +5,22 @@ using Balu.Text;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// A parser for the Balu language.
-/// </summary>
 sealed class Parser
 {
     readonly DiagnosticBag diagnostics = new();
     readonly List<SyntaxToken> tokens = new();
     readonly SourceText sourceText;
+    readonly SyntaxTree syntaxTree;
 
     int position;
 
-    /// <summary>
-    /// The sequence of error messages.
-    /// </summary>
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
-    /// <summary>
-    /// Creates a new <see cref="Parser"/> for the given <paramref name="text"/> of Balu code.
-    /// </summary>
-    /// <param name="text">The text Balu code to parse.</param>
-    public Parser(SourceText text)
+    public Parser(SyntaxTree syntaxTree)
     {
-        sourceText = text;
-        var lexer = new Lexer(text);
+        this.syntaxTree = syntaxTree;
+        sourceText = this.syntaxTree.Text;
+        var lexer = new Lexer(syntaxTree);
         foreach (var token in lexer.Lex().Where(token => token.Kind != SyntaxKind.BadToken && token.Kind != SyntaxKind.WhiteSpaceToken))
         {
             tokens.Add(token);
@@ -38,10 +30,6 @@ sealed class Parser
         diagnostics.AddRange(lexer.Diagnostics);
     }
 
-    /// <summary>
-    /// Parses the provided text into an <see cref="SyntaxTree"/>.
-    /// </summary>
-    /// <returns>The resulting <see cref="CompilationUnitSyntax"/> representing the text Balu code.</returns>
     public CompilationUnitSyntax ParseCompilationUnit()
     {
         var members = ParseMembers();
