@@ -3,32 +3,19 @@ using System.Collections.Immutable;
 
 namespace Balu.Text;
 
-/// <summary>
-/// Represents a Balu source code text.
-/// </summary>
 public sealed class SourceText
 {
     readonly string text;
 
-    /// <summary>
-    /// The lines in this source code text.
-    /// </summary>
+    public string FileName { get; }
     public ImmutableArray<TextLine> Lines { get; }
-
-    /// <summary>
-    /// Returns the character in the original source text at the given <paramref name="index"/>.
-    /// </summary>
-    /// <param name="index">The index in the original source text to return the character from.</param>
-    /// <returns>The character at the given <paramref name="index"/> in the original source code.</returns>
     public char this[int index] => text[index];
-    /// <summary>
-    /// The length of the original source text.
-    /// </summary>
     public int Length => text.Length;
 
-    SourceText(string text)
+    SourceText(string text, string fileName)
     {
         this.text = text;
+        FileName = fileName;
         Lines = ParseLines(this, text);
     }
 
@@ -51,20 +38,8 @@ public sealed class SourceText
         return lower;
     }
 
-    /// <inheritdoc />
     public override string ToString() => text;
-    /// <summary>
-    /// Returns a part of the represented Balu code text.
-    /// </summary>
-    /// <param name="start">The start position of the part to return.</param>
-    /// <param name="length">The length of the part to return.</param>
-    /// <returns>The part of the original text defined by <paramref name="start"/> and <paramref name="length"/>.</returns>
     public string ToString(int start, int length) => text.Substring(start, length);
-    /// <summary>
-    /// Returns a part of the represented Balu code text.
-    /// </summary>
-    /// <param name="span">The span to return of the original text.</param>
-    /// <returns>The part of the original text defined by <paramref name="span"/>.</returns>
     public string ToString(TextSpan span) => ToString(span.Start, span.Length);
 
     static ImmutableArray<TextLine> ParseLines(SourceText sourceText, string text)
@@ -89,11 +64,6 @@ public sealed class SourceText
         return builder.ToImmutable();
     }
 
-    /// <summary>
-    /// Creates a <see cref="SourceText"/> instance from the given <paramref name="text"/>.
-    /// </summary>
-    /// <param name="text">The Balu source code.</param>
-    /// <returns>A new <see cref="SourceText"/> instance representing the Balu source code <paramref name="text"/>.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="text"/> is <c>null</c>.</exception>
-    public static SourceText From(string text) => new (text ?? throw new ArgumentNullException(nameof(text)));
+    public static SourceText From(string text, string fileName = "") => new(text ?? throw new ArgumentNullException(nameof(text)),
+                                                                            fileName ?? throw new ArgumentNullException(nameof(fileName)));
 }
