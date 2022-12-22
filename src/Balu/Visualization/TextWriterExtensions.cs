@@ -1,29 +1,63 @@
 ﻿using System;
 using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Balu.Syntax;
 
 namespace Balu.Visualization;
 
-static class TextWriterExtensions
+public static class TextWriterExtensions
 {
-    public static bool IsConsoleOut(this TextWriter textWriter) => textWriter == Console.Out || textWriter is IndentedTextWriter {InnerWriter: var writer} && writer == Console.Out;
+    public static bool IsConsole(this TextWriter textWriter) => textWriter == Console.Out || textWriter is IndentedTextWriter {InnerWriter: var writer} && (writer == Console.Out || writer == Console.Error);
     public static void SetForegroundColor(this TextWriter textWriter, ConsoleColor foregroundColor)
     {
-        if (!textWriter.IsConsoleOut()) return;
+        if (!textWriter.IsConsole()) return;
         Console.ForegroundColor = foregroundColor;
     }
     public static void ResetColor(this TextWriter textWriter)
     {
-        if (!textWriter.IsConsoleOut()) return;
+        if (!textWriter.IsConsole()) return;
         Console.ResetColor();
     }
 
-    public static void WriteKeyword(this TextWriter textWriter, string? text) => textWriter.WriteColoredText(text, ConsoleColor.Blue);
-    public static void WriteIdentifier(this TextWriter textWriter, string? text) => textWriter.WriteColoredText(text, ConsoleColor.DarkYellow);
-    public static void WriteNumber(this TextWriter textWriter, string? text) => textWriter.WriteColoredText(text, ConsoleColor.Cyan);
-    public static void WriteString(this TextWriter textWriter, string? text) => textWriter.WriteColoredText(text, ConsoleColor.Magenta);
-    public static void WritePunctuation(this TextWriter textWriter, string? text) => textWriter.WriteColoredText(text, ConsoleColor.DarkGray);
-    public static void WriteSpace(this TextWriter textWriter) => textWriter.Write(' ');
+    public static void WriteKeyword(this TextWriter textWriter, string? text) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).WriteColoredText(text, ConsoleColor.Blue);
+    public static void WriteIdentifier(this TextWriter textWriter, string? text) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).WriteColoredText(text, ConsoleColor.DarkYellow);
+    public static void WriteNumber(this TextWriter textWriter, string? text) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).WriteColoredText(text, ConsoleColor.Cyan);
+    public static void WriteString(this TextWriter textWriter, string? text) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).WriteColoredText(text, ConsoleColor.Magenta);
+    public static void WritePunctuation(this TextWriter textWriter, string? text) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).WriteColoredText(text, ConsoleColor.DarkGray);
+    public static void WriteSpace(this TextWriter textWriter) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).Write(' ');
+
+#pragma warning disable CA1303
+    public static void WriteDiagnostics(this TextWriter textWriter, IEnumerable<Diagnostic> diagnostics, SyntaxTree syntaxTree)
+    {
+        _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
+        _ = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
+        _ = syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree));
+
+        const string indent = "    ";
+
+        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Span.Start).ThenBy(diagnostic => diagnostic.Span.Length))
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.Span.Start);
+            var syntaxLine = syntaxTree.Text.Lines[lineNumber];
+            int column = diagnostic.Span.Start - syntaxLine.Start;
+            Console.WriteLine($"[{diagnostic.Id}]({lineNumber + 1}, {column + 1}): {diagnostic.Message}");
+            Console.ResetColor();
+            if (diagnostic.Span.Length > 0)
+            {
+                Console.Write(indent);
+                Console.Write(syntaxTree.Text.ToString(syntaxLine.Start, column));
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.Write(syntaxTree.Text.ToString(diagnostic.Span));
+                Console.ResetColor();
+                Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Span.End, Math.Max(0, syntaxLine.End - diagnostic.Span.End)));
+                Console.ResetColor();
+            }
+        }
+    }
+
     static void WriteColoredText(this TextWriter textWriter, string? text, ConsoleColor foregroundColor)
     {
         textWriter.SetForegroundColor(foregroundColor);

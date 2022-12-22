@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using Balu.Syntax;
+using Balu.Visualization;
 
 #pragma warning disable CA1303
 
@@ -75,27 +76,7 @@ sealed class BaluRepl : Repl
         Console.ResetColor();
         Console.WriteLine();
         if (result.Diagnostics.Any())
-        {
-            foreach (var diagnostic in result.Diagnostics)
-            {
-                Console.ForegroundColor = ConsoleColor.Red;
-                int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.Span.Start);
-                var syntaxLine = syntaxTree.Text.Lines[lineNumber];
-                int column = diagnostic.Span.Start - syntaxLine.Start;
-                Console.WriteLine($"[{diagnostic.Id}]({lineNumber + 1}, {column + 1}): {diagnostic.Message}");
-                Console.ResetColor();
-                if (diagnostic.Span.Length > 0)
-                {
-                    Console.Write("   ");
-                    Console.Write(syntaxTree.Text.ToString(syntaxLine.Start, column));
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.Write(syntaxTree.Text.ToString(diagnostic.Span));
-                    Console.ResetColor();
-                    Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Span.End, Math.Max(0, syntaxLine.End - diagnostic.Span.End)));
-                    Console.ResetColor();
-                }
-            }
-        }
+            Console.Out.WriteDiagnostics(result.Diagnostics, compilation.SyntaxTree);
         else
         {
             previous = compilation;

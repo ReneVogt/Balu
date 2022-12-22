@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "bc": {
+      "commandName": "Project",
+      "commandLineArgs": "sample.balu"
+    }
+  }
+}
