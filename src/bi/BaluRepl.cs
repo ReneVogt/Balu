@@ -58,7 +58,7 @@ sealed class BaluRepl : Repl
             Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("Syntax:");
             Console.ResetColor();
-            compilation.WriteSyntaxTree(Console.Out);
+            compilation.WriteSyntaxTrees(Console.Out);
         }
         if (showProgram)
         {
@@ -76,7 +76,7 @@ sealed class BaluRepl : Repl
         Console.ResetColor();
         Console.WriteLine();
         if (result.Diagnostics.Any())
-            Console.Out.WriteDiagnostics(result.Diagnostics, compilation.SyntaxTree);
+            Console.Out.WriteDiagnostics(result.Diagnostics);
         else
         {
             previous = compilation;
@@ -92,6 +92,7 @@ sealed class BaluRepl : Repl
                 if (globals.Any())
                     Console.WriteLine(string.Join(Environment.NewLine, globals.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
             }
+
             Console.ResetColor();
         }
     }

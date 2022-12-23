@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Balu;
@@ -19,24 +20,18 @@ sealed class Program
             return;
         }
 
-        if (args.Length > 1)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine("Error: multiple source files are not yet supported.");
-            Console.ResetColor();
-            return;
-        }
-
         try
         {
-            var path = Path.GetFullPath(args.Single());
-            var syntaxTree = SyntaxTree.Load(path);
-            var compilation = new Compilation(syntaxTree);
+            var syntaxTrees = GetFilePaths(args).Select(path => SyntaxTree.Load(Path.GetFullPath(path))).ToArray();
+            var compilation = new Compilation(syntaxTrees);
             var result = compilation.Evaluate(new ());
             if (result.Diagnostics.Any())
-                Console.Error.WriteDiagnostics(result.Diagnostics, compilation.SyntaxTree);
+                Console.Error.WriteDiagnostics(result.Diagnostics);
             else
-                Console.WriteLine($"Result: {result.Value}");
+            {
+                var output = result.Value is string s ? $"\"{s.EscapeString()}\"" : result.Value;
+                Console.WriteLine($"Result: {output}");
+            }
         }
         catch (Exception error)
         {
@@ -44,5 +39,20 @@ sealed class Program
             Console.Error.WriteLine(error);
             Console.ResetColor();
         }
+    }
+
+    static IEnumerable<string> GetFilePaths(IEnumerable<string> args)
+    {
+        var result = new SortedSet<string>();
+        foreach (var path in args)
+        {
+            var fullPath = Path.GetFullPath(path);
+            if (Directory.Exists(fullPath))
+                result.UnionWith(Directory.EnumerateFiles(path, "*.balu", SearchOption.AllDirectories));
+            else
+                result.Add(path);
+        }
+
+        return result;
     }
 }

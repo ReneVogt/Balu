@@ -21,7 +21,7 @@ public sealed class Compilation
         {
             if (globalScope is null)
             {
-                var scope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTree.Root);
+                var scope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTrees);
                 Interlocked.CompareExchange(ref globalScope, scope, null);
             }
 
@@ -42,19 +42,20 @@ public sealed class Compilation
         }
     }
 
-    public SyntaxTree SyntaxTree { get; }
+    public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
     public Compilation? Previous { get; }
 
-    public Compilation(SyntaxTree syntaxTree) : this(null, syntaxTree){}
+    public Compilation(params SyntaxTree[] syntaxTrees) : this(null, syntaxTrees){}
 
-    Compilation(Compilation? previous, SyntaxTree syntaxTree) => (Previous, SyntaxTree) = (previous, syntaxTree);
+    Compilation(Compilation? previous, params SyntaxTree[] syntaxTrees) => (Previous, SyntaxTrees) = (previous, syntaxTrees.ToImmutableArray());
 
     public Compilation ContinueWith(SyntaxTree syntaxTree) => new (this, syntaxTree);
 
     public EvaluationResult Evaluate(VariableDictionary globals)
     {
         _ = globals ?? throw new ArgumentNullException(nameof(globals));
-        var diagnostics = SyntaxTree.Diagnostics.AddRange(GlobalScope.Diagnostics);
+
+        var diagnostics = SyntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(GlobalScope.Diagnostics).ToImmutableArray();
         if (diagnostics.Any())
             return new(diagnostics, null);
         diagnostics = Program.Diagnostics;
@@ -64,7 +65,11 @@ public sealed class Compilation
         return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(GlobalScope.Statement, globals, Program.Functions));
     }
 
-    public void WriteSyntaxTree(TextWriter writer) => SyntaxTreeWriter.Print(SyntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
+    public void WriteSyntaxTrees(TextWriter writer)
+    {
+        foreach (var syntaxTree in SyntaxTrees)
+            SyntaxTreeWriter.Print(syntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
+    }
     public void WriteProgramTree(TextWriter writer) => BoundTreeWriter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
     public void WriteControlFlowGraph(TextWriter writer)
     {

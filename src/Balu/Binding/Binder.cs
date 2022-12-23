@@ -424,14 +424,14 @@ sealed class Binder : SyntaxVisitor
         result = ConstantReducer.ReduceConstants(result);
         return result;
     }
-    public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax syntax)
+    public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
     {
         var parentScope = CreateParentScopes(previous);
         var binder = new Binder(parentScope);
 
-        binder.BindFunctionDeclarations(syntax.Members.OfType<FunctionDeclarationSyntax>());
+        binder.BindFunctionDeclarations(syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<FunctionDeclarationSyntax>()));
         var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
-        foreach (var globalStatement in syntax.Members.OfType<GlobalStatementSyntax>())
+        foreach (var globalStatement in syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>()))
         {
             binder.Visit(globalStatement);
             statementBuilder.Add((BoundStatement)binder.boundNode!);
