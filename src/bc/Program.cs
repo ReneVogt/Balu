@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using Balu;
 using Balu.Syntax;
-using Balu.Text;
 using Balu.Visualization;
 
 #pragma warning disable CA1031 // Main catches all exceptions
@@ -30,10 +29,8 @@ sealed class Program
 
         try
         {
-            var path = args.Single();
-            var code = File.ReadAllText(path);
-            var sourceText = SourceText.From(code);
-            var syntaxTree = SyntaxTree.Parse(sourceText);
+            var path = Path.GetFullPath(args.Single());
+            var syntaxTree = SyntaxTree.Load(path);
             var compilation = new Compilation(syntaxTree);
             var result = compilation.Evaluate(new ());
             if (result.Diagnostics.Any())

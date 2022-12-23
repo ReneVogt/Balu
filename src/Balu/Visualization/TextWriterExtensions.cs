@@ -28,7 +28,7 @@ public static class TextWriterExtensions
     public static void WritePunctuation(this TextWriter textWriter, string? text) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).WriteColoredText(text, ConsoleColor.DarkGray);
     public static void WriteSpace(this TextWriter textWriter) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).Write(' ');
 
-#pragma warning disable CA1303
+#pragma warning disable CA1303 // writing literals to console
     public static void WriteDiagnostics(this TextWriter textWriter, IEnumerable<Diagnostic> diagnostics, SyntaxTree syntaxTree)
     {
         _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
@@ -37,13 +37,13 @@ public static class TextWriterExtensions
 
         const string indent = "    ";
 
-        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Location.Span.Start).ThenBy(diagnostic => diagnostic.Location.Span.Length))
+        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Location.Text.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenBy(diagnostic => diagnostic.Location.Span.Length))
         {
             Console.ForegroundColor = ConsoleColor.Red;
             int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.Location.Span.Start);
             var syntaxLine = syntaxTree.Text.Lines[lineNumber];
             int column = diagnostic.Location.Span.Start - syntaxLine.Start;
-            Console.WriteLine($"[{diagnostic.Id}]({lineNumber + 1}, {column + 1}): {diagnostic.Message}");
+            Console.WriteLine($"[{diagnostic.Id}] {diagnostic.Location}: {diagnostic.Message}");
             Console.ResetColor();
             if (diagnostic.Location.Span.Length > 0)
             {
