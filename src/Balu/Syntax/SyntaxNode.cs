@@ -15,6 +15,7 @@ public abstract class SyntaxNode
     public virtual TextSpan Span => span.Value;
     public abstract IEnumerable<SyntaxNode> Children { get; }
     public SyntaxToken LastToken => GetLastToken();
+    public TextLocation Location => new (SyntaxTree.Text, Span);
 
     private protected SyntaxNode(SyntaxTree syntaxTree)
     {
@@ -25,7 +26,6 @@ public abstract class SyntaxNode
             var first = children.First();
             var last = children.Last();
             return first.Span with { Length = last.Span.End - first.Span.Start };
-
         });
     }
 

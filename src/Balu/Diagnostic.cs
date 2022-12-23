@@ -34,10 +34,10 @@ public sealed class Diagnostic
     public const string BND0020 = nameof(BND0020);
 
     public string Id { get; }
-    public TextSpan Span { get; }
+    public TextLocation Location { get; }
     public string Message { get; }
     
-    public Diagnostic(string id, TextSpan span, string message) => (Id, Span, Message) = (id, span, message);
+    public Diagnostic(string id, TextLocation location, string message) => (Id, Location, Message) = (id, location, message);
 
-    public override string ToString() => $"[{Id}]{Span}: {Message}";
+    public override string ToString() => $"{Location}: [{Id}] {Message}";
 }

@@ -22,7 +22,7 @@ static class CompilationAsserter
         for (int i = 0; i < expectedDiagnostics.Length; i++)
         {
             Assert.Equal(expectedDiagnostics[i], result.Diagnostics[i].Message);
-            Assert.Equal(annotatedText.Spans[i], result.Diagnostics[i].Span);
+            Assert.Equal(annotatedText.Spans[i], result.Diagnostics[i].Location.Span);
         }
 
         if (expectedDiagnostics.Length == 0)
@@ -44,7 +44,7 @@ static class CompilationAsserter
         for (int i = 0; i < expectedDiagnostics.Length; i++)
         {
             Assert.Equal(expectedDiagnostics[i], actualDiagnostics[i].Message);
-            Assert.Equal(annotatedText.Spans[i], actualDiagnostics[i].Span);
+            Assert.Equal(annotatedText.Spans[i], actualDiagnostics[i].Location.Span);
         }
     }
 }

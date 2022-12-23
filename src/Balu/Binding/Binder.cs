@@ -114,7 +114,7 @@ sealed class Binder : SyntaxVisitor
         }
 
         var expression = (BoundExpression)boundNode!;
-        expression = BindConversion(node.EqualsToken.Span, expression, variable.Type);
+        expression = BindConversion(node.EqualsToken.Location, expression, variable.Type);
 
         boundNode = new BoundAssignmentExpression(variable, expression);
         return node;
@@ -126,7 +126,7 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[0]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            boundNode = BindConversion(node.Span, argument, castType, true);
+            boundNode = BindConversion(node.Location, argument, castType, true);
             return node;
         }
 
@@ -159,10 +159,10 @@ sealed class Binder : SyntaxVisitor
             Visit(node.Arguments[i]);
             if (IsError) return node;
             var argument = (BoundExpression)boundNode!;
-            boundNode = BindConversion(node.Arguments[i].Span, argument, function.Parameters[i].Type);
+            boundNode = BindConversion(node.Arguments[i].Location, argument, function.Parameters[i].Type);
             if (IsError)
             {
-                diagnostics.ReportWrongArgumentType(node.Arguments[i].Span, function.Name, function.Parameters[i].Name, function.Parameters[i].Type, argument.Type);
+                diagnostics.ReportWrongArgumentType(node.Arguments[i].Location, function.Name, function.Parameters[i].Name, function.Parameters[i].Type, argument.Type);
                 errors = true;
             }
             arguments.Add((BoundExpression)boundNode!);
@@ -200,11 +200,11 @@ sealed class Binder : SyntaxVisitor
         Visit(node.Expression);
         var expression = (BoundExpression)boundNode!;
         if (expression.Type == TypeSymbol.Void)
-            diagnostics.ReportExpressionMustHaveValue(node.Expression.Span);
+            diagnostics.ReportExpressionMustHaveValue(node.Expression.Location);
         bool readOnly = node.KeywordToken.Kind == SyntaxKind.LetKeyword;
         var type = BindTypeClause(node.TypeClause) ?? expression.Type;
         var variable = BindVariable(node.IdentifierToken, readOnly, type);
-        expression = BindConversion(node.EqualsToken.Span, expression, type);
+        expression = BindConversion(node.EqualsToken.Location, expression, type);
         boundNode = new BoundVariableDeclarationStatement(variable, expression);
         return node;
     }
@@ -212,7 +212,7 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
-        condition = BindConversion(node.Condition.Span, condition, TypeSymbol.Boolean);
+        condition = BindConversion(node.Condition.Location, condition, TypeSymbol.Boolean);
 
         Visit(node.ThenStatement);
         var thenStatement = (BoundStatement)boundNode!;
@@ -232,7 +232,7 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
-        condition = BindConversion(node.Condition.Span, condition, TypeSymbol.Boolean);
+        condition = BindConversion(node.Condition.Location, condition, TypeSymbol.Boolean);
 
         var statement = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
 
@@ -245,7 +245,7 @@ sealed class Binder : SyntaxVisitor
         var statement = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
-        condition = BindConversion(node.Condition.Span, condition, TypeSymbol.Boolean);
+        condition = BindConversion(node.Condition.Location, condition, TypeSymbol.Boolean);
 
         boundNode = new BoundDoWhileStatement(statement, condition, breakLabel, continueLabel);
 
@@ -255,10 +255,10 @@ sealed class Binder : SyntaxVisitor
     {
         Visit(node.LowerBound);
         var lowerBound = (BoundExpression)boundNode!;
-        lowerBound = BindConversion(node.LowerBound.Span, lowerBound, TypeSymbol.Integer);
+        lowerBound = BindConversion(node.LowerBound.Location, lowerBound, TypeSymbol.Integer);
         Visit(node.UpperBound);
         var upperBound = (BoundExpression)boundNode!;
-        upperBound = BindConversion(node.UpperBound.Span, upperBound, TypeSymbol.Integer);
+        upperBound = BindConversion(node.UpperBound.Location, upperBound, TypeSymbol.Integer);
 
         scope = new (scope);
         var variable = BindVariable(node.IdentifierToken, false, TypeSymbol.Integer);
@@ -311,15 +311,15 @@ sealed class Binder : SyntaxVisitor
         {
             if (containingFunction.ReturnType != TypeSymbol.Void)
             {
-                diagnostics.ReportReturnMissingValue(node.Span, containingFunction);
+                diagnostics.ReportReturnMissingValue(node.Location, containingFunction);
                 expression = new BoundErrorExpression();
             }
         }
         else
         {
-            expression = BindConversion(node.Expression!.Span, expression, containingFunction.ReturnType);
+            expression = BindConversion(node.Expression!.Location, expression, containingFunction.ReturnType);
             if (expression.Type == TypeSymbol.Error)
-                diagnostics.ReportReturnTypeMismatch(node.Expression!.Span, containingFunction, ((BoundExpression)boundNode!).Type);
+                diagnostics.ReportReturnTypeMismatch(node.Expression!.Location, containingFunction, ((BoundExpression)boundNode!).Type);
         }
         
         boundNode = new BoundReturnStatement(expression);
@@ -372,13 +372,13 @@ sealed class Binder : SyntaxVisitor
         if (boundNode is BoundExpressionStatement { Expression.Kind : BoundNodeKind.ErrorExpression }) return;
         boundNode = new BoundExpressionStatement(new BoundErrorExpression());
     }
-    BoundExpression BindConversion(TextSpan span, BoundExpression expression, TypeSymbol targetType, bool allowExplicit = false)
+    BoundExpression BindConversion(TextLocation location, BoundExpression expression, TypeSymbol targetType, bool allowExplicit = false)
     {
         if (expression.Type == TypeSymbol.Error) return expression;
         var conversion = Conversion.Classify(expression.Type, targetType);
         if (!conversion.Exists)
         {
-            diagnostics.ReportCannotConvert(span, expression.Type, targetType);
+            diagnostics.ReportCannotConvert(location, expression.Type, targetType);
             return new BoundErrorExpression();
         }
 
@@ -387,7 +387,7 @@ sealed class Binder : SyntaxVisitor
 
         if (!allowExplicit)
         {
-            diagnostics.ReportCannotConvertImplicit(span, expression.Type, targetType);
+            diagnostics.ReportCannotConvertImplicit(location, expression.Type, targetType);
             return new BoundErrorExpression();
         }
 

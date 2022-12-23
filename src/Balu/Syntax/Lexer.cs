@@ -76,7 +76,7 @@ sealed class Lexer
             }
 
             if (kind == SyntaxKind.BadToken)
-                diagnostics.ReportUnexpectedToken(start, position - start, sourceText[start].ToString());
+                diagnostics.ReportUnexpectedToken(new(sourceText, new(start, position - start)), sourceText[start].ToString());
 
             yield return new(syntaxTree, kind, new(start, kind == SyntaxKind.EndOfFileToken ? 0 :  position - start), text, value);
 
@@ -101,7 +101,7 @@ sealed class Lexer
         if (int.TryParse(text, out var v))
             value = v;
         else
-            diagnostics.ReportNumberNotValid(start, position - start, text);
+            diagnostics.ReportNumberNotValid(new(sourceText, new(start, position - start)), text);
     }
     void ReadWhiteSpaceToken()
     {
@@ -134,7 +134,7 @@ sealed class Lexer
                 case '\0':
                 case '\r':
                 case '\n':
-                    diagnostics.ReportUnterminatedString(start, position - start);
+                    diagnostics.ReportUnterminatedString(new (sourceText, new(start, position - start)));
                     text = sourceText.ToString(start, position - start);
                     kind = SyntaxKind.StringToken;
                     return;
@@ -146,7 +146,7 @@ sealed class Lexer
                         Next();
                     }
                     else
-                        diagnostics.ReportInvalidEscapeSequence(position+1, 1, next.ToString());
+                        diagnostics.ReportInvalidEscapeSequence(new(sourceText, new(position+1, 1)), next.ToString());
                     break;
                 default:
                     valueBuilder.Append(Current);

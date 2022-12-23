@@ -37,22 +37,22 @@ public static class TextWriterExtensions
 
         const string indent = "    ";
 
-        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Span.Start).ThenBy(diagnostic => diagnostic.Span.Length))
+        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Location.Span.Start).ThenBy(diagnostic => diagnostic.Location.Span.Length))
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.Span.Start);
+            int lineNumber = syntaxTree.Text.GetLineIndex(diagnostic.Location.Span.Start);
             var syntaxLine = syntaxTree.Text.Lines[lineNumber];
-            int column = diagnostic.Span.Start - syntaxLine.Start;
+            int column = diagnostic.Location.Span.Start - syntaxLine.Start;
             Console.WriteLine($"[{diagnostic.Id}]({lineNumber + 1}, {column + 1}): {diagnostic.Message}");
             Console.ResetColor();
-            if (diagnostic.Span.Length > 0)
+            if (diagnostic.Location.Span.Length > 0)
             {
                 Console.Write(indent);
                 Console.Write(syntaxTree.Text.ToString(syntaxLine.Start, column));
                 Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(syntaxTree.Text.ToString(diagnostic.Span));
+                Console.Write(syntaxTree.Text.ToString(diagnostic.Location.Span));
                 Console.ResetColor();
-                Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Span.End, Math.Max(0, syntaxLine.End - diagnostic.Span.End)));
+                Console.WriteLine(syntaxTree.Text.ToString(diagnostic.Location.Span.End, Math.Max(0, syntaxLine.End - diagnostic.Location.Span.End)));
                 Console.ResetColor();
             }
         }
