@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
@@ -16,27 +17,19 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
             yield return ClosedParenthesis;
         }
     }
-
-    /// <summary>
-    /// The <see cref="SyntaxToken"/> identifying the name of the function.
-    /// </summary>
     public SyntaxToken Identifier { get; }
-    /// <summary>
-    /// The open parenthesis of the call expression.
-    /// </summary>
     public SyntaxToken OpenParenthesis { get; }
     public SeparatedSyntaxList<ExpressionSyntax> Arguments { get; }
-    /// <summary>
-    /// The closed parenthesis of the call expression.
-    /// </summary>
     public SyntaxToken ClosedParenthesis { get; }
 
-    internal CallExpressionSyntax(SyntaxToken identifier, SyntaxToken openParenthesis, SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closedParenthesis)
+    public CallExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken identifier, SyntaxToken openParenthesis,
+                                SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closedParenthesis)
+        : base(syntaxTree)
     {
-        Identifier = identifier;
-        OpenParenthesis = openParenthesis;
-        Arguments = arguments;
-        ClosedParenthesis = closedParenthesis;
+        Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
+        OpenParenthesis = openParenthesis ?? throw new ArgumentNullException(nameof(openParenthesis));
+        Arguments = arguments ?? throw new ArgumentNullException(nameof(arguments));
+        ClosedParenthesis = closedParenthesis ?? throw new ArgumentNullException(nameof(closedParenthesis));
     }
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
@@ -49,9 +42,8 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
         return identifier == Identifier && open == OpenParenthesis && arguments == Arguments &&
                close == ClosedParenthesis
                    ? this
-                   : Call(identifier, open, arguments, close);
+                   : new(null, identifier, open, arguments, close);
     }
 
-    /// <inheritdoc />
     public override string ToString() => $"{Kind}{Span}: {Identifier.Text}";
 }

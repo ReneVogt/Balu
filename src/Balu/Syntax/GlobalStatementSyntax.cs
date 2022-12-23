@@ -1,31 +1,26 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a global statement in the Balu language.
-/// </summary>
 public sealed class GlobalStatementSyntax : MemberSyntax
 {
-    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.GlobalStatement;
-    /// <inheritdoc />
     public override IEnumerable<SyntaxNode> Children
     {
         get { yield return Statement; }
     }
 
-    /// <summary>
-    /// The global statement.
-    /// </summary>
     public StatementSyntax Statement { get; }
 
-    internal GlobalStatementSyntax(StatementSyntax statement) => Statement = statement;
+    public GlobalStatementSyntax(SyntaxTree? syntaxTree, StatementSyntax statement) : base(syntaxTree)
+    {
+        Statement = statement ?? throw new ArgumentNullException(nameof(statement)) ;
+    }
 
-    /// <inheritdoc />
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var statement = (StatementSyntax)visitor.Visit(Statement);
-        return statement == Statement ? this : GlobalStatement(statement);
+        return statement == Statement ? this : new(null, statement);
     }
 }

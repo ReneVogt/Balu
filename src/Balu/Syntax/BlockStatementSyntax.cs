@@ -1,16 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// A block statement surrounded by braces.
-/// </summary>
 public sealed class BlockStatementSyntax : StatementSyntax
 {
-    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.BlockStatement;
-    /// <inheritdoc />
     public override IEnumerable<SyntaxNode> Children
     {
         get
@@ -20,16 +16,16 @@ public sealed class BlockStatementSyntax : StatementSyntax
             yield return ClosedBraceToken;
         }
     }
-
     public SyntaxToken OpenBraceToken { get; }
     public ImmutableArray<StatementSyntax> Statements { get; }
     public SyntaxToken ClosedBraceToken { get; }
 
-    internal BlockStatementSyntax(SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken)
+    public BlockStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken)
+    : base(syntaxTree)
     {
-        OpenBraceToken = openBraceToken;
+        OpenBraceToken = openBraceToken ?? throw new ArgumentNullException(nameof(openBraceToken));
         Statements = statements;
-        ClosedBraceToken = closedBraceToken;
+        ClosedBraceToken = closedBraceToken ?? throw new ArgumentNullException(nameof(closedBraceToken));
     }
 
 
@@ -40,6 +36,6 @@ public sealed class BlockStatementSyntax : StatementSyntax
         var closedBrace = (SyntaxToken)visitor.Visit(ClosedBraceToken);
         return openBrace == OpenBraceToken && transformed == Statements && closedBrace == ClosedBraceToken
                    ? this
-                   : BlockStatement(openBrace, transformed, closedBrace);
+                   : new(null, openBrace, transformed, closedBrace);
     }
 }

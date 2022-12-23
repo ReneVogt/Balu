@@ -1,15 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
-
-/// <summary>
-/// Represents a 'while' statement.
-/// </summary>
 public sealed class WhileStatementSyntax : StatementSyntax
 {
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.WhileStatement;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children
     {
         get
@@ -19,25 +14,16 @@ public sealed class WhileStatementSyntax : StatementSyntax
             yield return Body;
         }
     }
-
-    /// <summary>
-    /// The <see cref="SyntaxToken"/> representing the 'while' keyword.
-    /// </summary>
     public SyntaxToken WhileKeyword { get; }
-    /// <summary>
-    /// The 'while' condition.
-    /// </summary>
     public ExpressionSyntax Condition { get; }
-    /// <summary>
-    /// The body of the 'while' statement.
-    /// </summary>
     public StatementSyntax Body { get; }
 
-    internal WhileStatementSyntax(SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body)
+    public WhileStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body)
+    :base(syntaxTree)
     {
-        WhileKeyword = whileKeyword;
-        Condition = condition;
-        Body = body;
+        WhileKeyword = whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword));
+        Condition = condition ?? throw new ArgumentNullException(nameof(condition));
+        Body = body ?? throw new ArgumentNullException(nameof(body));
     }
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
@@ -46,6 +32,6 @@ public sealed class WhileStatementSyntax : StatementSyntax
         var statement = (StatementSyntax)visitor.Visit(Body);
         return whileKeyword == WhileKeyword && condition == Condition && statement == Body
                    ? this
-                   : WhileStatement(whileKeyword, condition, statement);
+                   : new(null, whileKeyword, condition, statement);
     }
 }

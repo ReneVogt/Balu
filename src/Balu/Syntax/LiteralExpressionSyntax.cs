@@ -1,19 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a literal expression like numbers or identifiers.
-/// </summary>
 public sealed class LiteralExpressionSyntax : ExpressionSyntax
 {
-    /// <summary>
-    /// The <see cref="SyntaxToken"/> of this expression.
-    /// </summary>
     public SyntaxToken LiteralToken { get; }
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.LiteralExpression;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children 
     {
         get
@@ -22,17 +15,18 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
         }
     }
 
-    /// <summary>
-    /// The value of the <see cref="LiteralExpressionSyntax"/>.
-    /// </summary>
     public object? Value { get; }
 
-    internal LiteralExpressionSyntax(SyntaxToken literalToken) : this(literalToken, literalToken.Value){}
-    internal LiteralExpressionSyntax(SyntaxToken literalToken, object? value) => (LiteralToken, Value) = (literalToken, value);
+    public LiteralExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken literalToken) : this(syntaxTree, literalToken ?? throw new ArgumentNullException(nameof(literalToken)), literalToken.Value){}
+    public LiteralExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken literalToken, object? value) : base(syntaxTree)
+    {
+        LiteralToken = literalToken ?? throw new ArgumentNullException(nameof(literalToken));
+        Value = value;
+    }
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         SyntaxToken literal = (SyntaxToken)visitor.Visit(LiteralToken);
-        return literal == LiteralToken ? this : Literal(literal, literal.Value);
+        return literal == LiteralToken ? this : new(null, literal, literal.Value);
     }
 }

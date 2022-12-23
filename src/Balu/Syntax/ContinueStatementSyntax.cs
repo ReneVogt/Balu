@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a 'continue' statement.
-/// </summary>
 public sealed class ContinueStatementSyntax : StatementSyntax
 {
-    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.ContinueStatement;
-    /// <inheritdoc />
     public override IEnumerable<SyntaxNode> Children
     {
         get
@@ -17,15 +13,14 @@ public sealed class ContinueStatementSyntax : StatementSyntax
             yield return ContinueKeyword;
         }
     }
-
     public SyntaxToken ContinueKeyword { get; }
 
-    internal ContinueStatementSyntax(SyntaxToken continueKeyword) => ContinueKeyword = continueKeyword;
+    public ContinueStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken continueKeyword)
+        : base(syntaxTree) => ContinueKeyword = continueKeyword ?? throw new ArgumentNullException(nameof(continueKeyword));
 
-    /// <inheritdoc />
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var continueKeyword = (SyntaxToken)visitor.Visit(ContinueKeyword);
-        return continueKeyword == ContinueKeyword ? this : ContinueStatement(continueKeyword);
+        return continueKeyword == ContinueKeyword ? this : new(null, continueKeyword);
     }
 }

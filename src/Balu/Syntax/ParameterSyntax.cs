@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a function parameter.
-/// </summary>
 public sealed class ParameterSyntax : SyntaxNode
 {
-    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.Parameter;
-    /// <inheritdoc />
     public override IEnumerable<SyntaxNode> Children
     {
         get
@@ -18,27 +14,19 @@ public sealed class ParameterSyntax : SyntaxNode
             yield return TypeClause;
         }
     }
-
-    /// <summary>
-    /// The <see cref="SyntaxToken"/> for the parameter's name.
-    /// </summary>
     public SyntaxToken Identifier { get; }
-    /// <summary>
-    /// The parameter's type clause.
-    /// </summary>
     public TypeClauseSyntax TypeClause { get; }
 
-    internal ParameterSyntax(SyntaxToken identifier, TypeClauseSyntax type)
+    public ParameterSyntax(SyntaxTree? syntaxTree, SyntaxToken identifier, TypeClauseSyntax type) : base(syntaxTree)
     {
-        Identifier = identifier;
-        TypeClause = type;
+        Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier)) ;
+        TypeClause = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    /// <inheritdoc />
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var identifier = (SyntaxToken)visitor.Visit(Identifier);
         var type = (TypeClauseSyntax)visitor.Visit(TypeClause);
-        return identifier == Identifier && type == TypeClause ? this : Parameter(identifier, type);
+        return identifier == Identifier && type == TypeClause ? this : new(null, identifier, type);
     }
 }

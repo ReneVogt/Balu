@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a type clause (' : type').
-/// </summary>
 public sealed class TypeClauseSyntax : SyntaxNode
 {
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.TypeClause;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children
     {
         get
@@ -18,22 +14,19 @@ public sealed class TypeClauseSyntax : SyntaxNode
             yield return Identifier;
         }
     }
-
-    /// <summary>
-    /// The ':' token.
-    /// </summary>
     public SyntaxToken ColonToken { get; }
-    /// <summary>
-    /// The identifier for the type name.
-    /// </summary>
     public SyntaxToken Identifier { get; }
 
-    internal TypeClauseSyntax(SyntaxToken colonToken, SyntaxToken identifier) => (ColonToken, Identifier) = (colonToken, identifier);
+    public TypeClauseSyntax(SyntaxTree? syntaxTree, SyntaxToken colonToken, SyntaxToken identifier) : base(syntaxTree)
+    {
+        ColonToken = colonToken ?? throw new ArgumentNullException(nameof(colonToken));
+        Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
+    }
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var colon = (SyntaxToken)visitor.Visit(ColonToken);
         var identifier = (SyntaxToken)visitor.Visit(Identifier);
-        return colon == ColonToken && identifier == Identifier ? this : Type(colon, identifier);
+        return colon == ColonToken && identifier == Identifier ? this : new(null, colon, identifier);
     }
 }

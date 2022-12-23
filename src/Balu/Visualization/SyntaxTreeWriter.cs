@@ -5,10 +5,6 @@ using Balu.Syntax;
 
 namespace Balu.Visualization;
 
-/// <summary>
-/// Provides text-based tree representation of an
-/// <see cref="ExpressionSyntax"/>.
-/// </summary>
 public sealed class SyntaxTreeWriter : SyntaxVisitor
 {
     readonly TextWriter writer;
@@ -18,7 +14,6 @@ public sealed class SyntaxTreeWriter : SyntaxVisitor
 
     SyntaxTreeWriter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
 
-    /// <inheritdoc />
     public override SyntaxNode Visit(SyntaxNode node)
     {
         var marker = last ? TreeTexts.LastLeaf : TreeTexts.Leaf;
@@ -49,10 +44,5 @@ public sealed class SyntaxTreeWriter : SyntaxVisitor
         return node;
     }
 
-    /// <summary>
-    /// Writes a text-based tree representation of <paramref name="syntax"/> to <paramref name="textWriter"/>.
-    /// </summary>
-    /// <param name="syntax">The <see cref="SyntaxNode"/> to represent.</param>
-    /// <param name="textWriter">The <see cref="TextWriter"/> to write the output to.</param>
     public static void Print(SyntaxNode syntax, TextWriter textWriter) => new SyntaxTreeWriter(textWriter).Visit(syntax);
 }

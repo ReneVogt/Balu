@@ -5,9 +5,6 @@ using Balu.Symbols;
 
 namespace Balu.Evaluation;
 
-/// <summary>
-/// An exception that was raised by <see cref="Evaluator"/>.
-/// </summary>
 public sealed class EvaluationException : BaluException
 {
     internal EvaluationException(string message)

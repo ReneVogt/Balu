@@ -49,212 +49,213 @@ public class SyntaxVisitorTests
     [Fact]
     public void SyntaxVisitor_AssignmentExpressionSyntax_AcceptVisitsChildren()
     {
-        var literal = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));
-        var equalsToken = SyntaxToken.Equals(default);
-        var identifier = SyntaxToken.Identifier(default, string.Empty);
-        var assignment = ExpressionSyntax.Assignment(identifier, equalsToken, literal);
+        var literal = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
+        var equalsToken = SyntaxToken.Equals(null, default);
+        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
+        var assignment = new AssignmentExpressionSyntax(null, identifier, equalsToken, literal);
         AssertVisits(assignment);
     }
     [Fact]
     public void SyntaxVisitor_CallExpressionSyntax_AcceptVisitsChildren()
     {
-        var identifier = SyntaxToken.Identifier(default, string.Empty);
-        var open = SyntaxToken.OpenParenthesis(default);
-        var parameter = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));
-        var close = SyntaxToken.ClosedParenthesis(default);
-        var call = ExpressionSyntax.Call(identifier, open, new (new SyntaxNode[] { parameter }.ToImmutableArray()), close);
+        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
+        var open = SyntaxToken.OpenParenthesis(null, default);
+        var parameter = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
+        var close = SyntaxToken.ClosedParenthesis(null, default);
+        var call = new CallExpressionSyntax(null, identifier, open, new (new SyntaxNode[] { parameter }.ToImmutableArray()), close);
         AssertVisits(call);
     }
     [Fact]
     public void SyntaxVisitor_BinaryExpressionSyntax_AcceptVisitsChildren()
     {
-        var left = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));
-        var operatorToken = SyntaxToken.Plus(default);
-        var right = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));
-        var binary = ExpressionSyntax.Binary(left, operatorToken, right);
+        var left = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
+        var operatorToken = SyntaxToken.Plus(null, default);
+        var right = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
+        var binary = new BinaryExpressionSyntax(null, left, operatorToken, right);
         AssertVisits(binary);
     }
     [Fact]
     public void SyntaxVisitor_BlockStatementSyntax_AcceptVisitsChildren()
     {
-        var openBraceToken = SyntaxToken.OpenBrace(default);
+        var openBraceToken = SyntaxToken.OpenBrace(null, default);
         var statements = Enumerable.Range(0, 5)
-                                   .Select(_ => StatementSyntax.ExpressionStatement(
-                                               ExpressionSyntax.Name(SyntaxToken.Identifier(default, string.Empty))));
-        var closedBraceToken = SyntaxToken.ClosedBrace(default);
-        var statement = StatementSyntax.BlockStatement(openBraceToken, statements.ToImmutableArray<StatementSyntax>(), closedBraceToken);
+                                   .Select(_ => new ExpressionStatementSyntax(null,
+                                                                              new NameExpressionSyntax(
+                                                                                  null, SyntaxToken.Identifier(null, default, string.Empty))));
+        var closedBraceToken = SyntaxToken.ClosedBrace(null, default);
+        var statement = new BlockStatementSyntax(null, openBraceToken, statements.ToImmutableArray<StatementSyntax>(), closedBraceToken);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_CompilationUnitSyntax_AcceptVisitsChildren()
     {
-        var statement = StatementSyntax.ExpressionStatement(ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty)));
-        var eof = SyntaxToken.EndOfFile(default);
-        var compilationUnit = SyntaxNode.CompilationUnit(new MemberSyntax[]{MemberSyntax.GlobalStatement(statement)}.ToImmutableArray(), eof);
+        var statement = new ExpressionStatementSyntax(null, new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty)));
+        var eof = SyntaxToken.EndOfFile(null, default);
+        var compilationUnit = new CompilationUnitSyntax(null, new MemberSyntax[]{new GlobalStatementSyntax(null, statement) }.ToImmutableArray(), eof);
         AssertVisits(compilationUnit);
     }
     [Fact]
     public void SyntaxVisitor_GlobalStatementSyntax_AcceptVisitsChildren()
     {
-        var statement = StatementSyntax.ExpressionStatement(ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty)));
-        var globalStatement = MemberSyntax.GlobalStatement(statement);
+        var statement = new ExpressionStatementSyntax(null, new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty)));
+        var globalStatement = new GlobalStatementSyntax(null, statement);
         AssertVisits(globalStatement);
     }
     [Fact]
     public void SyntaxVisitor_FunctionDeclarationSyntax_AcceptVisitsChildren()
     {
-        var functionKeyword = SyntaxToken.FunctionKeyword(default);
-        var identifier = SyntaxToken.Identifier(default, string.Empty);
-        var openParenthesis = SyntaxToken.OpenParenthesis(default);
-        var type = SyntaxNode.Type(identifier, identifier);
+        var functionKeyword = SyntaxToken.FunctionKeyword(null, default);
+        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
+        var openParenthesis = SyntaxToken.OpenParenthesis(null, default);
+        var type = new TypeClauseSyntax(null, identifier, identifier);
         var parameters =
-            new SeparatedSyntaxList<ParameterSyntax>(new SyntaxNode[] { SyntaxNode.Parameter(identifier, type) }
+            new SeparatedSyntaxList<ParameterSyntax>(new SyntaxNode[] { new ParameterSyntax(null, identifier, type) }
                                                          .ToImmutableArray());
-        var closeParenthesis = SyntaxToken.OpenParenthesis(default);
-        var body = StatementSyntax.BlockStatement(SyntaxToken.OpenBrace(default), ImmutableArray<StatementSyntax>.Empty, SyntaxToken.ClosedBrace(default));
-        var functionDelcaration = MemberSyntax.FunctionDeclaration(functionKeyword, identifier, openParenthesis, parameters, closeParenthesis, type, body);
+        var closeParenthesis = SyntaxToken.OpenParenthesis(null, default);
+        var body = new BlockStatementSyntax(null, SyntaxToken.OpenBrace(null, default), ImmutableArray<StatementSyntax>.Empty, SyntaxToken.ClosedBrace(null, default));
+        var functionDelcaration = new FunctionDeclarationSyntax(null, functionKeyword, identifier, openParenthesis, parameters, closeParenthesis, type, body);
         AssertVisits(functionDelcaration);
     }
     [Fact]
     public void SyntaxVisitor_ReturnStatementSyntax_AcceptVisitsChildren()
     {
-        var returnKeyword = SyntaxToken.ReturnKeyword(default);
-        var expression = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, "0"));
-        var returnStatement = StatementSyntax.ReturnStatement(returnKeyword, expression);
+        var returnKeyword = SyntaxToken.ReturnKeyword(null, default);
+        var expression = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, "0"));
+        var returnStatement = new ReturnStatementSyntax(null, returnKeyword, expression);
         AssertVisits(returnStatement);
     }
     [Fact]
     public void SyntaxVisitor_ParameterSyntax_AcceptVisitsChildren()
     {
-        var identifier = SyntaxToken.Identifier(default, string.Empty);
-        var type = SyntaxNode.Type(SyntaxToken.Colon(default), SyntaxToken.Identifier(default, string.Empty));
-        var parameter = SyntaxNode.Parameter(identifier, type);
+        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
+        var type = new TypeClauseSyntax(null, SyntaxToken.Colon(null, default), SyntaxToken.Identifier(null, default, string.Empty));
+        var parameter = new ParameterSyntax(null, identifier, type);
         AssertVisits(parameter);
     }
     [Fact]
     public void SyntaxVisitor_ElseClauseSyntax_AcceptVisitsChildren()
     {
-        var elseToken = SyntaxToken.ElseKeyword(default);
-        var statement = StatementSyntax.ExpressionStatement(ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty)));
-        var elseClause = SyntaxNode.Else(elseToken, statement);
+        var elseToken = SyntaxToken.ElseKeyword(null, default);
+        var statement = new ExpressionStatementSyntax(null, new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty)));
+        var elseClause = new ElseClauseSyntax(null, elseToken, statement);
         AssertVisits(elseClause);
     }
     [Fact]
     public void SyntaxVisitor_ExpressionStatementSyntax_AcceptVisitsChildren()
     {
-        var expression = ExpressionSyntax.Literal(SyntaxToken.Number(default, 0, string.Empty));
-        var statement = StatementSyntax.ExpressionStatement(expression);
+        var expression = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
+        var statement = new ExpressionStatementSyntax(null, expression);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_IfStatementSyntax_AcceptVisitsChildren()
     {
-        var ifToken = SyntaxToken.IfKeyword(default);
-        var condition = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var thenStatement = StatementSyntax.ExpressionStatement(condition);
-        var elseToken = SyntaxToken.ElseKeyword(default);
-        var elseStatement = StatementSyntax.ExpressionStatement(condition);
-        var elseClause = SyntaxNode.Else(elseToken, elseStatement);
-        var statement = StatementSyntax.IfStatement(ifToken, condition, thenStatement, elseClause);
+        var ifToken = SyntaxToken.IfKeyword(null, default);
+        var condition = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
+        var thenStatement = new ExpressionStatementSyntax(null, condition);
+        var elseToken = SyntaxToken.ElseKeyword(null, default);
+        var elseStatement = new ExpressionStatementSyntax(null, condition);
+        var elseClause = new ElseClauseSyntax(null, elseToken, elseStatement);
+        var statement = new IfStatementSyntax(null, ifToken, condition, thenStatement, elseClause);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_LiteralExpressionSyntax_AcceptVisitsChildren()
     {
-        var token = SyntaxToken.Identifier(default, string.Empty);
-        var expression = ExpressionSyntax.Literal(token);
+        var token = SyntaxToken.Identifier(null, default, string.Empty);
+        var expression = new LiteralExpressionSyntax(null, token);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_NameExpressionSyntax_AcceptVisitsChildren()
     {
-        var token = SyntaxToken.Identifier(default, string.Empty);
-        var expression = ExpressionSyntax.Name(token);
+        var token = SyntaxToken.Identifier(null, default, string.Empty);
+        var expression = new NameExpressionSyntax(null, token);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_ParenthesizedExpressionSyntax_AcceptVisitsChildren()
     {
-        var open = SyntaxToken.OpenParenthesis(default);
-        var inner = ExpressionSyntax.Name(SyntaxToken.Identifier(default, string.Empty));
-        var close = SyntaxToken.ClosedParenthesis(default);
-        var expression = ExpressionSyntax.Parenthesized(open, inner, close);
+        var open = SyntaxToken.OpenParenthesis(null, default);
+        var inner = new NameExpressionSyntax(null, SyntaxToken.Identifier(null, default, string.Empty));
+        var close = SyntaxToken.ClosedParenthesis(null, default);
+        var expression = new ParenthesizedExpressionSyntax(null, open, inner, close);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_UnaryExpressionSyntax_AcceptVisitsChildren()
     {
-        var operatorToken = SyntaxToken.Bang(default);
-        var operand = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var expression = ExpressionSyntax.Unary(operatorToken, operand);
+        var operatorToken = SyntaxToken.Bang(null, default);
+        var operand = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
+        var expression = new UnaryExpressionSyntax(null, operatorToken, operand);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_VariableDeclarationStatementSyntax_AcceptVisitsChildren()
     {
-        var keyword = SyntaxToken.LetKeyword(default);
-        var identifier = SyntaxToken.Identifier(default, string.Empty);
-        var equals = SyntaxToken.Equals(default);
-        var expression = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var typeClause = SyntaxNode.Type(SyntaxToken.Colon(default), SyntaxToken.Identifier(default, string.Empty));
-        var statement = StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression, typeClause);
+        var keyword = SyntaxToken.LetKeyword(null, default);
+        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
+        var equals = SyntaxToken.Equals(null, default);
+        var expression = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
+        var typeClause = new TypeClauseSyntax(null, SyntaxToken.Colon(null, default), SyntaxToken.Identifier(null, default, string.Empty));
+        var statement = new VariableDeclarationStatementSyntax(null, keyword, identifier, equals, expression, typeClause);
         AssertVisits(statement);
-        statement = StatementSyntax.VariableDeclarationStatement(keyword, identifier, equals, expression, null);
+        statement = new (null, keyword, identifier, equals, expression, null);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_WhileStatementSyntax_AcceptVisitsChildren()
     {
-        var keyword = SyntaxToken.WhileKeyword(default);
-        var condition = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var body = StatementSyntax.ExpressionStatement(condition);
-        var statement = StatementSyntax.WhileStatement(keyword, condition, body);
+        var keyword = SyntaxToken.WhileKeyword(null, default);
+        var condition = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
+        var body = new ExpressionStatementSyntax(null, condition);
+        var statement = new WhileStatementSyntax(null, keyword, condition, body);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_DoWhileStatementSyntax_AcceptVisitsChildren()
     {
-        var doKeyword = SyntaxToken.DoKeyword(default);
-        var condition = ExpressionSyntax.Literal(SyntaxToken.TrueKeyword(default));
-        var body = StatementSyntax.ExpressionStatement(condition);
-        var whileKeyword = SyntaxToken.WhileKeyword(default);
-        var statement = StatementSyntax.DoWhileStatement(doKeyword, body, whileKeyword, condition);
+        var doKeyword = SyntaxToken.DoKeyword(null, default);
+        var condition = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
+        var body = new ExpressionStatementSyntax(null, condition);
+        var whileKeyword = SyntaxToken.WhileKeyword(null, default);
+        var statement = new DoWhileStatementSyntax(null, doKeyword, body, whileKeyword, condition);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_ForStatementSyntax_AcceptVisitsChildren()
     {
-        var forKeyword = SyntaxToken.ForKeyword(default);
-        var identifier = SyntaxToken.Identifier(default, string.Empty);
-        var equals = SyntaxToken.Equals(default);
-        var dummy = SyntaxToken.TrueKeyword(default);
-        var lowerBound = ExpressionSyntax.Literal(dummy);
-        var toKeyWord = SyntaxToken.ToKeyword(default);
-        var upperBound = ExpressionSyntax.Literal(dummy);
-        var body = StatementSyntax.ExpressionStatement(upperBound);
-        var statement = StatementSyntax.ForStatement(forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
+        var forKeyword = SyntaxToken.ForKeyword(null, default);
+        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
+        var equals = SyntaxToken.Equals(null, default);
+        var dummy = SyntaxToken.TrueKeyword(null, default);
+        var lowerBound = new LiteralExpressionSyntax(null, dummy);
+        var toKeyWord = SyntaxToken.ToKeyword(null, default);
+        var upperBound = new LiteralExpressionSyntax(null, dummy);
+        var body = new ExpressionStatementSyntax(null, upperBound);
+        var statement = new ForStatementSyntax(null, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_ContinueStatementSyntax_AcceptVisitsChildren()
     {
-        var continueKeyword = SyntaxToken.ContinueKeyword(default);
-        var statement = StatementSyntax.ContinueStatement(continueKeyword);
+        var continueKeyword = SyntaxToken.ContinueKeyword(null, default);
+        var statement = new ContinueStatementSyntax(null, continueKeyword);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_BreakStatementSyntax_AcceptVisitsChildren()
     {
-        var breakKeyword = SyntaxToken.BreakKeyword(default);
-        var statement = StatementSyntax.BreakStatement(breakKeyword);
+        var breakKeyword = SyntaxToken.BreakKeyword(null, default);
+        var statement = new BreakStatementSyntax(null, breakKeyword);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_TypeClauseSyntax_AcceptVisitsChildren()
     {
-        var colon = SyntaxToken.Colon(default);
-        var identifier = SyntaxToken.Identifier(default, string.Empty);
-        var typeClause = SyntaxNode.Type(colon, identifier);
+        var colon = SyntaxToken.Colon(null, default);
+        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
+        var typeClause = new TypeClauseSyntax(null, colon, identifier);
         AssertVisits(typeClause);
     }
 

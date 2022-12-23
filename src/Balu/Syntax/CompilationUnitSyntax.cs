@@ -1,25 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a compilation unit, e.g. a Balu code file.
-/// </summary>
 public sealed class CompilationUnitSyntax : SyntaxNode
 {
-    /// <summary>
-    /// The member declarations at the top level.
-    /// </summary>
     public ImmutableArray<MemberSyntax> Members { get; }
-    /// <summary>
-    /// The eof token of this compilation unit.
-    /// </summary>
     public SyntaxToken EndOfFileToken { get; }
-
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.CompilationUnit;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children 
     {
         get
@@ -30,13 +19,17 @@ public sealed class CompilationUnitSyntax : SyntaxNode
         }
     }
 
-    internal CompilationUnitSyntax(ImmutableArray<MemberSyntax> members, SyntaxToken endOfFileToken) =>
-        (Members, EndOfFileToken) = (members, endOfFileToken);
+    public CompilationUnitSyntax(SyntaxTree? syntaxTree, ImmutableArray<MemberSyntax> members, SyntaxToken endOfFileToken)
+        : base(syntaxTree)
+    {
+        Members = members;
+        EndOfFileToken = endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken));
+    }
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var members = VisitList(visitor, Members);
         var eof = (SyntaxToken)visitor.Visit(EndOfFileToken);
-        return members != Members || eof != EndOfFileToken ? CompilationUnit(members, eof) : this;
+        return members != Members || eof != EndOfFileToken ? new(null, members, eof) : this;
     }
 }

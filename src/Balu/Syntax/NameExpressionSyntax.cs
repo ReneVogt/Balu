@@ -1,20 +1,12 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// A name expression like variable names.
-/// </summary>
 public sealed class NameExpressionSyntax : ExpressionSyntax
 {
-    /// <summary>
-    /// The identifier token.
-    /// </summary>
     public SyntaxToken IdentifierrToken { get; }
-
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.NameExpression;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children 
     {
         get
@@ -23,12 +15,14 @@ public sealed class NameExpressionSyntax : ExpressionSyntax
         }
     }
 
-    internal NameExpressionSyntax(SyntaxToken identifierrToken) =>
-        IdentifierrToken = identifierrToken;
+    public NameExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken identifierrToken) : base(syntaxTree)
+    { 
+        IdentifierrToken = identifierrToken ?? throw new ArgumentNullException(nameof(identifierrToken));
+    }
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         SyntaxToken identifierToken = (SyntaxToken)visitor.Visit(IdentifierrToken);
-        return identifierToken!= IdentifierrToken  ? Name(identifierToken) : this;
+        return identifierToken!= IdentifierrToken  ? new(null, identifierToken) : this;
     }
 }

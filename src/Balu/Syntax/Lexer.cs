@@ -6,7 +6,7 @@ namespace Balu.Syntax;
 
 sealed class Lexer
 {
-    readonly SyntaxTree syntaxTree;
+    readonly SyntaxTree? syntaxTree;
     readonly SourceText sourceText;
     readonly DiagnosticBag diagnostics = new();
 
@@ -17,6 +17,10 @@ sealed class Lexer
     SyntaxKind kind;
     object? value;
 
+    internal Lexer(SourceText sourceText)
+    {
+        this.sourceText = sourceText;
+    }
     internal Lexer(SyntaxTree syntaxTree)
     {
         this.syntaxTree = syntaxTree;
@@ -78,7 +82,7 @@ sealed class Lexer
             if (kind == SyntaxKind.BadToken)
                 diagnostics.ReportUnexpectedToken(start, position - start, sourceText[start].ToString());
 
-            yield return new(kind, new(start, kind == SyntaxKind.EndOfFileToken ? 0 :  position - start), text, value);
+            yield return new(syntaxTree, kind, new(start, kind == SyntaxKind.EndOfFileToken ? 0 :  position - start), text, value);
 
         } while (kind != SyntaxKind.EndOfFileToken);
     }

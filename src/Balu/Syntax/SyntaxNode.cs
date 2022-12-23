@@ -10,8 +10,15 @@ public abstract class SyntaxNode
 {
     readonly Lazy<TextSpan> span;
 
-    private protected SyntaxNode()
+    public SyntaxTree? SyntaxTree { get; }
+    public abstract SyntaxKind Kind { get; }
+    public virtual TextSpan Span => span.Value;
+    public abstract IEnumerable<SyntaxNode> Children { get; }
+    public SyntaxToken LastToken => GetLastToken();
+
+    private protected SyntaxNode(SyntaxTree? syntaxTree)
     {
+        SyntaxTree = syntaxTree;
         span = new(() =>
         {
             var children = Children.ToArray();
@@ -22,10 +29,6 @@ public abstract class SyntaxNode
         });
     }
 
-    public abstract SyntaxKind Kind { get; }
-    public virtual TextSpan Span => span.Value;
-    public abstract IEnumerable<SyntaxNode> Children { get; }
-    public SyntaxToken LastToken => GetLastToken();
 
     internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
 
@@ -71,43 +74,4 @@ public abstract class SyntaxNode
     SyntaxToken GetLastToken() => this as SyntaxToken ?? Children.Last().GetLastToken();
 
     public override string ToString() => $"{Kind}{Span}";
-
-    /// <summary>
-    /// Creates a new <see cref="CompilationUnitSyntax"/> from the given <see cref="StatementSyntax"/>.
-    /// </summary>
-    /// <param name="members">The member declarations at the root of the compilation unit.</param>
-    /// <param name="endOfFileToken">The eof token of the compilation unit.</param>
-    /// <returns>A new <see cref="CompilationUnitSyntax"/> instance.</returns>
-    /// <exception cref="ArgumentNullException"><paramref name="members"/> or <paramref name="endOfFileToken"/> is <c>null</c>.</exception>
-    public static CompilationUnitSyntax CompilationUnit(IEnumerable<MemberSyntax> members, SyntaxToken endOfFileToken) =>
-        new ((members ?? throw new ArgumentNullException(nameof(members))).ToImmutableArray(), endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken)));
-    /// <summary>
-    /// Creates a new <see cref="ElseClauseSyntax"/> from the given elements.
-    /// </summary>
-    /// <param name="elseKeyword">The <see cref="SyntaxToken"/> of the 'else' keyword.</param>
-    /// <param name="statement">The <see cref="StatementSyntax"/> for the 'else' part.</param>
-    /// <returns>The parsed <see cref="ElseClauseSyntax"/>.</returns>
-    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
-    public static ElseClauseSyntax Else(SyntaxToken elseKeyword, StatementSyntax statement) => new(
-        elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword)), statement ?? throw new ArgumentNullException(nameof(statement)));
-
-    /// <summary>
-    /// Creates a new <see cref="TypeClauseSyntax"/> from the given elements.
-    /// </summary>
-    /// <param name="colonToken">The <see cref="SyntaxToken"/> of the ':' token.</param>
-    /// <param name="identifier">The <see cref="SyntaxToken"/> for the type name.</param>
-    /// <returns>The parsed <see cref="TypeClauseSyntax"/>.</returns>
-    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
-    public static TypeClauseSyntax Type(SyntaxToken colonToken, SyntaxToken identifier) => new(
-        colonToken ?? throw new ArgumentNullException(nameof(colonToken)), identifier ?? throw new ArgumentNullException(nameof(identifier)));
-
-    /// <summary>
-    /// Creates a new <see cref="ParameterSyntax"/> from the given elements.
-    /// </summary>
-    /// <param name="identifier">The <see cref="StatementSyntax"/> for the parameter's name.</param>
-    /// <param name="type">The <see cref="SyntaxToken"/> for the paramter's type.</param>
-    /// <returns>The parsed <see cref="ParameterSyntax"/>.</returns>
-    /// <exception cref="ArgumentNullException">An argument is <c>null</c>.</exception>
-    public static ParameterSyntax Parameter(SyntaxToken identifier, TypeClauseSyntax type) => new(
-        identifier ?? throw new ArgumentNullException(nameof(identifier)), type ?? throw new ArgumentNullException(nameof(type)));
 }

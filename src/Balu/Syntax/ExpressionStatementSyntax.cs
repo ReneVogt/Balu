@@ -1,30 +1,23 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents an expression statement.
-/// </summary>
 public sealed class ExpressionStatementSyntax : StatementSyntax
 {
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.ExpressionStatement;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children
     {
         get { yield return Expression; }
     }
-
-    /// <summary>
-    /// The expression in this statement.
-    /// </summary>
     public ExpressionSyntax Expression { get; }
 
-    internal ExpressionStatementSyntax(ExpressionSyntax expression) => Expression = expression;
+    public ExpressionStatementSyntax(SyntaxTree? syntaxTree, ExpressionSyntax? expression)
+        : base(syntaxTree) => Expression = expression ?? throw new ArgumentNullException(nameof(expression));
     
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var expression = (ExpressionSyntax)visitor.Visit(Expression);
-        return expression != Expression ? ExpressionStatement(expression) : this;
+        return expression != Expression ? new(null, expression) : this;
     }
 }

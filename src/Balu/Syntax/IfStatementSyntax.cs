@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents an 'if' statement.
-/// </summary>
 public sealed class IfStatementSyntax : StatementSyntax
 {
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.IfStatement;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children
     {
         get
@@ -20,29 +16,16 @@ public sealed class IfStatementSyntax : StatementSyntax
             if (ElseClause is { }) yield return ElseClause;
         }
     }
-
-    /// <summary>
-    /// The <see cref="SyntaxToken"/> representing the 'if' keyword.
-    /// </summary>
     public SyntaxToken IfKeyword { get; }
-    /// <summary>
-    /// The 'if' condition.
-    /// </summary>
     public ExpressionSyntax Condition { get; }
-    /// <summary>
-    /// The statement if the <see cref="Condition"/> is true.
-    /// </summary>
     public StatementSyntax ThenStatement { get; }
-    /// <summary>
-    /// The optional 'else' part.
-    /// </summary>
     public ElseClauseSyntax? ElseClause { get; }
 
-    internal IfStatementSyntax(SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause)
+    public IfStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause) : base(syntaxTree)
     {
-        IfKeyword = ifKeyword;
-        Condition = condition;
-        ThenStatement = thenStatement;
+        IfKeyword = ifKeyword ?? throw new ArgumentNullException(nameof(ifKeyword));
+        Condition = condition ?? throw new ArgumentNullException(nameof(condition));
+        ThenStatement = thenStatement ?? throw new ArgumentNullException(nameof(thenStatement));
         ElseClause = elseClause;
     }
 
@@ -54,6 +37,6 @@ public sealed class IfStatementSyntax : StatementSyntax
         var elseClause = ElseClause is {} ? (ElseClauseSyntax)visitor.Visit(ElseClause) : null;
         return ifKeyword == IfKeyword && condition == Condition && thenStatement == ThenStatement && elseClause == ElseClause
                    ? this
-                   : IfStatement(ifKeyword, condition, thenStatement, elseClause);
+                   : new(null, ifKeyword, condition, thenStatement, elseClause);
     }
 }

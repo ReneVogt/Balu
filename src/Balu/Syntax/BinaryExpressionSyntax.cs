@@ -1,28 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a binary expression.
-/// </summary>
 public sealed class BinaryExpressionSyntax : ExpressionSyntax
 {
-    /// <summary>
-    /// The left operand.
-    /// </summary>
     public ExpressionSyntax Left { get; }
-    /// <summary>
-    /// The binary operator.
-    /// </summary>
     public SyntaxToken OperatorToken { get; }
-    /// <summary>
-    /// The right operand.
-    /// </summary>
     public ExpressionSyntax Right { get; }
-
-    /// <inheritdoc/>
     public override SyntaxKind Kind => SyntaxKind.BinaryExpression;
-    /// <inheritdoc/>
     public override IEnumerable<SyntaxNode> Children 
     {
         get
@@ -33,14 +19,19 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
         }
     }
 
-    internal BinaryExpressionSyntax(ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right) =>
-        (Left, OperatorToken, Right) = (left, operatorToken, right);
+    public BinaryExpressionSyntax(SyntaxTree? syntaxTree, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    : base(syntaxTree)
+    {
+        Left = left ?? throw new ArgumentNullException(nameof(left));
+        OperatorToken = operatorToken ?? throw new ArgumentNullException(nameof(operatorToken));
+        Right = right ?? throw new ArgumentNullException(nameof(right));
+    }
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         ExpressionSyntax left = (ExpressionSyntax)visitor.Visit(Left);
         SyntaxToken operatorToken = (SyntaxToken)visitor.Visit(OperatorToken);
         ExpressionSyntax right = (ExpressionSyntax)visitor.Visit(Right);
-        return left != Left || operatorToken != OperatorToken || right != Right ? Binary(left, operatorToken, right) : this;
+        return left != Left || operatorToken != OperatorToken || right != Right ? new(null, left, operatorToken, right) : this;
     }
 }

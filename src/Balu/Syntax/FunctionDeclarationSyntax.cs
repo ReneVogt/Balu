@@ -1,15 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-/// <summary>
-/// Represents a function declaration in the Balu language.
-/// </summary>
 public sealed class FunctionDeclarationSyntax : MemberSyntax
 {
-    /// <inheritdoc />
     public override SyntaxKind Kind => SyntaxKind.FunctionDeclaration;
-    /// <inheritdoc />
     public override IEnumerable<SyntaxNode> Children
     {
         get
@@ -24,49 +20,28 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
             yield return Body;
         }
     }
-
-    /// <summary>
-    /// The 'function' keyword.
-    /// </summary>
     public SyntaxToken FunctionKeyword { get; }
-    /// <summary>
-    /// The <see cref="SyntaxToken"/> for the function's name.
-    /// </summary>
     public SyntaxToken Identifier { get; }
-    /// <summary>
-    /// The opening parenthesis token.
-    /// </summary>
     public SyntaxToken OpenParenthesis { get; }
-    /// <summary>
-    /// The function's parameters.
-    /// </summary>
     public SeparatedSyntaxList<ParameterSyntax> Parameters { get; }
-    /// <summary>
-    /// The closing parenthesis token.
-    /// </summary>
     public SyntaxToken ClosedParenthesis { get; }
-    /// <summary>
-    /// The function's type clause.
-    /// </summary>
     public TypeClauseSyntax? TypeClause { get; }
-    /// <summary>
-    /// The function's body.
-    /// </summary>
     public BlockStatementSyntax Body { get; }
 
-    internal FunctionDeclarationSyntax(SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
-                                       SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? type, BlockStatementSyntax body)
+    public FunctionDeclarationSyntax(SyntaxTree? syntaxTree, SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
+                                     SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? type,
+                                     BlockStatementSyntax body)
+        : base(syntaxTree)
     {
-        FunctionKeyword = functionKeyword;
-        Identifier = identifier;
-        OpenParenthesis = openParenthesis;
-        Parameters = parameters;
-        ClosedParenthesis = closedParenthesis;
+        FunctionKeyword = functionKeyword ?? throw new ArgumentNullException(nameof(functionKeyword));
+        Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
+        OpenParenthesis = openParenthesis ?? throw new ArgumentNullException(nameof(openParenthesis));
+        Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
+        ClosedParenthesis = closedParenthesis ?? throw new ArgumentNullException(nameof(closedParenthesis));
         TypeClause = type;
-        Body = body;
+        Body = body ?? throw new ArgumentNullException(nameof(body));
     }
 
-    /// <inheritdoc />
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var functionKeyword = (SyntaxToken)visitor.Visit(FunctionKeyword);
@@ -80,6 +55,6 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
         return functionKeyword == FunctionKeyword && identifier == Identifier && openParenthesis == OpenParenthesis && parameters == Parameters &&
                closedParenthesis == ClosedParenthesis && TypeClause == type && Body == body
                    ? this
-                   : FunctionDeclaration(functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
+                   : new(null, functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
     }
 }

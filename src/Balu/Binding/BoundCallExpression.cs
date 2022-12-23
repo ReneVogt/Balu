@@ -27,6 +27,5 @@ sealed class BoundCallExpression : BoundExpression
         return arguments == Arguments ? this : new(Function, arguments);
     }
 
-    /// <inheritdoc />
     public override string ToString() => $"{Function.Name}({string.Join(", ", Arguments)})";
 }

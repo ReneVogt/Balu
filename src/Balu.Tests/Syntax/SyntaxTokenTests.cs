@@ -14,8 +14,9 @@ public sealed class SyntaxTokenTests
                                   where kind.EndsWith("Token") || kind.EndsWith("Keyword")
                                   select kind.EndsWith("Token") ? kind[..^5] : kind;
         var actualMethodNames = from method in typeof(SyntaxToken).GetMethods(BindingFlags.Public | BindingFlags.Static)
-                                where method.ReturnType == typeof(SyntaxToken) &&
-                                      method.GetParameters().FirstOrDefault()?.ParameterType == typeof(TextSpan)
+                                where method.ReturnType == typeof(SyntaxToken)
+                                let parameters = method.GetParameters().Take(2).ToArray()
+                                where parameters.Length == 2 && parameters[0].ParameterType == typeof(SyntaxTree) && parameters[1].ParameterType == typeof(TextSpan)
                                 select method.Name;
         var missingMethods = expectedMethodNames.Except(actualMethodNames);
         Assert.Empty(missingMethods);
