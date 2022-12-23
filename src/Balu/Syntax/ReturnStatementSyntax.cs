@@ -18,8 +18,8 @@ public sealed class ReturnStatementSyntax : StatementSyntax
     public SyntaxToken ReturnKeyword { get; }
     public ExpressionSyntax? Expression { get; }
 
-    public ReturnStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken returnKeyword, ExpressionSyntax? expression)
-        : base(syntaxTree)
+    public ReturnStatementSyntax(SyntaxTree syntaxTree, SyntaxToken returnKeyword, ExpressionSyntax? expression)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ReturnKeyword = returnKeyword ?? throw new ArgumentNullException(nameof(returnKeyword));
         Expression = expression;
@@ -29,6 +29,6 @@ public sealed class ReturnStatementSyntax : StatementSyntax
     {
         var returnKeyword = (SyntaxToken)visitor.Visit(ReturnKeyword);
         var expression = Expression is null ? null : (ExpressionSyntax)visitor.Visit(Expression);
-        return returnKeyword == ReturnKeyword && expression == Expression ? this : new(null, returnKeyword, expression);
+        return returnKeyword == ReturnKeyword && expression == Expression ? this : new(SyntaxTree, returnKeyword, expression);
     }
 }

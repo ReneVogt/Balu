@@ -11,6 +11,8 @@ namespace Balu.Tests.Syntax;
 
 public class SyntaxVisitorTests
 {
+    static readonly SyntaxTree dummyTree = SyntaxTree.Parse(string.Empty);
+
     [Fact]
     public void SyntaxVisitor_ImplementsAllVirtualVisits()
     {
@@ -49,213 +51,213 @@ public class SyntaxVisitorTests
     [Fact]
     public void SyntaxVisitor_AssignmentExpressionSyntax_AcceptVisitsChildren()
     {
-        var literal = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
-        var equalsToken = SyntaxToken.Equals(null, default);
-        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
-        var assignment = new AssignmentExpressionSyntax(null, identifier, equalsToken, literal);
+        var literal = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
+        var equalsToken = SyntaxToken.Equals(dummyTree, default);
+        var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var assignment = new AssignmentExpressionSyntax(dummyTree, identifier, equalsToken, literal);
         AssertVisits(assignment);
     }
     [Fact]
     public void SyntaxVisitor_CallExpressionSyntax_AcceptVisitsChildren()
     {
-        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
-        var open = SyntaxToken.OpenParenthesis(null, default);
-        var parameter = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
-        var close = SyntaxToken.ClosedParenthesis(null, default);
-        var call = new CallExpressionSyntax(null, identifier, open, new (new SyntaxNode[] { parameter }.ToImmutableArray()), close);
+        var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var open = SyntaxToken.OpenParenthesis(dummyTree, default);
+        var parameter = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
+        var close = SyntaxToken.ClosedParenthesis(dummyTree, default);
+        var call = new CallExpressionSyntax(dummyTree, identifier, open, new (new SyntaxNode[] { parameter }.ToImmutableArray()), close);
         AssertVisits(call);
     }
     [Fact]
     public void SyntaxVisitor_BinaryExpressionSyntax_AcceptVisitsChildren()
     {
-        var left = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
-        var operatorToken = SyntaxToken.Plus(null, default);
-        var right = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
-        var binary = new BinaryExpressionSyntax(null, left, operatorToken, right);
+        var left = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
+        var operatorToken = SyntaxToken.Plus(dummyTree, default);
+        var right = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
+        var binary = new BinaryExpressionSyntax(dummyTree, left, operatorToken, right);
         AssertVisits(binary);
     }
     [Fact]
     public void SyntaxVisitor_BlockStatementSyntax_AcceptVisitsChildren()
     {
-        var openBraceToken = SyntaxToken.OpenBrace(null, default);
+        var openBraceToken = SyntaxToken.OpenBrace(dummyTree, default);
         var statements = Enumerable.Range(0, 5)
-                                   .Select(_ => new ExpressionStatementSyntax(null,
+                                   .Select(_ => new ExpressionStatementSyntax(dummyTree,
                                                                               new NameExpressionSyntax(
-                                                                                  null, SyntaxToken.Identifier(null, default, string.Empty))));
-        var closedBraceToken = SyntaxToken.ClosedBrace(null, default);
-        var statement = new BlockStatementSyntax(null, openBraceToken, statements.ToImmutableArray<StatementSyntax>(), closedBraceToken);
+                                                                                  dummyTree, SyntaxToken.Identifier(dummyTree, default, string.Empty))));
+        var closedBraceToken = SyntaxToken.ClosedBrace(dummyTree, default);
+        var statement = new BlockStatementSyntax(dummyTree, openBraceToken, statements.ToImmutableArray<StatementSyntax>(), closedBraceToken);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_CompilationUnitSyntax_AcceptVisitsChildren()
     {
-        var statement = new ExpressionStatementSyntax(null, new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty)));
-        var eof = SyntaxToken.EndOfFile(null, default);
-        var compilationUnit = new CompilationUnitSyntax(null, new MemberSyntax[]{new GlobalStatementSyntax(null, statement) }.ToImmutableArray(), eof);
+        var statement = new ExpressionStatementSyntax(dummyTree, new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty)));
+        var eof = SyntaxToken.EndOfFile(dummyTree, default);
+        var compilationUnit = new CompilationUnitSyntax(dummyTree, new MemberSyntax[]{new GlobalStatementSyntax(dummyTree, statement) }.ToImmutableArray(), eof);
         AssertVisits(compilationUnit);
     }
     [Fact]
     public void SyntaxVisitor_GlobalStatementSyntax_AcceptVisitsChildren()
     {
-        var statement = new ExpressionStatementSyntax(null, new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty)));
-        var globalStatement = new GlobalStatementSyntax(null, statement);
+        var statement = new ExpressionStatementSyntax(dummyTree, new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty)));
+        var globalStatement = new GlobalStatementSyntax(dummyTree, statement);
         AssertVisits(globalStatement);
     }
     [Fact]
     public void SyntaxVisitor_FunctionDeclarationSyntax_AcceptVisitsChildren()
     {
-        var functionKeyword = SyntaxToken.FunctionKeyword(null, default);
-        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
-        var openParenthesis = SyntaxToken.OpenParenthesis(null, default);
-        var type = new TypeClauseSyntax(null, identifier, identifier);
+        var functionKeyword = SyntaxToken.FunctionKeyword(dummyTree, default);
+        var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var openParenthesis = SyntaxToken.OpenParenthesis(dummyTree, default);
+        var type = new TypeClauseSyntax(dummyTree, identifier, identifier);
         var parameters =
-            new SeparatedSyntaxList<ParameterSyntax>(new SyntaxNode[] { new ParameterSyntax(null, identifier, type) }
+            new SeparatedSyntaxList<ParameterSyntax>(new SyntaxNode[] { new ParameterSyntax(dummyTree, identifier, type) }
                                                          .ToImmutableArray());
-        var closeParenthesis = SyntaxToken.OpenParenthesis(null, default);
-        var body = new BlockStatementSyntax(null, SyntaxToken.OpenBrace(null, default), ImmutableArray<StatementSyntax>.Empty, SyntaxToken.ClosedBrace(null, default));
-        var functionDelcaration = new FunctionDeclarationSyntax(null, functionKeyword, identifier, openParenthesis, parameters, closeParenthesis, type, body);
+        var closeParenthesis = SyntaxToken.OpenParenthesis(dummyTree, default);
+        var body = new BlockStatementSyntax(dummyTree, SyntaxToken.OpenBrace(dummyTree, default), ImmutableArray<StatementSyntax>.Empty, SyntaxToken.ClosedBrace(dummyTree, default));
+        var functionDelcaration = new FunctionDeclarationSyntax(dummyTree, functionKeyword, identifier, openParenthesis, parameters, closeParenthesis, type, body);
         AssertVisits(functionDelcaration);
     }
     [Fact]
     public void SyntaxVisitor_ReturnStatementSyntax_AcceptVisitsChildren()
     {
-        var returnKeyword = SyntaxToken.ReturnKeyword(null, default);
-        var expression = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, "0"));
-        var returnStatement = new ReturnStatementSyntax(null, returnKeyword, expression);
+        var returnKeyword = SyntaxToken.ReturnKeyword(dummyTree, default);
+        var expression = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, "0"));
+        var returnStatement = new ReturnStatementSyntax(dummyTree, returnKeyword, expression);
         AssertVisits(returnStatement);
     }
     [Fact]
     public void SyntaxVisitor_ParameterSyntax_AcceptVisitsChildren()
     {
-        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
-        var type = new TypeClauseSyntax(null, SyntaxToken.Colon(null, default), SyntaxToken.Identifier(null, default, string.Empty));
-        var parameter = new ParameterSyntax(null, identifier, type);
+        var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var type = new TypeClauseSyntax(dummyTree, SyntaxToken.Colon(dummyTree, default), SyntaxToken.Identifier(dummyTree, default, string.Empty));
+        var parameter = new ParameterSyntax(dummyTree, identifier, type);
         AssertVisits(parameter);
     }
     [Fact]
     public void SyntaxVisitor_ElseClauseSyntax_AcceptVisitsChildren()
     {
-        var elseToken = SyntaxToken.ElseKeyword(null, default);
-        var statement = new ExpressionStatementSyntax(null, new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty)));
-        var elseClause = new ElseClauseSyntax(null, elseToken, statement);
+        var elseToken = SyntaxToken.ElseKeyword(dummyTree, default);
+        var statement = new ExpressionStatementSyntax(dummyTree, new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty)));
+        var elseClause = new ElseClauseSyntax(dummyTree, elseToken, statement);
         AssertVisits(elseClause);
     }
     [Fact]
     public void SyntaxVisitor_ExpressionStatementSyntax_AcceptVisitsChildren()
     {
-        var expression = new LiteralExpressionSyntax(null, SyntaxToken.Number(null, default, 0, string.Empty));
-        var statement = new ExpressionStatementSyntax(null, expression);
+        var expression = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
+        var statement = new ExpressionStatementSyntax(dummyTree, expression);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_IfStatementSyntax_AcceptVisitsChildren()
     {
-        var ifToken = SyntaxToken.IfKeyword(null, default);
-        var condition = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
-        var thenStatement = new ExpressionStatementSyntax(null, condition);
-        var elseToken = SyntaxToken.ElseKeyword(null, default);
-        var elseStatement = new ExpressionStatementSyntax(null, condition);
-        var elseClause = new ElseClauseSyntax(null, elseToken, elseStatement);
-        var statement = new IfStatementSyntax(null, ifToken, condition, thenStatement, elseClause);
+        var ifToken = SyntaxToken.IfKeyword(dummyTree, default);
+        var condition = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
+        var thenStatement = new ExpressionStatementSyntax(dummyTree, condition);
+        var elseToken = SyntaxToken.ElseKeyword(dummyTree, default);
+        var elseStatement = new ExpressionStatementSyntax(dummyTree, condition);
+        var elseClause = new ElseClauseSyntax(dummyTree, elseToken, elseStatement);
+        var statement = new IfStatementSyntax(dummyTree, ifToken, condition, thenStatement, elseClause);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_LiteralExpressionSyntax_AcceptVisitsChildren()
     {
-        var token = SyntaxToken.Identifier(null, default, string.Empty);
-        var expression = new LiteralExpressionSyntax(null, token);
+        var token = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var expression = new LiteralExpressionSyntax(dummyTree, token);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_NameExpressionSyntax_AcceptVisitsChildren()
     {
-        var token = SyntaxToken.Identifier(null, default, string.Empty);
-        var expression = new NameExpressionSyntax(null, token);
+        var token = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var expression = new NameExpressionSyntax(dummyTree, token);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_ParenthesizedExpressionSyntax_AcceptVisitsChildren()
     {
-        var open = SyntaxToken.OpenParenthesis(null, default);
-        var inner = new NameExpressionSyntax(null, SyntaxToken.Identifier(null, default, string.Empty));
-        var close = SyntaxToken.ClosedParenthesis(null, default);
-        var expression = new ParenthesizedExpressionSyntax(null, open, inner, close);
+        var open = SyntaxToken.OpenParenthesis(dummyTree, default);
+        var inner = new NameExpressionSyntax(dummyTree, SyntaxToken.Identifier(dummyTree, default, string.Empty));
+        var close = SyntaxToken.ClosedParenthesis(dummyTree, default);
+        var expression = new ParenthesizedExpressionSyntax(dummyTree, open, inner, close);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_UnaryExpressionSyntax_AcceptVisitsChildren()
     {
-        var operatorToken = SyntaxToken.Bang(null, default);
-        var operand = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
-        var expression = new UnaryExpressionSyntax(null, operatorToken, operand);
+        var operatorToken = SyntaxToken.Bang(dummyTree, default);
+        var operand = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
+        var expression = new UnaryExpressionSyntax(dummyTree, operatorToken, operand);
         AssertVisits(expression);
     }
     [Fact]
     public void SyntaxVisitor_VariableDeclarationStatementSyntax_AcceptVisitsChildren()
     {
-        var keyword = SyntaxToken.LetKeyword(null, default);
-        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
-        var equals = SyntaxToken.Equals(null, default);
-        var expression = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
-        var typeClause = new TypeClauseSyntax(null, SyntaxToken.Colon(null, default), SyntaxToken.Identifier(null, default, string.Empty));
-        var statement = new VariableDeclarationStatementSyntax(null, keyword, identifier, equals, expression, typeClause);
+        var keyword = SyntaxToken.LetKeyword(dummyTree, default);
+        var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var equals = SyntaxToken.Equals(dummyTree, default);
+        var expression = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
+        var typeClause = new TypeClauseSyntax(dummyTree, SyntaxToken.Colon(dummyTree, default), SyntaxToken.Identifier(dummyTree, default, string.Empty));
+        var statement = new VariableDeclarationStatementSyntax(dummyTree, keyword, identifier, equals, expression, typeClause);
         AssertVisits(statement);
-        statement = new (null, keyword, identifier, equals, expression, null);
+        statement = new (dummyTree, keyword, identifier, equals, expression, null);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_WhileStatementSyntax_AcceptVisitsChildren()
     {
-        var keyword = SyntaxToken.WhileKeyword(null, default);
-        var condition = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
-        var body = new ExpressionStatementSyntax(null, condition);
-        var statement = new WhileStatementSyntax(null, keyword, condition, body);
+        var keyword = SyntaxToken.WhileKeyword(dummyTree, default);
+        var condition = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
+        var body = new ExpressionStatementSyntax(dummyTree, condition);
+        var statement = new WhileStatementSyntax(dummyTree, keyword, condition, body);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_DoWhileStatementSyntax_AcceptVisitsChildren()
     {
-        var doKeyword = SyntaxToken.DoKeyword(null, default);
-        var condition = new LiteralExpressionSyntax(null, SyntaxToken.TrueKeyword(null, default));
-        var body = new ExpressionStatementSyntax(null, condition);
-        var whileKeyword = SyntaxToken.WhileKeyword(null, default);
-        var statement = new DoWhileStatementSyntax(null, doKeyword, body, whileKeyword, condition);
+        var doKeyword = SyntaxToken.DoKeyword(dummyTree, default);
+        var condition = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
+        var body = new ExpressionStatementSyntax(dummyTree, condition);
+        var whileKeyword = SyntaxToken.WhileKeyword(dummyTree, default);
+        var statement = new DoWhileStatementSyntax(dummyTree, doKeyword, body, whileKeyword, condition);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_ForStatementSyntax_AcceptVisitsChildren()
     {
-        var forKeyword = SyntaxToken.ForKeyword(null, default);
-        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
-        var equals = SyntaxToken.Equals(null, default);
-        var dummy = SyntaxToken.TrueKeyword(null, default);
-        var lowerBound = new LiteralExpressionSyntax(null, dummy);
-        var toKeyWord = SyntaxToken.ToKeyword(null, default);
-        var upperBound = new LiteralExpressionSyntax(null, dummy);
-        var body = new ExpressionStatementSyntax(null, upperBound);
-        var statement = new ForStatementSyntax(null, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
+        var forKeyword = SyntaxToken.ForKeyword(dummyTree, default);
+        var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var equals = SyntaxToken.Equals(dummyTree, default);
+        var dummy = SyntaxToken.TrueKeyword(dummyTree, default);
+        var lowerBound = new LiteralExpressionSyntax(dummyTree, dummy);
+        var toKeyWord = SyntaxToken.ToKeyword(dummyTree, default);
+        var upperBound = new LiteralExpressionSyntax(dummyTree, dummy);
+        var body = new ExpressionStatementSyntax(dummyTree, upperBound);
+        var statement = new ForStatementSyntax(dummyTree, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_ContinueStatementSyntax_AcceptVisitsChildren()
     {
-        var continueKeyword = SyntaxToken.ContinueKeyword(null, default);
-        var statement = new ContinueStatementSyntax(null, continueKeyword);
+        var continueKeyword = SyntaxToken.ContinueKeyword(dummyTree, default);
+        var statement = new ContinueStatementSyntax(dummyTree, continueKeyword);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_BreakStatementSyntax_AcceptVisitsChildren()
     {
-        var breakKeyword = SyntaxToken.BreakKeyword(null, default);
-        var statement = new BreakStatementSyntax(null, breakKeyword);
+        var breakKeyword = SyntaxToken.BreakKeyword(dummyTree, default);
+        var statement = new BreakStatementSyntax(dummyTree, breakKeyword);
         AssertVisits(statement);
     }
     [Fact]
     public void SyntaxVisitor_TypeClauseSyntax_AcceptVisitsChildren()
     {
-        var colon = SyntaxToken.Colon(null, default);
-        var identifier = SyntaxToken.Identifier(null, default, string.Empty);
-        var typeClause = new TypeClauseSyntax(null, colon, identifier);
+        var colon = SyntaxToken.Colon(dummyTree, default);
+        var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
+        var typeClause = new TypeClauseSyntax(dummyTree, colon, identifier);
         AssertVisits(typeClause);
     }
 

@@ -20,8 +20,8 @@ public sealed class BlockStatementSyntax : StatementSyntax
     public ImmutableArray<StatementSyntax> Statements { get; }
     public SyntaxToken ClosedBraceToken { get; }
 
-    public BlockStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken)
-    : base(syntaxTree)
+    public BlockStatementSyntax(SyntaxTree syntaxTree, SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken)
+    : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         OpenBraceToken = openBraceToken ?? throw new ArgumentNullException(nameof(openBraceToken));
         Statements = statements;
@@ -36,6 +36,6 @@ public sealed class BlockStatementSyntax : StatementSyntax
         var closedBrace = (SyntaxToken)visitor.Visit(ClosedBraceToken);
         return openBrace == OpenBraceToken && transformed == Statements && closedBrace == ClosedBraceToken
                    ? this
-                   : new(null, openBrace, transformed, closedBrace);
+                   : new(SyntaxTree, openBrace, transformed, closedBrace);
     }
 }

@@ -19,8 +19,8 @@ public sealed class CompilationUnitSyntax : SyntaxNode
         }
     }
 
-    public CompilationUnitSyntax(SyntaxTree? syntaxTree, ImmutableArray<MemberSyntax> members, SyntaxToken endOfFileToken)
-        : base(syntaxTree)
+    public CompilationUnitSyntax(SyntaxTree syntaxTree, ImmutableArray<MemberSyntax> members, SyntaxToken endOfFileToken)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Members = members;
         EndOfFileToken = endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken));
@@ -30,6 +30,6 @@ public sealed class CompilationUnitSyntax : SyntaxNode
     {
         var members = VisitList(visitor, Members);
         var eof = (SyntaxToken)visitor.Visit(EndOfFileToken);
-        return members != Members || eof != EndOfFileToken ? new(null, members, eof) : this;
+        return members != Members || eof != EndOfFileToken ? new(SyntaxTree, members, eof) : this;
     }
 }

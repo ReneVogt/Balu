@@ -22,9 +22,9 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
     public SeparatedSyntaxList<ExpressionSyntax> Arguments { get; }
     public SyntaxToken ClosedParenthesis { get; }
 
-    public CallExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken identifier, SyntaxToken openParenthesis,
+    public CallExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifier, SyntaxToken openParenthesis,
                                 SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closedParenthesis)
-        : base(syntaxTree)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
         OpenParenthesis = openParenthesis ?? throw new ArgumentNullException(nameof(openParenthesis));
@@ -42,7 +42,7 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
         return identifier == Identifier && open == OpenParenthesis && arguments == Arguments &&
                close == ClosedParenthesis
                    ? this
-                   : new(null, identifier, open, arguments, close);
+                   : new(SyntaxTree, identifier, open, arguments, close);
     }
 
     public override string ToString() => $"{Kind}{Span}: {Identifier.Text}";

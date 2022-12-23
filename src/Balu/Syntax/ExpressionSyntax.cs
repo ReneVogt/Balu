@@ -2,7 +2,7 @@
 
 public abstract class ExpressionSyntax : SyntaxNode
 {
-    private protected ExpressionSyntax(SyntaxTree? syntaxTree)
+    private protected ExpressionSyntax(SyntaxTree syntaxTree)
         : base(syntaxTree)
     { }
 }

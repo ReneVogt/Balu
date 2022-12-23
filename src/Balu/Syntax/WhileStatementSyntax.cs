@@ -18,7 +18,7 @@ public sealed class WhileStatementSyntax : StatementSyntax
     public ExpressionSyntax Condition { get; }
     public StatementSyntax Body { get; }
 
-    public WhileStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body)
+    public WhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body)
     :base(syntaxTree)
     {
         WhileKeyword = whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword));
@@ -32,6 +32,6 @@ public sealed class WhileStatementSyntax : StatementSyntax
         var statement = (StatementSyntax)visitor.Visit(Body);
         return whileKeyword == WhileKeyword && condition == Condition && statement == Body
                    ? this
-                   : new(null, whileKeyword, condition, statement);
+                   : new(SyntaxTree, whileKeyword, condition, statement);
     }
 }

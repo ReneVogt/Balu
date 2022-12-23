@@ -13,7 +13,7 @@ public sealed class GlobalStatementSyntax : MemberSyntax
 
     public StatementSyntax Statement { get; }
 
-    public GlobalStatementSyntax(SyntaxTree? syntaxTree, StatementSyntax statement) : base(syntaxTree)
+    public GlobalStatementSyntax(SyntaxTree syntaxTree, StatementSyntax statement) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Statement = statement ?? throw new ArgumentNullException(nameof(statement)) ;
     }
@@ -21,6 +21,6 @@ public sealed class GlobalStatementSyntax : MemberSyntax
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var statement = (StatementSyntax)visitor.Visit(Statement);
-        return statement == Statement ? this : new(null, statement);
+        return statement == Statement ? this : new(SyntaxTree, statement);
     }
 }

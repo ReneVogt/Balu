@@ -17,7 +17,7 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public UnaryExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken operatorToken, ExpressionSyntax expression) : base(syntaxTree)
+    public UnaryExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken operatorToken, ExpressionSyntax expression) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         OperatorToken = operatorToken ?? throw new ArgumentNullException(nameof(operatorToken));
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
@@ -26,6 +26,6 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
     {
         SyntaxToken operatorToken = (SyntaxToken)visitor.Visit(OperatorToken);
         ExpressionSyntax expression = (ExpressionSyntax)visitor.Visit(Expression);
-        return operatorToken != OperatorToken || expression != Expression ? new(null, operatorToken, expression) : this;
+        return operatorToken != OperatorToken || expression != Expression ? new(SyntaxTree, operatorToken, expression) : this;
     }
 }

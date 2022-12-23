@@ -21,9 +21,9 @@ public sealed class DoWhileStatementSyntax : StatementSyntax
     public SyntaxToken WhileKeyword { get; }
     public ExpressionSyntax Condition { get; }
 
-    public DoWhileStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken doKeyword, StatementSyntax body, SyntaxToken whileKeyword,
+    public DoWhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken doKeyword, StatementSyntax body, SyntaxToken whileKeyword,
                                   ExpressionSyntax condition)
-        : base(syntaxTree)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         DoKeyword = doKeyword ?? throw new ArgumentNullException(nameof(doKeyword));
         Body = body ?? throw new ArgumentNullException(nameof(body));
@@ -38,6 +38,6 @@ public sealed class DoWhileStatementSyntax : StatementSyntax
         var condition = (ExpressionSyntax)visitor.Visit(Condition);
         return doKeyword == DoKeyword&& statement == Body && whileKeyword == WhileKeyword && condition == Condition
                    ? this
-                   : new(null, doKeyword, statement, whileKeyword, condition);
+                   : new(SyntaxTree, doKeyword, statement, whileKeyword, condition);
     }
 }

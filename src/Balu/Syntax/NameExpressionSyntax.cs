@@ -15,7 +15,7 @@ public sealed class NameExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public NameExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken identifierrToken) : base(syntaxTree)
+    public NameExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierrToken) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     { 
         IdentifierrToken = identifierrToken ?? throw new ArgumentNullException(nameof(identifierrToken));
     }
@@ -23,6 +23,6 @@ public sealed class NameExpressionSyntax : ExpressionSyntax
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         SyntaxToken identifierToken = (SyntaxToken)visitor.Visit(IdentifierrToken);
-        return identifierToken!= IdentifierrToken  ? new(null, identifierToken) : this;
+        return identifierToken!= IdentifierrToken  ? new(SyntaxTree, identifierToken) : this;
     }
 }

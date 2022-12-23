@@ -28,10 +28,10 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
     public TypeClauseSyntax? TypeClause { get; }
     public BlockStatementSyntax Body { get; }
 
-    public FunctionDeclarationSyntax(SyntaxTree? syntaxTree, SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
+    public FunctionDeclarationSyntax(SyntaxTree syntaxTree, SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
                                      SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? type,
                                      BlockStatementSyntax body)
-        : base(syntaxTree)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         FunctionKeyword = functionKeyword ?? throw new ArgumentNullException(nameof(functionKeyword));
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
@@ -55,6 +55,6 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
         return functionKeyword == FunctionKeyword && identifier == Identifier && openParenthesis == OpenParenthesis && parameters == Parameters &&
                closedParenthesis == ClosedParenthesis && TypeClause == type && Body == body
                    ? this
-                   : new(null, functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
+                   : new(SyntaxTree, functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
     }
 }

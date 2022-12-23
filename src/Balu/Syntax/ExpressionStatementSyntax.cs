@@ -12,12 +12,12 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
     }
     public ExpressionSyntax Expression { get; }
 
-    public ExpressionStatementSyntax(SyntaxTree? syntaxTree, ExpressionSyntax? expression)
-        : base(syntaxTree) => Expression = expression ?? throw new ArgumentNullException(nameof(expression));
+    public ExpressionStatementSyntax(SyntaxTree syntaxTree, ExpressionSyntax? expression)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => Expression = expression ?? throw new ArgumentNullException(nameof(expression));
     
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var expression = (ExpressionSyntax)visitor.Visit(Expression);
-        return expression != Expression ? new(null, expression) : this;
+        return expression != Expression ? new(SyntaxTree, expression) : this;
     }
 }

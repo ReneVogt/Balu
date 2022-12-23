@@ -27,9 +27,9 @@ public sealed class ForStatementSyntax : StatementSyntax
     public ExpressionSyntax UpperBound { get; }
     public StatementSyntax Body { get; }
 
-    public ForStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken forKeyword, SyntaxToken identifierToken, SyntaxToken equals,
+    public ForStatementSyntax(SyntaxTree syntaxTree, SyntaxToken forKeyword, SyntaxToken identifierToken, SyntaxToken equals,
                               ExpressionSyntax lowerBound, SyntaxToken toKeyWord, ExpressionSyntax upperBound, StatementSyntax body)
-        : base(syntaxTree)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ForKeyword = forKeyword ?? throw new ArgumentNullException(nameof(forKeyword));
         IdentifierToken = identifierToken ?? throw new ArgumentNullException(nameof(identifierToken));
@@ -56,6 +56,6 @@ public sealed class ForStatementSyntax : StatementSyntax
                upperBound == UpperBound &&
                body == Body
                    ? this
-                   : new(null, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
+                   : new(SyntaxTree, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
     }
 }

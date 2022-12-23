@@ -15,12 +15,12 @@ public sealed class BreakStatementSyntax : StatementSyntax
     }
     public SyntaxToken BreakKeyword { get; }
 
-    public BreakStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken breakKeyword)
-        : base(syntaxTree) => BreakKeyword = breakKeyword ?? throw new ArgumentNullException(nameof(breakKeyword));
+    public BreakStatementSyntax(SyntaxTree syntaxTree, SyntaxToken breakKeyword)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => BreakKeyword = breakKeyword ?? throw new ArgumentNullException(nameof(breakKeyword));
 
     internal override SyntaxNode Accept(SyntaxVisitor visitor)
     {
         var breakKeyword = (SyntaxToken)visitor.Visit(BreakKeyword);
-        return breakKeyword == BreakKeyword ? this : new(null, breakKeyword);
+        return breakKeyword == BreakKeyword ? this : new(SyntaxTree, breakKeyword);
     }
 }

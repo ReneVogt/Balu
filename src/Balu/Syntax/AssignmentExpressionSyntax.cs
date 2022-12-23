@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
@@ -18,8 +19,8 @@ public sealed class AssignmentExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public AssignmentExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken identifierrToken, SyntaxToken equalsToken, ExpressionSyntax expression)
-        : base(syntaxTree)
+    public AssignmentExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierrToken, SyntaxToken equalsToken, ExpressionSyntax expression)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         IdentifierToken = identifierrToken;
         EqualsToken = equalsToken;
@@ -31,6 +32,6 @@ public sealed class AssignmentExpressionSyntax : ExpressionSyntax
         SyntaxToken identifierToken = (SyntaxToken)visitor.Visit(IdentifierToken);
         SyntaxToken equalsToken = (SyntaxToken)visitor.Visit(EqualsToken);
         ExpressionSyntax expression = (ExpressionSyntax)visitor.Visit(Expression);
-        return identifierToken != IdentifierToken || equalsToken != EqualsToken || expression != Expression ? new (null, identifierToken, equalsToken, expression) : this;
+        return identifierToken != IdentifierToken || equalsToken != EqualsToken || expression != Expression ? new (SyntaxTree, identifierToken, equalsToken, expression) : this;
     }
 }

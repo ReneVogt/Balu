@@ -19,8 +19,8 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public BinaryExpressionSyntax(SyntaxTree? syntaxTree, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
-    : base(syntaxTree)
+    public BinaryExpressionSyntax(SyntaxTree syntaxTree, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Left = left ?? throw new ArgumentNullException(nameof(left));
         OperatorToken = operatorToken ?? throw new ArgumentNullException(nameof(operatorToken));
@@ -32,6 +32,6 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
         ExpressionSyntax left = (ExpressionSyntax)visitor.Visit(Left);
         SyntaxToken operatorToken = (SyntaxToken)visitor.Visit(OperatorToken);
         ExpressionSyntax right = (ExpressionSyntax)visitor.Visit(Right);
-        return left != Left || operatorToken != OperatorToken || right != Right ? new(null, left, operatorToken, right) : this;
+        return left != Left || operatorToken != OperatorToken || right != Right ? new(SyntaxTree, left, operatorToken, right) : this;
     }
 }

@@ -6,7 +6,7 @@ namespace Balu.Syntax;
 
 sealed class Lexer
 {
-    readonly SyntaxTree? syntaxTree;
+    readonly SyntaxTree syntaxTree;
     readonly SourceText sourceText;
     readonly DiagnosticBag diagnostics = new();
 
@@ -17,10 +17,6 @@ sealed class Lexer
     SyntaxKind kind;
     object? value;
 
-    internal Lexer(SourceText sourceText)
-    {
-        this.sourceText = sourceText;
-    }
     internal Lexer(SyntaxTree syntaxTree)
     {
         this.syntaxTree = syntaxTree;

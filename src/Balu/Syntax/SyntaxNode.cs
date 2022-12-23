@@ -10,13 +10,13 @@ public abstract class SyntaxNode
 {
     readonly Lazy<TextSpan> span;
 
-    public SyntaxTree? SyntaxTree { get; }
+    public SyntaxTree SyntaxTree { get; }
     public abstract SyntaxKind Kind { get; }
     public virtual TextSpan Span => span.Value;
     public abstract IEnumerable<SyntaxNode> Children { get; }
     public SyntaxToken LastToken => GetLastToken();
 
-    private protected SyntaxNode(SyntaxTree? syntaxTree)
+    private protected SyntaxNode(SyntaxTree syntaxTree)
     {
         SyntaxTree = syntaxTree;
         span = new(() =>

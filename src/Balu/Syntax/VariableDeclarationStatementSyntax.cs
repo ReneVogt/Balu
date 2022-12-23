@@ -23,8 +23,8 @@ public sealed class VariableDeclarationStatementSyntax : StatementSyntax
     public ExpressionSyntax Expression { get; }
     public TypeClauseSyntax? TypeClause { get; }
 
-    public VariableDeclarationStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken keywordToken, SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression, TypeClauseSyntax? typeClause)
-    : base(syntaxTree)
+    public VariableDeclarationStatementSyntax(SyntaxTree syntaxTree, SyntaxToken keywordToken, SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression, TypeClauseSyntax? typeClause)
+    : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         KeywordToken = keywordToken ?? throw new ArgumentNullException(nameof(keywordToken));
         IdentifierToken = identifierToken ?? throw new ArgumentNullException(nameof(identifierToken));
@@ -42,6 +42,6 @@ public sealed class VariableDeclarationStatementSyntax : StatementSyntax
         var typeClause = TypeClause is null ? null : (TypeClauseSyntax)visitor.Visit(TypeClause);
         return keyword == KeywordToken && identifier == IdentifierToken && equals == EqualsToken && expression == Expression
                    ? this
-                   : new(null, keyword, identifier, equals, expression, typeClause);
+                   : new(SyntaxTree, keyword, identifier, equals, expression, typeClause);
     }
 }

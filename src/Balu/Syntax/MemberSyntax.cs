@@ -2,7 +2,7 @@
 
 public abstract class MemberSyntax : SyntaxNode
 {
-    private protected MemberSyntax(SyntaxTree? syntaxTree)
+    private protected MemberSyntax(SyntaxTree syntaxTree)
         : base(syntaxTree)
     {}
 }

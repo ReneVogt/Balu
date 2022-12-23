@@ -20,8 +20,8 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public ParenthesizedExpressionSyntax(SyntaxTree? syntaxTree, SyntaxToken openParenthesisToken, ExpressionSyntax expression, SyntaxToken closedParenthesisToken)
-        : base(syntaxTree)
+    public ParenthesizedExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken openParenthesisToken, ExpressionSyntax expression, SyntaxToken closedParenthesisToken)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         OpenParenthesisToken = openParenthesisToken ?? throw new ArgumentNullException(nameof(openParenthesisToken));
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
@@ -33,7 +33,7 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
         SyntaxToken open = (SyntaxToken)visitor.Visit(OpenParenthesisToken);
         ExpressionSyntax expr = (ExpressionSyntax)visitor.Visit(Expression);
         SyntaxToken close = (SyntaxToken)visitor.Visit(ClosedParenthesisToken);
-        return open != OpenParenthesisToken || expr != Expression || close != ClosedParenthesisToken ? new(null, open, expr,close) : this;
+        return open != OpenParenthesisToken || expr != Expression || close != ClosedParenthesisToken ? new(SyntaxTree, open, expr,close) : this;
     }
 
 }

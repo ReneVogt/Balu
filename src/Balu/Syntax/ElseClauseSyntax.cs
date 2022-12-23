@@ -17,8 +17,8 @@ public sealed class ElseClauseSyntax : SyntaxNode
     public SyntaxToken ElseKeyword { get; }
     public StatementSyntax Statement { get; }
 
-    public ElseClauseSyntax(SyntaxTree? syntaxTree, SyntaxToken elseKeyword, StatementSyntax statement)
-        : base(syntaxTree)
+    public ElseClauseSyntax(SyntaxTree syntaxTree, SyntaxToken elseKeyword, StatementSyntax statement)
+        : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ElseKeyword = elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword));
         Statement = statement ?? throw new ArgumentNullException(nameof(statement));
@@ -28,6 +28,6 @@ public sealed class ElseClauseSyntax : SyntaxNode
     {
         var keyword = (SyntaxToken)visitor.Visit(ElseKeyword);
         var statement = (StatementSyntax)visitor.Visit(Statement);
-        return keyword == ElseKeyword && statement == Statement ? this : new(null, keyword, statement);
+        return keyword == ElseKeyword && statement == Statement ? this : new(SyntaxTree, keyword, statement);
     }
 }

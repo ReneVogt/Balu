@@ -21,7 +21,7 @@ public sealed class IfStatementSyntax : StatementSyntax
     public StatementSyntax ThenStatement { get; }
     public ElseClauseSyntax? ElseClause { get; }
 
-    public IfStatementSyntax(SyntaxTree? syntaxTree, SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause) : base(syntaxTree)
+    public IfStatementSyntax(SyntaxTree syntaxTree, SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         IfKeyword = ifKeyword ?? throw new ArgumentNullException(nameof(ifKeyword));
         Condition = condition ?? throw new ArgumentNullException(nameof(condition));
@@ -37,6 +37,6 @@ public sealed class IfStatementSyntax : StatementSyntax
         var elseClause = ElseClause is {} ? (ElseClauseSyntax)visitor.Visit(ElseClause) : null;
         return ifKeyword == IfKeyword && condition == Condition && thenStatement == ThenStatement && elseClause == ElseClause
                    ? this
-                   : new(null, ifKeyword, condition, thenStatement, elseClause);
+                   : new(SyntaxTree, ifKeyword, condition, thenStatement, elseClause);
     }
 }
