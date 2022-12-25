@@ -32,32 +32,25 @@ public static class TextWriterExtensions
     public static void WritePunctuation(this TextWriter textWriter, string? text) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).WriteColoredText(text, ConsoleColor.DarkGray);
     public static void WriteSpace(this TextWriter textWriter) => (textWriter ?? throw new ArgumentNullException(nameof(textWriter))).Write(' ');
 
-#pragma warning disable CA1303 // writing literals to console
     public static void WriteDiagnostics(this TextWriter textWriter, IEnumerable<Diagnostic> diagnostics)
     {
         _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
         _ = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
 
-        const string indent = "    ";
-
         foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Location.Text.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenBy(diagnostic => diagnostic.Location.Span.Length))
         {
             var sourceText = diagnostic.Location.Text;
-            Console.ForegroundColor = ConsoleColor.Red;
-            int lineNumber = sourceText.GetLineIndex(diagnostic.Location.Span.Start);
-            var syntaxLine = sourceText.Lines[lineNumber];
-            int column = diagnostic.Location.Span.Start - syntaxLine.Start;
-            Console.WriteLine($"[{diagnostic.Id}] {diagnostic.Location}: {diagnostic.Message}");
-            Console.ResetColor();
+            var startLine = sourceText.Lines[diagnostic.Location.StartLine];
+            var endLine = sourceText.Lines[diagnostic.Location.EndLine];
+            int column = diagnostic.Location.Span.Start - startLine.Start;
+            WriteColoredText(textWriter, $"[{diagnostic.Id}] {diagnostic.Location}: {diagnostic.Message}", ConsoleColor.Red);
+            textWriter.WriteLine();
             if (diagnostic.Location.Span.Length > 0)
             {
-                Console.Write(indent);
-                Console.Write(sourceText.ToString(syntaxLine.Start, column));
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.Write(sourceText.ToString(diagnostic.Location.Span));
-                Console.ResetColor();
-                Console.WriteLine(sourceText.ToString(diagnostic.Location.Span.End, Math.Max(0, syntaxLine.End - diagnostic.Location.Span.End)));
-                Console.ResetColor();
+                textWriter.Write("    ");
+                textWriter.Write(sourceText.ToString(startLine.Start, column));
+                WriteColoredText(textWriter, sourceText.ToString(diagnostic.Location.Span), ConsoleColor.Red);
+                textWriter.WriteLine(sourceText.ToString(diagnostic.Location.Span.End, Math.Max(0, endLine.End - diagnostic.Location.Span.End)));
             }
         }
     }
