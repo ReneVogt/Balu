@@ -10,14 +10,14 @@ using Balu.Visualization;
 
 sealed class Program
 {
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
         if (args.Length == 0)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Error.WriteLine("Usage: bc <sourefilepath>");
             Console.ResetColor();
-            return;
+            return 1;
         }
 
         try
@@ -26,18 +26,21 @@ sealed class Program
             var compilation = new Compilation(syntaxTrees);
             var result = compilation.Evaluate(new ());
             if (result.Diagnostics.Any())
-                Console.Error.WriteDiagnostics(result.Diagnostics);
-            else
             {
-                var output = result.Value is string s ? $"\"{s.EscapeString()}\"" : result.Value;
-                Console.WriteLine($"Result: {output}");
+                Console.Error.WriteDiagnostics(result.Diagnostics);
+                return 1;
             }
+
+            var output = result.Value is string s ? $"\"{s.EscapeString()}\"" : result.Value;
+            Console.WriteLine($"Result: {output}");
+            return 0;
         }
         catch (Exception error)
         {
             Console.ForegroundColor = ConsoleColor.Red;
             Console.Error.WriteLine(error);
             Console.ResetColor();
+            return 1;
         }
     }
 
