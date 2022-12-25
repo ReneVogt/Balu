@@ -8,7 +8,13 @@ namespace Balu.Visualization;
 
 public static class TextWriterExtensions
 {
-    public static bool IsConsole(this TextWriter textWriter) => textWriter == Console.Out || textWriter is IndentedTextWriter {InnerWriter: var writer} && (writer == Console.Out || writer == Console.Error);
+    public static bool IsConsole(this TextWriter textWriter)
+    {
+        var writer = textWriter is IndentedTextWriter iw ? iw.InnerWriter : textWriter;
+        if (writer == Console.Out) return !Console.IsOutputRedirected;
+        if (writer == Console.Error) return !(Console.IsErrorRedirected || Console.IsOutputRedirected);
+        return false;
+    }
     public static void SetForegroundColor(this TextWriter textWriter, ConsoleColor foregroundColor)
     {
         if (!textWriter.IsConsole()) return;
