@@ -6,6 +6,7 @@ using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using Balu.Visualization;
 
 #pragma warning disable CA1303
@@ -155,11 +156,80 @@ abstract class Repl
     protected abstract bool IsCompleteSubmission(string text);
     void EvaluateMetaCommand(string text)
     {
-        var command = text[1..];
-        if (!metaCommands.TryGetValue(command, out var mc))
-            Console.Error.WriteColoredText($"Unknown command '{text}'.{Environment.NewLine}", ConsoleColor.Red);
+        var position = text.IndexOf(' ', StringComparison.InvariantCulture);
+        var commandName = position < 0 ? text[1..] : text[1 .. position];
+        if (position < 0) position = text.Length;
+
+        if (!metaCommands.TryGetValue(commandName, out var command))
+        {
+            Console.Error.WriteColoredText($"Error: unknown command '{commandName}'.{Environment.NewLine}", ConsoleColor.Red);
+            return;
+        }
+
+        var arguments = new List<string>();
+        var builder = new StringBuilder();
+        var inQuotes = false;
+
+        while (position < text.Length)
+        {
+            var current = text[position];
+            var lookAhead = position + 1 < text.Length ? text[position + 1] : '\0';
+            if (current == '"')
+            {
+                if (!inQuotes)
+                {
+                    CommitArgument();
+                    inQuotes = true;
+                    position++;
+                    continue;
+                }
+
+                if (lookAhead == '"')
+                {
+                    builder.Append('"');
+                    position += 2;
+                    continue;
+                }
+
+                CommitArgument();
+                inQuotes = false;
+                position++;
+                continue;
+            }
+
+            if (char.IsWhiteSpace(current) && !inQuotes)
+            {
+                CommitArgument();
+                position++;
+                continue;
+            }
+
+            builder.Append(current);
+            position++;
+        }
+
+        CommitArgument();
+
+        var args = arguments.Cast<object>().ToArray();
+        var parameters = command.Method.GetParameters();
+        if (args.Length != parameters.Length)
+        {
+            Console.Error.WriteColoredText($"Error: invalid number of arguments.{Environment.NewLine}", ConsoleColor.Red);
+            Console.Error.Write("Usage: ");
+            Console.Error.WriteKeyword($"#{commandName}");
+            Console.Error.WriteSpace();
+            Console.Error.WriteLine(string.Join(" ", parameters.Select(p => p.Name)));
+        }
         else
-            mc.Method.Invoke(this, null);
+            command.Method.Invoke(this, args);
+    
+        void CommitArgument()
+        {
+            var arg = builder.ToString();
+            if (!string.IsNullOrWhiteSpace(arg))
+                arguments.Add(arg);
+            builder.Clear();
+        }
     }
     protected abstract void EvaluateSubmission(string text);
 

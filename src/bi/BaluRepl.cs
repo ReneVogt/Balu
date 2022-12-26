@@ -116,4 +116,9 @@ sealed class BaluRepl : Repl
         previous = null;
         globals.Clear();
     }
+    [MetaCommand("dump", "Shows the compiled function with the given name.")]
+    static void Dump(string function)
+    {
+        Console.WriteLine($"Dumping function {function}.");
+    }
 }
