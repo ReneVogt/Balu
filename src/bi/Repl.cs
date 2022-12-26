@@ -216,12 +216,17 @@ abstract class Repl
         {
             Console.Error.WriteColoredText($"Error: invalid number of arguments (found {args.Length}, but expected {parameters.Length}).{Environment.NewLine}", ConsoleColor.Red);
             Console.Error.Write("Usage: ");
-            Console.Error.WriteKeyword($"#{commandName}");
+            Console.Error.WritePunctuation("#");
+            Console.Error.WriteIdentifier(commandName);
             Console.Error.WriteSpace();
-            Console.Error.WriteLine(string.Join(" ", parameters.Select(p => $"<{p.Name}>")));
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (i > 0) Console.Error.WritePunctuation(", ");
+                Console.Error.WritePunctuation($"<{parameters[i].Name}>");
+            }
+            Console.Error.WriteLine();
         }
-        else
-            command.Method.Invoke(this, args);
+        else command.Method.Invoke(this, args);
     
         void CommitArgument()
         {
@@ -239,8 +244,10 @@ abstract class Repl
         var padding = metaCommands.Max(c => c.Key.Length) + 2;
         foreach (var command in metaCommands.Values.OrderBy(mc => mc.Name))
         {
-            Console.Out.WriteKeyword($"#{command.Name.PadRight(padding)}");
-            Console.WriteLine(command.Description);
+            Console.Out.WritePunctuation("#");
+            Console.Out.WriteIdentifier(command.Name.PadRight(padding));
+            Console.Out.WritePunctuation(command.Description);
+            Console.Out.WriteLine();
         }
     }
 
