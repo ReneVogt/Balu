@@ -3,7 +3,10 @@ using System.IO;
 using System.Linq;
 using Balu.Syntax;
 using Balu.Visualization;
+// ReSharper disable UnusedMember.Local
 
+#pragma warning disable IDE0051
+#pragma warning disable IDE0040
 #pragma warning disable CA1303
 
 namespace Balu.Interactive;
@@ -17,37 +20,6 @@ sealed class BaluRepl : Repl
 
     protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine, StringComparison.InvariantCultureIgnoreCase) || !SyntaxTree.Parse(text).IsLastTokenMissing;
 
-    protected override void EvaluateMetaCommand(string text)
-    {
-        switch (text)
-        {
-            case "#showSyntax":
-                showSyntax = !showSyntax;
-                Console.WriteLine(showSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
-                break;
-            case "#showProgram":
-                showProgram = !showProgram;
-                Console.WriteLine(showProgram ? "Showing program tree." : "Not showing program tree.");
-                break;
-            case "#showVars":
-                showVars = !showVars;
-                Console.WriteLine(showVars ? "Showing globals after evaluationn." : "Not showing globals after evaluation.");
-                break;
-            case "#cls":
-                Console.Clear();
-                break;
-            case "#reset":
-                previous = null;
-                globals.Clear();
-                break;
-            case "#clearHistory":
-                ClearHistory();
-                break;
-            default:
-                base.EvaluateMetaCommand(text);
-                break;
-        }
-    }
     protected override void EvaluateSubmission(string text)
     {
         SyntaxTree syntaxTree = SyntaxTree.Parse(text);
@@ -116,5 +88,32 @@ sealed class BaluRepl : Repl
             Console.ResetColor();
         }
 
+    }
+
+    [MetaCommand("showSyntax", "Toggles display of the syntax tree.")]
+    void ShowSyntax()
+    {
+        showSyntax = !showSyntax;
+        Console.WriteLine(showSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
+    }
+    [MetaCommand("showProgram", "Toggles display of the bound program.")]
+    void ShowProgram()
+    {
+        showProgram = !showProgram;
+        Console.WriteLine(showProgram ? "Showing program tree." : "Not showing program tree.");
+    }
+    [MetaCommand("showVars", "Toggles display of variables' content.")]
+    void ShowVariables()
+    {
+        showVars = !showVars;
+        Console.WriteLine(showVars ? "Showing globals after evaluationn." : "Not showing globals after evaluation.");
+    }
+    [MetaCommand("cls", "Clears the screen.")]
+    static void ClearScreen() => Console.Clear();
+    [MetaCommand("reset", "Resets the submission cache.")]
+    void Reset()
+    {
+        previous = null;
+        globals.Clear();
     }
 }

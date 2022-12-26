@@ -8,6 +8,7 @@ namespace Balu.Visualization;
 
 public static class TextWriterExtensions
 {
+    // ReSharper disable once TailRecursiveCall
     public static bool IsConsole(this TextWriter textWriter) => textWriter is IndentedTextWriter iw
                                                                     ? IsConsole(iw.InnerWriter)
                                                                     : textWriter == Console.Out
@@ -55,8 +56,9 @@ public static class TextWriterExtensions
         }
     }
 
-    static void WriteColoredText(this TextWriter textWriter, string? text, ConsoleColor foregroundColor)
+    public static void WriteColoredText(this TextWriter textWriter, string? text, ConsoleColor foregroundColor)
     {
+        _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
         textWriter.SetForegroundColor(foregroundColor);
         textWriter.Write(text ?? "?");
         textWriter.ResetColor();

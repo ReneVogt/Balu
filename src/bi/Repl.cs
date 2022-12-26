@@ -1,8 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
+using System.Reflection;
+using Balu.Visualization;
 
 #pragma warning disable CA1303
 
@@ -10,10 +14,36 @@ namespace Balu.Interactive;
 
 abstract class Repl
 {
+    [AttributeUsage(AttributeTargets.Method, Inherited = false)]
+    protected sealed class MetaCommandAttribute : Attribute
+    {
+        public string Name { get; }
+        public string Description { get; }
+        public MetaCommandAttribute(string name, string description)
+        {
+            Name = name;
+            Description = description;
+        }
+    }
+    sealed class MetaCommand
+    {
+        public string Name { get; }
+        public string Description { get; }
+        public MethodInfo Method { get; }
+
+        public MetaCommand(string name, string description, MethodInfo method)
+        {
+            Name = name;
+            Method = method;
+            Description = description;
+        }
+    }
     sealed class Document : ObservableCollection<string>
     {
-        public Document() : base(new []{string.Empty}){}
+        public Document()
+            : base(new[] { string.Empty }) { }
     }
+
     sealed class SubmissionView
     {
         sealed class UpdateDisposable : IDisposable
@@ -83,11 +113,11 @@ abstract class Repl
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(i == 0 ? "» " : "· ");
                 Console.ResetColor();
-                lineRenderer(SubmissionDocument[i].PadRight(Console.WindowWidth-2));
+                lineRenderer(SubmissionDocument[i].PadRight(Console.WindowWidth - 2));
             }
 
             int blankLines = renderedLinesCount - SubmissionDocument.Count;
-            while(blankLines-- > 0) Console.WriteLine(new string(' ', Console.WindowWidth));
+            while (blankLines-- > 0) Console.WriteLine(new string(' ', Console.WindowWidth));
             renderedLinesCount = SubmissionDocument.Count;
             Console.CursorVisible = true;
             UpdateCursorPosition();
@@ -102,23 +132,51 @@ abstract class Repl
         public IDisposable CreateUpdateContext() => new UpdateDisposable(this);
     }
 
+    readonly ImmutableDictionary<string, MetaCommand> metaCommands;
     readonly List<string> history = new();
 
     int historyIndex;
     bool editDone;
 
-    protected abstract bool IsCompleteSubmission(string text);
-    protected virtual void EvaluateMetaCommand(string text)
+    protected Repl()
     {
-        if (text == "#exit") Environment.Exit(0);
-        Console.ForegroundColor = ConsoleColor.Red;
-        Console.WriteLine($"Unknown command '{text}'.");
-        Console.ResetColor();
+        metaCommands = (from method in GetType()
+                            .GetMethods(
+                                BindingFlags.NonPublic |
+                                BindingFlags.Public |
+                                BindingFlags.Static |
+                                BindingFlags.Instance |
+                                BindingFlags.FlattenHierarchy)
+                        let attribute = method.GetCustomAttributes<MetaCommandAttribute>().SingleOrDefault()
+                        where attribute is not null
+                        select new MetaCommand(attribute.Name, attribute.Description, method)).ToImmutableDictionary(c => c.Name, c => c);
+    }
+
+    protected abstract bool IsCompleteSubmission(string text);
+    void EvaluateMetaCommand(string text)
+    {
+        var command = text[1..];
+        if (!metaCommands.TryGetValue(command, out var mc))
+            Console.Error.WriteColoredText($"Unknown command '{text}'.{Environment.NewLine}", ConsoleColor.Red);
+        else
+            mc.Method.Invoke(this, null);
     }
     protected abstract void EvaluateSubmission(string text);
 
+    [MetaCommand("help", "Shows help.")]
+    protected void EvaluateHelp()
+    {
+        var padding = metaCommands.Max(c => c.Key.Length) + 2;
+        foreach (var command in metaCommands.Values.OrderBy(mc => mc.Name))
+        {
+            Console.Out.WriteKeyword($"#{command.Name.PadRight(padding)}");
+            Console.WriteLine(command.Description);
+        }
+    }
+
     protected virtual void RenderLine(string line) => Console.WriteLine(line);
 
+    [MetaCommand("clearHistory", "Clears the input history.")]
     protected void ClearHistory() => history.Clear();
 
     string EditSubmission()
