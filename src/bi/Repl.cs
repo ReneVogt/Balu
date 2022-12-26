@@ -214,11 +214,11 @@ abstract class Repl
         var parameters = command.Method.GetParameters();
         if (args.Length != parameters.Length)
         {
-            Console.Error.WriteColoredText($"Error: invalid number of arguments.{Environment.NewLine}", ConsoleColor.Red);
+            Console.Error.WriteColoredText($"Error: invalid number of arguments (found {args.Length}, but expected {parameters.Length}).{Environment.NewLine}", ConsoleColor.Red);
             Console.Error.Write("Usage: ");
             Console.Error.WriteKeyword($"#{commandName}");
             Console.Error.WriteSpace();
-            Console.Error.WriteLine(string.Join(" ", parameters.Select(p => p.Name)));
+            Console.Error.WriteLine(string.Join(" ", parameters.Select(p => $"<{p.Name}>")));
         }
         else
             command.Method.Invoke(this, args);
