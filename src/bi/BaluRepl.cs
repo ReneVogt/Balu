@@ -186,7 +186,7 @@ sealed class BaluRepl : Repl
         var function = previous?.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
         if (function is null)
         {
-            Console.Error.WriteColoredText($"Error: Function '{functionName} does not exist.{Environment.NewLine}", ConsoleColor.Red);
+            Console.Error.WriteColoredText($"Error: Function '{functionName}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
             return;
         }
 
