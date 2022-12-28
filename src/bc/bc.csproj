@@ -13,13 +13,4 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Balu\Balu.csproj" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <None Update="sample2.balu">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	  <None Update="sample.balu">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
 </Project>

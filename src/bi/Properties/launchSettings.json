@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "bi": {
+      "commandName": "Project",
+      "workingDirectory": "C:\\Privat\\Sourcen\\Balu\\src"
+    }
+  }
+}

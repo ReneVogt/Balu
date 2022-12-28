@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
 // ReSharper disable UnusedMember.Local
@@ -115,6 +116,64 @@ sealed class BaluRepl : Repl
     {
         previous = null;
         globals.Clear();
+    }
+    [MetaCommand("load", "Loads a script file.")]
+    void Load(string path)
+    {
+        path = Path.GetFullPath(path);
+        if (!File.Exists(path))
+        {
+            Console.Error.WriteColoredText($"Error: file '{path}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
+            return;
+        }
+
+        EvaluateSubmission(File.ReadAllText(path));
+    }
+    [MetaCommand("ls", "Lists all symbols.")]
+    void ListSymbols()
+    {
+        if (previous is null) return;
+        foreach (var symbol in previous.AllVisibleSymbols.OrderBy(symbol => symbol.Name))
+        {
+            switch (symbol)
+            { 
+                case FunctionSymbol function:
+                    Console.Out.WriteKeyword("function");
+                    Console.Out.WriteSpace();
+                    Console.Out.WriteIdentifier(function.Name);
+                    Console.Out.WritePunctuation("(");
+                    for (int i = 0; i < function.Parameters.Length; i++)
+                    {
+                        if (i>0) Console.Out.WritePunctuation(", ");
+                        Console.Out.WriteIdentifier(function.Parameters[i].Name);
+                        Console.Out.WriteSpace();
+                        Console.Out.WritePunctuation(":");
+                        Console.Out.WriteSpace();
+                        Console.Out.WriteIdentifier(function.Parameters[i].Type.Name);
+                    }
+                    Console.Out.WritePunctuation(")");
+                    Console.Out.WriteSpace();
+                    Console.Out.WritePunctuation(":");
+                    Console.Out.WriteSpace();
+                    Console.Out.WriteIdentifier(function.ReturnType.Name);
+                    break;
+                case GlobalVariableSymbol variable:
+                    Console.Out.WriteKeyword((variable.ReadOnly ? "let" : "var"));
+                    Console.Out.WriteSpace();
+                    Console.Out.WriteIdentifier(variable.Name);
+                    Console.Out.WriteSpace();
+                    Console.Out.WritePunctuation(":");
+                    Console.Out.WriteSpace();
+                    Console.Out.WriteIdentifier(variable.Type.Name);
+                    break;
+                default:
+                    Console.Out.WriteIdentifier(symbol.Name);
+                    Console.Out.WriteSpace();
+                    Console.Out.WritePunctuation(symbol.Kind.ToString());
+                    break;
+            }
+            Console.Out.WriteLine();
+        }
     }
     [MetaCommand("dump", "Shows the compiled function with the given name.")]
     static void Dump(string function)

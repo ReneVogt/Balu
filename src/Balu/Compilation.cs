@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using Balu.Binding;
 using Balu.Evaluation;
+using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
 #pragma warning disable CA1724
@@ -45,11 +47,26 @@ public sealed class Compilation
     public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
     public Compilation? Previous { get; }
 
+    public ImmutableArray<Symbol> Symbols => GlobalScope.Symbols;
+    public IEnumerable<Symbol> AllVisibleSymbols
+    {
+        get
+        {
+            var submission = this;
+            while (submission is not null)
+            {
+                foreach (var symbol in submission.Symbols)
+                    yield return symbol;
+                submission = submission.Previous;
+            }
+        }
+    }
+
     public Compilation(params SyntaxTree[] syntaxTrees) : this(null, syntaxTrees){}
 
     Compilation(Compilation? previous, params SyntaxTree[] syntaxTrees) => (Previous, SyntaxTrees) = (previous, syntaxTrees.ToImmutableArray());
-
     public Compilation ContinueWith(SyntaxTree syntaxTree) => new (this, syntaxTree);
+
 
     public EvaluationResult Evaluate(VariableDictionary globals)
     {
