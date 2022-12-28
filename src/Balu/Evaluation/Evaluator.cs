@@ -220,10 +220,19 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
         Result = (random & 0x7FFFFFFF) % maximum; // TODO: avoid modulo bias
     }
 
-    public static object? Evaluate(BoundBlockStatement statement, VariableDictionary globals, ImmutableDictionary<FunctionSymbol, BoundBlockStatement> functions)
+    public static object? Evaluate(BoundProgram program, VariableDictionary globals)
     {
-        using var evaluator = new Evaluator(globals, functions);
-        evaluator.VisitBoundBlockStatement(statement ?? throw new ArgumentNullException(nameof(statement)));
+        var functionDictionaryBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
+        var prg = program;
+        while (prg is not null)
+        {
+            foreach (var (function, body) in prg.Functions)
+                functionDictionaryBuilder.TryAdd(function, body);
+            prg = prg.Previous;
+        }
+
+        using var evaluator = new Evaluator(globals, functionDictionaryBuilder.ToImmutable());
+        evaluator.VisitBoundBlockStatement(program.GlobalScope.Statement ?? throw new ArgumentNullException(nameof(program)));
         return evaluator.Result;
     }
 }

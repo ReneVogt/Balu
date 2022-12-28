@@ -58,7 +58,6 @@ sealed class BaluRepl : Repl
             Console.Out.WriteDiagnostics(result.Diagnostics);
         else
         {
-            if (!loadingSubmission) Console.WriteLine();
             previous = compilation;
             SaveSubmission(text);
             if (showVars)

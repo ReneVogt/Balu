@@ -36,7 +36,7 @@ public sealed class Compilation
         {
             if (program is null)
             {
-                var p = Binder.BindProgram(GlobalScope);
+                var p = Binder.BindProgram(Previous?.Program, GlobalScope);
                 Interlocked.CompareExchange(ref program, p, null);
             }
 
@@ -80,7 +80,7 @@ public sealed class Compilation
         if (diagnostics.Any())
             return new(diagnostics, null);
 
-        return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(GlobalScope.Statement, globals, Program.Functions));
+        return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(Program, globals));
     }
 
     public void WriteSyntaxTrees(TextWriter writer)

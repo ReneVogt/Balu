@@ -416,8 +416,7 @@ sealed class Binder : SyntaxVisitor
         if (!scope.TryDeclareSymbol(function))
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
     }
-
-
+    
     static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction)
     {
         var result = Lowerer.Lower(statement, containingFunction);
@@ -442,31 +441,25 @@ sealed class Binder : SyntaxVisitor
         var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
         return new(previous, statement, binder.scope.GetDeclaredSymbols(), diagnostics);
     }
-    public static BoundProgram BindProgram(BoundGlobalScope globalScope)
+    public static BoundProgram BindProgram(BoundProgram? previous, BoundGlobalScope globalScope)
     {
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         var diagnostics = globalScope.Diagnostics;
         var parentScope = CreateParentScopes(globalScope);
 
-        var scope = globalScope;
-        while (scope is not null)
+        foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
         {
-            foreach (var function in scope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
-            {
-                var functionBinder = new Binder(parentScope, function);
-                functionBinder.Visit(function.Declaration!.Body);
-                var body = (BoundStatement)functionBinder.boundNode!;
-                var refactored = Refactor(body, function);
-                if (function.ReturnType != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(refactored))
-                    functionBinder.diagnostics.ReportNotAllPathsReturn(function);
-                functionBodyBuilder.Add(function, refactored);
-                diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
-            }
-
-            scope = scope.Previous;
+            var functionBinder = new Binder(parentScope, function);
+            functionBinder.Visit(function.Declaration!.Body);
+            var body = (BoundStatement)functionBinder.boundNode!;
+            var refactored = Refactor(body, function);
+            if (function.ReturnType != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(refactored))
+                functionBinder.diagnostics.ReportNotAllPathsReturn(function);
+            functionBodyBuilder.Add(function, refactored);
+            diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
         }
 
-        return new(globalScope, functionBodyBuilder.ToImmutable(), diagnostics);
+        return new(previous, globalScope, functionBodyBuilder.ToImmutable(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {
