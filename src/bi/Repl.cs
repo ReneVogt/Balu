@@ -219,11 +219,7 @@ abstract class Repl
             Console.Error.WritePunctuation("#");
             Console.Error.WriteIdentifier(commandName);
             Console.Error.WriteSpace();
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                if (i > 0) Console.Error.WritePunctuation(", ");
-                Console.Error.WritePunctuation($"<{parameters[i].Name}>");
-            }
+            Console.Error.WritePunctuation(string.Join(" ", parameters.Select(parameter => $"<{parameter.Name}>")));
             Console.Error.WriteLine();
         }
         else command.Method.Invoke(this, args);
