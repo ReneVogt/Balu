@@ -16,8 +16,13 @@ sealed class BaluRepl : Repl
 {
     readonly VariableDictionary globals = new();
 
-    bool showSyntax, showVars, showProgram;
+    bool showSyntax, showVars, showProgram, writeControlFlow;
     Compilation? previous;
+
+    public BaluRepl()
+    {
+        LoadSubmissions();
+    }
 
     protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine, StringComparison.InvariantCultureIgnoreCase) || !SyntaxTree.Parse(text).IsLastTokenMissing;
 
@@ -41,22 +46,21 @@ sealed class BaluRepl : Repl
             compilation.WriteProgramTree(Console.Out);
         }
 
-
-        using var writer = new StreamWriter(Path.Combine(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])!, "graph.dot"));
-        compilation.WriteControlFlowGraph(writer);
+        if (writeControlFlow)
+        {
+            using var writer = new StreamWriter(Path.Combine(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])!, "graph.dot"));
+            compilation.WriteControlFlowGraph(writer);
+        }
 
         var result = compilation.Evaluate(globals);
         Console.ResetColor();
-        Console.WriteLine();
         if (result.Diagnostics.Any())
             Console.Out.WriteDiagnostics(result.Diagnostics);
         else
         {
+            if (!loadingSubmission) Console.WriteLine();
             previous = compilation;
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write("Result: ");
-            Console.ForegroundColor = ConsoleColor.White;
-            Console.WriteLine(result.Value is string s ? $"\"{s.EscapeString()}\"" : result.Value);
+            SaveSubmission(text);
             if (showVars)
             {
                 Console.ForegroundColor = ConsoleColor.Yellow;
@@ -68,6 +72,36 @@ sealed class BaluRepl : Repl
 
             Console.ResetColor();
         }
+    }
+
+    bool loadingSubmission;
+    void LoadSubmissions()
+    {
+        var submissionsPath = GetSubmissionsPath();
+        if (!Directory.Exists(submissionsPath)) return;
+        var files = Directory.GetFiles(submissionsPath).OrderBy(f => f).ToArray();
+        if (files.Length == 0) return;
+        loadingSubmission = true;
+        Console.Out.WritePunctuation($"Loading {files.Length} submissions...{Environment.NewLine}");
+        foreach (var text in files.Select(File.ReadAllText)) EvaluateSubmission(text);
+        loadingSubmission = false;
+    }
+    void SaveSubmission(string text)
+    {
+        if (loadingSubmission) return;
+        var submissionFolder = GetSubmissionsPath();
+        Directory.CreateDirectory(submissionFolder);
+        var existingCount = Directory.GetFiles(submissionFolder).Length;
+        var name = $"submission{existingCount:0000}";
+        var fileName = Path.Combine(submissionFolder, name);
+        File.WriteAllText(fileName, text);
+    }
+    static void ClearSubmissions() => Directory.Delete(GetSubmissionsPath(), true);
+    static string GetSubmissionsPath()
+    {
+        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        var submissionFolder = Path.Combine(localAppData, "Balu", "Submissions");
+        return submissionFolder;
     }
 
     protected override void RenderLine(string line)
@@ -109,6 +143,12 @@ sealed class BaluRepl : Repl
         showVars = !showVars;
         Console.WriteLine(showVars ? "Showing globals after evaluationn." : "Not showing globals after evaluation.");
     }
+    [MetaCommand("writeControlFlow", "Toggles output of the control flow graph to a file (graph.dot).")]
+    void WriteControlFlow()
+    {
+        writeControlFlow = !writeControlFlow;
+        Console.WriteLine(writeControlFlow ? "Writeing control flow graph to graph.dot." : "Not writeing control flow graph to graph.dot.");
+    }
     [MetaCommand("cls", "Clears the screen.")]
     static void ClearScreen() => Console.Clear();
     [MetaCommand("reset", "Resets the submission cache.")]
@@ -116,6 +156,7 @@ sealed class BaluRepl : Repl
     {
         previous = null;
         globals.Clear();
+        ClearSubmissions();
     }
     [MetaCommand("load", "Loads a script file.")]
     void Load(string path)
@@ -135,49 +176,20 @@ sealed class BaluRepl : Repl
         if (previous is null) return;
         foreach (var symbol in previous.AllVisibleSymbols.OrderBy(symbol => symbol.Name))
         {
-            switch (symbol)
-            { 
-                case FunctionSymbol function:
-                    Console.Out.WriteKeyword("function");
-                    Console.Out.WriteSpace();
-                    Console.Out.WriteIdentifier(function.Name);
-                    Console.Out.WritePunctuation("(");
-                    for (int i = 0; i < function.Parameters.Length; i++)
-                    {
-                        if (i>0) Console.Out.WritePunctuation(", ");
-                        Console.Out.WriteIdentifier(function.Parameters[i].Name);
-                        Console.Out.WriteSpace();
-                        Console.Out.WritePunctuation(":");
-                        Console.Out.WriteSpace();
-                        Console.Out.WriteIdentifier(function.Parameters[i].Type.Name);
-                    }
-                    Console.Out.WritePunctuation(")");
-                    Console.Out.WriteSpace();
-                    Console.Out.WritePunctuation(":");
-                    Console.Out.WriteSpace();
-                    Console.Out.WriteIdentifier(function.ReturnType.Name);
-                    break;
-                case GlobalVariableSymbol variable:
-                    Console.Out.WriteKeyword((variable.ReadOnly ? "let" : "var"));
-                    Console.Out.WriteSpace();
-                    Console.Out.WriteIdentifier(variable.Name);
-                    Console.Out.WriteSpace();
-                    Console.Out.WritePunctuation(":");
-                    Console.Out.WriteSpace();
-                    Console.Out.WriteIdentifier(variable.Type.Name);
-                    break;
-                default:
-                    Console.Out.WriteIdentifier(symbol.Name);
-                    Console.Out.WriteSpace();
-                    Console.Out.WritePunctuation(symbol.Kind.ToString());
-                    break;
-            }
+            symbol.WriteTo(Console.Out);
             Console.Out.WriteLine();
         }
     }
     [MetaCommand("dump", "Shows the compiled function with the given name.")]
-    static void Dump(string function)
+    void Dump(string functionName)
     {
-        Console.WriteLine($"Dumping function {function}.");
+        var function = previous?.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
+        if (function is null)
+        {
+            Console.Error.WriteColoredText($"Error: Function '{functionName} does not exist.{Environment.NewLine}", ConsoleColor.Red);
+            return;
+        }
+
+        previous!.WriteTree(Console.Out, function);
     }
 }

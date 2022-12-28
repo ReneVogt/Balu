@@ -272,24 +272,7 @@ sealed class BoundTreeWriter : BoundTreeVisitor
 
     static void WriteFunction(IndentedTextWriter writer, FunctionSymbol function, BoundBlockStatement body)
     {
-        writer.WriteKeyword(SyntaxKind.FunctionKeyword.GetText());
-        writer.WriteSpace();
-        writer.WriteIdentifier(function.Name);
-        writer.WritePunctuation(SyntaxKind.OpenParenthesisToken.GetText());
-        for (int i = 0; i < function.Parameters.Length; i++)
-        {
-            if (i > 0)
-            {
-                writer.WritePunctuation(SyntaxKind.CommaToken.GetText());
-                writer.WriteSpace();
-            }
-            writer.WriteIdentifier(function.Parameters[i].Name);
-            writer.WriteSpace();
-            writer.WritePunctuation(SyntaxKind.ColonToken.GetText());
-            writer.WriteSpace();
-            writer.WriteIdentifier(function.Parameters[i].Type.Name);
-        }
-        writer.WritePunctuation(SyntaxKind.ClosedParenthesisToken.GetText());
+        function.WriteTo(writer);
         writer.WriteLine();
         Print(body, writer);
         writer.WriteLine();

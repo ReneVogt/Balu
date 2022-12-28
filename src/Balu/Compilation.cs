@@ -52,11 +52,12 @@ public sealed class Compilation
     {
         get
         {
+            var uniqueNames = new HashSet<string>();
             var submission = this;
             while (submission is not null)
             {
-                foreach (var symbol in submission.Symbols)
-                    yield return symbol;
+                foreach (var symbol in submission.Symbols.Where(symbol => uniqueNames.Add(symbol.Name)))
+                        yield return symbol;
                 submission = submission.Previous;
             }
         }
@@ -88,6 +89,17 @@ public sealed class Compilation
             SyntaxTreeWriter.Print(syntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
     }
     public void WriteProgramTree(TextWriter writer) => BoundTreeWriter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
+    public void WriteTree(TextWriter writer, FunctionSymbol function)
+    {
+        _ = function ?? throw new ArgumentNullException(nameof(function));
+        _ = writer ?? throw new ArgumentNullException(nameof(writer));
+
+        function.WriteTo(writer);
+        writer.WriteLine();
+        if (!Program.Functions.TryGetValue(function, out var body)) return;
+        BoundTreeWriter.Print(body, writer);
+        writer.WriteLine();
+    }
     public void WriteControlFlowGraph(TextWriter writer)
     {
         _ = writer ?? throw new ArgumentNullException(nameof(writer));
