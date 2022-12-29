@@ -182,13 +182,14 @@ sealed class BaluRepl : Repl
     [MetaCommand("dump", "Shows the compiled function with the given name.")]
     void Dump(string functionName)
     {
-        var function = previous?.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
+        var compilation = previous ?? Compilation.Empty;
+        var function = compilation.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
         if (function is null)
         {
             Console.Error.WriteColoredText($"Error: Function '{functionName}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
             return;
         }
 
-        previous!.WriteTree(Console.Out, function);
+        compilation.WriteTree(Console.Out, function);
     }
 }

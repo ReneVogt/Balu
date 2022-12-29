@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Threading;
 using Balu.Binding;
 using Balu.Evaluation;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
+using Binder = Balu.Binding.Binder;
+
 #pragma warning disable CA1724
 namespace Balu;
 
@@ -16,6 +19,8 @@ public sealed class Compilation
 {
     BoundGlobalScope? globalScope;
     BoundProgram? program;
+
+    public static Compilation Empty { get; } = new Compilation();
 
     internal BoundGlobalScope GlobalScope
     {
@@ -60,6 +65,12 @@ public sealed class Compilation
                         yield return symbol;
                 submission = submission.Previous;
             }
+
+            var builtIniFunctions = from property in typeof(BuiltInFunctions).GetProperties(BindingFlags.Public | BindingFlags.Static)
+                                    where property.PropertyType == typeof(FunctionSymbol)
+                                    select (FunctionSymbol)property.GetValue(null);
+            foreach (var builtInFunction in builtIniFunctions)
+                yield return builtInFunction;
         }
     }
 
@@ -96,8 +107,18 @@ public sealed class Compilation
 
         function.WriteTo(writer);
         writer.WriteLine();
-        if (!Program.Functions.TryGetValue(function, out var body)) return;
-        BoundTreeWriter.Print(body, writer);
+        BoundBlockStatement? body = null;
+        var prg = Program;
+        while (prg is not null && body is null)
+        {
+            prg.Functions.TryGetValue(function, out body);
+            prg = prg.Previous;
+        }
+
+        if (body is null)
+            writer.WritePunctuation("<no body>");
+        else
+            BoundTreeWriter.Print(body, writer);
         writer.WriteLine();
     }
     public void WriteControlFlowGraph(TextWriter writer)
