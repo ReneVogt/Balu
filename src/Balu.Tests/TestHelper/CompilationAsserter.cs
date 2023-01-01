@@ -1,5 +1,6 @@
 ﻿using Balu.Syntax;
 using System;
+using System.Linq;
 using Xunit;
 namespace Balu.Tests.TestHelper;
 
@@ -19,10 +20,11 @@ static class CompilationAsserter
 
         Assert.Equal(annotatedText.Spans.Length, result.Diagnostics.Length);
 
+        var actualDiagnostics = result.Diagnostics.OrderBy(diagnostic => diagnostic.Location.Text.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length).ToArray();
         for (int i = 0; i < expectedDiagnostics.Length; i++)
         {
-            Assert.Equal(expectedDiagnostics[i], result.Diagnostics[i].Message);
-            Assert.Equal(annotatedText.Spans[i], result.Diagnostics[i].Location.Span);
+            Assert.Equal(expectedDiagnostics[i], actualDiagnostics[i].Message);
+            Assert.Equal(annotatedText.Spans[i], actualDiagnostics[i].Location.Span);
         }
 
         if (expectedDiagnostics.Length == 0)

@@ -183,6 +183,26 @@ public class EvaluatorTests
 ";
         text.AssertEvaluation(diagnostics);
     }
+    [Fact]
+    public void Evaluate_FunctionDeclarationStatement_NoInfiniteLoopIfNumberInIdentifier()
+    {
+        const string text = "function test[[[[[[1]]]]]][[[[[[(]]]]]]){}";
+        const string diagnostics = @"
+            Unexpected NumberToken ('1'), expected OpenParenthesisToken.
+            Unexpected NumberToken ('1'), expected IdentifierToken.
+            Unexpected NumberToken ('1'), expected ColonToken.
+            Unexpected NumberToken ('1'), expected IdentifierToken.
+            Unexpected NumberToken ('1'), expected CommaToken.
+            Undefined type ''.
+            Unexpected OpenParenthesisToken ('('), expected IdentifierToken.
+            Unexpected OpenParenthesisToken ('('), expected ColonToken.
+            Unexpected OpenParenthesisToken ('('), expected IdentifierToken.
+            Unexpected OpenParenthesisToken ('('), expected CommaToken.
+            Parameter '' is already declared.
+            Undefined type ''.
+";
+        text.AssertEvaluation(diagnostics);
+    }
 
     [Fact]
     public void Evaluate_VariableDeclaration_Reports_Redeclaration()

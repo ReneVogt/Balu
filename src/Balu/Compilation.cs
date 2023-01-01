@@ -68,7 +68,7 @@ public sealed class Compilation
 
             var builtIniFunctions = from property in typeof(BuiltInFunctions).GetProperties(BindingFlags.Public | BindingFlags.Static)
                                     where property.PropertyType == typeof(FunctionSymbol)
-                                    select (FunctionSymbol)property.GetValue(null);
+                                    select (FunctionSymbol)property.GetValue(null)!;
             foreach (var builtInFunction in builtIniFunctions.Where(symbol => uniqueNames.Add(symbol.Name)))
                 yield return builtInFunction;
         }

@@ -92,6 +92,7 @@ sealed class Parser
         var parameters = ImmutableArray.CreateBuilder<SyntaxNode>();
         while (Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
         {
+            var currentToken = Current;
             parameters.Add(ParseParameter());
             if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
             {
@@ -100,6 +101,13 @@ sealed class Parser
                 if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
                     diagnostics.ReportUnexpectedToken(comma, SyntaxKind.ClosedBraceToken);
             }
+            // Check if we consumend a token.
+            // If not, we need to skip this, because
+            // othwrwise we end up in an infinit loop.
+            // Error will be reported by the unfinished
+            // statement.
+            if (currentToken == Current) NextToken();
+
         }
         return new(parameters.ToImmutable());
     }

@@ -38,7 +38,7 @@ public static class TextWriterExtensions
         _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
         _ = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
 
-        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Location.Text.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenBy(diagnostic => diagnostic.Location.Span.Length))
+        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Location.Text.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length))
         {
             var sourceText = diagnostic.Location.Text;
             var startLine = sourceText.Lines[diagnostic.Location.StartLine];
