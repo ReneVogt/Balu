@@ -172,8 +172,8 @@ sealed class BaluRepl : Repl
     [MetaCommand("ls", "Lists all symbols.")]
     void ListSymbols()
     {
-        if (previous is null) return;
-        foreach (var symbol in previous.AllVisibleSymbols.OrderBy(symbol => symbol.Name))
+        var compilation = previous ?? Compilation.CreateScript(null);
+        foreach (var symbol in compilation.AllVisibleSymbols.OrderBy(symbol => symbol.Name))
         {
             symbol.WriteTo(Console.Out);
             Console.Out.WriteLine();
