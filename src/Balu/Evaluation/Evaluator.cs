@@ -181,6 +181,8 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             throw EvaluationException.MissingMethod(callExpression.Function.Name);
         locals.Push(frame);
         Visit(functions[callExpression.Function]);
+        if (callExpression.Function.ReturnType == TypeSymbol.Void)
+            Result = null;
         locals.Pop();
         return callExpression;
     }
@@ -204,6 +206,7 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write(argument);
         Console.ResetColor();
+        Result = null;
     }
     void ExecuteInput()
     {

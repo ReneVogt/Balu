@@ -66,4 +66,5 @@ sealed class DiagnosticBag : List<Diagnostic>
             ? $"'{function.Name}' does not have a return type and cannot return a value of type '{actualType}'."
             : $"'{function.Name}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
     public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(Diagnostic.BND0020, function.Declaration!.Identifier.Location, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
+    public void ReportInvalidExpressionStatement(TextLocation location) => Add(new(Diagnostic.BND0020, location, "Only assignment or call expressions can be used as a statement."));
 }

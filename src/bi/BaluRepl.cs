@@ -58,15 +58,31 @@ sealed class BaluRepl : Repl
             Console.Out.WriteDiagnostics(result.Diagnostics);
         else
         {
+            if (result.Value is not null)
+            {
+                Console.Out.WriteColoredText("Result: ", ConsoleColor.Yellow);
+                Console.Out.WriteColoredText(result.Value.ToString(), ConsoleColor.Magenta);
+                Console.Out.WriteLine();
+            }
+
             previous = compilation;
             SaveSubmission(text);
             if (showVars)
             {
-                Console.ForegroundColor = ConsoleColor.Yellow;
-                Console.WriteLine("Variables:");
-                Console.ResetColor();
-                if (globals.Any())
-                    Console.WriteLine(string.Join(Environment.NewLine, globals.Select(kvp => $"{kvp.Key.Name}({kvp.Key.Type.Name}): {kvp.Value}")));
+                Console.Out.WriteColoredText("Variables:", ConsoleColor.Yellow);
+                Console.Out.WriteLine();
+                foreach (var element in globals)
+                {
+                    Console.Out.WriteIdentifier(element.Key.Name);
+                    Console.Out.WritePunctuation("(");
+                    Console.Out.WriteIdentifier(element.Key.Type.Name);
+                    Console.Out.WritePunctuation(")");
+                    Console.Out.WriteSpace();
+                    Console.Out.WritePunctuation("=");
+                    Console.Out.WriteSpace();
+                    Console.Out.Write(element.Value?.ToString() ?? "<null>");
+                    Console.Out.WriteLine();
+                }
             }
 
             Console.ResetColor();

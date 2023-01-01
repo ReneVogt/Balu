@@ -26,7 +26,7 @@ public sealed class Compilation
         {
             if (globalScope is null)
             {
-                var scope = Binder.BindGlobalScope(Previous?.GlobalScope, SyntaxTrees);
+                var scope = Binder.BindGlobalScope(IsScript, Previous?.GlobalScope, SyntaxTrees);
                 Interlocked.CompareExchange(ref globalScope, scope, null);
             }
 
@@ -39,7 +39,7 @@ public sealed class Compilation
         {
             if (program is null)
             {
-                var p = Binder.BindProgram(Previous?.Program, GlobalScope);
+                var p = Binder.BindProgram(IsScript, Previous?.Program, GlobalScope);
                 Interlocked.CompareExchange(ref program, p, null);
             }
 

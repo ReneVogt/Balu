@@ -13,15 +13,18 @@ sealed class Binder : SyntaxVisitor
     readonly DiagnosticBag diagnostics = new();
     readonly FunctionSymbol? containingFunction;
     readonly Stack<(BoundLabel breakLabel, BoundLabel continueLabel)> loopStack = new ();
+    readonly bool isScript;
 
     int labelCounter;
+    bool isGlobal;
     BoundScope scope;
     BoundNode? boundNode;
 
     bool IsError => boundNode is BoundExpression { Type: var type } && type == TypeSymbol.Error;
 
-    Binder(BoundScope? parent, FunctionSymbol? containingFunction = null)
+    Binder(bool isScript, BoundScope? parent, FunctionSymbol? containingFunction = null)
     {
+        this.isScript = isScript;
         scope = new(parent);
         this.containingFunction = containingFunction;
         if (this.containingFunction is null) return;
@@ -29,6 +32,16 @@ sealed class Binder : SyntaxVisitor
             scope.TryDeclareSymbol(parameter);
     }
 
+    public override SyntaxNode Visit(SyntaxNode node)
+    {
+        isGlobal = false;
+        return base.Visit(node);
+    }
+    protected override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)
+    {
+        isGlobal = true;
+        return base.Visit(node.Statement);
+    }
     protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
     {
         boundNode = new BoundLiteralExpression(node.Value ?? 0);
@@ -191,8 +204,15 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
     {
+        bool global = isGlobal;
         Visit(node.Expression);
-        boundNode = new BoundExpressionStatement((BoundExpression)boundNode!);
+        var expression = (BoundExpression)boundNode!;
+        boundNode = new BoundExpressionStatement(expression);
+        if (!(isScript && global) &&  
+            expression.Kind != BoundNodeKind.ErrorExpression &&
+            expression.Kind != BoundNodeKind.AssignmentExpression &&
+            expression.Kind != BoundNodeKind.CallExpression)
+            diagnostics.ReportInvalidExpressionStatement(node.Location);
         return node;
     }
     protected override SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationStatementSyntax node)
@@ -423,10 +443,10 @@ sealed class Binder : SyntaxVisitor
         result = ConstantReducer.ReduceConstants(result);
         return result;
     }
-    public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
+    public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
     {
         var parentScope = CreateParentScopes(previous);
-        var binder = new Binder(parentScope);
+        var binder = new Binder(isScript, parentScope);
 
         binder.BindFunctionDeclarations(syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<FunctionDeclarationSyntax>()));
         var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
@@ -441,7 +461,7 @@ sealed class Binder : SyntaxVisitor
         var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
         return new(previous, statement, binder.scope.GetDeclaredSymbols(), diagnostics);
     }
-    public static BoundProgram BindProgram(BoundProgram? previous, BoundGlobalScope globalScope)
+    public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
     {
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         var diagnostics = globalScope.Diagnostics;
@@ -449,7 +469,7 @@ sealed class Binder : SyntaxVisitor
 
         foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
         {
-            var functionBinder = new Binder(parentScope, function);
+            var functionBinder = new Binder(isScript, parentScope, function);
             functionBinder.Visit(function.Declaration!.Body);
             var body = (BoundStatement)functionBinder.boundNode!;
             var refactored = Refactor(body, function);
