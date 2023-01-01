@@ -23,7 +23,7 @@ sealed class Program
         try
         {
             var syntaxTrees = GetFilePaths(args).Select(path => SyntaxTree.Load(Path.GetFullPath(path))).ToArray();
-            var compilation = new Compilation(syntaxTrees);
+            var compilation = Compilation.Create(syntaxTrees);
             var result = compilation.Evaluate(new ());
             if (result.Diagnostics.Any())
             {

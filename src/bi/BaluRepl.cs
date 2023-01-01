@@ -30,7 +30,7 @@ sealed class BaluRepl : Repl
     {
         SyntaxTree syntaxTree = SyntaxTree.Parse(text);
         Console.ForegroundColor = ConsoleColor.DarkYellow;
-        var compilation = previous?.ContinueWith(syntaxTree) ?? new Compilation(syntaxTree);
+        var compilation = Compilation.CreateScript(previous, syntaxTree);
         if (showSyntax)
         {
             Console.ForegroundColor = ConsoleColor.Yellow;
@@ -182,7 +182,7 @@ sealed class BaluRepl : Repl
     [MetaCommand("dump", "Shows the compiled function with the given name.")]
     void Dump(string functionName)
     {
-        var compilation = previous ?? Compilation.Empty;
+        var compilation = previous ?? Compilation.CreateScript(null);
         var function = compilation.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
         if (function is null)
         {

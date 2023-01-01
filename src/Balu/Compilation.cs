@@ -20,8 +20,6 @@ public sealed class Compilation
     BoundGlobalScope? globalScope;
     BoundProgram? program;
 
-    public static Compilation Empty { get; } = new Compilation();
-
     internal BoundGlobalScope GlobalScope
     {
         get
@@ -49,6 +47,7 @@ public sealed class Compilation
         }
     }
 
+    public bool IsScript { get; }
     public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
     public Compilation? Previous { get; }
 
@@ -74,11 +73,12 @@ public sealed class Compilation
         }
     }
 
-    public Compilation(params SyntaxTree[] syntaxTrees) : this(null, syntaxTrees){}
-
-    Compilation(Compilation? previous, params SyntaxTree[] syntaxTrees) => (Previous, SyntaxTrees) = (previous, syntaxTrees.ToImmutableArray());
-    public Compilation ContinueWith(SyntaxTree syntaxTree) => new (this, syntaxTree);
-
+    Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
+    {
+        Previous = previous;
+        SyntaxTrees = syntaxTrees.ToImmutableArray();
+        IsScript = isScript;
+    }
 
     public EvaluationResult Evaluate(VariableDictionary globals)
     {
@@ -129,7 +129,8 @@ public sealed class Compilation
                                               : Program.GlobalScope.Statement);
         cfg.WriteTo(writer);
     }
-    public static EvaluationResult Evaluate(string input, VariableDictionary globals) => Evaluate(SyntaxTree.Parse(input ?? throw new ArgumentNullException(nameof(input))), globals);
 
-    public static EvaluationResult Evaluate(SyntaxTree syntaxTree, VariableDictionary globals) => new Compilation(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))).Evaluate(globals);
+    public static Compilation Create(params SyntaxTree[] syntaxTrees) => new (false, null, syntaxTrees);
+    public static Compilation CreateScript(Compilation? previous, params SyntaxTree[] syntaxTrees) => new(true, previous, syntaxTrees);
+
 }
