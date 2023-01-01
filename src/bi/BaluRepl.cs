@@ -111,7 +111,12 @@ sealed class BaluRepl : Repl
         var fileName = Path.Combine(submissionFolder, name);
         File.WriteAllText(fileName, text);
     }
-    static void ClearSubmissions() => Directory.Delete(GetSubmissionsPath(), true);
+    static void ClearSubmissions()
+    {
+        var path = GetSubmissionsPath();
+        if (Directory.Exists(path))
+            Directory.Delete(path, true);
+    }
     static string GetSubmissionsPath()
     {
         var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);

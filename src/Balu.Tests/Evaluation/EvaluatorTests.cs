@@ -67,8 +67,8 @@ public class EvaluatorTests
     [InlineData("true != false", true)]
     [InlineData("2 != 3", true)]
     [InlineData("3 != 3", false)]
-    [InlineData("{var a = 12 (a = a * 12)}", 144)]
-    [InlineData("{var a = 10 for i=0 to (a = a - 1) {} a}", 9)]
+    [InlineData("var a = 12 (a = a * 12)", 144)]
+    [InlineData("var a = 10 for i=0 to (a = a - 1) {} a", 9)]
     [InlineData("12 < 3", false)]
     [InlineData("12 <= 3", false)]
     [InlineData("3 < 12", true)]
@@ -205,6 +205,16 @@ public class EvaluatorTests
     }
 
     [Fact]
+    public void Evaluate_FunctionDeclarationStatement_ReportsInvalidExpressionStatement()
+    {
+        const string text = "function test() { [2*12] }";
+        const string diagnostics = @"
+            Only assignment or call expressions can be used as a statement.
+";
+        text.AssertEvaluation(diagnostics);
+    }
+
+    [Fact]
     public void Evaluate_VariableDeclaration_Reports_Redeclaration()
     {
         const string text = @"
@@ -242,19 +252,19 @@ public class EvaluatorTests
     }
 
     [Theory]
-    [InlineData("if true 1", 1)]
-    [InlineData("if false 1", false)]
-    [InlineData("if true 1 else 2", 1)]
-    [InlineData("if false 1 else 2", 2)]
-    [InlineData("{ var a = 10 if a == 10 a = 5 a }", 5)]
-    [InlineData("{ var a = 10 if a != 10 a = 5 a }", 10)]
-    [InlineData("{ var a = 10 if a == 10 a = 5 else a = 20 a }", 5)]
-    [InlineData("{ var a = 10 if a != 10 a = 5 else a = 20 a }", 20)]
+    [InlineData("var a = 0 if true a = 1 a", 1)]
+    [InlineData("var a = 0 if false a = 1 a", 0)]
+    [InlineData("var a = 0 if true a = 1 else a = 2 a", 1)]
+    [InlineData("var a = 0 if false a = 1 else a = 2 a", 2)]
+    [InlineData("var a = 10 if a == 10 a = 5 a", 5)]
+    [InlineData("var a = 10 if a != 10 a = 5 a", 10)]
+    [InlineData("var a = 10 if a == 10 a = 5 else a = 20 a", 5)]
+    [InlineData("var a = 10 if a != 10 a = 5 else a = 20 a", 20)]
     public void Evaluate_IfStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
     [Fact]
     public void Evaluate_IfStatement_Reports_WrongConditionType()
     {
-        const string text = "if [(12 + 3)] 1 else 0";
+        const string text = "if [(12 + 3)] {} else {}";
         const string diagnostics = @"
             Cannot convert 'int' to 'bool'.
 ";
@@ -276,9 +286,9 @@ public class EvaluatorTests
     }
 
     [Theory]
-    [InlineData("{ var x = 0 while (x < 12) x = x + 1 x }", 12)]
-    [InlineData("{ var result = 1 var i = 0 while (i < 5) { i = i + 1 result = result * 2} result }", 32)]
-    [InlineData("{ var result = 0 var i = 0 while (i < 10) { i = i + 1 result = result + i} result }", 55)]
+    [InlineData("var x = 0 while (x < 12) x = x + 1 x", 12)]
+    [InlineData("var result = 1 var i = 0 while (i < 5) { i = i + 1 result = result * 2} result", 32)]
+    [InlineData("var result = 0 var i = 0 while (i < 10) { i = i + 1 result = result + i} result", 55)]
     public void Evaluate_WhileStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
     [Fact]
     public void Evaluate_WhileStatement_Reports_WrongConditionType()
@@ -291,9 +301,9 @@ public class EvaluatorTests
     }
 
     [Theory]
-    [InlineData("{ var x = 0 do x = x + 1 while (x < 12) x }", 12)]
-    [InlineData("{ var result = 1 var i = 0 do { i = i + 1 result = result * 2} while (i < 5) result }", 32)]
-    [InlineData("{ var result = 0 var i = 0 do { i = i + 1 result = result + i} while (i < 10) result }", 55)]
+    [InlineData("var x = 0 do x = x + 1 while (x < 12) x", 12)]
+    [InlineData("var result = 1 var i = 0 do { i = i + 1 result = result * 2} while (i < 5) result", 32)]
+    [InlineData("var result = 0 var i = 0 do { i = i + 1 result = result + i} while (i < 10) result", 55)]
     public void Evaluate_DoWhileStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
     [Fact]
     public void Evaluate_DoWhileStatement_Reports_WrongConditionType()
@@ -306,12 +316,12 @@ public class EvaluatorTests
     }
 
     [Theory]
-    [InlineData("{ var result = 0 for i=0 to 10 result=result+i result }", 55)]
+    [InlineData("var result = 0 for i=0 to 10 result=result+i result", 55)]
     public void Evaluate_ForStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
     [Fact]
     public void Evaluate_ForStatement_Reports_WrongBoundaryTypes()
     {
-        const string text = "{for i= [1>2] to [2>1] 12}";
+        const string text = "for i= [1>2] to [2>1] {}";
         const string diagnostics = @"
             Cannot convert 'bool' to 'int'.
             Cannot convert 'bool' to 'int'.
@@ -397,7 +407,7 @@ public class EvaluatorTests
     [Fact]
     public void Evaluate_FunctionCall_ReturnInsideLoop()
     {
-        "function increase(i:int) : int { return i+1 } {var result = 0 while result < 12 { result = increase(result) } result }".AssertEvaluation(value: 12);
+        "function increase(i:int) : int { return i+1 } var result = 0 while result < 12 { result = increase(result) } result".AssertEvaluation(value: 12);
     }
 
     [Fact]
@@ -462,38 +472,36 @@ public class EvaluatorTests
     public void Evaluate_Break_BreaksCorrectLoop()
     {
         @"
+            var result = 0
+            for i = 1 to 10
             {
-                var result = 0
-                for i = 1 to 10
+                if i > 5 break
+                for j = 11 to 15
                 {
-                    if i > 5 break
-                    for j = 11 to 15
-                    {
-                       if (j > 13) break
-                       result = result + i + j
-                    }
-                 }
-                result
-            }".AssertEvaluation(value: 225);
+                   if (j > 13) break
+                   result = result + i + j
+                }
+            }
+            result
+         ".AssertEvaluation(value: 225);
 
     }
     [Fact]
     public void Evaluate_Continue_ContinuesCorrectLoop()
     {
         @"
+            var result = 0
+            for i = 1 to 10
             {
-                var result = 0
-                for i = 1 to 10
+                if i/2*2 == i continue
+                for j = 11 to 15
                 {
-                    if i/2*2 == i continue
-                    for j = 11 to 15
-                    {
-                       if j == 13 || j == 14 continue
-                       result = result + i + j
-                    }
-                 }
-                result
-            }".AssertEvaluation(value: 265);
+                   if j == 13 || j == 14 continue
+                   result = result + i + j
+                }
+             }
+             result            
+        ".AssertEvaluation(value: 265);
 
     }
 
