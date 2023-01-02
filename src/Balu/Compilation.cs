@@ -84,10 +84,7 @@ public sealed class Compilation
     {
         _ = globals ?? throw new ArgumentNullException(nameof(globals));
 
-        var diagnostics = SyntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(GlobalScope.Diagnostics).ToImmutableArray();
-        if (diagnostics.Any())
-            return new(diagnostics, null);
-        diagnostics = Program.Diagnostics;
+        var diagnostics = SyntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(Program.Diagnostics).ToImmutableArray();
         if (diagnostics.Any())
             return new(diagnostics, null);
 

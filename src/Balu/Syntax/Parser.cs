@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Balu.Text;
@@ -68,6 +69,7 @@ sealed class Parser
 
         return members.ToImmutable();
     }
+
     MemberSyntax ParseMember() => Current.Kind switch
     {
         SyntaxKind.FunctionKeyword => ParseFunctionDeclaration(),
@@ -82,35 +84,10 @@ sealed class Parser
         var parameters = ParseParameters();
         var closedParenthesis = MatchToken(SyntaxKind.ClosedParenthesisToken);
         var type = ParseOptionalTypeClause();
-        var body = ParseBlockStatement();
+        var body = ParseBlockStatement();   
         return new(syntaxTree, keyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
     }
-    SeparatedSyntaxList<ParameterSyntax> ParseParameters()
-    {
-        if (Current.Kind == SyntaxKind.ClosedParenthesisToken) return new(ImmutableArray<SyntaxNode>.Empty);
-
-        var parameters = ImmutableArray.CreateBuilder<SyntaxNode>();
-        while (Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
-        {
-            var currentToken = Current;
-            parameters.Add(ParseParameter());
-            if (Current.Kind != SyntaxKind.ClosedParenthesisToken)
-            {
-                var comma = MatchToken(SyntaxKind.CommaToken);
-                parameters.Add(comma);
-                if (Current.Kind == SyntaxKind.ClosedParenthesisToken)
-                    diagnostics.ReportUnexpectedToken(comma, SyntaxKind.ClosedBraceToken);
-            }
-            // Check if we consumend a token.
-            // If not, we need to skip this, because
-            // othwrwise we end up in an infinit loop.
-            // Error will be reported by the unfinished
-            // statement.
-            if (currentToken == Current) NextToken();
-
-        }
-        return new(parameters.ToImmutable());
-    }
+    SeparatedSyntaxList<ParameterSyntax> ParseParameters() => ParseSeparatedSyntaxList(ParseParameter);
     ParameterSyntax ParseParameter()
     {
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
@@ -305,23 +282,24 @@ sealed class Parser
         var closed = MatchToken(SyntaxKind.ClosedParenthesisToken);
         return new(syntaxTree, identifier, open, arguments, closed);
     }
-    SeparatedSyntaxList<ExpressionSyntax> ParseArguments()
+    SeparatedSyntaxList<ExpressionSyntax> ParseArguments() => ParseSeparatedSyntaxList(ParseExpression);
+    SeparatedSyntaxList<T> ParseSeparatedSyntaxList<T>(Func<T> parseMethod) where T : SyntaxNode
     {
-        var argumentsBuilder = ImmutableArray.CreateBuilder<SyntaxNode>();
-        var parseNextArgument = true;
-        while(parseNextArgument && Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
+        var listBuilder = ImmutableArray.CreateBuilder<SyntaxNode>();
+        var parseNextElement = true;
+        while (parseNextElement && Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
         {
-            argumentsBuilder.Add(ParseExpression());
+            listBuilder.Add(parseMethod());
             if (Current.Kind == SyntaxKind.CommaToken)
             {
                 var comma = MatchToken(SyntaxKind.CommaToken);
-                argumentsBuilder.Add(comma);
+                listBuilder.Add(comma);
             }
-            else parseNextArgument = false;
+            else parseNextElement = false;
         }
-        if (argumentsBuilder.Count % 2 == 0 && argumentsBuilder.Count > 0)
-            diagnostics.ReportUnexpectedToken((SyntaxToken)argumentsBuilder.Last(), SyntaxKind.ClosedParenthesisToken);
-        return new(argumentsBuilder.ToImmutable());
+        if (listBuilder.Count % 2 == 0 && listBuilder.Count > 0)
+            diagnostics.ReportUnexpectedToken((SyntaxToken)listBuilder.Last(), SyntaxKind.ClosedParenthesisToken);
+        return new(listBuilder.ToImmutable());
     }
     NameExpressionSyntax ParseNameExpression() => new(syntaxTree, MatchToken(SyntaxKind.IdentifierToken));
     SyntaxToken MatchToken(SyntaxKind kind)

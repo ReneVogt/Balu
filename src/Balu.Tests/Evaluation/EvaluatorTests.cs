@@ -186,20 +186,19 @@ public class EvaluatorTests
     [Fact]
     public void Evaluate_FunctionDeclarationStatement_NoInfiniteLoopIfNumberInIdentifier()
     {
-        const string text = "function test[[[[[[1]]]]]][[[[[[(]]]]]]){}";
+        const string text = "function test[[[[[[[[1]]]]]]]]([)]{}[]";
         const string diagnostics = @"
             Unexpected NumberToken ('1'), expected OpenParenthesisToken.
             Unexpected NumberToken ('1'), expected IdentifierToken.
             Unexpected NumberToken ('1'), expected ColonToken.
             Unexpected NumberToken ('1'), expected IdentifierToken.
-            Unexpected NumberToken ('1'), expected CommaToken.
+            Unexpected NumberToken ('1'), expected ClosedParenthesisToken.
+            Unexpected NumberToken ('1'), expected OpenBraceToken.
             Undefined type ''.
-            Unexpected OpenParenthesisToken ('('), expected IdentifierToken.
-            Unexpected OpenParenthesisToken ('('), expected ColonToken.
-            Unexpected OpenParenthesisToken ('('), expected IdentifierToken.
-            Unexpected OpenParenthesisToken ('('), expected CommaToken.
-            Parameter '' is already declared.
-            Undefined type ''.
+            Only assignment or call expressions can be used as a statement.
+            Unexpected ClosedParenthesisToken (')'), expected IdentifierToken.
+            Unexpected EndOfFileToken ('" + "\0" + @"'), expected ClosedBraceToken.
+
 ";
         text.AssertEvaluation(diagnostics);
     }
@@ -207,7 +206,7 @@ public class EvaluatorTests
     [Fact]
     public void Evaluate_GlobalStatement_ReportsInvalidExpressionStatement()
     {
-        const string text = "42 * 17 function test() { [2*12] } do {[1+1}} while false";
+        const string text = "42 * 17 function test() { [2*12] } do {[1+1]} while false";
         const string diagnostics = @"
             Only assignment or call expressions can be used as a statement.
             Only assignment or call expressions can be used as a statement.
@@ -444,7 +443,9 @@ public class EvaluatorTests
         @"
             function test() : int 
             { 
-                return [}]".AssertEvaluation("Unexpected ClosedBraceToken ('}'), expected IdentifierToken.");
+                return [[}]]".AssertEvaluation(@"
+                    Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
+                    'test' needs to return a value of type 'int', not '?'.");
     }
     [Fact]
     public void Evaluate_Return_ReportsWrongExpressionType()
