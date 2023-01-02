@@ -33,16 +33,14 @@ sealed class BaluRepl : Repl
         var compilation = Compilation.CreateScript(previous, syntaxTree);
         if (showSyntax)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Syntax:");
-            Console.ResetColor();
+            Console.Out.WriteColoredText("Syntax:", ConsoleColor.Yellow);
+            Console.Out.WriteLine();
             compilation.WriteSyntaxTrees(Console.Out);
         }
         if (showProgram)
         {
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.WriteLine("Program:");
-            Console.ResetColor();
+            Console.Out.WriteColoredText("Program:", ConsoleColor.Yellow);
+            Console.Out.WriteLine();
             compilation.WriteProgramTree(Console.Out);
         }
 

@@ -24,6 +24,10 @@ sealed class Conversion
     public static Conversion Classify(TypeSymbol from, TypeSymbol to)
     {
         if (from == to) return Identity;
+        if (from != TypeSymbol.Void && to == TypeSymbol.Any)
+            return Implicit;
+        if (from == TypeSymbol.Any && to != TypeSymbol.Void)
+            return Explicit;
         if ((from == TypeSymbol.Boolean || from == TypeSymbol.Integer) && to == TypeSymbol.String)
             return Explicit;
         if (from == TypeSymbol.String && (to == TypeSymbol.Boolean || to == TypeSymbol.Integer))

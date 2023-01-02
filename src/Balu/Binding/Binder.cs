@@ -381,7 +381,9 @@ sealed class Binder : SyntaxVisitor
                                                           ? TypeSymbol.Boolean
                                                           : name == TypeSymbol.String.Name
                                                               ? TypeSymbol.String
-                                                              : null;
+                                                              : name == TypeSymbol.Any.Name
+                                                                ? TypeSymbol.Any
+                                                                : null;
     void SetErrorExpression()
     {
         if (boundNode?.Kind != BoundNodeKind.ErrorExpression) boundNode = new BoundErrorExpression();
@@ -402,16 +404,14 @@ sealed class Binder : SyntaxVisitor
             return new BoundErrorExpression();
         }
 
-        if (conversion.IsIdentity || conversion.IsImplicit)
+        if (conversion.IsIdentity)
             return expression;
 
-        if (!allowExplicit)
-        {
-            diagnostics.ReportCannotConvertImplicit(location, expression.Type, targetType);
-            return new BoundErrorExpression();
-        }
+        if (conversion.IsImplicit || allowExplicit)
+            return new BoundConversionExpression(targetType, expression);
 
-        return new BoundConversionExpression(targetType, expression);
+        diagnostics.ReportCannotConvertImplicit(location, expression.Type, targetType);
+        return new BoundErrorExpression();
     }
     void BindFunctionDeclarations(IEnumerable<FunctionDeclarationSyntax> declarations)
     {

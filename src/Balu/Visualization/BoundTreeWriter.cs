@@ -199,6 +199,10 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         writer.WriteSpace();
         writer.WriteIdentifier(variableDeclarationStatement.Variable.Name);
         writer.WriteSpace();
+        writer.WritePunctuation(":");
+        writer.WriteSpace();
+        writer.WriteIdentifier(variableDeclarationStatement.Variable.Type.Name);
+        writer.WriteSpace();
         writer.WritePunctuation(SyntaxKind.EqualsToken.GetText());
         writer.WriteSpace();
         variableDeclarationStatement.Accept(this);

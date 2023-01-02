@@ -3,6 +3,7 @@ namespace Balu.Symbols;
 
 public sealed class TypeSymbol : Symbol
 {
+    public static TypeSymbol Any { get; } = new TypeSymbol("any");
     public static TypeSymbol Void { get; } = new TypeSymbol("void");
     public static TypeSymbol Integer { get; } = new TypeSymbol("int");
     public static TypeSymbol Boolean { get; } = new TypeSymbol("bool");

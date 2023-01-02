@@ -195,7 +195,7 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             Result = Convert.ToInt32(Result, CultureInfo.InvariantCulture);
         else if (conversionExpression.Type == TypeSymbol.Boolean)
             Result = Convert.ToBoolean(Result, CultureInfo.InvariantCulture);
-        else
+        else if (conversionExpression.Type != TypeSymbol.Any)
             throw EvaluationException.InvalidCast(conversionExpression.Expression.Type, conversionExpression.Type);
         return conversionExpression;
     }
