@@ -284,15 +284,22 @@ sealed class BoundTreeWriter : BoundTreeVisitor
 
     public static void Print(BoundNode boundNode, TextWriter textWriter)
     {
-        var indentedTextWriter = textWriter as IndentedTextWriter ?? new IndentedTextWriter(textWriter, TABSTRING);
-        new BoundTreeWriter(indentedTextWriter).Visit(boundNode);
+        IndentedTextWriter? iw = null;
+        var indentedTextWriter = textWriter as IndentedTextWriter ?? (iw = new(textWriter, TABSTRING));
+        using(iw)
+        {
+            new BoundTreeWriter(indentedTextWriter).Visit(boundNode);
+        }
     }
     public static void Print(BoundProgram boundProgram, TextWriter textWriter)
     {
-        var indentedTextWriter = textWriter as IndentedTextWriter ?? new IndentedTextWriter(textWriter, TABSTRING);
-        foreach (var function in boundProgram.Functions)
-            WriteFunction(indentedTextWriter, function.Key, function.Value);
-        Print(boundProgram.GlobalScope.Statement, indentedTextWriter);
-        indentedTextWriter.WriteLine();
+        IndentedTextWriter? iw = null;
+        var indentedTextWriter = textWriter as IndentedTextWriter ?? (iw = new (textWriter, TABSTRING));
+        using(iw)
+        {
+            foreach (var function in boundProgram.Functions)
+                WriteFunction(indentedTextWriter, function.Key, function.Value);
+            indentedTextWriter.WriteLine();
+        }
     }
 }

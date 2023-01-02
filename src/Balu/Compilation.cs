@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
@@ -51,6 +52,7 @@ public sealed class Compilation
     public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
     public Compilation? Previous { get; }
 
+    public FunctionSymbol? MainFunction => GlobalScope.EntryPoint;
     public ImmutableArray<Symbol> Symbols => GlobalScope.Symbols;
     public IEnumerable<Symbol> AllVisibleSymbols
     {
@@ -118,15 +120,6 @@ public sealed class Compilation
             BoundTreeWriter.Print(body, writer);
         writer.WriteLine();
     }
-    public void WriteControlFlowGraph(TextWriter writer)
-    {
-        _ = writer ?? throw new ArgumentNullException(nameof(writer));
-        var cfg = ControlFlowGraph.Create(!Program.GlobalScope.Statement.Statements.Any() && Program.Functions.Any()
-                                              ? Program.Functions.Last().Value
-                                              : Program.GlobalScope.Statement);
-        cfg.WriteTo(writer);
-    }
-
     public static Compilation Create(params SyntaxTree[] syntaxTrees) => new (false, null, syntaxTrees);
     public static Compilation CreateScript(Compilation? previous, params SyntaxTree[] syntaxTrees) => new(true, previous, syntaxTrees);
 

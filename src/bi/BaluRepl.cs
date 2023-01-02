@@ -16,7 +16,7 @@ sealed class BaluRepl : Repl
 {
     readonly VariableDictionary globals = new();
 
-    bool showSyntax, showVars, showProgram, writeControlFlow;
+    bool showSyntax, showVars, showProgram;
     Compilation? previous;
 
     public BaluRepl()
@@ -42,12 +42,6 @@ sealed class BaluRepl : Repl
             Console.Out.WriteColoredText("Program:", ConsoleColor.Yellow);
             Console.Out.WriteLine();
             compilation.WriteProgramTree(Console.Out);
-        }
-
-        if (writeControlFlow)
-        {
-            using var writer = new StreamWriter(Path.Combine(Path.GetDirectoryName(Environment.GetCommandLineArgs()[0])!, "graph.dot"));
-            compilation.WriteControlFlowGraph(writer);
         }
 
         var result = compilation.Evaluate(globals);
@@ -163,12 +157,6 @@ sealed class BaluRepl : Repl
     {
         showVars = !showVars;
         Console.WriteLine(showVars ? "Showing globals after evaluationn." : "Not showing globals after evaluation.");
-    }
-    [MetaCommand("writeControlFlow", "Toggles output of the control flow graph to a file (graph.dot).")]
-    void WriteControlFlow()
-    {
-        writeControlFlow = !writeControlFlow;
-        Console.WriteLine(writeControlFlow ? "Writeing control flow graph to graph.dot." : "Not writeing control flow graph to graph.dot.");
     }
     [MetaCommand("cls", "Clears the screen.")]
     static void ClearScreen() => Console.Clear();

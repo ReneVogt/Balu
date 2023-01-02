@@ -1,5 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
@@ -8,11 +8,11 @@ namespace Balu.Symbols;
 static class BuiltInFunctions
 {
     public static FunctionSymbol Print { get; } =
-        new FunctionSymbol("print", new[] { new ParameterSymbol("text", TypeSymbol.Any) }, TypeSymbol.Void);
+        new FunctionSymbol("print", ImmutableArray.Create(new ParameterSymbol("text", TypeSymbol.Any)), TypeSymbol.Void);
     public static FunctionSymbol Input { get; } =
-        new FunctionSymbol("input", Array.Empty<ParameterSymbol>(), TypeSymbol.String);
+        new FunctionSymbol("input", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.String);
     public static FunctionSymbol Random { get; } =
-        new FunctionSymbol("random", new []{new ParameterSymbol("maximum", TypeSymbol.Integer)}, TypeSymbol.Integer);
+        new FunctionSymbol("random", ImmutableArray.Create(new ParameterSymbol("maximum", TypeSymbol.Integer)), TypeSymbol.Integer);
 
     public static IEnumerable<FunctionSymbol> GetBuiltInFunctions() => typeof(BuiltInFunctions)
                                                                        .GetProperties(BindingFlags.Public | BindingFlags.Static)

@@ -432,7 +432,7 @@ sealed class Binder : SyntaxVisitor
         }
 
         var returnType = declaration.TypeClause is null ? TypeSymbol.Void : BindTypeClause(declaration.TypeClause) ?? TypeSymbol.Error;
-        var function = new FunctionSymbol(declaration.Identifier.Text, parameters, returnType, declaration);
+        var function = new FunctionSymbol(declaration.Identifier.Text, parameters.ToImmutable(), returnType, declaration);
         if (!scope.TryDeclareSymbol(function))
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
     }
@@ -450,16 +450,59 @@ sealed class Binder : SyntaxVisitor
 
         binder.BindFunctionDeclarations(syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<FunctionDeclarationSyntax>()));
         var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
-        foreach (var globalStatement in syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>()))
+        var globalStatements = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>()).ToArray();
+        foreach (var globalStatement in globalStatements)
         {
             binder.Visit(globalStatement);
             statementBuilder.Add((BoundStatement)binder.boundNode!);
         }
 
         var statement = Refactor(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
+        var symbols = binder.scope.GetDeclaredSymbols();
+
+        FunctionSymbol entryPoint;
+        if (isScript)
+        {
+            entryPoint = new FunctionSymbol("$eval", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Any);
+        }
+        else
+        {
+            var main = symbols.OfType<FunctionSymbol>().FirstOrDefault(symbol => symbol.Name == "main");
+            var firstGlobalStatements = syntaxTrees
+                                        .Select(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>().FirstOrDefault())
+                                        .Where(globalStatement => globalStatement is not null)
+                                        .ToImmutableArray();
+            if (main is not null)
+            {
+                if (main.ReturnType != TypeSymbol.Void || main.Parameters.Any())
+                    binder.diagnostics.ReportInvalidMainSignature(main.Declaration!.Identifier.Location);
+                if (firstGlobalStatements.Any())
+                {
+                    binder.diagnostics.ReportCannotMixMainAndGlobalStatements(main.Declaration!.Identifier.Location);
+                    foreach (var globalStatement in firstGlobalStatements)
+                        binder.diagnostics.ReportCannotMixMainAndGlobalStatements(globalStatement!.Location);
+                }
+
+                entryPoint = main;
+            }
+            else
+            {
+                if (firstGlobalStatements.Length > 1)
+                {
+                    foreach (var globalStatement in firstGlobalStatements)
+                        binder.diagnostics.ReportOnlyOneFileCanHaveGlobalStatements(globalStatement!.Location);
+
+                }
+
+                if (globalStatements.Length == 0)
+                    binder.diagnostics.ReportNoEntryPointDefined();
+
+                entryPoint = new ("main", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Void);
+            }
+        }
 
         var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
-        return new(previous, statement, binder.scope.GetDeclaredSymbols(), diagnostics);
+        return new(previous, entryPoint, statement, symbols, diagnostics);
     }
     public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
     {
@@ -479,7 +522,18 @@ sealed class Binder : SyntaxVisitor
             diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
         }
 
-        return new(previous, globalScope, functionBodyBuilder.ToImmutable(), diagnostics);
+        if (isScript)
+        {
+            var refactored = Refactor(globalScope.Statement, globalScope.EntryPoint);
+            functionBodyBuilder.Add(globalScope.EntryPoint, refactored);
+        }
+        else if (!functionBodyBuilder.ContainsKey(globalScope.EntryPoint))
+        {
+            var refactored = Refactor(globalScope.Statement, globalScope.EntryPoint);
+            functionBodyBuilder.Add(globalScope.EntryPoint, refactored);
+        }
+
+        return new(previous, globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
     }
     static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
     {

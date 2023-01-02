@@ -2,7 +2,8 @@
   "profiles": {
     "bc": {
       "commandName": "Project",
-      "commandLineArgs": "./"
+      "commandLineArgs": "./",
+      "workingDirectory": "../"
     }
   }
 }

@@ -33,7 +33,10 @@ public sealed class Diagnostic
     public const string BND0019 = nameof(BND0019);
     public const string BND0020 = nameof(BND0020);
     public const string BND0021 = nameof(BND0021);
-
+    public const string BND0022 = nameof(BND0022);
+    public const string BND0023 = nameof(BND0023);
+    public const string BND0024 = nameof(BND0024);
+    public const string BND0025 = nameof(BND0025);
     public string Id { get; }
     public TextLocation Location { get; }
     public string Message { get; }

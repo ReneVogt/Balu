@@ -234,8 +234,9 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             prg = prg.Previous;
         }
 
-        using var evaluator = new Evaluator(globals, functionDictionaryBuilder.ToImmutable());
-        evaluator.VisitBoundBlockStatement(program.GlobalScope.Statement ?? throw new ArgumentNullException(nameof(program)));
+        var functionDictionary = functionDictionaryBuilder.ToImmutable();
+        using var evaluator = new Evaluator(globals, functionDictionary);
+        evaluator.VisitBoundBlockStatement(functionDictionary[program.EntryPoint]);
         return evaluator.Result;
     }
 }

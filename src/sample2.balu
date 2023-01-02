@@ -1,3 +1,5 @@
-﻿print("Calling greet()...\r\n")
+﻿function main(){
+print("Calling greet()...\r\n")
 greet()
 print("returned from greet().\r\n")
+}

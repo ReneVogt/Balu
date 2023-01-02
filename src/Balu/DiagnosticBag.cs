@@ -66,5 +66,13 @@ sealed class DiagnosticBag : List<Diagnostic>
             ? $"'{function.Name}' does not have a return type and cannot return a value of type '{actualType}'."
             : $"'{function.Name}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
     public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(Diagnostic.BND0020, function.Declaration!.Identifier.Location, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
-    public void ReportInvalidExpressionStatement(TextLocation location) => Add(new(Diagnostic.BND0020, location, "Only assignment or call expressions can be used as a statement."));
+    public void ReportInvalidExpressionStatement(TextLocation location) => Add(new(Diagnostic.BND0021, location, "Only assignment or call expressions can be used as a statement."));
+    public void ReportCannotMixMainAndGlobalStatements(TextLocation location) =>
+        Add(new(Diagnostic.BND0022, location, "Global statements cannot be mixed with a main function."));
+    public void ReportInvalidMainSignature(TextLocation location) =>
+        Add(new(Diagnostic.BND0023, location, "'main' must be parameterless and of type 'void'."));
+    public void ReportOnlyOneFileCanHaveGlobalStatements(TextLocation location) =>
+        Add(new(Diagnostic.BND0024, location, "At most one file can contain global statements."));
+    public void ReportNoEntryPointDefined() =>
+        Add(new(Diagnostic.BND0025, default, "No entry point found (neither a 'main' function nor global statements)."));
 }
