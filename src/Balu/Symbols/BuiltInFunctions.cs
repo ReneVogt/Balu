@@ -8,7 +8,7 @@ namespace Balu.Symbols;
 static class BuiltInFunctions
 {
     public static FunctionSymbol Print { get; } =
-        new FunctionSymbol("print", new[] { new ParameterSymbol("text", TypeSymbol.String) }, TypeSymbol.Void);
+        new FunctionSymbol("print", new[] { new ParameterSymbol("text", TypeSymbol.Any) }, TypeSymbol.Void);
     public static FunctionSymbol Input { get; } =
         new FunctionSymbol("input", Array.Empty<ParameterSymbol>(), TypeSymbol.String);
     public static FunctionSymbol Random { get; } =

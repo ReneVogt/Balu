@@ -202,7 +202,7 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
     void ExecutePrint(IEnumerable<BoundExpression> arguments)
     {
         Visit(arguments.Single());
-        string argument = (string)Result!;
+        string argument = Result?.ToString() ?? string.Empty;
         Console.ForegroundColor = ConsoleColor.White;
         Console.Write(argument);
         Console.ResetColor();
