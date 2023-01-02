@@ -205,10 +205,11 @@ public class EvaluatorTests
     }
 
     [Fact]
-    public void Evaluate_FunctionDeclarationStatement_ReportsInvalidExpressionStatement()
+    public void Evaluate_GlobalStatement_ReportsInvalidExpressionStatement()
     {
-        const string text = "function test() { [2*12] }";
+        const string text = "42 * 17 function test() { [2*12] } do {[1+1}} while false";
         const string diagnostics = @"
+            Only assignment or call expressions can be used as a statement.
             Only assignment or call expressions can be used as a statement.
 ";
         text.AssertEvaluation(diagnostics);
