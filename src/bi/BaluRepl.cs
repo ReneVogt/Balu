@@ -61,7 +61,10 @@ sealed class BaluRepl : Repl
             if (result.Value is not null)
             {
                 Console.Out.WriteColoredText("Result: ", ConsoleColor.Yellow);
-                Console.Out.WriteColoredText(result.Value.ToString(), ConsoleColor.Magenta);
+                if (result.Value is string s)
+                    Console.Out.WriteColoredText($"\"{s.EscapeString()}\"", ConsoleColor.Magenta);
+                else
+                    Console.Out.WriteColoredText(result.Value.ToString(), ConsoleColor.Magenta);
                 Console.Out.WriteLine();
             }
 
