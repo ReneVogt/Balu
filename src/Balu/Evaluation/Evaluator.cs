@@ -236,7 +236,7 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
 
         var functionDictionary = functionDictionaryBuilder.ToImmutable();
         using var evaluator = new Evaluator(globals, functionDictionary);
-        evaluator.VisitBoundBlockStatement(functionDictionary[program.EntryPoint]);
+        evaluator.VisitBoundCallExpression(new (program.EntryPoint, ImmutableArray<BoundExpression>.Empty));
         return evaluator.Result;
     }
 }

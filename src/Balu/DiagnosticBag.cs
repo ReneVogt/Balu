@@ -59,12 +59,12 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportParameterAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0014, identifier.Location, $"Parameter '{identifier.Text}' is already declared."));
     public void ReportFunctionAlreadyDeclared(SyntaxToken identifier) => Add(new(Diagnostic.BND0015, identifier.Location, $"Function '{identifier.Text}' is already declared."));
     public void ReportInvalidBreakOrContinue(SyntaxToken keyword) => Add(new(Diagnostic.BND0016, keyword.Location, $"Invalid '{keyword.Text}' outside any loop."));
-    public void ReportReturnOutsideOfFunction(ReturnStatementSyntax returnStatement) => Add(new(Diagnostic.BND0017, returnStatement.ReturnKeyword.Location, $"The '{returnStatement.ReturnKeyword.Kind.GetText()}' keyword can only be used in functions."));
-    public void ReportReturnMissingValue(TextLocation location, FunctionSymbol function) => Add(new(Diagnostic.BND0018, location, $"'{function.Name}' needs to return a value of type '{function.ReturnType}'."));
-    public void ReportReturnTypeMismatch(TextLocation location, FunctionSymbol function, TypeSymbol actualType) => Add(new(Diagnostic.BND0019, location,
-        function.ReturnType == TypeSymbol.Void
-            ? $"'{function.Name}' does not have a return type and cannot return a value of type '{actualType}'."
-            : $"'{function.Name}' needs to return a value of type '{function.ReturnType}', not '{actualType}'."));
+    public void ReportMainCannotReturnValue(ReturnStatementSyntax returnStatement) => Add(new(Diagnostic.BND0017, returnStatement.Location, "'main' cannot return a value."));
+    public void ReportReturnMissingValue(TextLocation location, TypeSymbol returnType, string functionName) => Add(new(Diagnostic.BND0018, location, $"'{functionName}' needs to return a value of type '{returnType}'."));
+    public void ReportReturnTypeMismatch(TextLocation location, TypeSymbol returnType, string functionName, TypeSymbol actualType) => Add(new(Diagnostic.BND0019, location,
+        returnType == TypeSymbol.Void
+            ? $"'{functionName}' does not have a return type and cannot return a value of type '{actualType}'."
+            : $"'{functionName}' needs to return a value of type '{returnType}', not '{actualType}'."));
     public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(Diagnostic.BND0020, function.Declaration!.Identifier.Location, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
     public void ReportInvalidExpressionStatement(TextLocation location) => Add(new(Diagnostic.BND0021, location, "Only assignment or call expressions can be used as a statement."));
     public void ReportCannotMixMainAndGlobalStatements(TextLocation location) =>

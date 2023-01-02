@@ -418,9 +418,9 @@ public class EvaluatorTests
     }
 
     [Fact]
-    public void Evaluate_Return_ReportsErrorOutsideFunction()
+    public void Evaluate_Return_AllowedGloballyInScript()
     {
-        "{ var i = 0 [return] i }".AssertEvaluation("The 'return' keyword can only be used in functions.");
+        "{ var i = 5 return i }".AssertEvaluation(value: 5);
     }
     [Fact]
     public void Evaluate_Return_ReportsUnexpectedExpression()

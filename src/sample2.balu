@@ -1,5 +1,3 @@
-﻿function main(){
-print("Calling greet()...\r\n")
-greet()
-print("returned from greet().\r\n")
-}
+﻿print("hello\r\n")
+return
+print("world\r\n")

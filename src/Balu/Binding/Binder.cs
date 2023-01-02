@@ -313,33 +313,36 @@ sealed class Binder : SyntaxVisitor
     }
     protected override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
     {
-        if (containingFunction is null)
-        {
-            diagnostics.ReportReturnOutsideOfFunction(node);
-            SetErrorStatement();
-            return node;
-        }
-
         BoundExpression? expression = null;
         if (node.Expression is not null)
         {
             Visit(node.Expression);
             expression = (BoundExpression)boundNode!;
         }
+
+        if (containingFunction is null && !isScript && expression is not null)
+        {
+            diagnostics.ReportMainCannotReturnValue(node);
+            SetErrorStatement();
+            return node;
+        }
+
+        var returnType = containingFunction?.ReturnType ?? (isScript ? TypeSymbol.Any : TypeSymbol.Void);
+        var functionName = containingFunction?.Name ?? (isScript ? "$eval" : "main");
         
         if (expression is null)
         {
-            if (containingFunction.ReturnType != TypeSymbol.Void)
+            if (returnType != TypeSymbol.Void && returnType != TypeSymbol.Any)
             {
-                diagnostics.ReportReturnMissingValue(node.Location, containingFunction);
+                diagnostics.ReportReturnMissingValue(node.Location, returnType, functionName);
                 expression = new BoundErrorExpression();
             }
         }
         else
         {
-            expression = BindConversion(node.Expression!.Location, expression, containingFunction.ReturnType);
+            expression = BindConversion(node.Expression!.Location, expression, returnType);
             if (expression.Type == TypeSymbol.Error)
-                diagnostics.ReportReturnTypeMismatch(node.Expression!.Location, containingFunction, ((BoundExpression)boundNode!).Type);
+                diagnostics.ReportReturnTypeMismatch(node.Expression!.Location, returnType, functionName, ((BoundExpression)boundNode!).Type);
         }
         
         boundNode = new BoundReturnStatement(expression);
@@ -449,22 +452,20 @@ sealed class Binder : SyntaxVisitor
         var binder = new Binder(isScript, parentScope);
 
         binder.BindFunctionDeclarations(syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<FunctionDeclarationSyntax>()));
-        var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
+
         var globalStatements = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>()).ToArray();
+        var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
         foreach (var globalStatement in globalStatements)
         {
             binder.Visit(globalStatement);
             statementBuilder.Add((BoundStatement)binder.boundNode!);
         }
 
-        var statement = Refactor(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
         var symbols = binder.scope.GetDeclaredSymbols();
 
         FunctionSymbol entryPoint;
         if (isScript)
-        {
-            entryPoint = new FunctionSymbol("$eval", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Any);
-        }
+            entryPoint = new ("$eval", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Any);
         else
         {
             var main = symbols.OfType<FunctionSymbol>().FirstOrDefault(symbol => symbol.Name == "main");
@@ -491,15 +492,16 @@ sealed class Binder : SyntaxVisitor
                 {
                     foreach (var globalStatement in firstGlobalStatements)
                         binder.diagnostics.ReportOnlyOneFileCanHaveGlobalStatements(globalStatement!.Location);
-
                 }
 
+                entryPoint = new ("main", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Void);
                 if (globalStatements.Length == 0)
                     binder.diagnostics.ReportNoEntryPointDefined();
-
-                entryPoint = new ("main", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Void);
             }
         }
+
+
+        var statement = Refactor(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
 
         var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
         return new(previous, entryPoint, statement, symbols, diagnostics);
