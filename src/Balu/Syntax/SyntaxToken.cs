@@ -26,7 +26,7 @@ public sealed class SyntaxToken : SyntaxNode
         Value = value;
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor) => this;
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter) => this;
 
     public override string ToString() => $"{Kind}{Span} \"{Text}\" ({(Value is string v ? v.EscapeString() : Value?.ToString())})";
 

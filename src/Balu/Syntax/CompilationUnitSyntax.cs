@@ -26,10 +26,10 @@ public sealed class CompilationUnitSyntax : SyntaxNode
         EndOfFileToken = endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken));
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var members = VisitList(visitor, Members);
-        var eof = (SyntaxToken)visitor.Visit(EndOfFileToken);
-        return members != Members || eof != EndOfFileToken ? new(SyntaxTree, members, eof) : this;
+        var members = RewriteList(rewriter, Members);
+        var eof = (SyntaxToken)rewriter.Visit(EndOfFileToken);
+        return members == Members && eof == EndOfFileToken ? this : throw new NotImplementedException();
     }
 }

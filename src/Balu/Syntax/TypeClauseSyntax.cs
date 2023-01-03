@@ -23,10 +23,10 @@ public sealed class TypeClauseSyntax : SyntaxNode
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var colon = (SyntaxToken)visitor.Visit(ColonToken);
-        var identifier = (SyntaxToken)visitor.Visit(Identifier);
-        return colon == ColonToken && identifier == Identifier ? this : new(SyntaxTree, colon, identifier);
+        var colon = (SyntaxToken)rewriter.Visit(ColonToken);
+        var identifier = (SyntaxToken)rewriter.Visit(Identifier);
+        return colon == ColonToken && identifier == Identifier ? this : throw new NotImplementedException();
     }
 }

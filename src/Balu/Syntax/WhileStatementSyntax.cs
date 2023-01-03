@@ -25,13 +25,13 @@ public sealed class WhileStatementSyntax : StatementSyntax
         Condition = condition ?? throw new ArgumentNullException(nameof(condition));
         Body = body ?? throw new ArgumentNullException(nameof(body));
     }
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var whileKeyword = (SyntaxToken)visitor.Visit(WhileKeyword);
-        var condition = (ExpressionSyntax)visitor.Visit(Condition);
-        var statement = (StatementSyntax)visitor.Visit(Body);
+        var whileKeyword = (SyntaxToken)rewriter.Visit(WhileKeyword);
+        var condition = (ExpressionSyntax)rewriter.Visit(Condition);
+        var statement = (StatementSyntax)rewriter.Visit(Body);
         return whileKeyword == WhileKeyword && condition == Condition && statement == Body
                    ? this
-                   : new(SyntaxTree, whileKeyword, condition, statement);
+                   : throw new NotImplementedException();
     }
 }

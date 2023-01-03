@@ -32,17 +32,17 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
         ClosedParenthesis = closedParenthesis ?? throw new ArgumentNullException(nameof(closedParenthesis));
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var identifier = (SyntaxToken)visitor.Visit(Identifier);
-        var open = (SyntaxToken)visitor.Visit(OpenParenthesis);
+        var identifier = (SyntaxToken)rewriter.Visit(Identifier);
+        var open = (SyntaxToken)rewriter.Visit(OpenParenthesis);
 
-        var arguments = VisitList(visitor, Arguments);
-        var close = (SyntaxToken)visitor.Visit(ClosedParenthesis);
+        var arguments = RewriteList(rewriter, Arguments);
+        var close = (SyntaxToken)rewriter.Visit(ClosedParenthesis);
         return identifier == Identifier && open == OpenParenthesis && arguments == Arguments &&
                close == ClosedParenthesis
                    ? this
-                   : new(SyntaxTree, identifier, open, arguments, close);
+                   : throw new NotImplementedException();
     }
 
     public override string ToString() => $"{Kind}{Span}: {Identifier.Text}";

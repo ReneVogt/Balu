@@ -8,7 +8,7 @@ using Balu.Text;
 
 namespace Balu.Binding;
 
-sealed class Binder : SyntaxVisitor
+sealed class Binder : SyntaxTreeVisitor
 {
     readonly DiagnosticBag diagnostics = new();
     readonly FunctionSymbol? containingFunction;
@@ -32,25 +32,24 @@ sealed class Binder : SyntaxVisitor
             scope.TryDeclareSymbol(parameter);
     }
 
-    public override SyntaxNode Visit(SyntaxNode node)
+    public override void Visit(SyntaxNode node)
     {
         isGlobal = false;
-        return base.Visit(node);
+        base.Visit(node);
     }
-    protected override SyntaxNode VisitGlobalStatement(GlobalStatementSyntax node)
+    protected override void VisitGlobalStatement(GlobalStatementSyntax node)
     {
         isGlobal = true;
-        return base.Visit(node.Statement);
+        base.Visit(node.Statement);
     }
-    protected override SyntaxNode VisitLiteralExpression(LiteralExpressionSyntax node)
+    protected override void VisitLiteralExpression(LiteralExpressionSyntax node)
     {
         boundNode = new BoundLiteralExpression(node.Value ?? 0);
-        return node;
     }
-    protected override SyntaxNode VisitUnaryExpression(UnaryExpressionSyntax node)
+    protected override void VisitUnaryExpression(UnaryExpressionSyntax node)
     {
         Visit(node.Expression);
-        if (IsError) return node;
+        if (IsError) return;
         var expression = (BoundExpression)boundNode!;
         var op = BoundUnaryOperator.Bind(node.OperatorToken.Kind, expression.Type);
         if (op is null)
@@ -60,9 +59,8 @@ sealed class Binder : SyntaxVisitor
         }
         else
             boundNode = new BoundUnaryExpression(op, expression);
-        return node;
     }
-    protected override SyntaxNode VisitBinaryExpression(BinaryExpressionSyntax node)
+    protected override void VisitBinaryExpression(BinaryExpressionSyntax node)
     {
         Visit(node.Left);
         var left = (BoundExpression)boundNode!;
@@ -78,9 +76,8 @@ sealed class Binder : SyntaxVisitor
         }
         else
             boundNode = new BoundBinaryExpression(left, op, right);
-        return node;
     }
-    protected override SyntaxNode VisitNameExpression(NameExpressionSyntax node)
+    protected override void VisitNameExpression(NameExpressionSyntax node)
     {
         var name = node.IdentifierrToken.Text;
         if (node.IdentifierrToken.IsMissing)
@@ -97,10 +94,8 @@ sealed class Binder : SyntaxVisitor
         }
         else
             boundNode = new BoundVariableExpression((VariableSymbol)symbol);
-
-        return node;
     }
-    protected override SyntaxNode VisitAssignmentExpression(AssignmentExpressionSyntax node)
+    protected override void VisitAssignmentExpression(AssignmentExpressionSyntax node)
     {
         var name = node.IdentifierToken.Text;
         Visit(node.Expression);
@@ -109,13 +104,13 @@ sealed class Binder : SyntaxVisitor
         {
             diagnostics.ReportUndefinedVariable(node.IdentifierToken);
             SetErrorExpression();
-            return node;
+            return;
         }
         if (symbol.Kind != SymbolKind.GlobalVariable && symbol.Kind != SymbolKind.LocalVariable && symbol.Kind != SymbolKind.Parameter)
         {
             diagnostics.ReportSymbolNoVariable(node.IdentifierToken, symbol.Kind);
             SetErrorExpression();
-            return node;
+            return;
         }
 
         var variable = (VariableSymbol)symbol;
@@ -123,38 +118,37 @@ sealed class Binder : SyntaxVisitor
         {
             diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
             SetErrorExpression();
-            return node;
+            return;
         }
 
         var expression = (BoundExpression)boundNode!;
         expression = BindConversion(node.EqualsToken.Location, expression, variable.Type);
 
         boundNode = new BoundAssignmentExpression(variable, expression);
-        return node;
     }
-    protected override SyntaxNode VisitCallExpression(CallExpressionSyntax node)
+    protected override void VisitCallExpression(CallExpressionSyntax node)
     {
         if (node.Arguments.Count == 1 && LookupType(node.Identifier.Text) is { } castType)
         {
             Visit(node.Arguments[0]);
-            if (IsError) return node;
+            if (IsError) return;
             var argument = (BoundExpression)boundNode!;
             boundNode = BindConversion(node.Location, argument, castType, true);
-            return node;
+            return;
         }
 
         if (!scope.TryLookupSymbol(node.Identifier.Text, out var symbol))
         {
             diagnostics.ReportUndefinedFunction(node.Identifier);
             SetErrorExpression();
-            return node;
+            return;
         }
 
         if (symbol.Kind != SymbolKind.Function)
         {
             diagnostics.ReportSymbolNoFunction(node.Identifier, symbol.Kind);
             SetErrorExpression();
-            return node;
+            return;
         }
 
         var function = (FunctionSymbol)symbol;
@@ -162,7 +156,7 @@ sealed class Binder : SyntaxVisitor
         {
             diagnostics.ReportWrongNumberOfArguments(node, function);
             SetErrorExpression();
-            return node;
+            return;
         }
 
         var arguments = ImmutableArray.CreateBuilder<BoundExpression>();
@@ -170,7 +164,7 @@ sealed class Binder : SyntaxVisitor
         for(int i=0; i<node.Arguments.Count; i++)
         {
             Visit(node.Arguments[i]);
-            if (IsError) return node;
+            if (IsError) return;
             var argument = (BoundExpression)boundNode!;
             boundNode = BindConversion(node.Arguments[i].Location, argument, function.Parameters[i].Type);
             if (IsError)
@@ -185,10 +179,8 @@ sealed class Binder : SyntaxVisitor
             SetErrorExpression();
         else
             boundNode = new BoundCallExpression(function, arguments.ToImmutable());
-        
-        return node;
     }
-    protected override SyntaxNode VisitBlockStatement(BlockStatementSyntax node)
+    protected override void VisitBlockStatement(BlockStatementSyntax node)
     {
         var statements = ImmutableArray.CreateBuilder<BoundStatement>();
         scope = new (scope);
@@ -200,9 +192,8 @@ sealed class Binder : SyntaxVisitor
 
         scope = scope.Parent!;
         boundNode = new BoundBlockStatement(statements.ToImmutable());
-        return node;
     }
-    protected override SyntaxNode VisitExpressionStatement(ExpressionStatementSyntax node)
+    protected override void VisitExpressionStatement(ExpressionStatementSyntax node)
     {
         bool global = isGlobal;
         Visit(node.Expression);
@@ -213,9 +204,8 @@ sealed class Binder : SyntaxVisitor
             expression.Kind != BoundNodeKind.AssignmentExpression &&
             expression.Kind != BoundNodeKind.CallExpression)
             diagnostics.ReportInvalidExpressionStatement(node.Location);
-        return node;
     }
-    protected override SyntaxNode VisitVariableDeclarationStatement(VariableDeclarationStatementSyntax node)
+    protected override void VisitVariableDeclarationStatement(VariableDeclarationStatementSyntax node)
     {
         Visit(node.Expression);
         var expression = (BoundExpression)boundNode!;
@@ -226,9 +216,8 @@ sealed class Binder : SyntaxVisitor
         var variable = BindVariable(node.IdentifierToken, readOnly, type);
         expression = BindConversion(node.EqualsToken.Location, expression, type);
         boundNode = new BoundVariableDeclarationStatement(variable, expression);
-        return node;
     }
-    protected override SyntaxNode VisitIfStatement(IfStatementSyntax node)
+    protected override void VisitIfStatement(IfStatementSyntax node)
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
@@ -245,10 +234,8 @@ sealed class Binder : SyntaxVisitor
         }
 
         boundNode = new BoundIfStatement(condition, thenStatement, elseStatement);
-
-        return node;
     }
-    protected override SyntaxNode VisitWhileStatement(WhileStatementSyntax node)
+    protected override void VisitWhileStatement(WhileStatementSyntax node)
     {
         Visit(node.Condition);
         var condition = (BoundExpression)boundNode!;
@@ -257,10 +244,8 @@ sealed class Binder : SyntaxVisitor
         var statement = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
 
         boundNode = new BoundWhileStatement(condition, statement, breakLabel, continueLabel);
-
-        return node;
     }
-    protected override SyntaxNode VisitDoWhileStatement(DoWhileStatementSyntax node)
+    protected override void VisitDoWhileStatement(DoWhileStatementSyntax node)
     {
         var statement = BindLoopStatement(node.Body, out var breakLabel, out var continueLabel);
         Visit(node.Condition);
@@ -268,10 +253,8 @@ sealed class Binder : SyntaxVisitor
         condition = BindConversion(node.Condition.Location, condition, TypeSymbol.Boolean);
 
         boundNode = new BoundDoWhileStatement(statement, condition, breakLabel, continueLabel);
-
-        return node;
     }
-    protected override SyntaxNode VisitForStatement(ForStatementSyntax node)
+    protected override void VisitForStatement(ForStatementSyntax node)
     {
         Visit(node.LowerBound);
         var lowerBound = (BoundExpression)boundNode!;
@@ -286,10 +269,8 @@ sealed class Binder : SyntaxVisitor
         boundNode = new BoundForStatement(variable, lowerBound, upperBound, body, breakLabel, continueLabel);
 
         scope = scope.Parent!;
-
-        return node;
     }
-    protected override SyntaxNode VisitContinueStatement(ContinueStatementSyntax node)
+    protected override void VisitContinueStatement(ContinueStatementSyntax node)
     {
         if (!loopStack.TryPeek(out var frame))
         {
@@ -298,9 +279,8 @@ sealed class Binder : SyntaxVisitor
         }
 
         boundNode = new BoundGotoStatement(frame.continueLabel);
-        return node;
     }
-    protected override SyntaxNode VisitBreakStatement(BreakStatementSyntax node)
+    protected override void VisitBreakStatement(BreakStatementSyntax node)
     {
         if (!loopStack.TryPeek(out var frame))
         {
@@ -309,9 +289,8 @@ sealed class Binder : SyntaxVisitor
         }
 
         boundNode = new BoundGotoStatement(frame.breakLabel);
-        return node;
     }
-    protected override SyntaxNode VisitReturnStatement(ReturnStatementSyntax node)
+    protected override void VisitReturnStatement(ReturnStatementSyntax node)
     {
         BoundExpression? expression = null;
         if (node.Expression is not null)
@@ -324,7 +303,7 @@ sealed class Binder : SyntaxVisitor
         {
             diagnostics.ReportMainCannotReturnValue(node);
             SetErrorStatement();
-            return node;
+            return;
         }
 
         var returnType = containingFunction?.ReturnType ?? (isScript ? TypeSymbol.Any : TypeSymbol.Void);
@@ -346,7 +325,6 @@ sealed class Binder : SyntaxVisitor
         }
         
         boundNode = new BoundReturnStatement(expression);
-        return node;
     }
 
     VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type)

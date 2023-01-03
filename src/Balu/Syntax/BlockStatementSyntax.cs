@@ -29,13 +29,13 @@ public sealed class BlockStatementSyntax : StatementSyntax
     }
 
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var openBrace = (SyntaxToken)visitor.Visit(OpenBraceToken);
-        var transformed = VisitList(visitor, Statements);
-        var closedBrace = (SyntaxToken)visitor.Visit(ClosedBraceToken);
+        var openBrace = (SyntaxToken)rewriter.Visit(OpenBraceToken);
+        var transformed = RewriteList(rewriter, Statements);
+        var closedBrace = (SyntaxToken)rewriter.Visit(ClosedBraceToken);
         return openBrace == OpenBraceToken && transformed == Statements && closedBrace == ClosedBraceToken
                    ? this
-                   : new(SyntaxTree, openBrace, transformed, closedBrace);
+                   : throw new NotImplementedException();
     }
 }

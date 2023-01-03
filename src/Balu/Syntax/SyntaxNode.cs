@@ -29,17 +29,15 @@ public abstract class SyntaxNode
         });
     }
 
-
-    internal abstract SyntaxNode Accept(SyntaxVisitor visitor);
-
-    protected static ImmutableArray<T> VisitList<T>(SyntaxVisitor visitor, ImmutableArray<T> nodes) where T : SyntaxNode
+    internal abstract SyntaxNode Rewrite(SyntaxTreeRewriter rewriter);
+    protected static ImmutableArray<T> RewriteList<T>(SyntaxTreeRewriter rewriter, ImmutableArray<T> nodes) where T : SyntaxNode
     {
-        _ = visitor ?? throw new ArgumentNullException(nameof(visitor));
+        _ = rewriter ?? throw new ArgumentNullException(nameof(rewriter));
 
         ImmutableArray<T>.Builder? resultBuilder = null;
         for (int i = 0; i < nodes.Length; i++)
         {
-            var node = (T)visitor.Visit(nodes[i]);
+            var node = (T)rewriter.Visit(nodes[i]);
             if (node != nodes[i] && resultBuilder is null)
             {
                 resultBuilder = ImmutableArray.CreateBuilder<T>(nodes.Length);
@@ -51,15 +49,15 @@ public abstract class SyntaxNode
 
         return resultBuilder?.ToImmutable() ?? nodes;
     }
-    protected static SeparatedSyntaxList<T> VisitList<T>(SyntaxVisitor visitor, SeparatedSyntaxList<T> list) where T : SyntaxNode
+    protected static SeparatedSyntaxList<T> RewriteList<T>(SyntaxTreeRewriter rewriter, SeparatedSyntaxList<T> list) where T : SyntaxNode
     {
-        _ = visitor ?? throw new ArgumentNullException(nameof(visitor));
+        _ = rewriter ?? throw new ArgumentNullException(nameof(rewriter));
         _ = list ?? throw new ArgumentNullException(nameof(list));
 
         ImmutableArray<SyntaxNode>.Builder? resultBuilder = null;
         for (int i = 0; i < list.ElementsWithSeparators.Length; i++)
         {
-            var node = (T)visitor.Visit(list.ElementsWithSeparators[i]);
+            var node = (T)rewriter.Visit(list.ElementsWithSeparators[i]);
             if (node != list.ElementsWithSeparators[i] && resultBuilder is null)
             {
                 resultBuilder = ImmutableArray.CreateBuilder<SyntaxNode>(list.ElementsWithSeparators.Length);
@@ -69,6 +67,11 @@ public abstract class SyntaxNode
         }
 
         return resultBuilder is null ? list : new (resultBuilder.ToImmutable());
+    }
+
+    internal virtual void Accept(SyntaxTreeVisitor visitor)
+    {
+        foreach (var child in Children) visitor.Visit(child);
     }
 
     SyntaxToken GetLastToken() => this as SyntaxToken ?? Children.Last().GetLastToken();

@@ -24,10 +24,10 @@ public sealed class ElseClauseSyntax : SyntaxNode
         Statement = statement ?? throw new ArgumentNullException(nameof(statement));
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var keyword = (SyntaxToken)visitor.Visit(ElseKeyword);
-        var statement = (StatementSyntax)visitor.Visit(Statement);
-        return keyword == ElseKeyword && statement == Statement ? this : new(SyntaxTree, keyword, statement);
+        var keyword = (SyntaxToken)rewriter.Visit(ElseKeyword);
+        var statement = (StatementSyntax)rewriter.Visit(Statement);
+        return keyword == ElseKeyword && statement == Statement ? this : throw new NotImplementedException();
     }
 }

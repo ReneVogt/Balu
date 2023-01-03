@@ -39,15 +39,15 @@ public sealed class ForStatementSyntax : StatementSyntax
         UpperBound = upperBound ?? throw new ArgumentNullException(nameof(upperBound));
         Body = body ?? throw new ArgumentNullException(nameof(body));
     }
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var forKeyword = (SyntaxToken)visitor.Visit(ForKeyword);
-        var identifier = (SyntaxToken)visitor.Visit(IdentifierToken);
-        var equals = (SyntaxToken)visitor.Visit(EqualsToken);
-        var lowerBound = (ExpressionSyntax)visitor.Visit(LowerBound);
-        var toKeyWord = (SyntaxToken)visitor.Visit(ToKeyword);
-        var upperBound = (ExpressionSyntax)visitor.Visit(UpperBound);
-        var body = (StatementSyntax)visitor.Visit(Body);
+        var forKeyword = (SyntaxToken)rewriter.Visit(ForKeyword);
+        var identifier = (SyntaxToken)rewriter.Visit(IdentifierToken);
+        var equals = (SyntaxToken)rewriter.Visit(EqualsToken);
+        var lowerBound = (ExpressionSyntax)rewriter.Visit(LowerBound);
+        var toKeyWord = (SyntaxToken)rewriter.Visit(ToKeyword);
+        var upperBound = (ExpressionSyntax)rewriter.Visit(UpperBound);
+        var body = (StatementSyntax)rewriter.Visit(Body);
         return forKeyword == ForKeyword &&
                identifier == IdentifierToken &&
                equals == EqualsToken &&
@@ -56,6 +56,6 @@ public sealed class ForStatementSyntax : StatementSyntax
                upperBound == UpperBound &&
                body == Body
                    ? this
-                   : new(SyntaxTree, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
+                   : throw new NotImplementedException();
     }
 }

@@ -25,10 +25,10 @@ public sealed class ReturnStatementSyntax : StatementSyntax
         Expression = expression;
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var returnKeyword = (SyntaxToken)visitor.Visit(ReturnKeyword);
-        var expression = Expression is null ? null : (ExpressionSyntax)visitor.Visit(Expression);
-        return returnKeyword == ReturnKeyword && expression == Expression ? this : new(SyntaxTree, returnKeyword, expression);
+        var returnKeyword = (SyntaxToken)rewriter.Visit(ReturnKeyword);
+        var expression = Expression is null ? null : (ExpressionSyntax)rewriter.Visit(Expression);
+        return returnKeyword == ReturnKeyword && expression == Expression ? this : throw new NotImplementedException();
     }
 }

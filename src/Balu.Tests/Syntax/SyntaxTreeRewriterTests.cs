@@ -9,14 +9,14 @@ using Xunit;
 
 namespace Balu.Tests.Syntax;
 
-public class SyntaxVisitorTests
+public class SyntaxTreeRewriterTests
 {
     static readonly SyntaxTree dummyTree = SyntaxTree.Parse(string.Empty);
 
     [Fact]
-    public void SyntaxVisitor_ImplementsAllVirtualVisits()
+    public void SyntaxTreeRewriter_ImplementsAllVirtualVisits()
     {
-        var visitMethods = from method in typeof(SyntaxVisitor).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
+        var visitMethods = from method in typeof(SyntaxTreeRewriter).GetMethods(BindingFlags.NonPublic | BindingFlags.Instance)
                            let match = visitMethodRegex.Match(method.Name)
                            where match.Success && match.Groups.Count == 2 && method.GetParameters().Length == 1 && method.ReturnType == typeof(SyntaxNode) && method.IsVirtual
                            select method;
@@ -36,9 +36,9 @@ public class SyntaxVisitorTests
 
     }
     [Fact]
-    public void SyntaxVisitor_AcceptAndGetChildrenTestedForAllSyntaxNodes()
+    public void SyntaxTreeRewriter_RewriteAndGetChildrenTestedForAllSyntaxNodes()
     {
-        var testedNames = from method in typeof(SyntaxVisitorTests).GetMethods(BindingFlags.Public | BindingFlags.Instance)
+        var testedNames = from method in typeof(SyntaxTreeRewriterTests).GetMethods(BindingFlags.Public | BindingFlags.Instance)
                           let match = testingMethodRegex.Match(method.Name)
                           where match.Success && match.Groups.Count == 2 && method.ReturnType == typeof(void) && method.GetParameters().Length == 0 && method.GetCustomAttribute<FactAttribute>() is not null
                           select match.Groups[1].Value;
@@ -49,7 +49,7 @@ public class SyntaxVisitorTests
     }
 
     [Fact]
-    public void SyntaxVisitor_AssignmentExpressionSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_AssignmentExpressionSyntax_RewriteVisitsChildren()
     {
         var literal = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
         var equalsToken = SyntaxToken.Equals(dummyTree, default);
@@ -58,7 +58,7 @@ public class SyntaxVisitorTests
         AssertVisits(assignment);
     }
     [Fact]
-    public void SyntaxVisitor_CallExpressionSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_CallExpressionSyntax_RewriteVisitsChildren()
     {
         var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
         var open = SyntaxToken.OpenParenthesis(dummyTree, default);
@@ -68,7 +68,7 @@ public class SyntaxVisitorTests
         AssertVisits(call);
     }
     [Fact]
-    public void SyntaxVisitor_BinaryExpressionSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_BinaryExpressionSyntax_RewriteVisitsChildren()
     {
         var left = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
         var operatorToken = SyntaxToken.Plus(dummyTree, default);
@@ -77,7 +77,7 @@ public class SyntaxVisitorTests
         AssertVisits(binary);
     }
     [Fact]
-    public void SyntaxVisitor_BlockStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_BlockStatementSyntax_RewriteVisitsChildren()
     {
         var openBraceToken = SyntaxToken.OpenBrace(dummyTree, default);
         var statements = Enumerable.Range(0, 5)
@@ -89,7 +89,7 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_CompilationUnitSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_CompilationUnitSyntax_RewriteVisitsChildren()
     {
         var statement = new ExpressionStatementSyntax(dummyTree, new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty)));
         var eof = SyntaxToken.EndOfFile(dummyTree, default);
@@ -97,14 +97,14 @@ public class SyntaxVisitorTests
         AssertVisits(compilationUnit);
     }
     [Fact]
-    public void SyntaxVisitor_GlobalStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_GlobalStatementSyntax_RewriteVisitsChildren()
     {
         var statement = new ExpressionStatementSyntax(dummyTree, new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty)));
         var globalStatement = new GlobalStatementSyntax(dummyTree, statement);
         AssertVisits(globalStatement);
     }
     [Fact]
-    public void SyntaxVisitor_FunctionDeclarationSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_FunctionDeclarationSyntax_RewriteVisitsChildren()
     {
         var functionKeyword = SyntaxToken.FunctionKeyword(dummyTree, default);
         var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
@@ -119,7 +119,7 @@ public class SyntaxVisitorTests
         AssertVisits(functionDelcaration);
     }
     [Fact]
-    public void SyntaxVisitor_ReturnStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_ReturnStatementSyntax_RewriteVisitsChildren()
     {
         var returnKeyword = SyntaxToken.ReturnKeyword(dummyTree, default);
         var expression = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, "0"));
@@ -127,7 +127,7 @@ public class SyntaxVisitorTests
         AssertVisits(returnStatement);
     }
     [Fact]
-    public void SyntaxVisitor_ParameterSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_ParameterSyntax_RewriteVisitsChildren()
     {
         var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
         var type = new TypeClauseSyntax(dummyTree, SyntaxToken.Colon(dummyTree, default), SyntaxToken.Identifier(dummyTree, default, string.Empty));
@@ -135,7 +135,7 @@ public class SyntaxVisitorTests
         AssertVisits(parameter);
     }
     [Fact]
-    public void SyntaxVisitor_ElseClauseSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_ElseClauseSyntax_RewriteVisitsChildren()
     {
         var elseToken = SyntaxToken.ElseKeyword(dummyTree, default);
         var statement = new ExpressionStatementSyntax(dummyTree, new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty)));
@@ -143,14 +143,14 @@ public class SyntaxVisitorTests
         AssertVisits(elseClause);
     }
     [Fact]
-    public void SyntaxVisitor_ExpressionStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_ExpressionStatementSyntax_RewriteVisitsChildren()
     {
         var expression = new LiteralExpressionSyntax(dummyTree, SyntaxToken.Number(dummyTree, default, 0, string.Empty));
         var statement = new ExpressionStatementSyntax(dummyTree, expression);
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_IfStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_IfStatementSyntax_RewriteVisitsChildren()
     {
         var ifToken = SyntaxToken.IfKeyword(dummyTree, default);
         var condition = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
@@ -162,21 +162,21 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_LiteralExpressionSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_LiteralExpressionSyntax_RewriteVisitsChildren()
     {
         var token = SyntaxToken.Identifier(dummyTree, default, string.Empty);
         var expression = new LiteralExpressionSyntax(dummyTree, token);
         AssertVisits(expression);
     }
     [Fact]
-    public void SyntaxVisitor_NameExpressionSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_NameExpressionSyntax_RewriteVisitsChildren()
     {
         var token = SyntaxToken.Identifier(dummyTree, default, string.Empty);
         var expression = new NameExpressionSyntax(dummyTree, token);
         AssertVisits(expression);
     }
     [Fact]
-    public void SyntaxVisitor_ParenthesizedExpressionSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_ParenthesizedExpressionSyntax_RewriteVisitsChildren()
     {
         var open = SyntaxToken.OpenParenthesis(dummyTree, default);
         var inner = new NameExpressionSyntax(dummyTree, SyntaxToken.Identifier(dummyTree, default, string.Empty));
@@ -185,7 +185,7 @@ public class SyntaxVisitorTests
         AssertVisits(expression);
     }
     [Fact]
-    public void SyntaxVisitor_UnaryExpressionSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_UnaryExpressionSyntax_RewriteVisitsChildren()
     {
         var operatorToken = SyntaxToken.Bang(dummyTree, default);
         var operand = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
@@ -193,7 +193,7 @@ public class SyntaxVisitorTests
         AssertVisits(expression);
     }
     [Fact]
-    public void SyntaxVisitor_VariableDeclarationStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_VariableDeclarationStatementSyntax_RewriteVisitsChildren()
     {
         var keyword = SyntaxToken.LetKeyword(dummyTree, default);
         var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
@@ -206,7 +206,7 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_WhileStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_WhileStatementSyntax_RewriteVisitsChildren()
     {
         var keyword = SyntaxToken.WhileKeyword(dummyTree, default);
         var condition = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
@@ -215,7 +215,7 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_DoWhileStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_DoWhileStatementSyntax_RewriteVisitsChildren()
     {
         var doKeyword = SyntaxToken.DoKeyword(dummyTree, default);
         var condition = new LiteralExpressionSyntax(dummyTree, SyntaxToken.TrueKeyword(dummyTree, default));
@@ -225,7 +225,7 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_ForStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_ForStatementSyntax_RewriteVisitsChildren()
     {
         var forKeyword = SyntaxToken.ForKeyword(dummyTree, default);
         var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
@@ -239,21 +239,21 @@ public class SyntaxVisitorTests
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_ContinueStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_ContinueStatementSyntax_RewriteVisitsChildren()
     {
         var continueKeyword = SyntaxToken.ContinueKeyword(dummyTree, default);
         var statement = new ContinueStatementSyntax(dummyTree, continueKeyword);
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_BreakStatementSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_BreakStatementSyntax_RewriteVisitsChildren()
     {
         var breakKeyword = SyntaxToken.BreakKeyword(dummyTree, default);
         var statement = new BreakStatementSyntax(dummyTree, breakKeyword);
         AssertVisits(statement);
     }
     [Fact]
-    public void SyntaxVisitor_TypeClauseSyntax_AcceptVisitsChildren()
+    public void SyntaxTreeRewriter_TypeClauseSyntax_RewriteVisitsChildren()
     {
         var colon = SyntaxToken.Colon(dummyTree, default);
         var identifier = SyntaxToken.Identifier(dummyTree, default, string.Empty);
@@ -262,20 +262,20 @@ public class SyntaxVisitorTests
     }
 
     static readonly Regex visitMethodRegex = new("Visit(.*?)", RegexOptions.Compiled);
-    static readonly Regex testingMethodRegex = new("SyntaxVisitor_(.*?)_AcceptVisitsChildren", RegexOptions.Compiled);
+    static readonly Regex testingMethodRegex = new("SyntaxTreeRewriter_(.*?)_RewriteVisitsChildren", RegexOptions.Compiled);
     static IEnumerable<Type> GetAllSyntaxNodeTypes() => from type in typeof(SyntaxNode).Assembly.GetExportedTypes()
                                                         where type != typeof(SyntaxToken) && typeof(SyntaxNode).IsAssignableFrom(type) && type.IsPublic && !type.IsAbstract
                                                         select type;
 
     static void AssertVisits(SyntaxNode node)
     {
-        var visitor = new TestVisitor();
+        var visitor = new TestTreeRewriter();
         visitor.Visit(node);
         var expected = node.Children.ToList();
         expected.Insert(0, node);
         Assert.Equal(expected, visitor.Visited);
     }
-    sealed class TestVisitor : SyntaxVisitor
+    sealed class TestTreeRewriter : SyntaxTreeRewriter
     {
         bool parented;
         public List<SyntaxNode> Visited { get; } = new();

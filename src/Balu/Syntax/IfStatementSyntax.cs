@@ -29,14 +29,14 @@ public sealed class IfStatementSyntax : StatementSyntax
         ElseClause = elseClause;
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var ifKeyword = (SyntaxToken)visitor.Visit(IfKeyword);
-        var condition = (ExpressionSyntax)visitor.Visit(Condition);
-        var thenStatement = (StatementSyntax)visitor.Visit(ThenStatement);
-        var elseClause = ElseClause is {} ? (ElseClauseSyntax)visitor.Visit(ElseClause) : null;
+        var ifKeyword = (SyntaxToken)rewriter.Visit(IfKeyword);
+        var condition = (ExpressionSyntax)rewriter.Visit(Condition);
+        var thenStatement = (StatementSyntax)rewriter.Visit(ThenStatement);
+        var elseClause = ElseClause is {} ? (ElseClauseSyntax)rewriter.Visit(ElseClause) : null;
         return ifKeyword == IfKeyword && condition == Condition && thenStatement == ThenStatement && elseClause == ElseClause
                    ? this
-                   : new(SyntaxTree, ifKeyword, condition, thenStatement, elseClause);
+                   : throw new NotImplementedException();
     }
 }

@@ -5,14 +5,14 @@ using Balu.Syntax;
 
 namespace Balu.Visualization;
 
-public sealed class SyntaxTreeWriter : SyntaxVisitor
+public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
 {
     readonly TextWriter writer;
     readonly bool console;
     string indent = string.Empty;
     bool last = true;
 
-    SyntaxTreeWriter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
+    SyntaxTreePrinter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
 
     public override SyntaxNode Visit(SyntaxNode node)
     {
@@ -44,5 +44,5 @@ public sealed class SyntaxTreeWriter : SyntaxVisitor
         return node;
     }
 
-    public static void Print(SyntaxNode syntax, TextWriter textWriter) => new SyntaxTreeWriter(textWriter).Visit(syntax);
+    public static void Print(SyntaxNode syntax, TextWriter textWriter) => new SyntaxTreePrinter(textWriter).Visit(syntax);
 }

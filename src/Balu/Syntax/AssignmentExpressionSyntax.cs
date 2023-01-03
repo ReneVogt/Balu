@@ -27,11 +27,11 @@ public sealed class AssignmentExpressionSyntax : ExpressionSyntax
         Expression = expression;
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        SyntaxToken identifierToken = (SyntaxToken)visitor.Visit(IdentifierToken);
-        SyntaxToken equalsToken = (SyntaxToken)visitor.Visit(EqualsToken);
-        ExpressionSyntax expression = (ExpressionSyntax)visitor.Visit(Expression);
-        return identifierToken != IdentifierToken || equalsToken != EqualsToken || expression != Expression ? new (SyntaxTree, identifierToken, equalsToken, expression) : this;
+        SyntaxToken identifierToken = (SyntaxToken)rewriter.Visit(IdentifierToken);
+        SyntaxToken equalsToken = (SyntaxToken)rewriter.Visit(EqualsToken);
+        ExpressionSyntax expression = (ExpressionSyntax)rewriter.Visit(Expression);
+        return identifierToken == IdentifierToken && equalsToken == EqualsToken && expression == Expression ? this : throw new NotImplementedException();
     }
 }

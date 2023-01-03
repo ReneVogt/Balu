@@ -95,7 +95,7 @@ public sealed class Compilation
     public void WriteSyntaxTrees(TextWriter writer)
     {
         foreach (var syntaxTree in SyntaxTrees)
-            SyntaxTreeWriter.Print(syntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
+            SyntaxTreePrinter.Print(syntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
     }
     public void WriteProgramTree(TextWriter writer) => BoundTreeWriter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
     public void WriteTree(TextWriter writer, FunctionSymbol function)

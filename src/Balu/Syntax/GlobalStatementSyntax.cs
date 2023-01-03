@@ -18,9 +18,9 @@ public sealed class GlobalStatementSyntax : MemberSyntax
         Statement = statement ?? throw new ArgumentNullException(nameof(statement)) ;
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var statement = (StatementSyntax)visitor.Visit(Statement);
-        return statement == Statement ? this : new(SyntaxTree, statement);
+        var statement = (StatementSyntax)rewriter.Visit(Statement);
+        return statement == Statement ? this : throw new NotImplementedException();
     }
 }

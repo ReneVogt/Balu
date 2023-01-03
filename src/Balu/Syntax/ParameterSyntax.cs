@@ -23,10 +23,10 @@ public sealed class ParameterSyntax : SyntaxNode
         TypeClause = type ?? throw new ArgumentNullException(nameof(type));
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        var identifier = (SyntaxToken)visitor.Visit(Identifier);
-        var type = (TypeClauseSyntax)visitor.Visit(TypeClause);
-        return identifier == Identifier && type == TypeClause ? this : new(SyntaxTree, identifier, type);
+        var identifier = (SyntaxToken)rewriter.Visit(Identifier);
+        var type = (TypeClauseSyntax)rewriter.Visit(TypeClause);
+        return identifier == Identifier && type == TypeClause ? this : throw new NotImplementedException();
     }
 }

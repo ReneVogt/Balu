@@ -24,9 +24,9 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
         Value = value;
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        SyntaxToken literal = (SyntaxToken)visitor.Visit(LiteralToken);
-        return literal == LiteralToken ? this : new(SyntaxTree, literal, literal.Value);
+        SyntaxToken literal = (SyntaxToken)rewriter.Visit(LiteralToken);
+        return literal == LiteralToken ? this : throw new NotImplementedException();
     }
 }

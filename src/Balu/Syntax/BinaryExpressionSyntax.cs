@@ -27,11 +27,11 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
         Right = right ?? throw new ArgumentNullException(nameof(right));
     }
 
-    internal override SyntaxNode Accept(SyntaxVisitor visitor)
+    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
-        ExpressionSyntax left = (ExpressionSyntax)visitor.Visit(Left);
-        SyntaxToken operatorToken = (SyntaxToken)visitor.Visit(OperatorToken);
-        ExpressionSyntax right = (ExpressionSyntax)visitor.Visit(Right);
-        return left != Left || operatorToken != OperatorToken || right != Right ? new(SyntaxTree, left, operatorToken, right) : this;
+        ExpressionSyntax left = (ExpressionSyntax)rewriter.Visit(Left);
+        SyntaxToken operatorToken = (SyntaxToken)rewriter.Visit(OperatorToken);
+        ExpressionSyntax right = (ExpressionSyntax)rewriter.Visit(Right);
+        return left == Left && operatorToken == OperatorToken && right == Right ? this : throw new NotImplementedException();
     }
 }
