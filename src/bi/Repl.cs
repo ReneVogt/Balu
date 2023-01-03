@@ -234,16 +234,30 @@ abstract class Repl
     }
     protected abstract void EvaluateSubmission(string text);
 
-    [MetaCommand("help", "Shows help.")]
+    [MetaCommand("help", "Shows help. Very very long long very very long long very very long long very very long long very very long long very very long long help long long help")]
     protected void EvaluateHelp()
     {
-        var padding = metaCommands.Max(c => c.Key.Length) + 2;
         foreach (var command in metaCommands.Values.OrderBy(mc => mc.Name))
         {
             Console.Out.WritePunctuation("#");
-            Console.Out.WriteIdentifier(command.Name.PadRight(padding));
-            Console.Out.WritePunctuation(command.Description);
+            Console.Out.WriteIdentifier(command.Name);
+            Console.Out.WriteSpace();
+            Console.Out.WritePunctuation(string.Join(" ", command.Method.GetParameters().Select(parameter => $"<{parameter.Name}>")));
             Console.Out.WriteLine();
+            Console.Out.WritePunctuation(string.Join(Environment.NewLine, Chunks(command.Description)));
+            Console.Out.WriteLine();
+        }
+
+        static IEnumerable<string> Chunks(string s)
+        {
+            int chunkSize = Console.WindowWidth - 3;
+            int position = 0;
+            while (position < s.Length)
+            {
+                int end = position + Math.Min(chunkSize, s.Length - position);
+                yield return "  " + s[position..end];
+                position += chunkSize;
+            }
         }
     }
 
