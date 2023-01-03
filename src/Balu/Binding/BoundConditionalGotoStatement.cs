@@ -16,9 +16,9 @@ sealed class BoundConditionalGotoStatement : BoundStatement
     
     public BoundConditionalGotoStatement(BoundLabel label, BoundExpression condition, bool jumpIfTrue = true) => (Label, Condition, JumpIfTrue) = (label, condition, jumpIfTrue);
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var condition = (BoundExpression)visitor.Visit(Condition);
+        var condition = (BoundExpression)rewriter.Visit(Condition);
         return condition == Condition ? this : new (Label, condition, JumpIfTrue);
     }
 

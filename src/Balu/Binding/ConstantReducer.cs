@@ -1,6 +1,6 @@
 ﻿namespace Balu.Binding;
 
-sealed class ConstantReducer : BoundTreeVisitor
+sealed class ConstantReducer : BoundTreeRewriter
 {
     readonly VariableDictionary knownVariables = new();
 

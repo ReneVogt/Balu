@@ -11,7 +11,7 @@ sealed class BoundErrorExpression : BoundExpression
 
     public override IEnumerable<BoundNode> Children => Array.Empty<BoundNode>();
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 
     public override string ToString() => "?";
 }

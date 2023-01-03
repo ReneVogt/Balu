@@ -21,9 +21,9 @@ sealed class BoundCallExpression : BoundExpression
         Arguments = arguments;
     }
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var arguments = VisitList(visitor, Arguments);
+        var arguments = RewriteList(rewriter, Arguments);
         return arguments == Arguments ? this : new(Function, arguments);
     }
 

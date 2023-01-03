@@ -18,9 +18,9 @@ sealed class BoundReturnStatement : BoundStatement
 
     public BoundReturnStatement(BoundExpression? expression) => Expression = expression;
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var expression = Expression is null ? null : (BoundExpression)visitor.Visit(Expression);
+        var expression = Expression is null ? null : (BoundExpression)rewriter.Visit(Expression);
         return expression == Expression ? this : new (expression);
     }
 

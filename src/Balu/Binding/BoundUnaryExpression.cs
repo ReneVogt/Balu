@@ -21,9 +21,9 @@ sealed class BoundUnaryExpression : BoundExpression
 
     public BoundUnaryExpression(BoundUnaryOperator op, BoundExpression operand) => (Operator, Operand) = (op, operand);
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var operand = (BoundExpression)visitor.Visit(Operand);
+        var operand = (BoundExpression)rewriter.Visit(Operand);
         return operand == Operand ? this : new (Operator, operand);
     }
 

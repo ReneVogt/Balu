@@ -7,24 +7,23 @@ using Balu.Syntax;
 
 namespace Balu.Visualization;
 
-sealed class BoundTreeWriter : BoundTreeVisitor
+sealed class BoundTreePrinter : BoundTreeVisitor
 {
     const string TABSTRING = "  ";
     readonly IndentedTextWriter writer;
 
-    BoundTreeWriter(IndentedTextWriter writer) => this.writer = writer;
+    BoundTreePrinter(IndentedTextWriter writer) => this.writer = writer;
 
-    protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
+    protected override void VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
         writer.WriteIdentifier(assignmentExpression.Symbol.Name);
         writer.WriteSpace();
         writer.WritePunctuation(SyntaxKind.EqualsToken.GetText());
         writer.WriteSpace();
         Visit(assignmentExpression.Expression);
-        return assignmentExpression;
     }
 
-    protected override BoundNode VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
+    protected override void VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
         var op = binaryExpression.Operator.SyntaxKind;
         var precedence = op.BinaryOperatorPrecedence();
@@ -33,10 +32,9 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         writer.WritePunctuation(op.GetText());
         writer.WriteSpace();
         WriteNestedExpression(binaryExpression.Right, precedence);
-        return binaryExpression;
     }
 
-    protected override BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement)
+    protected override void VisitBoundBlockStatement(BoundBlockStatement blockStatement)
     {
         writer.WritePunctuation(SyntaxKind.OpenBraceToken.GetText());
         writer.WriteLine();
@@ -48,10 +46,9 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         }
         writer.Indent--;
         writer.WritePunctuation(SyntaxKind.ClosedBraceToken.GetText());
-        return blockStatement;
     }
 
-    protected override BoundNode VisitBoundCallExpression(BoundCallExpression callExpression)
+    protected override void VisitBoundCallExpression(BoundCallExpression callExpression)
     {
         writer.WriteIdentifier(callExpression.Function.Name);
         writer.WritePunctuation(SyntaxKind.OpenParenthesisToken.GetText());
@@ -65,10 +62,9 @@ sealed class BoundTreeWriter : BoundTreeVisitor
             Visit(callExpression.Arguments[i]);
         }
         writer.WritePunctuation(SyntaxKind.ClosedParenthesisToken.GetText());
-        return callExpression;
     }
 
-    protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
+    protected override void VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
     {
         writer.WriteKeyword("goto");
         writer.WriteSpace();
@@ -77,19 +73,17 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         writer.WriteKeyword(conditionalGotoStatement.JumpIfTrue ? "if" : "unless");
         writer.WriteSpace();
         Visit(conditionalGotoStatement.Condition);
-        return conditionalGotoStatement;
     }
 
-    protected override BoundNode VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
+    protected override void VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
     {
         writer.WriteIdentifier(conversionExpression.Type.Name);
         writer.WritePunctuation(SyntaxKind.OpenParenthesisToken.GetText());
         Visit(conversionExpression.Expression);
         writer.WritePunctuation(SyntaxKind.ClosedParenthesisToken.GetText());
-        return conversionExpression;
     }
 
-    protected override BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
+    protected override void VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
     {
         writer.WriteKeyword(SyntaxKind.DoKeyword.GetText());
         writer.WriteLine();
@@ -99,16 +93,14 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         writer.WriteKeyword(SyntaxKind.WhileKeyword.GetText());
         writer.WriteSpace();
         Visit(doWhileStatement.Condition);
-        return doWhileStatement;
     }
 
-    protected override BoundNode VisitBoundErrorExpression(BoundErrorExpression errorExpression)
+    protected override void VisitBoundErrorExpression(BoundErrorExpression errorExpression)
     {
         writer.WriteKeyword("?");
-        return errorExpression;
     }
 
-    protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
+    protected override void VisitBoundForStatement(BoundForStatement forStatement)
     {
         writer.WriteKeyword(SyntaxKind.ForKeyword.GetText());
         writer.WriteSpace();
@@ -123,18 +115,16 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         Visit(forStatement.UpperBound);
         writer.WriteLine();
         WriteNestedStatement(forStatement.Body);
-        return forStatement;
     }
 
-    protected override BoundNode VisitBoundGotoStatement(BoundGotoStatement gotoStatement)
+    protected override void VisitBoundGotoStatement(BoundGotoStatement gotoStatement)
     {
         writer.WriteKeyword("goto");
         writer.WriteSpace();
         writer.WriteIdentifier(gotoStatement.Label.Name);
-        return gotoStatement;
     }
 
-    protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
+    protected override void VisitBoundIfStatement(BoundIfStatement ifStatement)
     {
         writer.WriteKeyword(SyntaxKind.IfKeyword.GetText());
         writer.WriteSpace();
@@ -148,19 +138,17 @@ sealed class BoundTreeWriter : BoundTreeVisitor
             writer.WriteLine();
             WriteNestedStatement(ifStatement.ElseStatement);
         }
-        return ifStatement;
     }
 
-    protected override BoundNode VisitBoundLabelStatement(BoundLabelStatement labelStatement)
+    protected override void VisitBoundLabelStatement(BoundLabelStatement labelStatement)
     {
         bool indent = writer.Indent > 0;
         if (indent) writer.Indent--;
         writer.WritePunctuation(labelStatement.Label.Name + SyntaxKind.ColonToken.GetText());
         if (indent) writer.Indent++;
-        return labelStatement;
     }
 
-    protected override BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
+    protected override void VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
         var value = literalExpression.Value.ToString()!;
         if (literalExpression.Type == TypeSymbol.Boolean)
@@ -170,10 +158,9 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         else if (literalExpression.Type == TypeSymbol.String)
             writer.WriteString($"\"{value.EscapeString()}\"");
         else throw new ArgumentException($"Unsupported literal expression type '{literalExpression.Type}'.");
-        return literalExpression;
     }
 
-    protected override BoundNode VisitBoundReturnStatement(BoundReturnStatement returnStatement)
+    protected override void VisitBoundReturnStatement(BoundReturnStatement returnStatement)
     {
         writer.WriteKeyword(SyntaxKind.ReturnKeyword.GetText());
         if (returnStatement.Expression is not null)
@@ -181,19 +168,16 @@ sealed class BoundTreeWriter : BoundTreeVisitor
             writer.WriteSpace();
             Visit(returnStatement.Expression);
         }
-
-        return returnStatement;
     }
 
-    protected override BoundNode VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
+    protected override void VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
         var op = unaryExpression.Operator.SyntaxKind;
         writer.WritePunctuation(op.GetText()!);
         WriteNestedExpression(unaryExpression.Operand, op.UnaryOperatorPrecedence());
-        return unaryExpression;
     }
 
-    protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
+    protected override void VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
         writer.WriteKeyword(variableDeclarationStatement.Variable.ReadOnly ? SyntaxKind.LetKeyword.GetText() : SyntaxKind.VarKeyword.GetText()!);
         writer.WriteSpace();
@@ -206,23 +190,20 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         writer.WritePunctuation(SyntaxKind.EqualsToken.GetText());
         writer.WriteSpace();
         variableDeclarationStatement.Accept(this);
-        return variableDeclarationStatement;
     }
 
-    protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression)
+    protected override void VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
         writer.WriteIdentifier(variableExpression.Variable.Name);
-        return variableExpression;
     }
 
-    protected override BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement)
+    protected override void VisitBoundWhileStatement(BoundWhileStatement whileStatement)
     {
         writer.WriteKeyword(SyntaxKind.WhileKeyword.GetText());
         writer.WriteSpace();
         Visit(whileStatement.Condition);
         writer.WriteLine();
         WriteNestedStatement(whileStatement.Body);
-        return whileStatement;
     }
 
     void WriteNestedStatement(BoundStatement statement)
@@ -288,7 +269,7 @@ sealed class BoundTreeWriter : BoundTreeVisitor
         var indentedTextWriter = textWriter as IndentedTextWriter ?? (iw = new(textWriter, TABSTRING));
         using(iw)
         {
-            new BoundTreeWriter(indentedTextWriter).Visit(boundNode);
+            new BoundTreePrinter(indentedTextWriter).Visit(boundNode);
         }
     }
     public static void Print(BoundProgram boundProgram, TextWriter textWriter)

@@ -12,7 +12,7 @@ sealed class BoundLabelStatement : BoundStatement
 
     public BoundLabelStatement(BoundLabel label) => Label = label;
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 
     public override string ToString() => Label.ToString();
 }

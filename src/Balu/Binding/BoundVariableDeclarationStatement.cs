@@ -23,9 +23,9 @@ sealed class BoundVariableDeclarationStatement : BoundStatement
         Expression = expression;
     }
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var expression = (BoundExpression)visitor.Visit(Expression);
+        var expression = (BoundExpression)rewriter.Visit(Expression);
         return expression == Expression ? this : new (Variable, expression);
     }
 

@@ -12,7 +12,7 @@ sealed class BoundGotoStatement : BoundStatement
 
     public BoundGotoStatement(BoundLabel label) => Label = label;
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 
     public override string ToString() => $"goto {Label}";
 }

@@ -25,7 +25,7 @@ sealed class BoundLiteralExpression : BoundExpression
         };
     }
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 
     public override string ToString() => Value.ToString() ?? string.Empty;
 }

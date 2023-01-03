@@ -15,9 +15,9 @@ sealed class BoundBlockStatement : BoundStatement
         Statements = statements;
     }
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var transformed = VisitList(visitor, Statements);
+        var transformed = RewriteList(rewriter, Statements);
         return transformed == Statements ? this : new (transformed);
     }
 }

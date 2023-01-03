@@ -29,11 +29,11 @@ sealed class BoundForStatement : BoundLoopStatement
         Body = body;
     }
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var lowerBound = (BoundExpression)visitor.Visit(LowerBound);
-        var upperBound = (BoundExpression)visitor.Visit(UpperBound);
-        var body = (BoundStatement)visitor.Visit(Body);
+        var lowerBound = (BoundExpression)rewriter.Visit(LowerBound);
+        var upperBound = (BoundExpression)rewriter.Visit(UpperBound);
+        var body = (BoundStatement)rewriter.Visit(Body);
         return lowerBound == LowerBound && upperBound == UpperBound && body == Body
                    ? this
                    : new (Variable, lowerBound, upperBound, body, BreakLabel, ContinueLabel);

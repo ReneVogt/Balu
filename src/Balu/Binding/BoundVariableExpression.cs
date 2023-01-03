@@ -14,7 +14,7 @@ sealed class BoundVariableExpression : BoundExpression
 
     public BoundVariableExpression(VariableSymbol variable) => Variable = variable;
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor) => this;
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 
     public override string ToString() => Variable.Name;
 }

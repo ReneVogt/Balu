@@ -28,10 +28,10 @@ sealed class BoundBinaryExpression : BoundExpression
         Right = right;
     }
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var left = (BoundExpression)visitor.Visit(Left);
-        var right = (BoundExpression)visitor.Visit(Right);
+        var left = (BoundExpression)rewriter.Visit(Left);
+        var right = (BoundExpression)rewriter.Visit(Right);
         return left == Left && right == Right ? this : new (left, Operator, right);
     }
 

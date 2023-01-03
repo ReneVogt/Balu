@@ -21,11 +21,11 @@ sealed class BoundIfStatement : BoundStatement
 
     public BoundIfStatement(BoundExpression condition, BoundStatement thenStatement, BoundStatement? elseStatement) => (Condition, ThenStatement, ElseStatement) = (condition, thenStatement, elseStatement);
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var condition = (BoundExpression)visitor.Visit(Condition);
-        var thenStatement = (BoundStatement)visitor.Visit(ThenStatement);
-        var elseStatement = ElseStatement is null ? null : (BoundStatement)visitor.Visit(ElseStatement);
+        var condition = (BoundExpression)rewriter.Visit(Condition);
+        var thenStatement = (BoundStatement)rewriter.Visit(ThenStatement);
+        var elseStatement = ElseStatement is null ? null : (BoundStatement)rewriter.Visit(ElseStatement);
         return condition == Condition && thenStatement == ThenStatement && elseStatement == ElseStatement
                    ? this
                    : new (condition, thenStatement, elseStatement);

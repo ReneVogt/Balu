@@ -21,7 +21,7 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
     Evaluator(VariableDictionary globals, ImmutableDictionary<FunctionSymbol,BoundBlockStatement> functions) => (this.globals, this.functions) = (globals, functions);
     public void Dispose() => rng.Dispose();
 
-    protected override BoundNode VisitBoundBlockStatement(BoundBlockStatement blockStatement)
+    protected override void VisitBoundBlockStatement(BoundBlockStatement blockStatement)
     {
         var labelsToIndices = blockStatement.Statements.Select((statement, index) => (statement, index))
                                             .Where(x => x.statement.Kind == BoundNodeKind.LabelStatement)
@@ -36,7 +36,7 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
                 case BoundNodeKind.ReturnStatement:
                     var returnStatement = (BoundReturnStatement)current;
                     if (returnStatement.Expression is not null) Visit(returnStatement.Expression);
-                    return blockStatement;
+                    return;
                 case BoundNodeKind.GotoStatement:
                     index = labelsToIndices[((BoundGotoStatement)current).Label];
                     break;
@@ -54,16 +54,13 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
                     break;
             }
         }
-
-        return blockStatement;
     }
 
-    protected override BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
+    protected override void VisitBoundLiteralExpression(BoundLiteralExpression literalExpression)
     {
         Result = literalExpression.Value;
-        return literalExpression;
     }
-    protected override BoundNode VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
+    protected override void VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
         Visit(unaryExpression.Operand);
         switch (unaryExpression.Operator.OperatorKind)
@@ -82,10 +79,8 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             default:
                 throw EvaluationException.UnaryOperatorCannotBeEvaluated(unaryExpression.Operator.OperatorKind);
         }
-
-        return unaryExpression;
     }
-    protected override BoundNode VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
+    protected override void VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
         Visit(binaryExpression.Left);
         object left = Result!;
@@ -110,9 +105,8 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             BoundBinaryOperatorKind.GreaterOrEquals => (int)left >= (int)right,
             _ => throw EvaluationException.BinaryOperatorCannotBeEvaluated(binaryExpression.Operator.OperatorKind)
         };
-        return binaryExpression;
     }
-    protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression)
+    protected override void VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
         Result = variableExpression.Variable.Kind switch
         {
@@ -121,19 +115,16 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
                 SymbolKind.Parameter => locals.Peek()[variableExpression.Variable],
             _ => throw EvaluationException.InvalidSymbolKind(variableExpression.Variable)
         };
-        return variableExpression;
     }
-    protected override BoundNode VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
+    protected override void VisitBoundAssignmentExpression(BoundAssignmentExpression assignmentExpression)
     {
         Visit(assignmentExpression.Expression);
         AssignVariable(assignmentExpression.Symbol, Result);
-        return assignmentExpression;
     }
-    protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
+    protected override void VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
         Visit(variableDeclarationStatement.Expression);
         AssignVariable(variableDeclarationStatement.Variable, Result);
-        return variableDeclarationStatement;
     }
     void AssignVariable(VariableSymbol variable, object? value)
     {
@@ -150,24 +141,24 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
                 throw EvaluationException.InvalidSymbolKind(variable);
         }
     }
-    protected override BoundNode VisitBoundCallExpression(BoundCallExpression callExpression)
+    protected override void VisitBoundCallExpression(BoundCallExpression callExpression)
     {
         if (callExpression.Function == BuiltInFunctions.Print)
         {
             ExecutePrint(callExpression.Arguments);
-            return callExpression;
+            return;
         }
 
         if (callExpression.Function == BuiltInFunctions.Input)
         {
             ExecuteInput();
-            return callExpression;
+            return;
         }
         
         if (callExpression.Function == BuiltInFunctions.Random)
         {
             ExecuteRandom(callExpression.Arguments);
-            return callExpression;
+            return;
         }
 
         var frame = new VariableDictionary();
@@ -184,9 +175,8 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
         if (callExpression.Function.ReturnType == TypeSymbol.Void)
             Result = null;
         locals.Pop();
-        return callExpression;
     }
-    protected override BoundNode VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
+    protected override void VisitBoundConversionExpression(BoundConversionExpression conversionExpression)
     {
         Visit(conversionExpression.Expression);
         if (conversionExpression.Type == TypeSymbol.String)
@@ -197,7 +187,6 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
             Result = Convert.ToBoolean(Result, CultureInfo.InvariantCulture);
         else if (conversionExpression.Type != TypeSymbol.Any)
             throw EvaluationException.InvalidCast(conversionExpression.Expression.Type, conversionExpression.Type);
-        return conversionExpression;
     }
     void ExecutePrint(IEnumerable<BoundExpression> arguments)
     {

@@ -23,10 +23,10 @@ sealed class BoundWhileStatement : BoundLoopStatement
         Body = body;
     }
 
-    internal override BoundNode Accept(BoundTreeVisitor visitor)
+    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var condition = (BoundExpression)visitor.Visit(Condition);
-        var body = (BoundStatement)visitor.Visit(Body);
+        var condition = (BoundExpression)rewriter.Visit(Condition);
+        var body = (BoundStatement)rewriter.Visit(Body);
         return condition == Condition && body == Body
                    ? this
                    : new (condition, body, BreakLabel, ContinueLabel);

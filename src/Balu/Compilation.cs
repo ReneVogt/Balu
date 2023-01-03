@@ -97,7 +97,7 @@ public sealed class Compilation
         foreach (var syntaxTree in SyntaxTrees)
             SyntaxTreePrinter.Print(syntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
     }
-    public void WriteProgramTree(TextWriter writer) => BoundTreeWriter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
+    public void WriteProgramTree(TextWriter writer) => BoundTreePrinter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
     public void WriteTree(TextWriter writer, FunctionSymbol function)
     {
         _ = function ?? throw new ArgumentNullException(nameof(function));
@@ -116,7 +116,7 @@ public sealed class Compilation
         if (body is null)
             writer.WritePunctuation("<no body>");
         else
-            BoundTreeWriter.Print(body, writer);
+            BoundTreePrinter.Print(body, writer);
         writer.WriteLine();
     }
     public static Compilation Create(params SyntaxTree[] syntaxTrees) => new (false, null, syntaxTrees);

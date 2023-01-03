@@ -6,7 +6,7 @@ using Balu.Symbols;
 
 namespace Balu.Lowering;
 
-sealed class Lowerer : BoundTreeVisitor
+sealed class Lowerer : BoundTreeRewriter
 {
     readonly FunctionSymbol? containingFunction;
     int labelCount;
