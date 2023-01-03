@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Balu.Symbols;
@@ -41,7 +42,7 @@ sealed class BaluRepl : Repl
         {
             Console.Out.WriteColoredText("Program:", ConsoleColor.Yellow);
             Console.Out.WriteLine();
-            compilation.WriteProgramTree(Console.Out);
+            compilation.WriteBoundGlobalTree(Console.Out);
         }
 
         var result = compilation.Evaluate(globals);
@@ -200,6 +201,33 @@ sealed class BaluRepl : Repl
             return;
         }
 
-        compilation.WriteTree(Console.Out, function);
+        compilation.WriteBoundFunctionTree(Console.Out, function);
+    }
+    [MetaCommand("graph", "Writes the control flow graph of a function as a GraphViz dot representation to the specified path.")]
+    [SuppressMessage("Design", "CA1031:Keine allgemeinen Ausnahmetypen abfangen", Justification = "...")]
+    void Graph(string functionName, string path)
+    {
+        var compilation = previous ?? Compilation.CreateScript(null);
+        var function = compilation.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
+        if (function is null)
+        {
+            Console.Error.WriteColoredText($"Error: Function '{functionName}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
+            return;
+        }
+
+        string file = path;
+        try
+        {
+            file = Path.GetFullPath(path);
+            using var writer = new StreamWriter(file);
+            compilation.WriteControlFlowGraph(writer, function);
+            Console.Out.WritePunctuation($"Successfully wrote control flow graph of function '{functionName}' to file '{file}'.");
+        }
+        catch (Exception exception)
+        {
+            Console.Error.WriteColoredText($"Error: Could not write control flow graph of function '{functionName}' to file '{file}': {exception.Message}", ConsoleColor.Red);
+        }
+
+        Console.Out.WriteLine();
     }
 }

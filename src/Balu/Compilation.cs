@@ -97,27 +97,25 @@ public sealed class Compilation
         foreach (var syntaxTree in SyntaxTrees)
             SyntaxTreePrinter.Print(syntaxTree.Root, writer ?? throw new ArgumentNullException(nameof(writer)));
     }
-    public void WriteProgramTree(TextWriter writer) => BoundTreePrinter.Print(Program, writer ?? throw new ArgumentNullException(nameof(writer)));
-    public void WriteTree(TextWriter writer, FunctionSymbol function)
+    public void WriteBoundGlobalTree(TextWriter writer) => WriteBoundFunctionTree(writer, Program.EntryPoint);
+    public void WriteBoundFunctionTree(TextWriter writer, FunctionSymbol function)
     {
         _ = function ?? throw new ArgumentNullException(nameof(function));
         _ = writer ?? throw new ArgumentNullException(nameof(writer));
 
         function.WriteTo(writer);
         writer.WriteLine();
-        BoundBlockStatement? body = null;
-        var prg = Program;
-        while (prg is not null && body is null)
-        {
-            prg.Functions.TryGetValue(function, out body);
-            prg = prg.Previous;
-        }
-
-        if (body is null)
+        if (!Program.AllVisibleFunctions.TryGetValue(function, out var body))
             writer.WritePunctuation("<no body>");
         else
             BoundTreePrinter.Print(body, writer);
         writer.WriteLine();
+    }
+    public void WriteControlFlowGraph(TextWriter writer, FunctionSymbol function)
+    {
+        _ = writer ?? throw new ArgumentNullException(nameof(writer));
+        var cfg = ControlFlowGraph.Create(Program.AllVisibleFunctions[function]);
+        cfg.WriteTo(writer);
     }
     public static Compilation Create(params SyntaxTree[] syntaxTrees) => new (false, null, syntaxTrees);
     public static Compilation CreateScript(Compilation? previous, params SyntaxTree[] syntaxTrees) => new(true, previous, syntaxTrees);
