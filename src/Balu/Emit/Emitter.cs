@@ -10,14 +10,29 @@ using Mono.Cecil.Cil;
 
 namespace Balu.Emit;
 
-static class Emitter
+sealed class Emitter : IDisposable
 {
-    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
-    {
-        if (program.Diagnostics.Length > 0) return program.Diagnostics;
-        var diagnostics = new DiagnosticBag();
+    readonly BoundProgram program;
+    readonly string[] references;
+    readonly string outputPath;
 
-        List<AssemblyDefinition> referencedAssemblies = new();
+    readonly AssemblyDefinition assembly;
+    readonly List<AssemblyDefinition> referencedAssemblies = new();
+
+    readonly DiagnosticBag diagnostics = new();
+    Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
+    {
+        this.program = program;
+        this.references = references;
+        this.outputPath = outputPath;
+
+        var assemblyName = new AssemblyNameDefinition(moduleName, new(1, 0));
+        assembly = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Console);
+    }
+    public void Dispose() => assembly.Dispose();
+
+    void LoadReferences()
+    {
         foreach (var reference in references)
         {
             try
@@ -33,49 +48,74 @@ static class Emitter
                 diagnostics.ReportInvalidAssemblyReference(reference, exception.Message);
             }
         }
+    }
 
-        if (diagnostics.Any()) return diagnostics.ToImmutableArray();
+    TypeDefinition ? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
+    {
+        var typeDefinitions = referencedAssemblies.SelectMany(referencedAssembly => referencedAssembly.Modules)
+                                                  .SelectMany(module => module.Types)
+                                                  .Where(t => t.FullName == fullName)
+                                                  .ToArray();
 
-        var assemblyName = new AssemblyNameDefinition(moduleName, new(1, 0));
-        using var assemblyDefinition = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Console);
+        if (typeDefinitions.Length == 1)
+            return typeDefinitions[0];
 
-        var builtInTypes = new Dictionary<TypeSymbol, string>
-        {
-            { TypeSymbol.Any, "System.Object" },
-            { TypeSymbol.Boolean, "System.Boolean" },
-            { TypeSymbol.String, "System.String" },
-            { TypeSymbol.Integer, "System.Int32" },
-            { TypeSymbol.Void, "System.Void" }
-        };
-        var knownTypes = new Dictionary<TypeSymbol, TypeReference>();
-        foreach (var (type, metadataName) in builtInTypes)
-        {
-            var typeDefinitions = referencedAssemblies.SelectMany(assembly => assembly.Modules)
-                                                     .SelectMany(module => module.Types)
-                                                     .Where(t => t.FullName == metadataName)
-                                                     .ToArray();
+        if (typeDefinitions.Length == 0)
+            diagnostics.ReportRequiredTypeNotFound(fullName, typeSybmol);
+        else
+            diagnostics.ReportRequiredTypeAmbiguous(fullName, typeDefinitions);
 
-            if (typeDefinitions.Length == 0)
-                diagnostics.ReportMissingBuiltInType(type);
-            else if (typeDefinitions.Length > 1)
-                diagnostics.ReportBuiltInTypeAmbiguous(type, typeDefinitions);
-            else
-                knownTypes[type] = assemblyDefinition.MainModule.ImportReference(typeDefinitions[0]);
-        }
+        return null;
+    }
 
-        if (diagnostics.Any()) return diagnostics.ToImmutableArray();
+    MethodReference? ResolveMethod(TypeDefinition typeDefinition, string name, string[] parameterTypeNames)
+    {
+        var candidates = from method in typeDefinition.Methods
+                         where method.Name == name &&
+                               method.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(parameterTypeNames)
+                         select method;
+        var winner = candidates.FirstOrDefault();
+        if (winner is not null) return assembly.MainModule.ImportReference(winner);
         
-        var programType = new TypeDefinition(string.Empty, "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, knownTypes[TypeSymbol.Any]);
-        assemblyDefinition.MainModule.Types.Add(programType);
-        var main = new MethodDefinition("main", MethodAttributes.Static | MethodAttributes.Private, knownTypes[TypeSymbol.Void]);
+        diagnostics.ReportRequiredMethodNotFound(typeDefinition.FullName, name, parameterTypeNames);
+        return null;
+    }
+
+    void Emit()
+    {
+        diagnostics.AddRange(program.Diagnostics);
+        if (diagnostics.Any()) return;
+        LoadReferences();
+        if (diagnostics.Any()) return;
+
+        var voidTypeDefinition = ResolveTypeDefinition("System.Void", TypeSymbol.Void);
+        var objectTypeDefinition = ResolveTypeDefinition("System.Object", TypeSymbol.Any);
+        var consoleTypeDefinition = ResolveTypeDefinition("System.Console");
+        if (objectTypeDefinition is null || voidTypeDefinition is null || consoleTypeDefinition is null) return;
+        var objectType = assembly.MainModule.ImportReference(objectTypeDefinition);
+        var voidType = assembly.MainModule.ImportReference(voidTypeDefinition);
+        var consoleType = assembly.MainModule.ImportReference(consoleTypeDefinition);
+        var consoleWRiteLine = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
+        if (consoleWRiteLine is null) return;
+
+        var programType = new TypeDefinition(string.Empty, "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, objectType);
+        assembly.MainModule.Types.Add(programType);
+        var main = new MethodDefinition("main", MethodAttributes.Static | MethodAttributes.Private, voidType);
         programType.Methods.Add(main);
-        assemblyDefinition.EntryPoint = main;
+        assembly.EntryPoint = main;
 
         var processor = main.Body.GetILProcessor();
+
+        processor.Emit(OpCodes.Ldstr, "Hello World!");
+        processor.Emit(OpCodes.Call, consoleWRiteLine);
         processor.Emit(OpCodes.Ret);
 
-        assemblyDefinition.Write(outputPath);
-
-        return diagnostics.ToImmutableArray();
+        assembly.Write(outputPath);
+    }
+    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
+    {
+        using var emitter = new Emitter(program, moduleName, references, outputPath);
+        emitter.Emit();
+        return emitter.diagnostics.ToImmutableArray();
     }
 }

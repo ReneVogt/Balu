@@ -41,6 +41,7 @@ public sealed class Diagnostic
     public const string ILE0001 = nameof(ILE0001);
     public const string ILE0002 = nameof(ILE0002);
     public const string ILE0003 = nameof(ILE0003);
+    public const string ILE0004 = nameof(ILE0004);
 
     public string Id { get; }
     public TextLocation Location { get; }

@@ -8,11 +8,8 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{1C38FA4B-CC0A-42EA-B29F-1EB237C562E5}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitignore = ..\.gitignore
-		hello.balu = hello.balu
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
-		sample.balu = sample.balu
-		sample2.balu = sample2.balu
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bi", "bi\bi.csproj", "{63C76643-8652-48CA-9084-E2E7DC746D2B}"
@@ -20,6 +17,14 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balu.Tests", "Balu.Tests\Balu.Tests.csproj", "{B591ADA3-AFBE-46D8-98F0-6B0455F690EC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bc", "bc\bc.csproj", "{581F1500-768C-4827-9EA1-8E1CA482203C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{8C37AE71-4212-435A-B4BD-E493B89EF103}"
+	ProjectSection(SolutionItems) = preProject
+		hello.bproj = hello.bproj
+		Samples\hello.b = Samples\hello.b
+		Samples\sample.b = Samples\sample.b
+		Samples\sample2.b = Samples\sample2.b
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

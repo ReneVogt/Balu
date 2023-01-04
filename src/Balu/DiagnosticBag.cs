@@ -78,8 +78,15 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(Diagnostic.BND0025, default, "No entry point found (neither a 'main' function nor global statements)."));
     public void ReportInvalidAssemblyReference(string reference, string exceptionMessage) =>
         Add(new(Diagnostic.ILE0001, default, $"Could not load referenced assembly '{reference}': {exceptionMessage}"));
-    public void ReportMissingBuiltInType(TypeSymbol type) =>
-        Add(new(Diagnostic.ILE0002, default, $"The built-in type '{type.Name}' could not be resolved among the referenced assemblies."));
-    public void ReportBuiltInTypeAmbiguous(TypeSymbol type, TypeDefinition[] typeDefinitions) =>
-        Add(new(Diagnostic.ILE0003, default, $"The built-in type '{type.Name}' is ambiguous among these referenced assemblies: {string.Join(", ", typeDefinitions.Select(t => t.Module.Assembly.Name.Name).OrderBy(n=>n))}."));
+    public void ReportRequiredTypeNotFound(string metaDataname, TypeSymbol? type = null) =>
+        Add(new(
+                Diagnostic.ILE0002,
+                default,
+                type is null
+                    ? $"The required type '{metaDataname}' could not be resolved among the referenced assemblies."
+                    : $"The required type '{type.Name}' ('{metaDataname}') could not be resolved among the referenced assemblies."));
+    public void ReportRequiredTypeAmbiguous(string name, TypeDefinition[] typeDefinitions) =>
+        Add(new(Diagnostic.ILE0003, default, $"The required type '{name}' is ambiguous among these referenced assemblies: {string.Join(", ", typeDefinitions.Select(t => t.Module.Assembly.Name.Name).OrderBy(n=>n))}."));
+    public void ReportRequiredMethodNotFound(string type, string name, string[] parameterTypeNames) =>
+        Add(new(Diagnostic.ILE0004, default, $"The required method'{type}.{name}({string.Join(", ", parameterTypeNames)}' could not be found in the referenced assemblies."));
 }
