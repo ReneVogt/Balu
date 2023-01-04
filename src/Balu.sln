@@ -8,6 +8,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Projektmappenelemente", "Projektmappenelemente", "{1C38FA4B-CC0A-42EA-B29F-1EB237C562E5}"
 	ProjectSection(SolutionItems) = preProject
 		..\.gitignore = ..\.gitignore
+		hello.balu = hello.balu
 		..\LICENSE = ..\LICENSE
 		..\README.md = ..\README.md
 		sample.balu = sample.balu

@@ -5,6 +5,7 @@ using System.Linq;
 using Balu;
 using Balu.Syntax;
 using Balu.Visualization;
+using Mono.Options;
 
 #pragma warning disable CA1031 // Main catches all exceptions
 
@@ -12,50 +13,62 @@ sealed class Program
 {
     public static int Main(string[] args)
     {
-        if (args.Length == 0)
+        List<string> references = new();
+        string outputPath = string.Empty;
+        string moduleName = string.Empty;
+        List<string> sourcePaths = new();
+        bool helpRequested = false;
+
+        var options = new OptionSet
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine("Usage: bc <sourefilepath>");
-            Console.ResetColor();
-            return 1;
+            "Usage: bc <soure-paths> [options]",
+            { "r=", "The {path} of an assembly to reference.", v => references.Add(v) },
+            { "o=", "The output {path} of the assembly to create.", v => outputPath = v },
+            { "m=", "The module {name} of the assembly to create.", v => moduleName = v },
+            { "<>", v => sourcePaths.Add(v) },
+            { "?|h|help", "Shows help.", _ => helpRequested = true }
+        };
+
+        options.Parse(args);
+
+        if (helpRequested)
+        {
+            options.WriteOptionDescriptions(Console.Out);
+            return 0;
         }
 
+        
         try
         {
-            var syntaxTrees = GetFilePaths(args).Select(path => SyntaxTree.Load(Path.GetFullPath(path))).ToArray();
-            var compilation = Compilation.Create(syntaxTrees);
-            var result = compilation.Evaluate(new ());
-            if (result.Diagnostics.Any())
+            if (sourcePaths.Count == 0)
             {
-                Console.Error.WriteDiagnostics(result.Diagnostics);
+                Console.Error.WriteColoredText("Error: need at least one source file.", ConsoleColor.Red);
+                Console.Error.WriteLine();
                 return 1;
             }
 
-            var output = result.Value is string s ? $"\"{s.EscapeString()}\"" : result.Value;
-            Console.WriteLine($"Result: {output}");
-            return 0;
+            if (string.IsNullOrWhiteSpace(outputPath))
+                outputPath = Path.ChangeExtension(sourcePaths[0], ".exe");
+
+            if (string.IsNullOrWhiteSpace(moduleName))
+                moduleName = Path.GetFileNameWithoutExtension(outputPath);
+
+            outputPath = Path.GetFullPath(outputPath);
+
+            var syntaxTrees = sourcePaths.Select(path => SyntaxTree.Load(Path.GetFullPath(path))).ToArray();
+            var compilation = Compilation.Create(syntaxTrees);
+            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath);
+            if (!diagnostics.Any()) return 0;
+
+            Console.Error.WriteDiagnostics(diagnostics);
+            return 1;
         }
         catch (Exception error)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine(error);
+            Console.Error.WriteLine(error.Message);
             Console.ResetColor();
             return 1;
         }
-    }
-
-    static IEnumerable<string> GetFilePaths(IEnumerable<string> args)
-    {
-        var result = new SortedSet<string>();
-        foreach (var path in args)
-        {
-            var fullPath = Path.GetFullPath(path);
-            if (Directory.Exists(fullPath))
-                result.UnionWith(Directory.EnumerateFiles(path, "*.balu", SearchOption.AllDirectories));
-            else
-                result.Add(path);
-        }
-
-        return result;
     }
 }

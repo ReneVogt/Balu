@@ -9,6 +9,9 @@
 		<AnalysisLevel>latest</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
 	</PropertyGroup>
+	<ItemGroup>
+	  <PackageReference Include="Mono.Options" Version="6.12.0.148" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<ProjectReference Include="..\Balu\Balu.csproj" />

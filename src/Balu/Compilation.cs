@@ -6,6 +6,7 @@ using System.Linq;
 using System.Reflection;
 using System.Threading;
 using Balu.Binding;
+using Balu.Emit;
 using Balu.Evaluation;
 using Balu.Symbols;
 using Balu.Syntax;
@@ -91,6 +92,9 @@ public sealed class Compilation
 
         return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(Program, globals));
     }
+
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath) =>
+        Emitter.Emit(Program, moduleName, references, outputPath);
 
     public void WriteSyntaxTrees(TextWriter writer)
     {
