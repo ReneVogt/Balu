@@ -94,9 +94,8 @@ sealed class Emitter : IDisposable
         if (objectTypeDefinition is null || voidTypeDefinition is null || consoleTypeDefinition is null) return;
         var objectType = assembly.MainModule.ImportReference(objectTypeDefinition);
         var voidType = assembly.MainModule.ImportReference(voidTypeDefinition);
-        var consoleType = assembly.MainModule.ImportReference(consoleTypeDefinition);
-        var consoleWRiteLine = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
-        if (consoleWRiteLine is null) return;
+        var consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
+        if (consoleWrite is null) return;
 
         var programType = new TypeDefinition(string.Empty, "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, objectType);
         assembly.MainModule.Types.Add(programType);
@@ -107,7 +106,7 @@ sealed class Emitter : IDisposable
         var processor = main.Body.GetILProcessor();
 
         processor.Emit(OpCodes.Ldstr, "Hello World!");
-        processor.Emit(OpCodes.Call, consoleWRiteLine);
+        processor.Emit(OpCodes.Call, consoleWrite);
         processor.Emit(OpCodes.Ret);
 
         assembly.Write(outputPath);
