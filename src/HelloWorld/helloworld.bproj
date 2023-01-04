@@ -11,11 +11,8 @@
 	<Target Name="CreateManifestResourceNames" />
 
 	<Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn)">
-		<ItemGroup>
-			<_CorLib Include="@(ReferencePath)" Condition="'%(ReferencePath.Filename)'=='System.Runtime' OR '%(ReferencePath.Filename)'=='System.Console'"/>			
-		</ItemGroup>
 		<Message Text="Starting Balu compilation"/>
-		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\netcoreapp3.1\bc.exe&quot; @(Compile->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(_CorLib->'/r &quot;%(Identity)&quot;', ' ')"
+		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\netcoreapp3.1\bc.exe&quot; @(Compile->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')"
           WorkingDirectory="$(MSBuildProjectDirectory)" />
 	</Target>	
 </Project>

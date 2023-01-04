@@ -27,7 +27,7 @@ sealed class Emitter : IDisposable
         this.outputPath = outputPath;
 
         var assemblyName = new AssemblyNameDefinition(moduleName, new(1, 0));
-        assembly = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Console);
+        assembly = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Dll);
     }
     public void Dispose() => assembly.Dispose();
 
