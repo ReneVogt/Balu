@@ -4,6 +4,7 @@ using Balu.Syntax;
 using Balu.Text;
 using System.Collections.Generic;
 using System.Linq;
+using Mono.Cecil;
 
 namespace Balu;
 
@@ -75,4 +76,10 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(Diagnostic.BND0024, location, "At most one file can contain global statements."));
     public void ReportNoEntryPointDefined() =>
         Add(new(Diagnostic.BND0025, default, "No entry point found (neither a 'main' function nor global statements)."));
+    public void ReportInvalidAssemblyReference(string reference, string exceptionMessage) =>
+        Add(new(Diagnostic.ILE0001, default, $"Could not load referenced assembly '{reference}': {exceptionMessage}"));
+    public void ReportMissingBuiltInType(TypeSymbol type) =>
+        Add(new(Diagnostic.ILE0002, default, $"The built-in type '{type.Name}' could not be resolved among the referenced assemblies."));
+    public void ReportBuiltInTypeAmbiguous(TypeSymbol type, TypeDefinition[] typeDefinitions) =>
+        Add(new(Diagnostic.ILE0003, default, $"The built-in type '{type.Name}' is ambiguous among these referenced assemblies: {string.Join(", ", typeDefinitions.Select(t => t.Module.Assembly.Name.Name).OrderBy(n=>n))}."));
 }

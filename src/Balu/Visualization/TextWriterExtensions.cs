@@ -36,9 +36,12 @@ public static class TextWriterExtensions
     public static void WriteDiagnostics(this TextWriter textWriter, IEnumerable<Diagnostic> diagnostics)
     {
         _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
-        _ = diagnostics ?? throw new ArgumentNullException(nameof(diagnostics));
+        var diags = (diagnostics ?? throw new ArgumentNullException(nameof(diagnostics))).ToArray();
 
-        foreach (var diagnostic in diagnostics.OrderBy(diagnostic => diagnostic.Location.Text.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length))
+        
+
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text != null).OrderBy(diagnostic => diagnostic.Location.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length))
         {
             var sourceText = diagnostic.Location.Text;
             var startLine = sourceText.Lines[diagnostic.Location.StartLine];
@@ -53,6 +56,12 @@ public static class TextWriterExtensions
                 WriteColoredText(textWriter, sourceText.ToString(diagnostic.Location.Span), ConsoleColor.Red);
                 textWriter.WriteLine(sourceText.ToString(diagnostic.Location.Span.End, Math.Max(0, endLine.End - diagnostic.Location.Span.End)));
             }
+        }
+        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
+        foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text is null))
+        {
+            WriteColoredText(textWriter, $"[{diagnostic.Id}]: {diagnostic.Message}", ConsoleColor.Red);
+            textWriter.WriteLine();
         }
     }
 

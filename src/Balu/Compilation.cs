@@ -94,7 +94,11 @@ public sealed class Compilation
     }
 
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath) =>
-        Emitter.Emit(Program, moduleName, references, outputPath);
+        Emitter.Emit(
+            Program, 
+            moduleName ?? throw new ArgumentNullException(nameof(moduleName)), 
+            references ?? throw new ArgumentNullException(nameof(references)), 
+            outputPath ?? throw new ArgumentNullException(nameof(outputPath)));
 
     public void WriteSyntaxTrees(TextWriter writer)
     {

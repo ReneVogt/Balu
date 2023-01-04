@@ -65,9 +65,8 @@ sealed class Program
         }
         catch (Exception error)
         {
-            Console.ForegroundColor = ConsoleColor.Red;
-            Console.Error.WriteLine(error.Message);
-            Console.ResetColor();
+            Console.Error.WriteColoredText($"Fatal error: {error.Message}.", ConsoleColor.Red);
+            Console.Error.WriteLine();
             return 1;
         }
     }
