@@ -47,7 +47,7 @@ public static class TextWriterExtensions
             var startLine = sourceText.Lines[diagnostic.Location.StartLine];
             var endLine = sourceText.Lines[diagnostic.Location.EndLine];
             int column = diagnostic.Location.Span.Start - startLine.Start;
-            WriteColoredText(textWriter, $"{diagnostic.Location}: [{diagnostic.Id}] {diagnostic.Message}", ConsoleColor.Red);
+            WriteColoredText(textWriter, $"{diagnostic.Location}: error {diagnostic.Id}: {diagnostic.Message}", ConsoleColor.Red);
             textWriter.WriteLine();
             if (diagnostic.Location.Span.Length > 0)
             {
