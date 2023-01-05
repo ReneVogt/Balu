@@ -1,6 +1,5 @@
-﻿<Project>
+﻿<Project ToolsVersion="15.0">
 	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-
 	<PropertyGroup>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
 		<OutputType>Exe</OutputType>
@@ -17,19 +16,11 @@
 
 	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
 
-	<Target Name="CreateManifestResourceNames" />
-
 	<Target Name="CoreCompile">
 		<ItemGroup>
 			<OnlyBaluFiles Include="*.b" />
 		</ItemGroup>
-		<Message Importance="High" Text="Starting Balu compilation for @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ')" />
-		<Exec
-			Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\netcoreapp3.1\bc.exe&quot; @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')"
-			WorkingDirectory="$(MSBuildProjectDirectory)"
-			ConsoleToMSBuild="true"
-			EchoOff="true"
-			IgnoreExitCode="false">
+		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\netcoreapp3.1\bc.exe&quot; @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')" WorkingDirectory="$(MSBuildProjectDirectory)" ConsoleToMSBuild="true" EchoOff="true" IgnoreExitCode="false">
 		</Exec>
 	</Target>
 
