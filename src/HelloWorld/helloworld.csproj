@@ -1,10 +1,6 @@
 ﻿<Project>
 	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
-  
-	<Target Name="Build">
-		<!-- this will override the default Build target. -->
-	</Target>
-	
+
 	<PropertyGroup>
 		<TargetFramework>netcoreapp3.1</TargetFramework>
 		<OutputType>Exe</OutputType>
@@ -16,10 +12,6 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Include="hello.b" />
-	</ItemGroup>
-
-	<ItemGroup>
 		<ProjectReference Include="..\bc\bc.csproj" />
 	</ItemGroup>
 
@@ -29,7 +21,7 @@
 
 	<Target Name="CoreCompile">
 		<ItemGroup>
-			<OnlyBaluFiles Include="@(Compile)" Condition="'%(Extension)'=='.b'" />
+			<OnlyBaluFiles Include="*.b" />
 		</ItemGroup>
 		<Message Importance="High" Text="Starting Balu compilation for @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ')" />
 		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\netcoreapp3.1\bc.exe&quot; @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')" WorkingDirectory="$(MSBuildProjectDirectory)" />
