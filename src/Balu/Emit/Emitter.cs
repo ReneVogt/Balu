@@ -22,11 +22,13 @@ sealed class Emitter : IDisposable
 
     readonly Dictionary<TypeSymbol, TypeReference> typeMap = new();
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
-    readonly MethodReference? consoleWrite;
+    readonly MethodReference? consoleWrite, consoleReadLine, stringConcat;
 
     readonly TypeDefinition? programType;
 
     readonly DiagnosticBag diagnostics = new();
+
+    readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
 
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
@@ -43,9 +45,9 @@ sealed class Emitter : IDisposable
         if (diagnostics.Any()) return;
 
         ResolveTypes();
-        var consoleTypeDefinition = ResolveTypeDefinition("System.Console");
         if (diagnostics.Any()) return;
-        consoleWrite = ResolveMethod(consoleTypeDefinition!, "Write", new[] { "System.String" });
+        ResolveMethods(out consoleWrite, out consoleReadLine, out stringConcat);
+        if (diagnostics.Any()) return;
 
         programType = new(string.Empty, "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, MapType(TypeSymbol.Any));
         assembly.MainModule.Types.Add(programType);
@@ -90,6 +92,20 @@ sealed class Emitter : IDisposable
             typeMap[typeSymbol] = assembly.MainModule.ImportReference(definition);
         }
     }
+    void ResolveMethods(out MethodReference? write, out MethodReference? readline, out MethodReference? concat)
+    {
+        write = readline = concat = null;
+
+        var consoleTypeDefinition = ResolveTypeDefinition("System.Console")!;
+        var stringTypeDefinition = ResolveTypeDefinition("System.String")!;
+        if (diagnostics.Any()) return;
+
+        write = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
+        readline = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
+
+        concat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "Systen.String", "System.String" });
+
+    }
     TypeDefinition? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
     {
         var typeDefinitions = referencedAssemblies.SelectMany(referencedAssembly => referencedAssembly.Modules)
@@ -132,10 +148,12 @@ sealed class Emitter : IDisposable
     void EmitMethod(MethodDefinition method, BoundBlockStatement body)
     {
         var processor = method.Body.GetILProcessor();
+        locals.Clear();
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
-
-        processor.Emit(OpCodes.Ret);
+        
+        if (method.ReturnType == MapType(TypeSymbol.Void))
+            processor.Emit(OpCodes.Ret);
         method.Body.OptimizeMacros();
     }
     void EmitStatement(ILProcessor processor, BoundStatement statement)
@@ -203,9 +221,11 @@ sealed class Emitter : IDisposable
     {
         throw new NotImplementedException();
     }
-    static void EmitBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
+    void EmitBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
     {
-        throw new NotImplementedException();
+        EmitExpression(processor, expression.Left);
+        EmitExpression(processor, expression.Right);
+
     }
     static void EmitLiteralExpression(ILProcessor processor, BoundLiteralExpression expression)
     {
@@ -218,9 +238,10 @@ sealed class Emitter : IDisposable
         else
             throw new EmitterException($"Unexpected literal expression type '{expression.Type}'.");
     }
-    static void EmitVariableExpression(ILProcessor processor, BoundVariableExpression expression)
+    void EmitVariableExpression(ILProcessor processor, BoundVariableExpression expression)
     {
-        throw new NotImplementedException();
+        var variableDefinition = locals[expression.Variable];
+        processor.Emit(OpCodes.Ldloc, variableDefinition);
     }
     static void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression)
     {
@@ -234,7 +255,7 @@ sealed class Emitter : IDisposable
         if (expression.Function == BuiltInFunctions.Print)
             processor.Emit(OpCodes.Call, consoleWrite);
         else if(expression.Function == BuiltInFunctions.Input)
-            throw new NotImplementedException();
+            processor.Emit(OpCodes.Call, consoleReadLine);
         else if (expression.Function == BuiltInFunctions.Random)
             throw new NotImplementedException();
         else
@@ -244,9 +265,14 @@ sealed class Emitter : IDisposable
     {
         throw new NotImplementedException();
     }
-    static void EmitVariableDeclarationStatement(ILProcessor processor, BoundVariableDeclarationStatement statement)
+    void EmitVariableDeclarationStatement(ILProcessor processor, BoundVariableDeclarationStatement statement)
     {
-        throw new NotImplementedException();
+        var variableDefinition = new VariableDefinition(MapType(statement.Variable.Type));
+        locals.Add(statement.Variable, variableDefinition);
+        processor.Body.Variables.Add(variableDefinition);
+
+        EmitExpression(processor, statement.Expression);
+        processor.Emit(OpCodes.Stloc, variableDefinition);
     }
     static void EmitGotoStatement(ILProcessor processor, BoundGotoStatement statement)
     {

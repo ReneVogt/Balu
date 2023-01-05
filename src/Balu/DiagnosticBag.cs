@@ -88,5 +88,5 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportRequiredTypeAmbiguous(string name, TypeDefinition[] typeDefinitions) =>
         Add(new(Diagnostic.ILE0003, default, $"The required type '{name}' is ambiguous among these referenced assemblies: {string.Join(", ", typeDefinitions.Select(t => t.Module.Assembly.Name.Name).OrderBy(n=>n))}."));
     public void ReportRequiredMethodNotFound(string type, string name, string[] parameterTypeNames) =>
-        Add(new(Diagnostic.ILE0004, default, $"The required method'{type}.{name}({string.Join(", ", parameterTypeNames)}' could not be found in the referenced assemblies."));
+        Add(new(Diagnostic.ILE0004, default, $"The required method'{type}.{name}({string.Join(", ", parameterTypeNames)})' could not be found in the referenced assemblies."));
 }

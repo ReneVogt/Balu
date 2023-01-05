@@ -1,2 +1,6 @@
-﻿print("Hello world!\r\n")
-print("I like it\r\n")
+﻿function main()
+{
+	print("Your name: ")
+	let name = input()
+	print("Hello " + name + "\r\n")
+}
