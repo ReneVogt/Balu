@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+﻿ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Balu.Lowering;
@@ -402,14 +402,15 @@ sealed class Binder : SyntaxTreeVisitor
     {
         var parameters = ImmutableArray.CreateBuilder<ParameterSymbol>();
         var seenParameterNames = new HashSet<string>();
-        foreach (var parameter in declaration.Parameters)
+        for (int ordinal = 0; ordinal < declaration.Parameters.Count; ordinal++)
         {
+            ParameterSyntax parameter = declaration.Parameters[ordinal];
             var name = parameter.Identifier.Text;
             if (!seenParameterNames.Add(name))
                 diagnostics.ReportParameterAlreadyDeclared(parameter.Identifier);
 
             var type = BindTypeClause(parameter.TypeClause) ?? TypeSymbol.Error;
-            parameters.Add(new (name, type));
+            parameters.Add(new(name, type, ordinal));
         }
 
         var returnType = declaration.TypeClause is null ? TypeSymbol.Void : BindTypeClause(declaration.TypeClause) ?? TypeSymbol.Error;

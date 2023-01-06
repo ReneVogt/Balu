@@ -1,11 +1,15 @@
 ﻿function main()
 {
-	var name = getName()
-	print("Hello " + name + "!\r\n")
+	showName(getName())
 }
 
 function getName() : string
 {
   print("Your name: ")
   return input()
+}
+
+function showName(name : string)
+{
+	print("Hello " + name + "!\r\n")
 }

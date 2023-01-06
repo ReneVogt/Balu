@@ -141,10 +141,13 @@ sealed class Emitter : IDisposable
         programType!.Methods.Add(method);
         return method;
     }
-    void EmitMethod(MethodDefinition method, BoundBlockStatement body)
+    void EmitMethod(MethodDefinition method, FunctionSymbol function)
     {
         var processor = method.Body.GetILProcessor();
+        
         locals.Clear();
+
+        var body = program.Functions[function];
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
         
@@ -245,8 +248,13 @@ sealed class Emitter : IDisposable
     }
     void EmitVariableExpression(ILProcessor processor, BoundVariableExpression expression)
     {
-        var variableDefinition = locals[expression.Variable];
-        processor.Emit(OpCodes.Ldloc, variableDefinition);
+        if (expression.Variable.Kind == SymbolKind.Parameter)
+            processor.Emit(OpCodes.Ldarg, ((ParameterSymbol)expression.Variable).Ordinal);
+        else
+        {
+            var variableDefinition = locals[expression.Variable];
+            processor.Emit(OpCodes.Ldloc, variableDefinition);
+        }
     }
     void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression)
     {
@@ -305,7 +313,7 @@ sealed class Emitter : IDisposable
         if (diagnostics.Any()) return;
 
         foreach (var (function, method) in methods)
-            EmitMethod(method, program.Functions[function]);
+            EmitMethod(method, function);
 
         assembly.EntryPoint = methods[program.EntryPoint];
         assembly.Write(outputPath);
