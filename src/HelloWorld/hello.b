@@ -11,5 +11,7 @@ function getName() : string
 
 function showName(name : string)
 {
-	print("Hello " + name + "!\r\n")
+	print("Hello " + name + "!\r\nWhat's up: ")
+	name = input()
+	print("Alright, " + name + "\r\n").
 }

@@ -260,7 +260,10 @@ sealed class Emitter : IDisposable
     {
         EmitExpression(processor, expression.Expression);
         processor.Emit(OpCodes.Dup);
-        processor.Emit(OpCodes.Stloc, locals[expression.Symbol]);
+        if (expression.Symbol.Kind == SymbolKind.Parameter)
+            processor.Emit(OpCodes.Starg, ((ParameterSymbol)expression.Symbol).Ordinal);
+        else
+            processor.Emit(OpCodes.Stloc, locals[expression.Symbol]);
     }
     void EmitCallExpression(ILProcessor processor, BoundCallExpression expression)
     {
