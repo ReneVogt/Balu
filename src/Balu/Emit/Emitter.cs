@@ -16,19 +16,18 @@ sealed class Emitter : IDisposable
     readonly BoundProgram program;
     readonly string[] references;
     readonly string outputPath;
+    readonly DiagnosticBag diagnostics = new();
 
     readonly AssemblyDefinition assembly;
     readonly List<AssemblyDefinition> referencedAssemblies = new();
+    readonly TypeDefinition? programType;
 
     readonly Dictionary<TypeSymbol, TypeReference> typeMap = new();
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
-    readonly MethodReference? consoleWrite, consoleReadLine, stringConcat;
-
-    readonly TypeDefinition? programType;
-
-    readonly DiagnosticBag diagnostics = new();
 
     readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
+
+    MethodReference? consoleWrite, consoleReadLine, stringConcat;
 
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
@@ -46,7 +45,7 @@ sealed class Emitter : IDisposable
 
         ResolveTypes();
         if (diagnostics.Any()) return;
-        ResolveMethods(out consoleWrite, out consoleReadLine, out stringConcat);
+        ResolveMethods();
         if (diagnostics.Any()) return;
 
         programType = new(string.Empty, "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, MapType(TypeSymbol.Any));
@@ -92,19 +91,16 @@ sealed class Emitter : IDisposable
             typeMap[typeSymbol] = assembly.MainModule.ImportReference(definition);
         }
     }
-    void ResolveMethods(out MethodReference? write, out MethodReference? readline, out MethodReference? concat)
+    void ResolveMethods()
     {
-        write = readline = concat = null;
-
         var consoleTypeDefinition = ResolveTypeDefinition("System.Console")!;
         var stringTypeDefinition = ResolveTypeDefinition("System.String")!;
         if (diagnostics.Any()) return;
 
-        write = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
-        readline = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
+        consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
+        consoleReadLine = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
 
-        concat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "Systen.String", "System.String" });
-
+        stringConcat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
     }
     TypeDefinition? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
     {
@@ -223,8 +219,17 @@ sealed class Emitter : IDisposable
     }
     void EmitBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
     {
-        EmitExpression(processor, expression.Left);
-        EmitExpression(processor, expression.Right);
+        if (expression.Left.Type == TypeSymbol.String && expression.Right.Type == TypeSymbol.String &&
+            expression.Operator.OperatorKind == BoundBinaryOperatorKind.Addition && expression.Type == TypeSymbol.String)
+        {
+            EmitExpression(processor, expression.Left);
+            EmitExpression(processor, expression.Right);
+            processor.Emit(OpCodes.Call, stringConcat);
+            return;
+        }
+
+        throw new EmitterException(
+            $"Invalid binary expression '{expression.Operator.OperatorKind}' '{expression.Left.Type}' x '{expression.Right.Type}' -> '{expression.Type}'.");
 
     }
     static void EmitLiteralExpression(ILProcessor processor, BoundLiteralExpression expression)
