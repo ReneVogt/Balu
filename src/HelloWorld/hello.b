@@ -1,17 +1,14 @@
 ﻿function main()
 {
-	showName(getName())
+	testmitreturn()
+	testohnereturn()
 }
-
-function getName() : string
+function testohnereturn()
 {
-  print("Your name: ")
-  return input()
+    print("test ohne return")
 }
-
-function showName(name : string)
+function testmitreturn()
 {
-	print("Hello " + name + "!\r\nWhat's up: ")
-	name = input()
-	print("Alright, " + name + "\r\n").
+    print("test mit return")
+	return
 }

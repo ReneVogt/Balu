@@ -151,8 +151,6 @@ sealed class Emitter : IDisposable
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
         
-        if (method.ReturnType == MapType(TypeSymbol.Void))
-            processor.Emit(OpCodes.Ret);
         method.Body.OptimizeMacros();
     }
     void EmitStatement(ILProcessor processor, BoundStatement statement)

@@ -153,7 +153,7 @@ sealed class Lowerer : BoundTreeRewriter
     VariableSymbol CreateVariable(string name, bool readOnly, TypeSymbol type) =>
         containingFunction is null ? new GlobalVariableSymbol(name, readOnly, type) : new LocalVariableSymbol(name, readOnly, type);
 
-    static BoundBlockStatement Flatten(BoundStatement statement)
+    static BoundBlockStatement Flatten(BoundStatement statement, FunctionSymbol? containingFunction)
     {
         var resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
         Stack<BoundStatement> stack = new();
@@ -169,7 +169,20 @@ sealed class Lowerer : BoundTreeRewriter
                 resultBuilder.Add(current);
         }
 
+        if (containingFunction?.ReturnType == TypeSymbol.Void && (resultBuilder.Count == 0 || CanFallThrough(resultBuilder[^1])))
+                resultBuilder.Add(new BoundReturnStatement(null));
+        
         return new (resultBuilder.ToImmutable());
+
+        static bool CanFallThrough(BoundStatement lastStatement)
+        {
+            if (lastStatement.Kind == BoundNodeKind.ReturnStatement ||
+                lastStatement.Kind == BoundNodeKind.GotoStatement) return false;
+            if (lastStatement.Kind != BoundNodeKind.ConditionalGotoStatement) return true;
+
+            var cgs = (BoundConditionalGotoStatement)lastStatement;
+            return cgs.Condition.Kind != BoundNodeKind.LiteralExpression || (bool)((BoundLiteralExpression)cgs.Condition).Value != cgs.JumpIfTrue;
+        }
     }
-    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => Flatten((BoundStatement)new Lowerer(containingFunction).Visit(statement));
+    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => Flatten((BoundStatement)new Lowerer(containingFunction).Visit(statement), containingFunction);
 }

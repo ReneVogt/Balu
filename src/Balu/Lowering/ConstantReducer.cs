@@ -1,4 +1,6 @@
-﻿namespace Balu.Binding;
+﻿using Balu.Binding;
+
+namespace Balu.Lowering;
 
 sealed class ConstantReducer : BoundTreeRewriter
 {
@@ -40,6 +42,18 @@ sealed class ConstantReducer : BoundTreeRewriter
     }
     protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression) =>
         knownVariables.TryGetValue(variableExpression.Variable, out var value) ? new BoundLiteralExpression(value!) : variableExpression;
+
+    protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
+    {
+        var condition = (BoundExpression)Visit(conditionalGotoStatement.Condition);
+        if (condition.Kind != BoundNodeKind.LiteralExpression ||
+            (bool)((BoundLiteralExpression)condition).Value == conditionalGotoStatement.JumpIfTrue)
+            return new BoundGotoStatement(conditionalGotoStatement.Label);
+
+        return condition == conditionalGotoStatement.Condition
+                   ? conditionalGotoStatement
+                   : new BoundConditionalGotoStatement(conditionalGotoStatement.Label, condition, conditionalGotoStatement.JumpIfTrue);
+    }
 
     public static BoundBlockStatement ReduceConstants(BoundBlockStatement statement) => (BoundBlockStatement)new ConstantReducer().Visit(statement);
 }
