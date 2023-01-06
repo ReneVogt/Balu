@@ -293,9 +293,11 @@ sealed class Emitter : IDisposable
     {
         throw new NotImplementedException();
     }
-    static void EmitReturnStatement(ILProcessor processor, BoundReturnStatement statement)
+    void EmitReturnStatement(ILProcessor processor, BoundReturnStatement statement)
     {
-        throw new NotImplementedException();
+        if (statement.Expression is not null)
+            EmitExpression(processor, statement.Expression);
+            processor.Emit(OpCodes.Ret);
     }
 
     void Emit()

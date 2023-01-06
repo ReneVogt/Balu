@@ -1,9 +1,11 @@
 ﻿function main()
 {
-	print("Your name: ")
-	var name = input()
-	print("Hello " + name + ", how old are you: ")
-	name = input();
-	print("Wow, " + name + "!\r\n")
-	
+	var name = getName()
+	print("Hello " + name + "!\r\n")
+}
+
+function getName() : string
+{
+  print("Your name: ")
+  return input()
 }
