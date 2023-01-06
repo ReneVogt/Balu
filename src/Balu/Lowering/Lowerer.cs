@@ -174,15 +174,9 @@ sealed class Lowerer : BoundTreeRewriter
         
         return new (resultBuilder.ToImmutable());
 
-        static bool CanFallThrough(BoundStatement lastStatement)
-        {
-            if (lastStatement.Kind == BoundNodeKind.ReturnStatement ||
-                lastStatement.Kind == BoundNodeKind.GotoStatement) return false;
-            if (lastStatement.Kind != BoundNodeKind.ConditionalGotoStatement) return true;
-
-            var cgs = (BoundConditionalGotoStatement)lastStatement;
-            return cgs.Condition.Kind != BoundNodeKind.LiteralExpression || (bool)((BoundLiteralExpression)cgs.Condition).Value != cgs.JumpIfTrue;
-        }
+        static bool CanFallThrough(BoundStatement lastStatement) => 
+            lastStatement.Kind != BoundNodeKind.ReturnStatement &&
+            lastStatement.Kind != BoundNodeKind.GotoStatement;
     }
     public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => Flatten((BoundStatement)new Lowerer(containingFunction).Visit(statement), containingFunction);
 }
