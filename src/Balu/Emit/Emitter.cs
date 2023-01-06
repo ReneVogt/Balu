@@ -248,9 +248,11 @@ sealed class Emitter : IDisposable
         var variableDefinition = locals[expression.Variable];
         processor.Emit(OpCodes.Ldloc, variableDefinition);
     }
-    static void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression)
+    void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression)
     {
-        throw new NotImplementedException();
+        EmitExpression(processor, expression.Expression);
+        processor.Emit(OpCodes.Dup);
+        processor.Emit(OpCodes.Stloc, locals[expression.Symbol]);
     }
     void EmitCallExpression(ILProcessor processor, BoundCallExpression expression)
     {

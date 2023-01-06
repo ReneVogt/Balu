@@ -1,6 +1,9 @@
 ﻿function main()
 {
 	print("Your name: ")
-	let name = input()
-	print("Hello " + name + "\r\n")
+	var name = input()
+	print("Hello " + name + ", how old are you: ")
+	name = input();
+	print("Wow, " + name + "!\r\n")
+	
 }
