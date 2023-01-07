@@ -227,8 +227,11 @@ sealed class Emitter : IDisposable
             case BoundUnaryOperatorKind.Identity:
                 return;
             case BoundUnaryOperatorKind.Negation:
-            case BoundUnaryOperatorKind.LogicalNegation:
                 processor.Emit(OpCodes.Neg);
+                break;
+            case BoundUnaryOperatorKind.LogicalNegation:
+                processor.Emit(OpCodes.Ldc_I4_0);
+                processor.Emit(OpCodes.Ceq);
                 break;
             case BoundUnaryOperatorKind.BitwiseNegation:
                 processor.Emit(OpCodes.Not);
