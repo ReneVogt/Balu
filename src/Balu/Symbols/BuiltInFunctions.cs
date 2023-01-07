@@ -9,6 +9,8 @@ static class BuiltInFunctions
 {
     public static FunctionSymbol Print { get; } =
         new FunctionSymbol("print", ImmutableArray.Create(new ParameterSymbol("text", TypeSymbol.String, 0)), TypeSymbol.Void);
+    public static FunctionSymbol PrintLine { get; } =
+        new FunctionSymbol("println", ImmutableArray.Create(new ParameterSymbol("text", TypeSymbol.String, 0)), TypeSymbol.Void);
     public static FunctionSymbol Input { get; } =
         new FunctionSymbol("input", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.String);
     public static FunctionSymbol Random { get; } =

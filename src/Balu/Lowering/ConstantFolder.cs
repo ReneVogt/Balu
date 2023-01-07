@@ -43,17 +43,17 @@ sealed class ConstantFolder : BoundTreeRewriter
     protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression) =>
         knownVariables.TryGetValue(variableExpression.Variable, out var value) ? new BoundLiteralExpression(value!) : variableExpression;
 
-    protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
-    {
-        var condition = (BoundExpression)Visit(conditionalGotoStatement.Condition);
-        if (condition.Kind != BoundNodeKind.LiteralExpression ||
-            (bool)((BoundLiteralExpression)condition).Value == conditionalGotoStatement.JumpIfTrue)
-            return new BoundGotoStatement(conditionalGotoStatement.Label);
+    //protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
+    //{
+    //    var condition = (BoundExpression)Visit(conditionalGotoStatement.Condition);
+    //    if (condition.Kind != BoundNodeKind.LiteralExpression ||
+    //        (bool)((BoundLiteralExpression)condition).Value == conditionalGotoStatement.JumpIfTrue)
+    //        return new BoundGotoStatement(conditionalGotoStatement.Label);
 
-        return condition == conditionalGotoStatement.Condition
-                   ? conditionalGotoStatement
-                   : new BoundConditionalGotoStatement(conditionalGotoStatement.Label, condition, conditionalGotoStatement.JumpIfTrue);
-    }
+    //    return condition == conditionalGotoStatement.Condition
+    //               ? conditionalGotoStatement
+    //               : new (conditionalGotoStatement.Label, condition, conditionalGotoStatement.JumpIfTrue);
+    //}
 
     public static BoundBlockStatement FoldConstants(BoundBlockStatement statement) => (BoundBlockStatement)new ConstantFolder().Visit(statement);
 }

@@ -28,7 +28,7 @@ sealed class Emitter : IDisposable
 
     readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
 
-    MethodReference? consoleWrite, consoleReadLine, stringConcat, convertToBool, convertToString, convertToInt;
+    MethodReference? consoleWrite, consoleWriteLine, consoleReadLine, stringConcat, convertToBool, convertToString, convertToInt, objectEquals;
 
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
@@ -94,12 +94,14 @@ sealed class Emitter : IDisposable
     }
     void ResolveMethods()
     {
+        var objectTypeDefinition = ResolveTypeDefinition("System.Object")!;
         var consoleTypeDefinition = ResolveTypeDefinition("System.Console")!;
         var stringTypeDefinition = ResolveTypeDefinition("System.String")!;
         var convertTypeDefinition = ResolveTypeDefinition("System.Convert")!;
         if (diagnostics.Any()) return;
 
         consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
+        consoleWriteLine = ResolveMethod(consoleTypeDefinition, "WriteLine", new[] { "System.String" });
         consoleReadLine = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
 
         stringConcat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
@@ -107,6 +109,8 @@ sealed class Emitter : IDisposable
         convertToBool = ResolveMethod(convertTypeDefinition, "ToBoolean", new[] { "System.Object" });
         convertToInt = ResolveMethod(convertTypeDefinition, "ToInt32", new[] { "System.Object" });
         convertToString = ResolveMethod(convertTypeDefinition, "ToString", new[] { "System.Object" });
+
+        objectEquals = ResolveMethod(objectTypeDefinition, "Equals", new[] { "System.Object", "System.Object" });
     }
     TypeDefinition? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
     {
@@ -243,18 +247,76 @@ sealed class Emitter : IDisposable
     }
     void EmitBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
     {
-        if (expression.Left.Type == TypeSymbol.String && expression.Right.Type == TypeSymbol.String &&
-            expression.Operator.OperatorKind == BoundBinaryOperatorKind.Addition && expression.Type == TypeSymbol.String)
+        // TODO: implement short-circuit evaluation for logical operations
+        EmitExpression(processor, expression.Left);
+        EmitExpression(processor, expression.Right);
+
+        switch (expression.Operator.OperatorKind)
         {
-            EmitExpression(processor, expression.Left);
-            EmitExpression(processor, expression.Right);
-            processor.Emit(OpCodes.Call, stringConcat);
-            return;
+            case BoundBinaryOperatorKind.Addition:
+                if (expression.Type == TypeSymbol.String)
+                    processor.Emit(OpCodes.Call, stringConcat);
+                else
+                    processor.Emit(OpCodes.Add);
+                break;
+            case BoundBinaryOperatorKind.Substraction:
+                processor.Emit(OpCodes.Sub);
+                break;
+            case BoundBinaryOperatorKind.Multiplication:
+                processor.Emit(OpCodes.Mul);
+                break;
+            case BoundBinaryOperatorKind.Division:
+                processor.Emit(OpCodes.Div);
+                break;
+            case BoundBinaryOperatorKind.LogicalOr:
+            case BoundBinaryOperatorKind.BitwiseOr:
+                processor.Emit(OpCodes.Or);
+                break;
+            case BoundBinaryOperatorKind.LogicalAnd:
+            case BoundBinaryOperatorKind.BitwiseAnd:
+                processor.Emit(OpCodes.And); 
+                break;
+            case BoundBinaryOperatorKind.BitwiseXor:
+                processor.Emit(OpCodes.Xor);
+                break;
+            case BoundBinaryOperatorKind.Equals:
+                if (expression.Left.Type.IsReferenceType)
+                    processor.Emit(OpCodes.Call, objectEquals);
+                else
+                    processor.Emit(OpCodes.Ceq);
+                break;
+            case BoundBinaryOperatorKind.NotEqual:
+                if (expression.Left.Type.IsReferenceType)
+                    processor.Emit(OpCodes.Call, objectEquals);
+                else
+                    processor.Emit(OpCodes.Ceq);
+                processor.Emit(OpCodes.Ldc_I4_0);
+                processor.Emit(OpCodes.Ceq);
+                break;
+            case BoundBinaryOperatorKind.Less:
+                // compare less than
+                processor.Emit(OpCodes.Clt);
+                break;
+            case BoundBinaryOperatorKind.LessOrEquals:
+                // not compare greater than
+                processor.Emit(OpCodes.Cgt);
+                processor.Emit(OpCodes.Ldc_I4_0);
+                processor.Emit(OpCodes.Ceq);
+                break;
+            case BoundBinaryOperatorKind.Greater:
+                // compare greater than
+                processor.Emit(OpCodes.Cgt);
+                break;
+            case BoundBinaryOperatorKind.GreaterOrEquals:
+                // not compare less than
+                processor.Emit(OpCodes.Clt);
+                processor.Emit(OpCodes.Ldc_I4_0);
+                processor.Emit(OpCodes.Ceq);
+                break;
+            default:
+                throw new EmitterException(
+                    $"Unexpected binary operator '{expression.Operator.SyntaxKind.GetText() ?? expression.Operator.OperatorKind.ToString()}'.");
         }
-
-        throw new EmitterException(
-            $"Invalid binary expression '{expression.Operator.OperatorKind}' '{expression.Left.Type}' x '{expression.Right.Type}' -> '{expression.Type}'.");
-
     }
     static void EmitLiteralExpression(ILProcessor processor, BoundLiteralExpression expression)
     {
@@ -293,7 +355,9 @@ sealed class Emitter : IDisposable
 
         if (expression.Function == BuiltInFunctions.Print)
             processor.Emit(OpCodes.Call, consoleWrite);
-        else if(expression.Function == BuiltInFunctions.Input)
+        else if (expression.Function == BuiltInFunctions.PrintLine)
+            processor.Emit(OpCodes.Call, consoleWriteLine);
+        else if (expression.Function == BuiltInFunctions.Input)
             processor.Emit(OpCodes.Call, consoleReadLine);
         else if (expression.Function == BuiltInFunctions.Random)
             throw new NotImplementedException();
