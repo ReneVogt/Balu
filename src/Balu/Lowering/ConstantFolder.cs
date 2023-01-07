@@ -1,4 +1,7 @@
-﻿using Balu.Binding;
+﻿using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
+using Balu.Binding;
 
 namespace Balu.Lowering;
 
@@ -43,17 +46,58 @@ sealed class ConstantFolder : BoundTreeRewriter
     protected override BoundNode VisitBoundVariableExpression(BoundVariableExpression variableExpression) =>
         knownVariables.TryGetValue(variableExpression.Variable, out var value) ? new BoundLiteralExpression(value!) : variableExpression;
 
-    //protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
-    //{
-    //    var condition = (BoundExpression)Visit(conditionalGotoStatement.Condition);
-    //    if (condition.Kind != BoundNodeKind.LiteralExpression ||
-    //        (bool)((BoundLiteralExpression)condition).Value == conditionalGotoStatement.JumpIfTrue)
-    //        return new BoundGotoStatement(conditionalGotoStatement.Label);
+    static BoundBlockStatement RemoveFixedConditionalGotos(BoundBlockStatement block)
+    {
+        ImmutableArray<BoundStatement>.Builder? resultBuilder = null;
+        List<BoundLabelStatement> allLabels = new();
+        HashSet<BoundLabel> usedLabels = new();
 
-    //    return condition == conditionalGotoStatement.Condition
-    //               ? conditionalGotoStatement
-    //               : new (conditionalGotoStatement.Label, condition, conditionalGotoStatement.JumpIfTrue);
-    //}
+        for (int i = 0; i < block.Statements.Length; i++)
+        {
+            var statement = block.Statements[i];
 
-    public static BoundBlockStatement FoldConstants(BoundBlockStatement statement) => (BoundBlockStatement)new ConstantFolder().Visit(statement);
+            if (statement.Kind == BoundNodeKind.LabelStatement)
+                allLabels.Add((BoundLabelStatement)statement);
+
+            if (statement.Kind != BoundNodeKind.ConditionalGotoStatement ||
+                statement is not BoundConditionalGotoStatement { Condition.Kind: BoundNodeKind.LiteralExpression } cgs)
+            {
+                if (statement.Kind == BoundNodeKind.ConditionalGotoStatement)
+                    usedLabels.Add(((BoundConditionalGotoStatement)statement).Label);
+                if (statement.Kind == BoundNodeKind.GotoStatement)
+                    usedLabels.Add(((BoundGotoStatement)statement).Label);
+
+                resultBuilder?.Add(statement);
+                continue;
+            }
+
+            if (resultBuilder is null)
+            {
+                resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>(block.Statements.Length);
+                resultBuilder.AddRange(block.Statements.Take(i));
+            }
+
+            if ((bool)((BoundLiteralExpression)cgs.Condition).Value == cgs.JumpIfTrue)
+            {
+                usedLabels.Add(cgs.Label);
+                resultBuilder.Add(new BoundGotoStatement(cgs.Label));
+            }
+        }
+
+        if (allLabels.Count > usedLabels.Count)
+        {
+            if (resultBuilder is null)
+            {
+                resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>(block.Statements.Length);
+                resultBuilder.AddRange(block.Statements);
+            }
+
+            allLabels.RemoveAll(labelStatement => usedLabels.Contains(labelStatement.Label));
+            allLabels.ForEach(labelStatement => resultBuilder.Remove(labelStatement));
+        }
+
+        return resultBuilder is null ? block : new (resultBuilder.ToImmutable());
+    }
+
+    public static BoundBlockStatement FoldConstants(BoundBlockStatement statement) => RemoveFixedConditionalGotos((BoundBlockStatement)new ConstantFolder().Visit(statement));
 }
