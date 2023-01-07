@@ -6,6 +6,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using Balu.Binding;
 using Balu.Symbols;
+using Balu.Visualization;
 
 namespace Balu.Evaluation;
 
@@ -145,7 +146,12 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
     {
         if (callExpression.Function == BuiltInFunctions.Print)
         {
-            ExecutePrint(callExpression.Arguments);
+            ExecutePrint(callExpression.Arguments, false);
+            return;
+        }
+        if (callExpression.Function == BuiltInFunctions.PrintLine)
+        {
+            ExecutePrint(callExpression.Arguments, true);
             return;
         }
 
@@ -188,13 +194,12 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
         else if (conversionExpression.Type != TypeSymbol.Any)
             throw EvaluationException.InvalidCast(conversionExpression.Expression.Type, conversionExpression.Type);
     }
-    void ExecutePrint(IEnumerable<BoundExpression> arguments)
+    void ExecutePrint(IEnumerable<BoundExpression> arguments, bool line)
     {
         Visit(arguments.Single());
         string argument = Result?.ToString() ?? string.Empty;
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.Write(argument);
-        Console.ResetColor();
+        Console.Out.WriteColoredText(argument, ConsoleColor.White);
+        if (line) Console.Out.WriteLine();
         Result = null;
     }
     void ExecuteInput()

@@ -23,6 +23,9 @@ sealed class Emitter : IDisposable
     readonly List<AssemblyDefinition> referencedAssemblies = new();
     readonly TypeDefinition? programType;
 
+    TypeDefinition? randomType;
+    FieldDefinition? randomField;
+
     readonly Dictionary<TypeSymbol, TypeReference> typeMap = new();
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
 
@@ -30,7 +33,9 @@ sealed class Emitter : IDisposable
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
 
-    MethodReference? consoleWrite, consoleWriteLine, consoleReadLine, stringConcat, convertToBool, convertToString, convertToInt, objectEquals;
+    MethodReference? consoleWrite, consoleWriteLine, consoleReadLine, 
+                     stringConcat, convertToBool, convertToString, 
+                     convertToInt, objectEquals, randomCtor, randomNext;
 
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
@@ -87,6 +92,8 @@ sealed class Emitter : IDisposable
         AddToTypeMap(TypeSymbol.String, "System.String");
         AddToTypeMap(TypeSymbol.Void, "System.Void");
 
+        randomType = ResolveTypeDefinition("System.Random");
+
         void AddToTypeMap(TypeSymbol typeSymbol, string fullName)
         {
             var definition = ResolveTypeDefinition(fullName, typeSymbol);
@@ -113,6 +120,9 @@ sealed class Emitter : IDisposable
         convertToString = ResolveMethod(convertTypeDefinition, "ToString", new[] { "System.Object" });
 
         objectEquals = ResolveMethod(objectTypeDefinition, "Equals", new[] { "System.Object", "System.Object" });
+
+        randomCtor = ResolveMethod(randomType!, ".ctor", Array.Empty<string>());
+        randomNext = ResolveMethod(randomType!, "Next", new[] { "System.Int32" });
     }
     TypeDefinition? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
     {
@@ -357,6 +367,12 @@ sealed class Emitter : IDisposable
     }
     void EmitCallExpression(ILProcessor processor, BoundCallExpression expression)
     {
+        if (expression.Function == BuiltInFunctions.Random)
+        {
+            EmitRandomField();
+            processor.Emit(OpCodes.Ldsfld, randomField);
+        }
+
         foreach (var argument in expression.Arguments)
             EmitExpression(processor, argument);
 
@@ -367,7 +383,10 @@ sealed class Emitter : IDisposable
         else if (expression.Function == BuiltInFunctions.Input)
             processor.Emit(OpCodes.Call, consoleReadLine);
         else if (expression.Function == BuiltInFunctions.Random)
-            throw new NotImplementedException();
+        {
+            EmitRandomField();
+            processor.Emit(OpCodes.Callvirt, randomNext);
+        }
         else
             processor.Emit(OpCodes.Call, methods[expression.Function]);
     }
@@ -416,6 +435,26 @@ sealed class Emitter : IDisposable
         if (statement.Expression is not null)
             EmitExpression(processor, statement.Expression);
             processor.Emit(OpCodes.Ret);
+    }
+
+    void EmitRandomField()
+    {
+        if (randomField is not null) return;
+        var randomTypeReference = assembly.MainModule.ImportReference(randomType);
+        randomField = new("$random", FieldAttributes.Static | FieldAttributes.Private, randomTypeReference);
+        programType!.Fields.Add(randomField);
+
+        var staticConstructor = new MethodDefinition(
+            ".cctor", 
+            MethodAttributes.Static | 
+            MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | 
+            MethodAttributes.Private,
+            MapType(TypeSymbol.Void));
+        programType.Methods.Add(staticConstructor);
+        var processor = staticConstructor.Body.GetILProcessor();
+        processor.Emit(OpCodes.Newobj, randomCtor);
+        processor.Emit(OpCodes.Stsfld, randomField);
+        processor.Emit(OpCodes.Ret);
     }
 
     void Emit()
