@@ -219,9 +219,23 @@ sealed class Emitter : IDisposable
                 throw new EmitterException($"Invalid expression kind '{expression.Kind}'.");
         }
     }
-    static void EmitUnaryExpression(ILProcessor processor, BoundUnaryExpression expression)
+    void EmitUnaryExpression(ILProcessor processor, BoundUnaryExpression expression)
     {
-        throw new NotImplementedException();
+        EmitExpression(processor, expression.Operand);
+        switch (expression.Operator.OperatorKind)
+        {
+            case BoundUnaryOperatorKind.Identity:
+                return;
+            case BoundUnaryOperatorKind.Negation:
+            case BoundUnaryOperatorKind.LogicalNegation:
+                processor.Emit(OpCodes.Neg);
+                break;
+            case BoundUnaryOperatorKind.BitwiseNegation:
+                processor.Emit(OpCodes.Not);
+                break;
+            default:
+                throw new EmitterException($"Unexpected unary operator kind '{expression.Operator.OperatorKind}'.");
+        }
     }
     void EmitBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
     {

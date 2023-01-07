@@ -422,7 +422,7 @@ sealed class Binder : SyntaxTreeVisitor
     static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction)
     {
         var result = Lowerer.Lower(statement, containingFunction);
-        result = ConstantReducer.ReduceConstants(result);
+        result = ConstantFolder.FoldConstants(result);
         return result;
     }
     public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)

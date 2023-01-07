@@ -2,11 +2,11 @@
 
 namespace Balu.Lowering;
 
-sealed class ConstantReducer : BoundTreeRewriter
+sealed class ConstantFolder : BoundTreeRewriter
 {
     readonly VariableDictionary knownVariables = new();
 
-    ConstantReducer(){}
+    ConstantFolder(){}
 
     protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
@@ -55,5 +55,5 @@ sealed class ConstantReducer : BoundTreeRewriter
                    : new BoundConditionalGotoStatement(conditionalGotoStatement.Label, condition, conditionalGotoStatement.JumpIfTrue);
     }
 
-    public static BoundBlockStatement ReduceConstants(BoundBlockStatement statement) => (BoundBlockStatement)new ConstantReducer().Visit(statement);
+    public static BoundBlockStatement FoldConstants(BoundBlockStatement statement) => (BoundBlockStatement)new ConstantFolder().Visit(statement);
 }
