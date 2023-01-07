@@ -27,6 +27,8 @@ sealed class Emitter : IDisposable
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
 
     readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
+    readonly Dictionary<BoundLabel, int> labels = new();
+    readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
 
     MethodReference? consoleWrite, consoleWriteLine, consoleReadLine, stringConcat, convertToBool, convertToString, convertToInt, objectEquals;
 
@@ -156,10 +158,15 @@ sealed class Emitter : IDisposable
         var processor = method.Body.GetILProcessor();
         
         locals.Clear();
+        gotosToFix.Clear();
+        labels.Clear();
 
         var body = program.Functions[function];
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
+
+        foreach ((int instrcutionIndex, BoundLabel? label) in gotosToFix)
+            processor.Body.Instructions[instrcutionIndex].Operand = processor.Body.Instructions[labels[label]];
         
         method.Body.OptimizeMacros();
     }
@@ -389,17 +396,20 @@ sealed class Emitter : IDisposable
         EmitExpression(processor, statement.Expression);
         processor.Emit(OpCodes.Stloc, variableDefinition);
     }
-    static void EmitGotoStatement(ILProcessor processor, BoundGotoStatement statement)
+    void EmitGotoStatement(ILProcessor processor, BoundGotoStatement statement)
     {
-        throw new NotImplementedException();
+        gotosToFix.Add((processor.Body.Instructions.Count, statement.Label));
+        processor.Emit(OpCodes.Br, Instruction.Create(OpCodes.Nop));
     }
-    static void EmitConditionalGotoStatement(ILProcessor processor, BoundConditionalGotoStatement statement)
+    void EmitConditionalGotoStatement(ILProcessor processor, BoundConditionalGotoStatement statement)
     {
-        throw new NotImplementedException();
+        EmitExpression(processor, statement.Condition);  
+        gotosToFix.Add((processor.Body.Instructions.Count, statement.Label));
+        processor.Emit(statement.JumpIfTrue ? OpCodes.Brtrue : OpCodes.Brfalse, Instruction.Create(OpCodes.Nop));
     }
-    static void EmitLabelStatement(ILProcessor processor, BoundLabelStatement statement)
+    void EmitLabelStatement(ILProcessor processor, BoundLabelStatement statement)
     {
-        throw new NotImplementedException();
+        labels.Add(statement.Label, processor.Body.Instructions.Count);
     }
     void EmitReturnStatement(ILProcessor processor, BoundReturnStatement statement)
     {
