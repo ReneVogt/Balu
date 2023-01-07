@@ -385,10 +385,10 @@ sealed class Binder : SyntaxTreeVisitor
             return new BoundErrorExpression();
         }
 
-        if (conversion.IsIdentity || conversion.IsImplicit)
+        if (conversion.IsIdentity)
             return expression;
 
-        if (allowExplicit)
+        if (conversion.IsImplicit || allowExplicit)
             return new BoundConversionExpression(targetType, expression);
 
         diagnostics.ReportCannotConvertImplicit(location, expression.Type, targetType);
