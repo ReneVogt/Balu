@@ -21,6 +21,7 @@
 			<OnlyBaluFiles Include="*.b" />
 			<ReferencePath Remove="@(ReferencePath)" Condition="
 						   '%(Filename)' != 'System.Runtime' AND 
+						   '%(Filename)' != 'System.Runtime.Extensions' AND 
 						   '%(Filename)' != 'System.Console'"/>
 		</ItemGroup>
 		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\netcoreapp3.1\bc.exe&quot; @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')" 

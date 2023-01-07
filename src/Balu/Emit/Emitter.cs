@@ -27,7 +27,7 @@ sealed class Emitter : IDisposable
 
     readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
 
-    MethodReference? consoleWrite, consoleReadLine, stringConcat;
+    MethodReference? consoleWrite, consoleReadLine, stringConcat, convertToBool, convertToString, convertToInt;
 
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
@@ -95,12 +95,17 @@ sealed class Emitter : IDisposable
     {
         var consoleTypeDefinition = ResolveTypeDefinition("System.Console")!;
         var stringTypeDefinition = ResolveTypeDefinition("System.String")!;
+        var convertTypeDefinition = ResolveTypeDefinition("System.Convert")!;
         if (diagnostics.Any()) return;
 
         consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
         consoleReadLine = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
 
         stringConcat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
+
+        convertToBool = ResolveMethod(convertTypeDefinition, "ToBoolean", new[] { "System.Object" });
+        convertToInt = ResolveMethod(convertTypeDefinition, "ToInt32", new[] { "System.Object" });
+        convertToString = ResolveMethod(convertTypeDefinition, "ToString", new[] { "System.Object" });
     }
     TypeDefinition? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
     {
@@ -277,9 +282,21 @@ sealed class Emitter : IDisposable
         else
             processor.Emit(OpCodes.Call, methods[expression.Function]);
     }
-    static void EmitConversionExpression(ILProcessor processor, BoundConversionExpression expression)
+    void EmitConversionExpression(ILProcessor processor, BoundConversionExpression expression)
     {
-        throw new NotImplementedException();
+        EmitExpression(processor, expression.Expression);
+        if (expression.Expression.Type == TypeSymbol.Boolean || expression.Expression.Type == TypeSymbol.Integer)
+            processor.Emit(OpCodes.Box, MapType(expression.Expression.Type));
+
+        if (expression.Type == TypeSymbol.Any) return;
+        if (expression.Type == TypeSymbol.Boolean)
+            processor.Emit(OpCodes.Call, convertToBool);
+        else if (expression.Type == TypeSymbol.Integer)
+            processor.Emit(OpCodes.Call, convertToInt);
+        else if (expression.Type == TypeSymbol.String)
+            processor.Emit(OpCodes.Call, convertToString);
+        else 
+            throw new EmitterException($"Unexpected conversion from '{expression.Expression.Type}' to '{expression.Type}'.");
     }
     void EmitVariableDeclarationStatement(ILProcessor processor, BoundVariableDeclarationStatement statement)
     {
