@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Balu.Binding;
 using Balu.Symbols;
+using Balu.Syntax;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -237,7 +238,7 @@ sealed class Emitter : IDisposable
                 processor.Emit(OpCodes.Not);
                 break;
             default:
-                throw new EmitterException($"Unexpected unary operator kind '{expression.Operator.OperatorKind}'.");
+                throw new EmitterException($"Unexpected unary operator kind '{expression.Operator.SyntaxKind.GetText() ?? expression.Operator.OperatorKind.ToString()}'.");
         }
     }
     void EmitBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
