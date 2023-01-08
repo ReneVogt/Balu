@@ -109,8 +109,8 @@ sealed class Emitter : IDisposable
         var convertTypeDefinition = ResolveTypeDefinition("System.Convert")!;
         if (diagnostics.Any()) return;
 
-        consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.String" });
-        consoleWriteLine = ResolveMethod(consoleTypeDefinition, "WriteLine", new[] { "System.String" });
+        consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.Object" });
+        consoleWriteLine = ResolveMethod(consoleTypeDefinition, "WriteLine", new[] { "System.Object" });
         consoleReadLine = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
 
         stringConcat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
