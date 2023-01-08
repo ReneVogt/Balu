@@ -185,5 +185,18 @@ sealed class Lowerer : BoundTreeRewriter
             lastStatement.Kind != BoundNodeKind.ReturnStatement &&
             lastStatement.Kind != BoundNodeKind.GotoStatement;
     }
-    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => Flatten((BoundStatement)new Lowerer(containingFunction).Visit(statement), containingFunction);
+    static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement)
+    {
+        var flow = ControlFlowGraph.Create(statement);
+        var reachableStatements = flow.Blocks.SelectMany(block => block.Statements).ToHashSet();
+        if (reachableStatements.Count == statement.Statements.Length) return statement;
+        var builder = statement.Statements.ToBuilder();
+        for (int i = builder.Count - 1; i >= 0; i--)
+        {
+            if (!reachableStatements.Contains(builder[i]))
+                builder.RemoveAt(i);
+        }
+        return new (builder.ToImmutable());
+    }
+    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => RemoveDeadCode(Flatten((BoundStatement)new Lowerer(containingFunction).Visit(statement), containingFunction));
 }
