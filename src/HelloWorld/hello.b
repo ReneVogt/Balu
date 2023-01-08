@@ -1,4 +1,8 @@
 ﻿function main()
 {
-	for i=1to10 println(string(i)+": " + string(random(50)))
+	var x : any = "3"
+	var y : any = 3
+
+	println(string(x == y))
+	println(string(x != y))
 }
