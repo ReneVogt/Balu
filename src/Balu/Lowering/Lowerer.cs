@@ -153,8 +153,8 @@ sealed class Lowerer : BoundTreeRewriter
     {
         if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;
         return (bool)conditionalGotoStatement.Condition.Constant.Value == conditionalGotoStatement.JumpIfTrue
-               ? new BoundGotoStatement(conditionalGotoStatement.Label)
-               : new BoundNopStatement();
+               ? Visit(new BoundGotoStatement(conditionalGotoStatement.Label))
+               : Visit(new BoundNopStatement());
     }
 
     VariableSymbol CreateVariable(string name, bool readOnly, TypeSymbol type, BoundConstant? constant) =>
