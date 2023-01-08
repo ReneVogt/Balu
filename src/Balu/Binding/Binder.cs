@@ -418,13 +418,12 @@ sealed class Binder : SyntaxTreeVisitor
         if (!scope.TryDeclareSymbol(function))
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
     }
-    
-    static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction)
-    {
-        var result = Lowerer.Lower(statement, containingFunction);
-        result = ConstantFolder.FoldConstants(result);
-        return result;
-    }
+
+    static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction) =>
+        statement.Lower(containingFunction)
+                 .FoldConstants()
+                 .OptimizeConstantConditionalGotos();
+
     public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
     {
         var parentScope = CreateParentScopes(previous);
