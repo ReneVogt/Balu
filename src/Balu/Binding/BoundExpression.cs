@@ -4,9 +4,8 @@ namespace Balu.Binding;
 abstract class BoundExpression : BoundNode
 {
     public abstract TypeSymbol Type { get; }
-    
-    // ReSharper disable once UnassignedGetOnlyAutoProperty
-    public virtual BoundConstant? Constant { get; }
+
+    public virtual BoundConstant? Constant => null;
 
     public override string ToString() => $"{Kind} ({Type})";
 }
