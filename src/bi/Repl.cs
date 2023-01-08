@@ -234,7 +234,9 @@ abstract class Repl
     }
     protected abstract void EvaluateSubmission(string text);
 
-    [MetaCommand("help", "Shows help. Very very long long very very long long very very long long very very long long very very long long very very long long help long long help")]
+    [MetaCommand("exit", "Closes Balu interpreter.")]
+    protected static void EvaluateExit() => Environment.Exit(0);
+    [MetaCommand("help", "Shows this help.")]
     protected void EvaluateHelp()
     {
         foreach (var command in metaCommands.Values.OrderBy(mc => mc.Name))
@@ -502,7 +504,7 @@ abstract class Repl
             try
             {
                 var text = EditSubmission();
-                if (string.IsNullOrWhiteSpace(text)) return;
+                if (string.IsNullOrWhiteSpace(text)) continue;
                 if (text.StartsWith('#'))
                     EvaluateMetaCommand(text);
                 else
@@ -519,6 +521,6 @@ abstract class Repl
                 Console.ResetColor();
             }
         }
-
+        // ReSharper disable once FunctionNeverReturns
     }
 }
