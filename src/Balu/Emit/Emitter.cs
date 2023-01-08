@@ -441,7 +441,7 @@ sealed class Emitter : IDisposable
     {
         if (randomField is not null) return;
         var randomTypeReference = assembly.MainModule.ImportReference(randomType);
-        randomField = new("$random", FieldAttributes.Static | FieldAttributes.Private, randomTypeReference);
+        randomField = new("<random>", FieldAttributes.Static | FieldAttributes.Private | FieldAttributes.SpecialName, randomTypeReference);
         programType!.Fields.Add(randomField);
 
         var staticConstructor = new MethodDefinition(

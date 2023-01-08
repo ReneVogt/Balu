@@ -1,8 +1,5 @@
 ﻿function main()
 {
-	var x : any = "3"
-	var y : any = 3
-
-	println(string(x == y))
-	println(string(x != y))
+	for i = 1 to 9
+		println(random(10))
 }
