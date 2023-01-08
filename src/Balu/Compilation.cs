@@ -86,7 +86,7 @@ public sealed class Compilation
     {
         _ = globals ?? throw new ArgumentNullException(nameof(globals));
 
-        var diagnostics = SyntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(Program.Diagnostics).ToImmutableArray();
+        var diagnostics = Program.Diagnostics;
         if (diagnostics.Any())
             return new(diagnostics, null);
 

@@ -1,6 +1,1 @@
-﻿function main()
-{
-	do
-		println("hello")
-	while false
-}
+﻿println("Hello world!")

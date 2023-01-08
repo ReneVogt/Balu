@@ -476,10 +476,10 @@ sealed class Binder : SyntaxTreeVisitor
             }
         }
 
-
         var statement = Refactor(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
 
-        var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
+        //var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
+        var diagnostics = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(binder.diagnostics).ToImmutableArray();
         return new(previous, entryPoint, statement, symbols, diagnostics);
     }
     public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
@@ -493,23 +493,15 @@ sealed class Binder : SyntaxTreeVisitor
             var functionBinder = new Binder(isScript, parentScope, function);
             functionBinder.Visit(function.Declaration!.Body);
             var body = (BoundStatement)functionBinder.boundNode!;
-            var refactored = Refactor(body, function);
-            if (function.ReturnType != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(refactored))
+            var refactoredBody = Refactor(body, function);
+            if (function.ReturnType != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(refactoredBody))
                 functionBinder.diagnostics.ReportNotAllPathsReturn(function);
-            functionBodyBuilder.Add(function, refactored);
+            functionBodyBuilder.Add(function, refactoredBody);
             diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
         }
 
-        if (isScript)
-        {
-            var refactored = Refactor(globalScope.Statement, globalScope.EntryPoint);
-            functionBodyBuilder.Add(globalScope.EntryPoint, refactored);
-        }
-        else if (!functionBodyBuilder.ContainsKey(globalScope.EntryPoint))
-        {
-            var refactored = Refactor(globalScope.Statement, globalScope.EntryPoint);
-            functionBodyBuilder.Add(globalScope.EntryPoint, refactored);
-        }
+        var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint);
+        functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
 
         return new(previous, globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
     }

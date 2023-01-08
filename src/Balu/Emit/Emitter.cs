@@ -477,6 +477,7 @@ sealed class Emitter : IDisposable
 
     public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
+        if (program.Diagnostics.Any()) return program.Diagnostics;
         using var emitter = new Emitter(program, moduleName, references, outputPath);
         emitter.Emit();
         return emitter.diagnostics.ToImmutableArray();
