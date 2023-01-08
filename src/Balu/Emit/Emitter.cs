@@ -217,6 +217,12 @@ sealed class Emitter : IDisposable
     }
     void EmitExpression(ILProcessor processor, BoundExpression expression)
     {
+        if (expression.Constant is not null)
+        {
+            EmitConstantExpression(processor, expression);
+            return;
+        }
+
         switch (expression.Kind)
         {
             case BoundNodeKind.UnaryExpression:
@@ -224,9 +230,6 @@ sealed class Emitter : IDisposable
                 break;
             case BoundNodeKind.BinaryExpression:
                 EmitBinaryExpression(processor, (BoundBinaryExpression)expression);
-                break;
-            case BoundNodeKind.LiteralExpression:
-                EmitLiteralExpression(processor, (BoundLiteralExpression)expression);
                 break;
             case BoundNodeKind.VariableExpression:
                 EmitVariableExpression(processor, (BoundVariableExpression)expression);
@@ -338,14 +341,14 @@ sealed class Emitter : IDisposable
                     $"Unexpected binary operator '{expression.Operator.SyntaxKind.GetText() ?? expression.Operator.OperatorKind.ToString()}'.");
         }
     }
-    static void EmitLiteralExpression(ILProcessor processor, BoundLiteralExpression expression)
+    static void EmitConstantExpression(ILProcessor processor, BoundExpression expression)
     {
         if (expression.Type == TypeSymbol.Boolean)
-            processor.Emit((bool)expression.Value ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
+            processor.Emit((bool)expression.Constant!.Value ? OpCodes.Ldc_I4_1 : OpCodes.Ldc_I4_0);
         else if (expression.Type == TypeSymbol.Integer)
-            processor.Emit(OpCodes.Ldc_I4, (int)expression.Value);
+            processor.Emit(OpCodes.Ldc_I4, (int)expression.Constant!.Value);
         else if (expression.Type == TypeSymbol.String)
-            processor.Emit(OpCodes.Ldstr, (string)expression.Value);
+            processor.Emit(OpCodes.Ldstr, (string)expression.Constant!.Value);
         else
             throw new EmitterException($"Unexpected literal expression type '{expression.Type}'.");
     }
