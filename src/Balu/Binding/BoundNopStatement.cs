@@ -10,5 +10,5 @@ sealed class BoundNopStatement : BoundStatement
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 
-    public override string ToString() => $"nop";
+    public override string ToString() => "nop";
 }

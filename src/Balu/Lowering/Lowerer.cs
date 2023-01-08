@@ -127,7 +127,7 @@ sealed class Lowerer : BoundTreeRewriter
         var loopVariable = new BoundVariableExpression(forStatement.Variable);
         var loopVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Variable, forStatement.LowerBound);
 
-        var upperVariableSymbol = CreateVariable("upperBound", false, TypeSymbol.Integer, forStatement.UpperBound.Constant);
+        var upperVariableSymbol = CreateVariable("upperBound", true, TypeSymbol.Integer, forStatement.UpperBound.Constant);
         var upperVariableDeclaration = new BoundVariableDeclarationStatement(upperVariableSymbol, forStatement.UpperBound);
 
         var continueLabel = new BoundLabelStatement(forStatement.ContinueLabel);

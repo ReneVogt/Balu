@@ -202,7 +202,8 @@ sealed class Emitter : IDisposable
             case BoundNodeKind.ReturnStatement:
                 EmitReturnStatement(processor, (BoundReturnStatement)statement);
                 break;
-            case BoundNodeKind.NopStatement: 
+            case BoundNodeKind.NopStatement:
+                EmitNopStatement(processor);
                 break;
             default:
                 throw new EmitterException($"Invalid statement kind '{statement.Kind}'.");
@@ -436,7 +437,11 @@ sealed class Emitter : IDisposable
     {
         if (statement.Expression is not null)
             EmitExpression(processor, statement.Expression);
-            processor.Emit(OpCodes.Ret);
+        processor.Emit(OpCodes.Ret);
+    }
+    static void EmitNopStatement(ILProcessor processor)
+    {
+        processor.Emit(OpCodes.Nop);
     }
 
     void EmitRandomField()

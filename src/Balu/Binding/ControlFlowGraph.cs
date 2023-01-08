@@ -62,6 +62,7 @@ sealed class ControlFlowGraph
                 {
                     case BoundNodeKind.VariableDeclarationStatement:
                     case BoundNodeKind.ExpressionStatement:
+                    case BoundNodeKind.NopStatement:
                         statements.Add(statement);
                         break;
                     case BoundNodeKind.LabelStatement:
@@ -74,7 +75,6 @@ sealed class ControlFlowGraph
                         statements.Add(statement);
                         StartBlock();
                         break;
-                    case BoundNodeKind.NopStatement: break;
                     default:
                         throw new ControlFlowException($"Unknown statement {statement.Kind}.");
                 }
@@ -131,6 +131,7 @@ sealed class ControlFlowGraph
                         case BoundNodeKind.VariableDeclarationStatement:
                         case BoundNodeKind.ExpressionStatement:
                         case BoundNodeKind.LabelStatement:
+                        case BoundNodeKind.NopStatement:
                             if (isLast) Connect(block, nextBlock);
                             break;
                         case BoundNodeKind.ReturnStatement:
@@ -147,7 +148,6 @@ sealed class ControlFlowGraph
                             Connect(block, blockFromLabel[cgs.Label], jumpCondition);
                             Connect(block, nextBlock, nextCondition);
                             break;
-                        case BoundNodeKind.NopStatement: break;
                         default:
                             throw new ControlFlowException($"Unknown statement {statement.Kind}.");
                     }
