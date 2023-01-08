@@ -74,6 +74,7 @@ sealed class ControlFlowGraph
                         statements.Add(statement);
                         StartBlock();
                         break;
+                    case BoundNodeKind.NopStatement: break;
                     default:
                         throw new ControlFlowException($"Unknown statement {statement.Kind}.");
                 }
@@ -146,6 +147,7 @@ sealed class ControlFlowGraph
                             Connect(block, blockFromLabel[cgs.Label], jumpCondition);
                             Connect(block, nextBlock, nextCondition);
                             break;
+                        case BoundNodeKind.NopStatement: break;
                         default:
                             throw new ControlFlowException($"Unknown statement {statement.Kind}.");
                     }

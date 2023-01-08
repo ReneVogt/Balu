@@ -202,6 +202,8 @@ sealed class Emitter : IDisposable
             case BoundNodeKind.ReturnStatement:
                 EmitReturnStatement(processor, (BoundReturnStatement)statement);
                 break;
+            case BoundNodeKind.NopStatement: 
+                break;
             default:
                 throw new EmitterException($"Invalid statement kind '{statement.Kind}'.");
         }

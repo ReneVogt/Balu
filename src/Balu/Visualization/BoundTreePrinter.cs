@@ -205,6 +205,10 @@ sealed class BoundTreePrinter : BoundTreeVisitor
         writer.WriteLine();
         WriteNestedStatement(whileStatement.Body);
     }
+    protected override void VisitBoundNopStatement(BoundNopStatement nopStatement)
+    {
+        writer.WritePunctuation("nop");
+    }
 
     void WriteNestedStatement(BoundStatement statement)
     {

@@ -127,7 +127,7 @@ sealed class Lowerer : BoundTreeRewriter
         var loopVariable = new BoundVariableExpression(forStatement.Variable);
         var loopVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Variable, forStatement.LowerBound);
 
-        var upperVariableSymbol = CreateVariable("upperBound", false, TypeSymbol.Integer);
+        var upperVariableSymbol = CreateVariable("upperBound", false, TypeSymbol.Integer, forStatement.UpperBound.Constant);
         var upperVariableDeclaration = new BoundVariableDeclarationStatement(upperVariableSymbol, forStatement.UpperBound);
 
         var continueLabel = new BoundLabelStatement(forStatement.ContinueLabel);
@@ -149,9 +149,16 @@ sealed class Lowerer : BoundTreeRewriter
         var rewritten = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(loopVariableDeclaration, upperVariableDeclaration, whileStatement));
         return Visit(rewritten);
     }
+    protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
+    {
+        if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;
+        return (bool)conditionalGotoStatement.Condition.Constant.Value == conditionalGotoStatement.JumpIfTrue
+               ? new BoundGotoStatement(conditionalGotoStatement.Label)
+               : new BoundNopStatement();
+    }
 
-    VariableSymbol CreateVariable(string name, bool readOnly, TypeSymbol type) =>
-        containingFunction is null ? new GlobalVariableSymbol(name, readOnly, type) : new LocalVariableSymbol(name, readOnly, type);
+    VariableSymbol CreateVariable(string name, bool readOnly, TypeSymbol type, BoundConstant? constant) =>
+        containingFunction is null ? new GlobalVariableSymbol(name, readOnly, type, constant) : new LocalVariableSymbol(name, readOnly, type, constant);
 
     static BoundBlockStatement Flatten(BoundStatement statement, FunctionSymbol? containingFunction)
     {

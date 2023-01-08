@@ -6,6 +6,7 @@ namespace Balu.Binding;
 sealed class BoundAssignmentExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.AssignmentExpression;
+    public override BoundConstant? Constant => Expression.Constant;
     public override TypeSymbol Type => Expression.Type;
     public override IEnumerable<BoundNode> Children
     {

@@ -213,7 +213,7 @@ sealed class Binder : SyntaxTreeVisitor
             diagnostics.ReportExpressionMustHaveValue(node.Expression.Location);
         bool readOnly = node.KeywordToken.Kind == SyntaxKind.LetKeyword;
         var type = BindTypeClause(node.TypeClause) ?? expression.Type;
-        var variable = BindVariable(node.IdentifierToken, readOnly, type);
+        var variable = BindVariable(node.IdentifierToken, readOnly, type, expression.Constant);
         expression = BindConversion(node.EqualsToken.Location, expression, type);
         boundNode = new BoundVariableDeclarationStatement(variable, expression);
     }
@@ -327,12 +327,12 @@ sealed class Binder : SyntaxTreeVisitor
         boundNode = new BoundReturnStatement(expression);
     }
 
-    VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type)
+    VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type, BoundConstant? constant = null)
     {
         var name = identifier.IsMissing ? "?" : identifier.Text;
         VariableSymbol variable = containingFunction is null
-                           ? new GlobalVariableSymbol(name, isReadonly, type)
-                           : new LocalVariableSymbol(name, isReadonly, type);
+                           ? new GlobalVariableSymbol(name, isReadonly, type, constant)
+                           : new LocalVariableSymbol(name, isReadonly, type, constant);
         if (!identifier.IsMissing && !scope.TryDeclareSymbol(variable))
             diagnostics.ReportSymbolAlreadyDeclared(identifier);
         return variable;
@@ -420,9 +420,7 @@ sealed class Binder : SyntaxTreeVisitor
     }
 
     static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction) =>
-        statement.Lower(containingFunction)
-                 .FoldConstants()
-                 .OptimizeConstantConditionalGotos();
+        Lowerer.Lower(statement, containingFunction);
 
     public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
     {

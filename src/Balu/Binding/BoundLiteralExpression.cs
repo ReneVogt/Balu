@@ -8,14 +8,15 @@ sealed class BoundLiteralExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
     public override IEnumerable<BoundNode> Children { get; } = Array.Empty<BoundNode>();
+    public override BoundConstant Constant { get; }
 
     public override TypeSymbol Type { get; }
 
-    public object Value { get; }
+    public object Value => Constant.Value;
 
     public BoundLiteralExpression(object value)
     {
-        Value = value;
+        Constant = new (value);
         Type = Value switch
         {
             int => TypeSymbol.Integer,

@@ -8,6 +8,7 @@ sealed class BoundBinaryExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
     public override TypeSymbol Type => Operator.Type;
+    public override BoundConstant? Constant { get; }
     public override IEnumerable<BoundNode> Children
     {
         get
@@ -26,6 +27,7 @@ sealed class BoundBinaryExpression : BoundExpression
         Left = left;
         Operator = op;
         Right = right;
+        Constant = ConstantFolder.ComputeConstant(left, op, right);
     }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)

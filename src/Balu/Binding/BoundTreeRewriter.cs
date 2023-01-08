@@ -25,6 +25,7 @@ abstract class BoundTreeRewriter
         BoundNodeKind.GotoStatement => VisitBoundGotoStatement((BoundGotoStatement)node),
         BoundNodeKind.ConditionalGotoStatement => VisitBoundConditionalGotoStatement((BoundConditionalGotoStatement)node),
         BoundNodeKind.ReturnStatement => VisitBoundReturnStatement((BoundReturnStatement)node),
+        BoundNodeKind.NopStatement => VisitBoundNopStatement((BoundNopStatement)node),
         _ => throw new ArgumentException($"Unknown {nameof(BoundNodeKind)} '{node.Kind}'.")
     };
     protected virtual BoundNode VisitBoundLiteralExpression(BoundLiteralExpression literalExpression) => literalExpression.Rewrite(this);
@@ -46,4 +47,5 @@ abstract class BoundTreeRewriter
     protected virtual BoundNode VisitBoundGotoStatement(BoundGotoStatement gotoStatement) => gotoStatement.Rewrite(this);
     protected virtual BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement) => conditionalGotoStatement.Rewrite(this);
     protected virtual BoundNode VisitBoundReturnStatement(BoundReturnStatement returnStatement) => returnStatement.Rewrite(this);
+    protected virtual BoundNode VisitBoundNopStatement(BoundNopStatement nopStatement) => nopStatement.Rewrite(this);
 }

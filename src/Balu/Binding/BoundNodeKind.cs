@@ -21,5 +21,6 @@ enum BoundNodeKind
     GotoStatement,
     ConditionalGotoStatement,
     LabelStatement,
-    ReturnStatement
+    ReturnStatement,
+    NopStatement
 }
