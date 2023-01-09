@@ -8,6 +8,7 @@ public sealed class Diagnostic
     public const string LEX0001 = nameof(LEX0001);
     public const string LEX0002 = nameof(LEX0002);
     public const string LEX0003 = nameof(LEX0003);
+    public const string LEX0004 = nameof(LEX0004);
 
     public const string SYX0000 = nameof(SYX0000);
     

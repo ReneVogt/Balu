@@ -21,9 +21,10 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(Diagnostic.LEX0002, location, $"Invalid escape sequence '{text}'."));
     public void ReportUnterminatedString(TextLocation location) =>
         Add(new(Diagnostic.LEX0003, location, "String literal not terminated."));
-
     public void ReportUnexpectedToken(SyntaxToken foundToken, SyntaxKind expected) =>
         Add(new(Diagnostic.SYX0000, foundToken.Location, $"Unexpected {foundToken.Kind} ('{foundToken.Text}'), expected {expected}."));
+    public void ReportUnterminatedMultiLineComment(TextLocation location) =>
+        Add(new(Diagnostic.LEX0004, location, "Unterminated multiline comment."));
 
     public void ReportUnaryOperatorTypeMismatch(SyntaxToken operatorToken, TypeSymbol type) =>
         Add(new(Diagnostic.BND0000, operatorToken.Location, $"Unary operator '{operatorToken.Text}' cannot be applied to type '{type.Name}'."));

@@ -187,8 +187,10 @@ sealed class Lexer
             Next();
             c1 = Current;
             c2 = Peek(1);
-        } while (c2 != '\0' && c1 != '*' && c2 != '/');
+        } while (c2 != '\0' && (c1 != '*' || c2 != '/'));
 
+        if (c2 == '\0')
+            diagnostics.ReportUnterminatedMultiLineComment(new TextLocation(sourceText, new TextSpan(start, 1)));
         Next();
         Next();
         text = sourceText.ToString(start, position - start);

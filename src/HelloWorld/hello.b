@@ -4,7 +4,9 @@ let f = false
 var tt = true
 var ff = false
 
-/* hier mit multiline*/
+/* hier mit multiline
+ über mehrere Zeilen
+
 //print(string(f && tt))
 println(string(f || tt)) // endline
 println(string(t && ff))
