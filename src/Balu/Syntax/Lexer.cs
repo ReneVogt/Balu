@@ -39,6 +39,10 @@ sealed class Lexer
                 ReadIdentifierOrKeywordToken();
             else if (Current == '"')
                 ReadString();
+            else if (Current == '/' && Peek(1) == '/')
+                ReadSingleLineComment();
+            else if (Current == '/' && Peek(1) == '*')
+                ReadMultiLineComment();
             else
             {
                 kind = (Current, Peek(1)) switch
@@ -122,7 +126,6 @@ sealed class Lexer
             _ => null
         };
     }
-
     void ReadString()
     {
         position++; 
@@ -160,4 +163,35 @@ sealed class Lexer
         kind = SyntaxKind.StringToken;
         value = valueBuilder.ToString();
     }
+    void ReadSingleLineComment()
+    {
+        value = null;
+        kind = SyntaxKind.SingleLineCommentToken;
+        char c;
+        do
+        {
+            Next();
+            c = Peek(1);
+        } while (c != '\0' && c != '\n' && c != '\r');
+        Next();
+        text = sourceText.ToString(start, position - start);
+    }
+    void ReadMultiLineComment()
+    {
+        kind = SyntaxKind.MultiLineCommentToken;
+        value = null;
+        char c1, c2;
+        position++;
+        do
+        {
+            Next();
+            c1 = Current;
+            c2 = Peek(1);
+        } while (c2 != '\0' && c1 != '*' && c2 != '/');
+
+        Next();
+        Next();
+        text = sourceText.ToString(start, position - start);
+    }
+
 }

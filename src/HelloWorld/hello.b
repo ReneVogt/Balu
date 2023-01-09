@@ -1,9 +1,11 @@
-﻿let t = true
+﻿// mal sehen
+let t = true
 let f = false
 var tt = true
 var ff = false
 
-print(string(f && tt))
-print(string(f || tt))
-print(string(t && ff))
-print(string(t || ff))
+/* hier mit multiline*/
+//print(string(f && tt))
+println(string(f || tt)) // endline
+println(string(t && ff))
+println(string(t || ff))

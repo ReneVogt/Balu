@@ -5,6 +5,8 @@ public enum SyntaxKind
     #region Tokens
     EndOfFileToken,
     WhiteSpaceToken,
+    SingleLineCommentToken,
+    MultiLineCommentToken,
     BadToken,
 
     NumberToken,

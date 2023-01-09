@@ -22,7 +22,9 @@ sealed class Parser
         this.syntaxTree = syntaxTree;
         sourceText = this.syntaxTree.Text;
         var lexer = new Lexer(syntaxTree);
-        foreach (var token in lexer.Lex().Where(token => token.Kind != SyntaxKind.BadToken && token.Kind != SyntaxKind.WhiteSpaceToken))
+        foreach (var token in lexer.Lex()
+                                   .Where(token => token.Kind != SyntaxKind.BadToken && token.Kind != SyntaxKind.WhiteSpaceToken &&
+                                                   token.Kind != SyntaxKind.SingleLineCommentToken && token.Kind != SyntaxKind.MultiLineCommentToken))
         {
             tokens.Add(token);
             if (token.Kind == SyntaxKind.EndOfFileToken) break;

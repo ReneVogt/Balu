@@ -131,7 +131,7 @@ sealed class BaluRepl : Repl
                 SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow,
                 SyntaxKind.NumberToken => ConsoleColor.Cyan,
                 SyntaxKind.StringToken => ConsoleColor.Magenta,
-
+                SyntaxKind.SingleLineCommentToken or SyntaxKind.MultiLineCommentToken => ConsoleColor.Green,
                 _ => ConsoleColor.DarkGray
             };
 
