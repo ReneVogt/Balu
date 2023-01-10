@@ -1,7 +1,7 @@
 ﻿using Balu.Text;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Text;
-using System.Transactions;
 
 namespace Balu.Syntax;
 
@@ -10,6 +10,7 @@ sealed class Lexer
     readonly SyntaxTree syntaxTree;
     readonly SourceText sourceText;
     readonly DiagnosticBag diagnostics = new();
+    readonly ImmutableArray<SyntaxTrivia>.Builder triviaBuilder = ImmutableArray.CreateBuilder<SyntaxTrivia>();
 
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
@@ -28,64 +29,96 @@ sealed class Lexer
     {
         do
         {
-            start = position;
-            value = null;
-            kind = SyntaxKind.BadTokenTrivia;
+            ReadTrivia(true);
+            var leadingTrivia = triviaBuilder.ToImmutable();
 
-            if (char.IsDigit(Current))
-                ReadNumberToken();
-            else if (char.IsWhiteSpace(Current))
-                ReadWhiteSpaceToken();
-            else if (char.IsLetter(Current) || Current == '_')
-                ReadIdentifierOrKeywordToken();
-            else if (Current == '"')
-                ReadString();
+            var tokenStart = position;
+            ReadToken();
+            var tokenKind = kind;
+            var tokenValue = value;
+            var length = position - tokenStart;
+            
+            ReadTrivia(false);
+            var trailingTrivia = triviaBuilder.ToImmutable();
+
+            yield return new(syntaxTree, tokenKind, new(tokenStart, kind == SyntaxKind.EndOfFileToken ? 0 :  length), text, tokenValue, leadingTrivia, trailingTrivia);
+
+        } while (kind != SyntaxKind.EndOfFileToken);
+    }
+
+    void ReadTrivia(bool leading)
+    {
+        kind = SyntaxKind.BadTokenTrivia;
+        start = position;
+        
+        triviaBuilder.Clear();
+
+        while (true)
+        {
+            if (Current == '\n' && !leading)
+                return;
+
+            if (char.IsWhiteSpace(Current))
+                ReadWhiteSpaces();
             else if (Current == '/' && Peek(1) == '/')
                 ReadSingleLineComment();
             else if (Current == '/' && Peek(1) == '*')
                 ReadMultiLineComment();
-            else
+            else return;
+
+            triviaBuilder.Add(new(syntaxTree, kind, text, new(start, position - start)));
+        }
+    }
+    void ReadToken()
+    {
+        start = position;
+        value = null; 
+        kind = SyntaxKind.BadTokenTrivia;
+
+        if (char.IsDigit(Current))
+            ReadNumberToken();
+        else if (char.IsLetter(Current) || Current == '_')
+            ReadIdentifierOrKeywordToken();
+        else if (Current == '"')
+            ReadString();
+        else
+        {
+            kind = (Current, Peek(1)) switch
             {
-                kind = (Current, Peek(1)) switch
-                {
-                    ('\0', _) => SyntaxKind.EndOfFileToken,
-                    ('+', _) => SyntaxKind.PlusToken,
-                    ('-', _) => SyntaxKind.MinusToken,
-                    ('*', _) => SyntaxKind.StarToken,
-                    ('/', _) => SyntaxKind.SlashToken,
-                    ('(', _) => SyntaxKind.OpenParenthesisToken,
-                    (')', _) => SyntaxKind.ClosedParenthesisToken,
-                    ('{', _) => SyntaxKind.OpenBraceToken,
-                    ('}', _) => SyntaxKind.ClosedBraceToken,
-                    ('!', '=') => SyntaxKind.BangEqualsToken,
-                    ('!', _) => SyntaxKind.BangToken,
-                    ('=', '=') => SyntaxKind.EqualsEqualsToken,
-                    ('=', _) => SyntaxKind.EqualsToken,
-                    ('&', '&') => SyntaxKind.AmpersandAmpersandToken,
-                    ('&', _) => SyntaxKind.AmpersandToken,
-                    ('|', '|') => SyntaxKind.PipePipeToken,
-                    ('|', _) => SyntaxKind.PipeToken,
-                    ('^', _) => SyntaxKind.CircumflexToken,
-                    ('~', _) => SyntaxKind.TildeToken,
-                    ('>', '=') => SyntaxKind.GreaterOrEqualsToken,
-                    ('>', _) => SyntaxKind.GreaterToken,
-                    ('<', '=') => SyntaxKind.LessOrEqualsToken,
-                    ('<', _) => SyntaxKind.LessToken,
-                    (',',_) => SyntaxKind.CommaToken,
-                    (':',_) => SyntaxKind.ColonToken,
-                    _ => SyntaxKind.BadTokenTrivia
-                };
+                ('\0', _) => SyntaxKind.EndOfFileToken,
+                ('+', _) => SyntaxKind.PlusToken,
+                ('-', _) => SyntaxKind.MinusToken,
+                ('*', _) => SyntaxKind.StarToken,
+                ('/', _) => SyntaxKind.SlashToken,
+                ('(', _) => SyntaxKind.OpenParenthesisToken,
+                (')', _) => SyntaxKind.ClosedParenthesisToken,
+                ('{', _) => SyntaxKind.OpenBraceToken,
+                ('}', _) => SyntaxKind.ClosedBraceToken,
+                ('!', '=') => SyntaxKind.BangEqualsToken,
+                ('!', _) => SyntaxKind.BangToken,
+                ('=', '=') => SyntaxKind.EqualsEqualsToken,
+                ('=', _) => SyntaxKind.EqualsToken,
+                ('&', '&') => SyntaxKind.AmpersandAmpersandToken,
+                ('&', _) => SyntaxKind.AmpersandToken,
+                ('|', '|') => SyntaxKind.PipePipeToken,
+                ('|', _) => SyntaxKind.PipeToken,
+                ('^', _) => SyntaxKind.CircumflexToken,
+                ('~', _) => SyntaxKind.TildeToken,
+                ('>', '=') => SyntaxKind.GreaterOrEqualsToken,
+                ('>', _) => SyntaxKind.GreaterToken,
+                ('<', '=') => SyntaxKind.LessOrEqualsToken,
+                ('<', _) => SyntaxKind.LessToken,
+                (',', _) => SyntaxKind.CommaToken,
+                (':', _) => SyntaxKind.ColonToken,
+                _ => SyntaxKind.BadTokenTrivia
+            };
 
-                text = kind.GetText() ?? Current.ToString();
-                position += text.Length;
-            }
+            text = kind.GetText() ?? Current.ToString();
+            position += text.Length;
+        }
 
-            if (kind == SyntaxKind.BadTokenTrivia)
-                diagnostics.ReportUnexpectedToken(new(sourceText, new(start, position - start)), sourceText[start].ToString());
-
-            yield return new(syntaxTree, kind, new(start, kind == SyntaxKind.EndOfFileToken ? 0 :  position - start), text, value);
-
-        } while (kind != SyntaxKind.EndOfFileToken);
+        if (kind == SyntaxKind.BadTokenTrivia)
+            diagnostics.ReportUnexpectedToken(new(sourceText, new(start, position - start)), sourceText[start].ToString());
     }
     char Peek(int offset)
     {
@@ -108,7 +141,7 @@ sealed class Lexer
         else
             diagnostics.ReportNumberNotValid(new(sourceText, new(start, position - start)), text);
     }
-    void ReadWhiteSpaceToken()
+    void ReadWhiteSpaces()
     {
         kind = SyntaxKind.WhiteSpaceTrivia;
         while (char.IsWhiteSpace(Current)) Next();

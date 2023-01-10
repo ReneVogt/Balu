@@ -8,11 +8,12 @@ namespace Balu.Syntax;
 
 public abstract class SyntaxNode
 {
-    readonly Lazy<TextSpan> span;
+    readonly Lazy<TextSpan> span, fullSpan;
 
     public SyntaxTree SyntaxTree { get; }
     public abstract SyntaxKind Kind { get; }
     public virtual TextSpan Span => span.Value;
+    public virtual TextSpan FullSpan => fullSpan.Value;
     public abstract IEnumerable<SyntaxNode> Children { get; }
     public SyntaxToken LastToken => GetLastToken();
     public TextLocation Location => new (SyntaxTree.Text, Span);
@@ -26,6 +27,13 @@ public abstract class SyntaxNode
             var first = children.First();
             var last = children.Last();
             return first.Span with { Length = last.Span.End - first.Span.Start };
+        });
+        fullSpan = new(() =>
+        {
+            var children = Children.ToArray();
+            var first = children.First();
+            var last = children.Last();
+            return first.FullSpan with { Length = last.FullSpan.End - first.FullSpan.Start };
         });
     }
 

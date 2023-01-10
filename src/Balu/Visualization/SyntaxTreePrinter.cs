@@ -16,14 +16,41 @@ public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
 
     public override SyntaxNode Visit(SyntaxNode node)
     {
-        var marker = last ? TreeTexts.LastLeaf : TreeTexts.Leaf;
+        var token = node as SyntaxToken;
+
+        if (token is not null)
+        {
+            foreach (var trivia in token.LeadingTrivia)
+            {
+                writer.Write(indent);
+                if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
+                writer.Write(TreeTexts.Leaf);
+                writer.Write($"L: {trivia.Kind}");
+                if (console) Console.ResetColor();
+                writer.WriteLine();
+            }
+        }
+
         writer.Write(indent);
         if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
-        writer.Write(marker);
+        writer.Write(last && (token is null || token.TrailingTrivia.Length == 0) ? TreeTexts.LastLeaf : TreeTexts.Leaf);
         if (console) Console.ForegroundColor = node is SyntaxToken ? ConsoleColor.Blue : ConsoleColor.Cyan;
         writer.Write(node);
         if (console) Console.ResetColor();
         writer.WriteLine();
+
+        if (token is not null)
+        {
+            for (int i=0; i<token.TrailingTrivia.Length; i++)
+            {
+                writer.Write(indent);
+                if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
+                writer.Write(last && i == token.TrailingTrivia.Length - 1 ? TreeTexts.LastLeaf : TreeTexts.Leaf);
+                writer.Write($"T: {token.TrailingTrivia[i].Kind}");
+                if (console) Console.ResetColor();
+                writer.WriteLine();
+            }
+        }
 
         var lastIndnet = indent;
         var lastLast = last;

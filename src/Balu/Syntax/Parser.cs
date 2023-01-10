@@ -309,6 +309,6 @@ sealed class Parser
             return NextToken();
 
         diagnostics.ReportUnexpectedToken(Current, kind);
-        return new(syntaxTree, kind, Current.Span);
+        return new(syntaxTree, kind, Current.Span, string.Empty, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
     }
 }
