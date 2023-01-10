@@ -1,6 +1,7 @@
 ﻿using Balu.Text;
 using System.Collections.Generic;
 using System.Text;
+using System.Transactions;
 
 namespace Balu.Syntax;
 
@@ -35,7 +36,7 @@ sealed class Lexer
                 ReadNumberToken();
             else if (char.IsWhiteSpace(Current))
                 ReadWhiteSpaceToken();
-            else if (char.IsLetter(Current))
+            else if (char.IsLetter(Current) || Current == '_')
                 ReadIdentifierOrKeywordToken();
             else if (Current == '"')
                 ReadString();
@@ -115,7 +116,7 @@ sealed class Lexer
     }
     void ReadIdentifierOrKeywordToken()
     {
-        while (char.IsLetter(Current)) Next();
+        while (char.IsLetter(Current) || char.IsDigit(Current) || Current == '_') Next();
         text = sourceText.ToString(start, position - start);
         kind = text.KeywordKind();
         value = kind switch

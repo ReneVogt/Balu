@@ -183,25 +183,6 @@ public class EvaluatorTests
 ";
         text.AssertEvaluation(diagnostics);
     }
-    [Fact]
-    public void Evaluate_FunctionDeclarationStatement_NoInfiniteLoopIfNumberInIdentifier()
-    {
-        const string text = "function test[[[[[[[[1]]]]]]]]([)]{}[]";
-        const string diagnostics = @"
-            Unexpected NumberToken ('1'), expected OpenParenthesisToken.
-            Unexpected NumberToken ('1'), expected IdentifierToken.
-            Unexpected NumberToken ('1'), expected ColonToken.
-            Unexpected NumberToken ('1'), expected IdentifierToken.
-            Unexpected NumberToken ('1'), expected ClosedParenthesisToken.
-            Unexpected NumberToken ('1'), expected OpenBraceToken.
-            Undefined type ''.
-            Only assignment or call expressions can be used as a statement.
-            Unexpected ClosedParenthesisToken (')'), expected IdentifierToken.
-            Unexpected EndOfFileToken ('" + "\0" + @"'), expected ClosedBraceToken.
-
-";
-        text.AssertEvaluation(diagnostics);
-    }
 
     [Fact]
     public void Evaluate_GlobalStatement_ReportsInvalidExpressionStatement()

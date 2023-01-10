@@ -60,6 +60,23 @@ public class LexerTests
     }
 
     [Theory]
+    [InlineData("identifier")]
+    [InlineData("_identifier")]
+    [InlineData("identifier_")]
+    [InlineData("identifier123c")]
+    [InlineData("identifier123")]
+    [InlineData("_id_123_ifier123")]
+    [InlineData("_identifier123_")]
+    public void Lexer_Identifier(string input)
+    {
+        var tokens = SyntaxTree.ParseTokens(input);
+        var token = Assert.Single(tokens);
+        Assert.Equal(SyntaxKind.IdentifierToken, token.Kind);
+        Assert.Equal(input, token.Text);
+    }
+
+
+    [Theory]
     [InlineData("\"\"", "")]
     [InlineData("\"normal string\"", "normal string")]
     [InlineData("\"Escaped\\\"String\"", "Escaped\"String")]
@@ -117,6 +134,8 @@ public class LexerTests
                     ("123", kind: SyntaxKind.NumberToken),
                     ("987654321", kind: SyntaxKind.NumberToken),
                     ("myNameIs", kind: SyntaxKind.IdentifierToken),
+                    ("_my123", kind: SyntaxKind.IdentifierToken),
+                    ("my_123_NameIs", kind: SyntaxKind.IdentifierToken),
                     ("x", kind: SyntaxKind.IdentifierToken),
                     ("true", kind: SyntaxKind.TrueKeyword),
                     ("false", kind: SyntaxKind.FalseKeyword),
@@ -138,8 +157,9 @@ public class LexerTests
                                                                where (left.kind, right.kind) switch
                                                                {
                                                                    (SyntaxKind.NumberToken, SyntaxKind.NumberToken) => false,
-                                                                   (SyntaxKind.IdentifierToken, _) => right.kind != SyntaxKind.IdentifierToken && !right.kind.ToString().EndsWith("Keyword"),
-                                                                   (_, SyntaxKind.IdentifierToken) => left.kind != SyntaxKind.IdentifierToken && !left.kind.ToString().EndsWith("Keyword"),
+                                                                   (_, SyntaxKind.NumberToken) => left.kind != SyntaxKind.IdentifierToken && !left.kind.IsKeyword(),
+                                                                   (SyntaxKind.IdentifierToken, _) => right.kind != SyntaxKind.IdentifierToken && !right.kind.IsKeyword(),
+                                                                   (_, SyntaxKind.IdentifierToken) => left.kind != SyntaxKind.IdentifierToken && !left.kind.IsKeyword(),
                                                                    (SyntaxKind.BangToken, SyntaxKind.EqualsToken) => false,
                                                                    (SyntaxKind.BangToken, SyntaxKind.EqualsEqualsToken) => false,
                                                                    (SyntaxKind.EqualsToken, SyntaxKind.EqualsToken) => false,
