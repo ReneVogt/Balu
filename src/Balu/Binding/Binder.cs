@@ -478,7 +478,6 @@ sealed class Binder : SyntaxTreeVisitor
 
         var statement = Refactor(new BoundBlockStatement(statementBuilder.ToImmutable()), null);
 
-        //var diagnostics = previous?.Diagnostics.AddRange(binder.diagnostics) ?? binder.diagnostics.ToImmutableArray();
         var diagnostics = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(binder.diagnostics).ToImmutableArray();
         return new(previous, entryPoint, statement, symbols, diagnostics);
     }
