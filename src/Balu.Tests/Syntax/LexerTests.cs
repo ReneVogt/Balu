@@ -12,7 +12,7 @@ public class LexerTests
     [Fact]
     public void Lexer_Tests_CoveringAllTokens()
     {
-        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadToken };
+        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadToken, SyntaxKind.SingleLineCommentToken, SyntaxKind.MultiLineCommentToken };
         var allTokenKinds = Enum.GetValues(typeof(SyntaxKind))
                                 .Cast<SyntaxKind>()
                                 .Where(kind => kind.ToString().EndsWith("Keyword") || kind.ToString().EndsWith("Token"))
@@ -149,6 +149,8 @@ public class LexerTests
                                                                    (SyntaxKind.AmpersandToken, SyntaxKind.AmpersandAmpersandToken) => false,
                                                                    (SyntaxKind.PipeToken, SyntaxKind.PipeToken) => false,
                                                                    (SyntaxKind.PipeToken, SyntaxKind.PipePipeToken) => false,
+                                                                   (SyntaxKind.SlashToken, SyntaxKind.SlashToken) => false,
+                                                                   (SyntaxKind.SlashToken, SyntaxKind.StarToken) => false,
                                                                    _ => !(left.kind.ToString().EndsWith("Keyword") && right.kind.ToString().EndsWith("Keyword"))
                                                                }
                                                                select new object[] { left.text, left.kind, right.text, right.kind };

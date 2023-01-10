@@ -37,6 +37,11 @@ public sealed class SyntaxToken : SyntaxNode
     public static SyntaxToken String(SyntaxTree syntaxTree, TextSpan span, string value, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.StringToken, span,
                                                                                       text ?? throw new ArgumentNullException(nameof(text)),
                                                                                       value ?? throw new ArgumentNullException(nameof(value)));
+    public static SyntaxToken SingleLineComment(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.SingleLineCommentToken, span,
+        text ?? throw new ArgumentNullException(nameof(text)));
+    public static SyntaxToken MultiLineComment(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.MultiLineCommentToken, span,
+        text ?? throw new ArgumentNullException(nameof(text)));
+
     public static SyntaxToken Plus(SyntaxTree syntaxTree, TextSpan span) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.PlusToken, span, SyntaxKind.PlusToken.GetText()!);
     public static SyntaxToken Minus(SyntaxTree syntaxTree, TextSpan span) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.MinusToken, span, SyntaxKind.MinusToken.GetText()!);
     public static SyntaxToken Star(SyntaxTree syntaxTree, TextSpan span) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.StarToken, span, SyntaxKind.StarToken.GetText()!);
