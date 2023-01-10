@@ -2,12 +2,14 @@
 
 public enum SyntaxKind
 {
+    #region Trivia
+    BadTokenTrivia,
+    WhiteSpaceTrivia,
+    SingleLineCommentTrivia,
+    MultiLineCommentTrivia,
+    #endregion
     #region Tokens
     EndOfFileToken,
-    WhiteSpaceToken,
-    SingleLineCommentToken,
-    MultiLineCommentToken,
-    BadToken,
 
     NumberToken,
     StringToken,

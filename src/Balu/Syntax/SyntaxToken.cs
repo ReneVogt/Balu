@@ -31,15 +31,15 @@ public sealed class SyntaxToken : SyntaxNode
     public override string ToString() => $"{Kind}{Span} \"{Text}\" ({(Value is string v ? v.EscapeString() : Value?.ToString())})";
 
     public static SyntaxToken EndOfFile(SyntaxTree syntaxTree, TextSpan span) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.EndOfFileToken, span);
-    public static SyntaxToken Bad(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree, SyntaxKind.BadToken, span, text);
-    public static SyntaxToken WhiteSpace(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.WhiteSpaceToken, span, text ?? throw new ArgumentNullException(nameof(text)));
+    public static SyntaxToken Bad(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree, SyntaxKind.BadTokenTrivia, span, text);
+    public static SyntaxToken WhiteSpace(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.WhiteSpaceTrivia, span, text ?? throw new ArgumentNullException(nameof(text)));
     public static SyntaxToken Number(SyntaxTree syntaxTree, TextSpan span, int value, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.NumberToken, span, text ?? throw new ArgumentNullException(nameof(text)), value);
     public static SyntaxToken String(SyntaxTree syntaxTree, TextSpan span, string value, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.StringToken, span,
                                                                                       text ?? throw new ArgumentNullException(nameof(text)),
                                                                                       value ?? throw new ArgumentNullException(nameof(value)));
-    public static SyntaxToken SingleLineComment(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.SingleLineCommentToken, span,
+    public static SyntaxToken SingleLineComment(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.SingleLineCommentTrivia, span,
         text ?? throw new ArgumentNullException(nameof(text)));
-    public static SyntaxToken MultiLineComment(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.MultiLineCommentToken, span,
+    public static SyntaxToken MultiLineComment(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.MultiLineCommentTrivia, span,
         text ?? throw new ArgumentNullException(nameof(text)));
 
     public static SyntaxToken Plus(SyntaxTree syntaxTree, TextSpan span) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.PlusToken, span, SyntaxKind.PlusToken.GetText()!);

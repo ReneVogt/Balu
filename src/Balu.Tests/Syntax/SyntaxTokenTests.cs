@@ -10,9 +10,10 @@ public sealed class SyntaxTokenTests
     [Fact]
     public void SyntaxToken_ProvidesFactoryForAllTokens()
     {
-        var expectedMethodNames = from kind in typeof(SyntaxKind).GetEnumNames()
-                                  where kind.EndsWith("Token") || kind.EndsWith("Keyword")
-                                  select kind.EndsWith("Token") ? kind[..^5] : kind;
+        var expectedMethodNames = from SyntaxKind kind in typeof(SyntaxKind).GetEnumValues()
+                                  where kind != SyntaxKind.BadTokenTrivia && (kind.IsToken() || kind.IsTrivia())
+                                  let s = kind.ToString()
+                                  select kind.IsKeyword() ? s : kind.IsTrivia() ? s[..^6] : s[..^5];
         var actualMethodNames = from method in typeof(SyntaxToken).GetMethods(BindingFlags.Public | BindingFlags.Static)
                                 where method.ReturnType == typeof(SyntaxToken)
                                 let parameters = method.GetParameters().Take(2).ToArray()

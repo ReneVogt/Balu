@@ -29,7 +29,7 @@ sealed class Lexer
         {
             start = position;
             value = null;
-            kind = SyntaxKind.BadToken;
+            kind = SyntaxKind.BadTokenTrivia;
 
             if (char.IsDigit(Current))
                 ReadNumberToken();
@@ -72,14 +72,14 @@ sealed class Lexer
                     ('<', _) => SyntaxKind.LessToken,
                     (',',_) => SyntaxKind.CommaToken,
                     (':',_) => SyntaxKind.ColonToken,
-                    _ => SyntaxKind.BadToken
+                    _ => SyntaxKind.BadTokenTrivia
                 };
 
                 text = kind.GetText() ?? Current.ToString();
                 position += text.Length;
             }
 
-            if (kind == SyntaxKind.BadToken)
+            if (kind == SyntaxKind.BadTokenTrivia)
                 diagnostics.ReportUnexpectedToken(new(sourceText, new(start, position - start)), sourceText[start].ToString());
 
             yield return new(syntaxTree, kind, new(start, kind == SyntaxKind.EndOfFileToken ? 0 :  position - start), text, value);
@@ -109,7 +109,7 @@ sealed class Lexer
     }
     void ReadWhiteSpaceToken()
     {
-        kind = SyntaxKind.WhiteSpaceToken;
+        kind = SyntaxKind.WhiteSpaceTrivia;
         while (char.IsWhiteSpace(Current)) Next();
         text = sourceText.ToString(start, position - start);
     }
@@ -166,14 +166,14 @@ sealed class Lexer
     void ReadSingleLineComment()
     {
         value = null;
-        kind = SyntaxKind.SingleLineCommentToken;
+        kind = SyntaxKind.SingleLineCommentTrivia;
         while (Current != '\0' && Current != '\n') Next();
         if (Current != '\0') Next();
         text = sourceText.ToString(start, position - start);
     }
     void ReadMultiLineComment()
     {
-        kind = SyntaxKind.MultiLineCommentToken;
+        kind = SyntaxKind.MultiLineCommentTrivia;
         value = null;
         char c1, c2;
         position++;

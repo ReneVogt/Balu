@@ -12,10 +12,10 @@ public class LexerTests
     [Fact]
     public void Lexer_Tests_CoveringAllTokens()
     {
-        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadToken };
+        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadTokenTrivia };
         var allTokenKinds = Enum.GetValues(typeof(SyntaxKind))
                                 .Cast<SyntaxKind>()
-                                .Where(kind => kind.ToString().EndsWith("Keyword") || kind.ToString().EndsWith("Token"))
+                                .Where(kind => kind.IsToken() || kind.IsTrivia())
                                 .Except(nonTestingKinds);
         var testedTokens = ProvideSingleTokens().Select(x => (SyntaxKind)x[1]).Distinct();
         var untestedTokenKinds = allTokenKinds.Except(testedTokens).ToList();
@@ -121,16 +121,16 @@ public class LexerTests
                     ("true", kind: SyntaxKind.TrueKeyword),
                     ("false", kind: SyntaxKind.FalseKeyword),
                     ("\"Escaped\\\"String with even \\r and \\n, \\t and \\v\"", SyntaxKind.StringToken),
-                    ("// single line comment\r\n", SyntaxKind.SingleLineCommentToken),
-                    ("/* multiline comment on a single line */", SyntaxKind.MultiLineCommentToken),
-                    ("/* multiline comment on \r\n two lines */", SyntaxKind.MultiLineCommentToken)
+                    ("// single line comment\r\n", SyntaxKind.SingleLineCommentTrivia),
+                    ("/* multiline comment on a single line */", SyntaxKind.MultiLineCommentTrivia),
+                    ("/* multiline comment on \r\n two lines */", SyntaxKind.MultiLineCommentTrivia)
                 });
     static IEnumerable<(string text, SyntaxKind kind)> GetSeparators() => new (string text, SyntaxKind kind)[]
     {
-        (" ", kind: SyntaxKind.WhiteSpaceToken),
-        ("  ", kind: SyntaxKind.WhiteSpaceToken),
-        ("\r\n ", kind: SyntaxKind.WhiteSpaceToken),
-        ("\t\v", kind: SyntaxKind.WhiteSpaceToken)
+        (" ", kind: SyntaxKind.WhiteSpaceTrivia),
+        ("  ", kind: SyntaxKind.WhiteSpaceTrivia),
+        ("\r\n ", kind: SyntaxKind.WhiteSpaceTrivia),
+        ("\t\v", kind: SyntaxKind.WhiteSpaceTrivia)
     };
 
     public static IEnumerable<object[]> ProvideTokenPairs() => from left in GetSingleTokens()
@@ -154,8 +154,8 @@ public class LexerTests
                                                                    (SyntaxKind.PipeToken, SyntaxKind.PipePipeToken) => false,
                                                                    (SyntaxKind.SlashToken, SyntaxKind.SlashToken) => false,
                                                                    (SyntaxKind.SlashToken, SyntaxKind.StarToken) => false,
-                                                                   (SyntaxKind.SlashToken, SyntaxKind.MultiLineCommentToken) => false,
-                                                                   (SyntaxKind.SlashToken, SyntaxKind.SingleLineCommentToken) => false,
+                                                                   (SyntaxKind.SlashToken, SyntaxKind.MultiLineCommentTrivia) => false,
+                                                                   (SyntaxKind.SlashToken, SyntaxKind.SingleLineCommentTrivia) => false,
                                                                    _ => !(left.kind.ToString().EndsWith("Keyword") && right.kind.ToString().EndsWith("Keyword"))
                                                                }
                                                                select new object[] { left.text, left.kind, right.text, right.kind };

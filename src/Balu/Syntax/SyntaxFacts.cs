@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
+#pragma warning disable CA1310
 
 namespace Balu.Syntax;
 
@@ -28,6 +29,28 @@ public static class SyntaxFacts
 
         escapingRegex = new (string.Join("|", escapingCharacters.Select(pair => Regex.Escape(pair.unescaped))), RegexOptions.Compiled);
     }
+
+    public static bool IsKeyword(this SyntaxKind kind) => kind.ToString().EndsWith("Keyword");
+    public static bool IsTrivia(this SyntaxKind kind) => kind.ToString().EndsWith("Trivia");
+    public static bool IsToken(this SyntaxKind kind) => !kind.IsTrivia() && (kind.ToString().EndsWith("Token")  || kind.IsKeyword());
+    public static SyntaxKind KeywordKind(this string literal) => literal switch
+    {
+        "else" => SyntaxKind.ElseKeyword,
+        "for" => SyntaxKind.ForKeyword,
+        "false" => SyntaxKind.FalseKeyword,
+        "if" => SyntaxKind.IfKeyword,
+        "let" => SyntaxKind.LetKeyword,
+        "to" => SyntaxKind.ToKeyword,
+        "true" => SyntaxKind.TrueKeyword,
+        "var" => SyntaxKind.VarKeyword,
+        "while" => SyntaxKind.WhileKeyword,
+        "do" => SyntaxKind.DoKeyword,
+        "continue" => SyntaxKind.ContinueKeyword,
+        "break" => SyntaxKind.BreakKeyword,
+        "function" => SyntaxKind.FunctionKeyword,
+        "return" => SyntaxKind.ReturnKeyword,
+        _ => SyntaxKind.IdentifierToken
+    };
 
     public static int UnaryOperatorPrecedence(this SyntaxKind kind) => kind switch
     {
@@ -57,24 +80,6 @@ public static class SyntaxFacts
             SyntaxKind.PipePipeToken or
             SyntaxKind.CircumflexToken => 1,
         _ => 0
-    };
-    public static SyntaxKind KeywordKind(this string literal) => literal switch
-    {
-        "else" => SyntaxKind.ElseKeyword,
-        "for" => SyntaxKind.ForKeyword,
-        "false" => SyntaxKind.FalseKeyword,
-        "if" => SyntaxKind.IfKeyword,
-        "let" => SyntaxKind.LetKeyword,
-        "to" => SyntaxKind.ToKeyword,
-        "true" => SyntaxKind.TrueKeyword,
-        "var" => SyntaxKind.VarKeyword,
-        "while" => SyntaxKind.WhileKeyword,
-        "do" => SyntaxKind.DoKeyword,
-        "continue" => SyntaxKind.ContinueKeyword,
-        "break" => SyntaxKind.BreakKeyword,
-        "function" => SyntaxKind.FunctionKeyword,
-        "return" => SyntaxKind.ReturnKeyword,
-        _ => SyntaxKind.IdentifierToken
     };
 
     public static string? GetText(this SyntaxKind kind) => kind switch
