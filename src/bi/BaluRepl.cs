@@ -150,15 +150,16 @@ sealed class BaluRepl : Repl
         {
             if (!line.Span.OverlapsWith(token.Span)) continue;
 
-            var color = token.Kind switch
-            {
-                >= SyntaxKind.TrueKeyword and < SyntaxKind.CompilationUnit => ConsoleColor.Blue,
-                SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow,
-                SyntaxKind.NumberToken => ConsoleColor.Cyan,
-                SyntaxKind.StringToken => ConsoleColor.Magenta,
-                SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia => ConsoleColor.Green,
-                _ => ConsoleColor.DarkGray
-            };
+            var color = token.Kind.IsKeyword()
+                            ? ConsoleColor.Blue
+                            : token.Kind.IsComment()
+                                ? ConsoleColor.Green
+                                : token.Kind switch
+                                {
+                                    SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow, SyntaxKind.NumberToken => ConsoleColor.Cyan,
+                                    SyntaxKind.StringToken => ConsoleColor.Magenta,
+                                    _ => ConsoleColor.DarkGray
+                                };
 
             var start = Math.Max(token.Span.Start, line.Span.Start);
             var end = Math.Min(token.Span.End, line.Span.End);

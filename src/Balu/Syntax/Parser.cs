@@ -23,7 +23,7 @@ sealed class Parser
         sourceText = this.syntaxTree.Text;
         var lexer = new Lexer(syntaxTree);
         foreach (var token in lexer.Lex()
-                                   .Where(token => !token.Kind.IsTrivia() && token.Kind != SyntaxKind.BadTokenTrivia))
+                                   .Where(token => !token.Kind.IsTrivia()))
         {
             tokens.Add(token);
             if (token.Kind == SyntaxKind.EndOfFileToken) break;
