@@ -190,7 +190,7 @@ sealed class Lexer
         } while (c2 != '\0' && (c1 != '*' || c2 != '/'));
 
         if (c2 == '\0')
-            diagnostics.ReportUnterminatedMultiLineComment(new TextLocation(sourceText, new TextSpan(start, 1)));
+            diagnostics.ReportUnterminatedMultiLineComment(new TextLocation(sourceText, new TextSpan(start, 2)));
         Next();
         Next();
         text = sourceText.ToString(start, position - start);
