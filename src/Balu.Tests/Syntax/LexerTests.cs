@@ -12,7 +12,7 @@ public class LexerTests
     [Fact]
     public void Lexer_Tests_CoveringAllTokens()
     {
-        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadToken, SyntaxKind.SingleLineCommentToken, SyntaxKind.MultiLineCommentToken };
+        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadToken };
         var allTokenKinds = Enum.GetValues(typeof(SyntaxKind))
                                 .Cast<SyntaxKind>()
                                 .Where(kind => kind.ToString().EndsWith("Keyword") || kind.ToString().EndsWith("Token"))
@@ -120,7 +120,10 @@ public class LexerTests
                     ("x", kind: SyntaxKind.IdentifierToken),
                     ("true", kind: SyntaxKind.TrueKeyword),
                     ("false", kind: SyntaxKind.FalseKeyword),
-                    ("\"Escaped\\\"String with even \\r and \\n, \\t and \\v\"", SyntaxKind.StringToken)
+                    ("\"Escaped\\\"String with even \\r and \\n, \\t and \\v\"", SyntaxKind.StringToken),
+                    ("// single line comment\r\n", SyntaxKind.SingleLineCommentToken),
+                    ("/* multiline comment on a single line */", SyntaxKind.MultiLineCommentToken),
+                    ("/* multiline comment on \r\n two lines */", SyntaxKind.MultiLineCommentToken)
                 });
     static IEnumerable<(string text, SyntaxKind kind)> GetSeparators() => new (string text, SyntaxKind kind)[]
     {
@@ -151,6 +154,8 @@ public class LexerTests
                                                                    (SyntaxKind.PipeToken, SyntaxKind.PipePipeToken) => false,
                                                                    (SyntaxKind.SlashToken, SyntaxKind.SlashToken) => false,
                                                                    (SyntaxKind.SlashToken, SyntaxKind.StarToken) => false,
+                                                                   (SyntaxKind.SlashToken, SyntaxKind.MultiLineCommentToken) => false,
+                                                                   (SyntaxKind.SlashToken, SyntaxKind.SingleLineCommentToken) => false,
                                                                    _ => !(left.kind.ToString().EndsWith("Keyword") && right.kind.ToString().EndsWith("Keyword"))
                                                                }
                                                                select new object[] { left.text, left.kind, right.text, right.kind };

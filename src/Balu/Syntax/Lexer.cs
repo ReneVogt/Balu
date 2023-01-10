@@ -167,13 +167,8 @@ sealed class Lexer
     {
         value = null;
         kind = SyntaxKind.SingleLineCommentToken;
-        char c;
-        do
-        {
-            Next();
-            c = Peek(1);
-        } while (c != '\0' && c != '\n' && c != '\r');
-        Next();
+        while (Current != '\0' && Current != '\n') Next();
+        if (Current != '\0') Next();
         text = sourceText.ToString(start, position - start);
     }
     void ReadMultiLineComment()
@@ -190,7 +185,7 @@ sealed class Lexer
         } while (c2 != '\0' && (c1 != '*' || c2 != '/'));
 
         if (c2 == '\0')
-            diagnostics.ReportUnterminatedMultiLineComment(new TextLocation(sourceText, new TextSpan(start, 2)));
+            diagnostics.ReportUnterminatedMultiLineComment(new(sourceText, new (start, 2)));
         Next();
         Next();
         text = sourceText.ToString(start, position - start);
