@@ -37,11 +37,12 @@ sealed class Lexer
             var tokenKind = kind;
             var tokenValue = value;
             var length = position - tokenStart;
+            var tokenText = text;
             
             ReadTrivia(false);
             var trailingTrivia = triviaBuilder.ToImmutable();
 
-            yield return new(syntaxTree, tokenKind, new(tokenStart, kind == SyntaxKind.EndOfFileToken ? 0 :  length), text, tokenValue, leadingTrivia, trailingTrivia);
+            yield return new(syntaxTree, tokenKind, new(tokenStart, kind == SyntaxKind.EndOfFileToken ? 0 :  length), tokenText, tokenValue, leadingTrivia, trailingTrivia);
 
         } while (kind != SyntaxKind.EndOfFileToken);
     }
@@ -114,7 +115,7 @@ sealed class Lexer
             };
 
             text = kind.GetText() ?? Current.ToString();
-            position += text.Length;
+            if (Current != '\0') position += text.Length;
         }
 
         if (kind == SyntaxKind.BadTokenTrivia)

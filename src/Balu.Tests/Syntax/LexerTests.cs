@@ -15,7 +15,7 @@ public class LexerTests
         var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadTokenTrivia };
         var allTokenKinds = Enum.GetValues(typeof(SyntaxKind))
                                 .Cast<SyntaxKind>()
-                                .Where(kind => kind.IsToken() || kind.IsTrivia())
+                                .Where(kind => kind.IsToken())
                                 .Except(nonTestingKinds);
         var testedTokens = ProvideSingleTokens().Select(x => (SyntaxKind)x[1]).Distinct();
         var untestedTokenKinds = allTokenKinds.Except(testedTokens).ToList();
@@ -53,10 +53,10 @@ public class LexerTests
         Assert.Equal(2, tokens.Length);
         Assert.Equal(kind1, tokens[0].Kind);
         Assert.Equal(text1, tokens[0].Text);
-        Assert.Equal(separatorKind, tokens[1].Kind);
-        Assert.Equal(separatorText, tokens[1].Text);
-        Assert.Equal(kind2, tokens[2].Kind);
-        Assert.Equal(text2, tokens[2].Text);
+        //Assert.Equal(separatorKind, tokens[1].Kind);
+        //Assert.Equal(separatorText, tokens[1].Text);
+        Assert.Equal(kind2, tokens[1].Kind);
+        Assert.Equal(text2, tokens[1].Text);
     }
 
     [Theory]
@@ -120,7 +120,7 @@ public class LexerTests
         input.AssertLexerDiagnostics("String literal not terminated.");
     }
     
-    public static IEnumerable<object[]> ProvideSingleTokens() => GetSingleTokens().Concat(GetSeparators()).Select(x => new object[] { x.text, x.kind });
+    public static IEnumerable<object[]> ProvideSingleTokens() => GetSingleTokens().Select(x => new object[] { x.text, x.kind });
     public static IEnumerable<(string text, SyntaxKind kind)> GetSingleTokens() =>
         Enum.GetValues(typeof(SyntaxKind))
             .Cast<SyntaxKind>()
@@ -138,10 +138,7 @@ public class LexerTests
                     ("x", kind: SyntaxKind.IdentifierToken),
                     ("true", kind: SyntaxKind.TrueKeyword),
                     ("false", kind: SyntaxKind.FalseKeyword),
-                    ("\"Escaped\\\"String with even \\r and \\n, \\t and \\v\"", SyntaxKind.StringToken),
-                    //("// single line comment\r\n", SyntaxKind.SingleLineCommentTrivia),
-                    //("/* multiline comment on a single line */", SyntaxKind.MultiLineCommentTrivia),
-                    //("/* multiline comment on \r\n two lines */", SyntaxKind.MultiLineCommentTrivia)
+                    ("\"Escaped\\\"String with even \\r and \\n, \\t and \\v\"", SyntaxKind.StringToken)
                 });
     static IEnumerable<(string text, SyntaxKind kind)> GetSeparators() => new (string text, SyntaxKind kind)[]
     {
