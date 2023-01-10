@@ -45,6 +45,8 @@ abstract class Repl
             : base(new[] { string.Empty }) { }
     }
 
+    delegate object? LineRenderHandler(IReadOnlyList<string> lines, int lineIndex, object? state);
+
     sealed class SubmissionView
     {
         sealed class UpdateDisposable : IDisposable
@@ -64,7 +66,7 @@ abstract class Repl
             }
         }
 
-        readonly Action<string> lineRenderer;
+        readonly LineRenderHandler lineRenderer;
         readonly int cursorTop;
         int renderedLinesCount, cursorX, cursorY, updatesInProgress;
 
@@ -91,7 +93,7 @@ abstract class Repl
             }
         }
 
-        public SubmissionView(Document submissionDocument, Action<string> lineRenderer)
+        public SubmissionView(Document submissionDocument, LineRenderHandler lineRenderer)
         {
             SubmissionDocument = submissionDocument;
             this.lineRenderer = lineRenderer;
@@ -109,12 +111,13 @@ abstract class Repl
             if (updatesInProgress > 0) return;
             Console.CursorVisible = false;
             Console.SetCursorPosition(0, cursorTop);
+            object? state = null;
             for (int i = 0; i < SubmissionDocument.Count; i++)
             {
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(i == 0 ? "» " : "· ");
                 Console.ResetColor();
-                lineRenderer(SubmissionDocument[i].PadRight(Console.WindowWidth - 2));
+                state = lineRenderer(SubmissionDocument, i, state);
             }
 
             int blankLines = renderedLinesCount - SubmissionDocument.Count;
@@ -263,7 +266,11 @@ abstract class Repl
         }
     }
 
-    protected virtual void RenderLine(string line) => Console.WriteLine(line);
+    protected virtual object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
+    {
+        Console.WriteLine(lines[lineIndex]);
+        return state;
+    }
 
     [MetaCommand("clearHistory", "Clears the input history.")]
     protected void ClearHistory() => history.Clear();

@@ -1,9 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Balu.Symbols;
 using Balu.Syntax;
+using Balu.Text;
 using Balu.Visualization;
 // ReSharper disable UnusedMember.Local
 
@@ -15,6 +18,16 @@ namespace Balu.Interactive;
 
 sealed class BaluRepl : Repl
 {
+    sealed class RenderState
+    {
+        public SourceText Text { get; }
+        public ImmutableArray<SyntaxToken> Tokens { get;}
+        public RenderState(SourceText text, ImmutableArray<SyntaxToken> tokens)
+        {
+            Text = text;
+            Tokens = tokens;
+        }
+    }
     readonly VariableDictionary globals = new();
 
     bool showSyntax, showVars, showProgram;
@@ -120,12 +133,24 @@ sealed class BaluRepl : Repl
         return submissionFolder;
     }
 
-    protected override void RenderLine(string line)
+    protected override object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
     {
-        var tokens = SyntaxTree.ParseTokens(line);
-        foreach (var token in tokens)
+        if (state is not RenderState renderState)
         {
-            Console.ForegroundColor = token.Kind switch
+            var text = string.Join(Environment.NewLine, lines);
+            var sourceText = SourceText.From(text);
+            renderState = new (sourceText, SyntaxTree.ParseTokens(sourceText));
+            state = renderState;
+        }
+
+        var line = renderState.Text.Lines[lineIndex];
+        int width = 0;
+
+        foreach (var token in renderState.Tokens)
+        {
+            if (!line.Span.OverlapsWith(token.Span)) continue;
+
+            var color = token.Kind switch
             {
                 >= SyntaxKind.TrueKeyword and < SyntaxKind.CompilationUnit => ConsoleColor.Blue,
                 SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow,
@@ -135,10 +160,15 @@ sealed class BaluRepl : Repl
                 _ => ConsoleColor.DarkGray
             };
 
-            Console.Write(token.Text);
-            Console.ResetColor();
+            var start = Math.Max(token.Span.Start, line.Span.Start);
+            var end = Math.Min(token.Span.End, line.Span.End);
+            var span = new TextSpan(start, end-start);
+            var text = renderState.Text.ToString(span);
+            width += text.Length;
+            Console.Out.WriteColoredText(text, color);
         }
-
+        Console.Out.Write(new string(' ', Console.WindowWidth-2-width));
+        return state;
     }
 
     [MetaCommand("showSyntax", "Toggles display of the syntax tree.")]

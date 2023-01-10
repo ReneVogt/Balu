@@ -5,7 +5,7 @@ var tt = true
 var ff = false
 
 /* hier mit multiline
- über mehrere Zeilen
+ über mehrere Zeilen*/
 
 //print(string(f && tt))
 println(string(f || tt)) // endline
