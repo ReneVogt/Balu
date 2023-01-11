@@ -75,20 +75,34 @@ sealed class Parser
         if (position < tokens.Count) position++;
         return current;
     }
+    SyntaxNode SkipToken(SyntaxNode lastNode)
+    {
+        var lastToken = lastNode.LastToken;
+        var triviaBuilder = lastToken.TrailingTrivia.ToBuilder();
+        triviaBuilder.AddRange(Current.LeadingTrivia);
+        triviaBuilder.Add(new SyntaxTrivia(syntaxTree, SyntaxKind.SkippedTextTrivia, Current.Text, Current.Span));
+        triviaBuilder.AddRange(Current.TrailingTrivia);
+        var token = new SyntaxToken(syntaxTree, lastToken.Kind, lastToken.Span, lastToken.Text, lastToken.Value, lastToken.LeadingTrivia,
+                                    triviaBuilder.ToImmutable());
+        NextToken();
+        return SyntaxTreeNodeReplacer.Replace(lastNode, lastToken, token);
+    }
     ImmutableArray<MemberSyntax> ParseMembers()
     {
         var members = ImmutableArray.CreateBuilder<MemberSyntax>();
         while (Current.Kind != SyntaxKind.EndOfFileToken)
         {
             var currentToken = Current;
-            members.Add(ParseMember());
-
+            var member = ParseMember();
             // Check if we consumend a token.
             // If not, we need to skip this, because
             // othwrwise we end up in an infinit loop.
             // Error will be reported by the unfinished
             // statement.
-            if (currentToken == Current) NextToken();
+            if (currentToken == Current) 
+                member = (MemberSyntax)SkipToken(member);
+
+            members.Add(member);
         }
 
         return members.ToImmutable();
@@ -139,14 +153,16 @@ sealed class Parser
         while (Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.ClosedBraceToken)
         {
             var currentToken = Current;
-            statementsBuilder.Add(ParseStatement());
-            
+            var statement = ParseStatement();
             // Check if we consumend a token.
             // If not, we need to skip this, because
             // othwrwise we end up in an infinit loop.
             // Error will be reported by the unfinished
             // statement.
-            if (currentToken == Current) NextToken();
+            if (currentToken == Current) 
+                statement = (StatementSyntax)SkipToken(statement);
+            statementsBuilder.Add(statement);
+            
         }
 
         var closed = MatchToken(SyntaxKind.ClosedBraceToken);
@@ -332,6 +348,6 @@ sealed class Parser
             return NextToken();
 
         diagnostics.ReportUnexpectedToken(Current, kind);
-        return new(syntaxTree, kind, Current.Span, string.Empty, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
+        return new(syntaxTree, kind, new(Current.Span.Start, 0), string.Empty, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
     }
 }

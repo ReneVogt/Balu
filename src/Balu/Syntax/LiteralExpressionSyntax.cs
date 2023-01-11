@@ -27,6 +27,6 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
     internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
         SyntaxToken literal = (SyntaxToken)rewriter.Visit(LiteralToken);
-        return literal == LiteralToken ? this : throw new NotImplementedException();
+        return literal == LiteralToken ? this : new(SyntaxTree, literal);
     }
 }

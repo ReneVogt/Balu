@@ -23,6 +23,6 @@ public sealed class NameExpressionSyntax : ExpressionSyntax
     internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
         SyntaxToken identifierToken = (SyntaxToken)rewriter.Visit(IdentifierrToken);
-        return identifierToken == IdentifierrToken  ? this : throw new NotImplementedException();
+        return identifierToken == IdentifierrToken ? this : new(SyntaxTree, identifierToken);
     }
 }

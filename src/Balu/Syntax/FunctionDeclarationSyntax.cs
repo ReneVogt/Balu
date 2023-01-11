@@ -55,6 +55,6 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
         return functionKeyword == FunctionKeyword && identifier == Identifier && openParenthesis == OpenParenthesis && parameters == Parameters &&
                closedParenthesis == ClosedParenthesis && TypeClause == type && Body == body
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
     }
 }

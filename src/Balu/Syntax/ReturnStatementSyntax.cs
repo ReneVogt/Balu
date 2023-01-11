@@ -29,6 +29,6 @@ public sealed class ReturnStatementSyntax : StatementSyntax
     {
         var returnKeyword = (SyntaxToken)rewriter.Visit(ReturnKeyword);
         var expression = Expression is null ? null : (ExpressionSyntax)rewriter.Visit(Expression);
-        return returnKeyword == ReturnKeyword && expression == Expression ? this : throw new NotImplementedException();
+        return returnKeyword == ReturnKeyword && expression == Expression ? this : new(SyntaxTree, returnKeyword, expression);
     }
 }

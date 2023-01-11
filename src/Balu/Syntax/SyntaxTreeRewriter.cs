@@ -2,7 +2,7 @@
 
 namespace Balu.Syntax;
 
-public abstract class SyntaxTreeRewriter
+abstract class SyntaxTreeRewriter
 {
     public virtual SyntaxNode Visit(SyntaxNode node)
     {

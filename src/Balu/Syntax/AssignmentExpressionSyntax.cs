@@ -32,6 +32,8 @@ public sealed class AssignmentExpressionSyntax : ExpressionSyntax
         SyntaxToken identifierToken = (SyntaxToken)rewriter.Visit(IdentifierToken);
         SyntaxToken equalsToken = (SyntaxToken)rewriter.Visit(EqualsToken);
         ExpressionSyntax expression = (ExpressionSyntax)rewriter.Visit(Expression);
-        return identifierToken == IdentifierToken && equalsToken == EqualsToken && expression == Expression ? this : throw new NotImplementedException();
+        return identifierToken == IdentifierToken && equalsToken == EqualsToken && expression == Expression
+                   ? this
+                   : new(SyntaxTree, identifierToken, equalsToken, expression);
     }
 }

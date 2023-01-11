@@ -5,7 +5,7 @@ using Balu.Syntax;
 
 namespace Balu.Visualization;
 
-public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
+public sealed class SyntaxTreePrinter : SyntaxTreeVisitor
 {
     readonly TextWriter writer;
     string indent = string.Empty;
@@ -13,7 +13,7 @@ public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
 
     SyntaxTreePrinter(TextWriter writer) => this.writer = writer;
 
-    public override SyntaxNode Visit(SyntaxNode node)
+    public override void Visit(SyntaxNode node)
     {
         var token = node as SyntaxToken;
 
@@ -58,7 +58,6 @@ public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
 
         last = lastLast;
         indent = lastIndnet;
-        return node;
     }
 
     public static void Print(SyntaxNode syntax, TextWriter textWriter) => new SyntaxTreePrinter(textWriter).Visit(syntax);

@@ -18,6 +18,6 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
     internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
         var expression = (ExpressionSyntax)rewriter.Visit(Expression);
-        return expression == Expression ? this : throw new NotImplementedException();
+        return expression == Expression ? this : new(SyntaxTree, expression);
     }
 }

@@ -36,8 +36,8 @@ public sealed class DoWhileStatementSyntax : StatementSyntax
         var statement = (StatementSyntax)rewriter.Visit(Body);
         var whileKeyword = (SyntaxToken)rewriter.Visit(WhileKeyword);
         var condition = (ExpressionSyntax)rewriter.Visit(Condition);
-        return doKeyword == DoKeyword&& statement == Body && whileKeyword == WhileKeyword && condition == Condition
+        return doKeyword == DoKeyword && statement == Body && whileKeyword == WhileKeyword && condition == Condition
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, doKeyword, statement, whileKeyword, condition);
     }
 }

@@ -33,7 +33,7 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
         SyntaxToken open = (SyntaxToken)rewriter.Visit(OpenParenthesisToken);
         ExpressionSyntax expr = (ExpressionSyntax)rewriter.Visit(Expression);
         SyntaxToken close = (SyntaxToken)rewriter.Visit(ClosedParenthesisToken);
-        return open == OpenParenthesisToken && expr == Expression && close == ClosedParenthesisToken ? this : throw new NotImplementedException();
+        return open == OpenParenthesisToken && expr == Expression && close == ClosedParenthesisToken ? this : new(SyntaxTree, open, expr, close);
     }
 
 }

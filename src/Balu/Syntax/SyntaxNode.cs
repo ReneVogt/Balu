@@ -38,7 +38,7 @@ public abstract class SyntaxNode
     }
 
     internal abstract SyntaxNode Rewrite(SyntaxTreeRewriter rewriter);
-    protected static ImmutableArray<T> RewriteList<T>(SyntaxTreeRewriter rewriter, ImmutableArray<T> nodes) where T : SyntaxNode
+    private protected static ImmutableArray<T> RewriteList<T>(SyntaxTreeRewriter rewriter, ImmutableArray<T> nodes) where T : SyntaxNode
     {
         _ = rewriter ?? throw new ArgumentNullException(nameof(rewriter));
 
@@ -57,7 +57,7 @@ public abstract class SyntaxNode
 
         return resultBuilder?.ToImmutable() ?? nodes;
     }
-    protected static SeparatedSyntaxList<T> RewriteList<T>(SyntaxTreeRewriter rewriter, SeparatedSyntaxList<T> list) where T : SyntaxNode
+    private protected static SeparatedSyntaxList<T> RewriteList<T>(SyntaxTreeRewriter rewriter, SeparatedSyntaxList<T> list) where T : SyntaxNode
     {
         _ = rewriter ?? throw new ArgumentNullException(nameof(rewriter));
         _ = list ?? throw new ArgumentNullException(nameof(list));

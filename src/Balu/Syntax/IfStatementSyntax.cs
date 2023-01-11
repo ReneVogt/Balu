@@ -37,6 +37,6 @@ public sealed class IfStatementSyntax : StatementSyntax
         var elseClause = ElseClause is {} ? (ElseClauseSyntax)rewriter.Visit(ElseClause) : null;
         return ifKeyword == IfKeyword && condition == Condition && thenStatement == ThenStatement && elseClause == ElseClause
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, ifKeyword, condition, thenStatement, elseClause);
     }
 }

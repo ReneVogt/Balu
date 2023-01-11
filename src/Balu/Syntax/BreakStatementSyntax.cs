@@ -21,6 +21,6 @@ public sealed class BreakStatementSyntax : StatementSyntax
     internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
         var breakKeyword = (SyntaxToken)rewriter.Visit(BreakKeyword);
-        return breakKeyword == BreakKeyword ? this : throw new NotImplementedException();
+        return breakKeyword == BreakKeyword ? this : new(SyntaxTree, breakKeyword);
     }
 }

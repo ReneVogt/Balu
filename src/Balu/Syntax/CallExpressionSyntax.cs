@@ -42,7 +42,7 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
         return identifier == Identifier && open == OpenParenthesis && arguments == Arguments &&
                close == ClosedParenthesis
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, identifier, open, arguments, close);
     }
 
     public override string ToString() => $"{Kind}{Span}: {Identifier.Text}";

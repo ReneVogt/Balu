@@ -42,6 +42,6 @@ public sealed class VariableDeclarationStatementSyntax : StatementSyntax
         var typeClause = TypeClause is null ? null : (TypeClauseSyntax)rewriter.Visit(TypeClause);
         return keyword == KeywordToken && identifier == IdentifierToken && equals == EqualsToken && expression == Expression && typeClause == TypeClause
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, keyword, identifier, equals, expression, typeClause);
     }
 }

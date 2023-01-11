@@ -32,6 +32,6 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
         ExpressionSyntax left = (ExpressionSyntax)rewriter.Visit(Left);
         SyntaxToken operatorToken = (SyntaxToken)rewriter.Visit(OperatorToken);
         ExpressionSyntax right = (ExpressionSyntax)rewriter.Visit(Right);
-        return left == Left && operatorToken == OperatorToken && right == Right ? this : throw new NotImplementedException();
+        return left == Left && operatorToken == OperatorToken && right == Right ? this : new(SyntaxTree, left, operatorToken, right);
     }
 }

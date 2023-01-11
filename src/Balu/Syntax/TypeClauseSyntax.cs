@@ -27,6 +27,6 @@ public sealed class TypeClauseSyntax : SyntaxNode
     {
         var colon = (SyntaxToken)rewriter.Visit(ColonToken);
         var identifier = (SyntaxToken)rewriter.Visit(Identifier);
-        return colon == ColonToken && identifier == Identifier ? this : throw new NotImplementedException();
+        return colon == ColonToken && identifier == Identifier ? this : new(SyntaxTree, colon, identifier);
     }
 }

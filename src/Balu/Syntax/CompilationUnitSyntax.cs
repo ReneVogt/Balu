@@ -30,6 +30,6 @@ public sealed class CompilationUnitSyntax : SyntaxNode
     {
         var members = RewriteList(rewriter, Members);
         var eof = (SyntaxToken)rewriter.Visit(EndOfFileToken);
-        return members == Members && eof == EndOfFileToken ? this : throw new NotImplementedException();
+        return members == Members && eof == EndOfFileToken ? this : new(SyntaxTree, members, eof);
     }
 }

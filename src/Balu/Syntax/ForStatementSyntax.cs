@@ -56,6 +56,6 @@ public sealed class ForStatementSyntax : StatementSyntax
                upperBound == UpperBound &&
                body == Body
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
     }
 }

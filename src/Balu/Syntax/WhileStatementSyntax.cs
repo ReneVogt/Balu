@@ -32,6 +32,6 @@ public sealed class WhileStatementSyntax : StatementSyntax
         var statement = (StatementSyntax)rewriter.Visit(Body);
         return whileKeyword == WhileKeyword && condition == Condition && statement == Body
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, whileKeyword, condition, statement);
     }
 }

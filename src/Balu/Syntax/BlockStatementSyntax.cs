@@ -36,6 +36,6 @@ public sealed class BlockStatementSyntax : StatementSyntax
         var closedBrace = (SyntaxToken)rewriter.Visit(ClosedBraceToken);
         return openBrace == OpenBraceToken && transformed == Statements && closedBrace == ClosedBraceToken
                    ? this
-                   : throw new NotImplementedException();
+                   : new(SyntaxTree, openBrace, transformed, closedBrace);
     }
 }

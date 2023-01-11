@@ -21,6 +21,6 @@ public sealed class GlobalStatementSyntax : MemberSyntax
     internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
         var statement = (StatementSyntax)rewriter.Visit(Statement);
-        return statement == Statement ? this : throw new NotImplementedException();
+        return statement == Statement ? this : new (SyntaxTree, statement);
     }
 }

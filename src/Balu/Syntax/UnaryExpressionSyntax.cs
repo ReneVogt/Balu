@@ -26,6 +26,6 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
     {
         SyntaxToken operatorToken = (SyntaxToken)rewriter.Visit(OperatorToken);
         ExpressionSyntax expression = (ExpressionSyntax)rewriter.Visit(Expression);
-        return operatorToken == OperatorToken && expression == Expression ? this : throw new NotImplementedException();
+        return operatorToken == OperatorToken && expression == Expression ? this : new(SyntaxTree, operatorToken, expression);
     }
 }

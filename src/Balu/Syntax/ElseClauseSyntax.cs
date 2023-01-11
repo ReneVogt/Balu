@@ -28,6 +28,6 @@ public sealed class ElseClauseSyntax : SyntaxNode
     {
         var keyword = (SyntaxToken)rewriter.Visit(ElseKeyword);
         var statement = (StatementSyntax)rewriter.Visit(Statement);
-        return keyword == ElseKeyword && statement == Statement ? this : throw new NotImplementedException();
+        return keyword == ElseKeyword && statement == Statement ? this : new(SyntaxTree, keyword, statement);
     }
 }

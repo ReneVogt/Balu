@@ -27,6 +27,6 @@ public sealed class ParameterSyntax : SyntaxNode
     {
         var identifier = (SyntaxToken)rewriter.Visit(Identifier);
         var type = (TypeClauseSyntax)rewriter.Visit(TypeClause);
-        return identifier == Identifier && type == TypeClause ? this : throw new NotImplementedException();
+        return identifier == Identifier && type == TypeClause ? this : new(SyntaxTree, identifier, type);
     }
 }

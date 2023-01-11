@@ -21,6 +21,6 @@ public sealed class ContinueStatementSyntax : StatementSyntax
     internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
     {
         var continueKeyword = (SyntaxToken)rewriter.Visit(ContinueKeyword);
-        return continueKeyword == ContinueKeyword ? this : throw new NotImplementedException();
+        return continueKeyword == ContinueKeyword ? this : new(SyntaxTree, continueKeyword);
     }
 }
