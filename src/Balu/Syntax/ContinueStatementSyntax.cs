@@ -18,9 +18,4 @@ public sealed class ContinueStatementSyntax : StatementSyntax
     public ContinueStatementSyntax(SyntaxTree syntaxTree, SyntaxToken continueKeyword)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => ContinueKeyword = continueKeyword ?? throw new ArgumentNullException(nameof(continueKeyword));
 
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var continueKeyword = (SyntaxToken)rewriter.Visit(ContinueKeyword);
-        return continueKeyword == ContinueKeyword ? this : new(SyntaxTree, continueKeyword);
-    }
 }

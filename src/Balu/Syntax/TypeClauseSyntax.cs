@@ -22,11 +22,4 @@ public sealed class TypeClauseSyntax : SyntaxNode
         ColonToken = colonToken ?? throw new ArgumentNullException(nameof(colonToken));
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var colon = (SyntaxToken)rewriter.Visit(ColonToken);
-        var identifier = (SyntaxToken)rewriter.Visit(Identifier);
-        return colon == ColonToken && identifier == Identifier ? this : new(SyntaxTree, colon, identifier);
-    }
 }

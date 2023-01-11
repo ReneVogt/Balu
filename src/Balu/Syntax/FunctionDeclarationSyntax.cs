@@ -42,19 +42,4 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
         Body = body ?? throw new ArgumentNullException(nameof(body));
     }
 
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var functionKeyword = (SyntaxToken)rewriter.Visit(FunctionKeyword);
-        var identifier = (SyntaxToken)rewriter.Visit(Identifier);
-        var openParenthesis = (SyntaxToken)rewriter.Visit(OpenParenthesis);
-        var parameters = RewriteList(rewriter, Parameters);
-        var closedParenthesis = (SyntaxToken)rewriter.Visit(ClosedParenthesis);
-        var type = TypeClause is null ? null :  (TypeClauseSyntax)rewriter.Visit(TypeClause);
-        var body = (BlockStatementSyntax)rewriter.Visit(Body);
-
-        return functionKeyword == FunctionKeyword && identifier == Identifier && openParenthesis == OpenParenthesis && parameters == Parameters &&
-               closedParenthesis == ClosedParenthesis && TypeClause == type && Body == body
-                   ? this
-                   : new(SyntaxTree, functionKeyword, identifier, openParenthesis, parameters, closedParenthesis, type, body);
-    }
 }

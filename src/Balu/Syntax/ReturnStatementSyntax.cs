@@ -24,11 +24,4 @@ public sealed class ReturnStatementSyntax : StatementSyntax
         ReturnKeyword = returnKeyword ?? throw new ArgumentNullException(nameof(returnKeyword));
         Expression = expression;
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var returnKeyword = (SyntaxToken)rewriter.Visit(ReturnKeyword);
-        var expression = Expression is null ? null : (ExpressionSyntax)rewriter.Visit(Expression);
-        return returnKeyword == ReturnKeyword && expression == Expression ? this : new(SyntaxTree, returnKeyword, expression);
-    }
 }

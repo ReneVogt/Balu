@@ -28,15 +28,4 @@ public sealed class IfStatementSyntax : StatementSyntax
         ThenStatement = thenStatement ?? throw new ArgumentNullException(nameof(thenStatement));
         ElseClause = elseClause;
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var ifKeyword = (SyntaxToken)rewriter.Visit(IfKeyword);
-        var condition = (ExpressionSyntax)rewriter.Visit(Condition);
-        var thenStatement = (StatementSyntax)rewriter.Visit(ThenStatement);
-        var elseClause = ElseClause is {} ? (ElseClauseSyntax)rewriter.Visit(ElseClause) : null;
-        return ifKeyword == IfKeyword && condition == Condition && thenStatement == ThenStatement && elseClause == ElseClause
-                   ? this
-                   : new(SyntaxTree, ifKeyword, condition, thenStatement, elseClause);
-    }
 }

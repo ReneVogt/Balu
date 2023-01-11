@@ -22,10 +22,4 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
         OperatorToken = operatorToken ?? throw new ArgumentNullException(nameof(operatorToken));
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
     }
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        SyntaxToken operatorToken = (SyntaxToken)rewriter.Visit(OperatorToken);
-        ExpressionSyntax expression = (ExpressionSyntax)rewriter.Visit(Expression);
-        return operatorToken == OperatorToken && expression == Expression ? this : new(SyntaxTree, operatorToken, expression);
-    }
 }

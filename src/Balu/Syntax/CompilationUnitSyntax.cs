@@ -25,11 +25,4 @@ public sealed class CompilationUnitSyntax : SyntaxNode
         Members = members;
         EndOfFileToken = endOfFileToken ?? throw new ArgumentNullException(nameof(endOfFileToken));
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var members = RewriteList(rewriter, Members);
-        var eof = (SyntaxToken)rewriter.Visit(EndOfFileToken);
-        return members == Members && eof == EndOfFileToken ? this : new(SyntaxTree, members, eof);
-    }
 }

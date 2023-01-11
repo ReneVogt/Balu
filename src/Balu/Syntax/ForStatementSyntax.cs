@@ -39,23 +39,4 @@ public sealed class ForStatementSyntax : StatementSyntax
         UpperBound = upperBound ?? throw new ArgumentNullException(nameof(upperBound));
         Body = body ?? throw new ArgumentNullException(nameof(body));
     }
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var forKeyword = (SyntaxToken)rewriter.Visit(ForKeyword);
-        var identifier = (SyntaxToken)rewriter.Visit(IdentifierToken);
-        var equals = (SyntaxToken)rewriter.Visit(EqualsToken);
-        var lowerBound = (ExpressionSyntax)rewriter.Visit(LowerBound);
-        var toKeyWord = (SyntaxToken)rewriter.Visit(ToKeyword);
-        var upperBound = (ExpressionSyntax)rewriter.Visit(UpperBound);
-        var body = (StatementSyntax)rewriter.Visit(Body);
-        return forKeyword == ForKeyword &&
-               identifier == IdentifierToken &&
-               equals == EqualsToken &&
-               lowerBound == LowerBound &&
-               toKeyWord == ToKeyword &&
-               upperBound == UpperBound &&
-               body == Body
-                   ? this
-                   : new(SyntaxTree, forKeyword, identifier, equals, lowerBound, toKeyWord, upperBound, body);
-    }
 }

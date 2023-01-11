@@ -23,10 +23,4 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
         LiteralToken = literalToken ?? throw new ArgumentNullException(nameof(literalToken));
         Value = value;
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        SyntaxToken literal = (SyntaxToken)rewriter.Visit(LiteralToken);
-        return literal == LiteralToken ? this : new(SyntaxTree, literal);
-    }
 }

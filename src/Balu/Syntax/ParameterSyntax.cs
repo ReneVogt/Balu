@@ -22,11 +22,4 @@ public sealed class ParameterSyntax : SyntaxNode
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier)) ;
         TypeClause = type ?? throw new ArgumentNullException(nameof(type));
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var identifier = (SyntaxToken)rewriter.Visit(Identifier);
-        var type = (TypeClauseSyntax)rewriter.Visit(TypeClause);
-        return identifier == Identifier && type == TypeClause ? this : new(SyntaxTree, identifier, type);
-    }
 }

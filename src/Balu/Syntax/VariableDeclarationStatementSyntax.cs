@@ -32,16 +32,4 @@ public sealed class VariableDeclarationStatementSyntax : StatementSyntax
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         TypeClause = typeClause;
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var keyword = (SyntaxToken)rewriter.Visit(KeywordToken);
-        var identifier = (SyntaxToken)rewriter.Visit(IdentifierToken);
-        var equals = (SyntaxToken)rewriter.Visit(EqualsToken);
-        var expression = (ExpressionSyntax)rewriter.Visit(Expression);
-        var typeClause = TypeClause is null ? null : (TypeClauseSyntax)rewriter.Visit(TypeClause);
-        return keyword == KeywordToken && identifier == IdentifierToken && equals == EqualsToken && expression == Expression && typeClause == TypeClause
-                   ? this
-                   : new(SyntaxTree, keyword, identifier, equals, expression, typeClause);
-    }
 }

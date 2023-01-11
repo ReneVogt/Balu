@@ -27,13 +27,4 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));
         ClosedParenthesisToken = closedParenthesisToken ?? throw new ArgumentNullException(nameof(closedParenthesisToken));
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        SyntaxToken open = (SyntaxToken)rewriter.Visit(OpenParenthesisToken);
-        ExpressionSyntax expr = (ExpressionSyntax)rewriter.Visit(Expression);
-        SyntaxToken close = (SyntaxToken)rewriter.Visit(ClosedParenthesisToken);
-        return open == OpenParenthesisToken && expr == Expression && close == ClosedParenthesisToken ? this : new(SyntaxTree, open, expr, close);
-    }
-
 }

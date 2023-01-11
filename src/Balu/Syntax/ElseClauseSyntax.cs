@@ -23,11 +23,4 @@ public sealed class ElseClauseSyntax : SyntaxNode
         ElseKeyword = elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword));
         Statement = statement ?? throw new ArgumentNullException(nameof(statement));
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var keyword = (SyntaxToken)rewriter.Visit(ElseKeyword);
-        var statement = (StatementSyntax)rewriter.Visit(Statement);
-        return keyword == ElseKeyword && statement == Statement ? this : new(SyntaxTree, keyword, statement);
-    }
 }

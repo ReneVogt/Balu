@@ -26,12 +26,4 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
         OperatorToken = operatorToken ?? throw new ArgumentNullException(nameof(operatorToken));
         Right = right ?? throw new ArgumentNullException(nameof(right));
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        ExpressionSyntax left = (ExpressionSyntax)rewriter.Visit(Left);
-        SyntaxToken operatorToken = (SyntaxToken)rewriter.Visit(OperatorToken);
-        ExpressionSyntax right = (ExpressionSyntax)rewriter.Visit(Right);
-        return left == Left && operatorToken == OperatorToken && right == Right ? this : new(SyntaxTree, left, operatorToken, right);
-    }
 }

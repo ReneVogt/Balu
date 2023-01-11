@@ -14,10 +14,4 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
 
     public ExpressionStatementSyntax(SyntaxTree syntaxTree, ExpressionSyntax? expression)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => Expression = expression ?? throw new ArgumentNullException(nameof(expression));
-    
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var expression = (ExpressionSyntax)rewriter.Visit(Expression);
-        return expression == Expression ? this : new(SyntaxTree, expression);
-    }
 }

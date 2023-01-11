@@ -38,8 +38,6 @@ public sealed class SyntaxToken : SyntaxNode
         FullSpan = new(start, end - start);
     }
     
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter) => this;
-
     public override string ToString() => $"{Kind}{Span} \"{Text}\" ({(Value is string v ? v.EscapeString() : Value?.ToString())})";
 
     public static SyntaxToken EndOfFile(SyntaxTree syntaxTree, TextSpan span) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.EndOfFileToken, span, "\0", null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);

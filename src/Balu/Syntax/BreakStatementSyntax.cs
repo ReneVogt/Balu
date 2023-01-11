@@ -17,10 +17,4 @@ public sealed class BreakStatementSyntax : StatementSyntax
 
     public BreakStatementSyntax(SyntaxTree syntaxTree, SyntaxToken breakKeyword)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => BreakKeyword = breakKeyword ?? throw new ArgumentNullException(nameof(breakKeyword));
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var breakKeyword = (SyntaxToken)rewriter.Visit(BreakKeyword);
-        return breakKeyword == BreakKeyword ? this : new(SyntaxTree, breakKeyword);
-    }
 }

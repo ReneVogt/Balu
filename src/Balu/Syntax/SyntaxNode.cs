@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using Balu.Text;
 
@@ -35,46 +34,6 @@ public abstract class SyntaxNode
             var last = children.Last();
             return first.FullSpan with { Length = last.FullSpan.End - first.FullSpan.Start };
         });
-    }
-
-    internal abstract SyntaxNode Rewrite(SyntaxTreeRewriter rewriter);
-    private protected static ImmutableArray<T> RewriteList<T>(SyntaxTreeRewriter rewriter, ImmutableArray<T> nodes) where T : SyntaxNode
-    {
-        _ = rewriter ?? throw new ArgumentNullException(nameof(rewriter));
-
-        ImmutableArray<T>.Builder? resultBuilder = null;
-        for (int i = 0; i < nodes.Length; i++)
-        {
-            var node = (T)rewriter.Visit(nodes[i]);
-            if (node != nodes[i] && resultBuilder is null)
-            {
-                resultBuilder = ImmutableArray.CreateBuilder<T>(nodes.Length);
-                resultBuilder.AddRange(nodes.Take(i));
-            }
-
-            resultBuilder?.Add(node);
-        }
-
-        return resultBuilder?.ToImmutable() ?? nodes;
-    }
-    private protected static SeparatedSyntaxList<T> RewriteList<T>(SyntaxTreeRewriter rewriter, SeparatedSyntaxList<T> list) where T : SyntaxNode
-    {
-        _ = rewriter ?? throw new ArgumentNullException(nameof(rewriter));
-        _ = list ?? throw new ArgumentNullException(nameof(list));
-
-        ImmutableArray<SyntaxNode>.Builder? resultBuilder = null;
-        for (int i = 0; i < list.ElementsWithSeparators.Length; i++)
-        {
-            var node = (T)rewriter.Visit(list.ElementsWithSeparators[i]);
-            if (node != list.ElementsWithSeparators[i] && resultBuilder is null)
-            {
-                resultBuilder = ImmutableArray.CreateBuilder<SyntaxNode>(list.ElementsWithSeparators.Length);
-                resultBuilder.AddRange(list.ElementsWithSeparators.Take(i));
-            }
-            resultBuilder?.Add(node);
-        }
-
-        return resultBuilder is null ? list : new (resultBuilder.ToImmutable());
     }
 
     internal virtual void Accept(SyntaxTreeVisitor visitor)

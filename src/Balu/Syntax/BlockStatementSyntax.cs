@@ -27,15 +27,4 @@ public sealed class BlockStatementSyntax : StatementSyntax
         Statements = statements;
         ClosedBraceToken = closedBraceToken ?? throw new ArgumentNullException(nameof(closedBraceToken));
     }
-
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var openBrace = (SyntaxToken)rewriter.Visit(OpenBraceToken);
-        var transformed = RewriteList(rewriter, Statements);
-        var closedBrace = (SyntaxToken)rewriter.Visit(ClosedBraceToken);
-        return openBrace == OpenBraceToken && transformed == Statements && closedBrace == ClosedBraceToken
-                   ? this
-                   : new(SyntaxTree, openBrace, transformed, closedBrace);
-    }
 }

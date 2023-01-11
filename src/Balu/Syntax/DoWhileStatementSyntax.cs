@@ -30,14 +30,4 @@ public sealed class DoWhileStatementSyntax : StatementSyntax
         WhileKeyword = whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword));
         Condition = condition ?? throw new ArgumentNullException(nameof(condition));
     }
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        var doKeyword = (SyntaxToken)rewriter.Visit(DoKeyword);
-        var statement = (StatementSyntax)rewriter.Visit(Body);
-        var whileKeyword = (SyntaxToken)rewriter.Visit(WhileKeyword);
-        var condition = (ExpressionSyntax)rewriter.Visit(Condition);
-        return doKeyword == DoKeyword && statement == Body && whileKeyword == WhileKeyword && condition == Condition
-                   ? this
-                   : new(SyntaxTree, doKeyword, statement, whileKeyword, condition);
-    }
 }

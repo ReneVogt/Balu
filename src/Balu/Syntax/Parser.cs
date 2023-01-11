@@ -75,17 +75,19 @@ sealed class Parser
         if (position < tokens.Count) position++;
         return current;
     }
-    SyntaxNode SkipToken(SyntaxNode lastNode)
+    void SkipToken()
     {
-        var lastToken = lastNode.LastToken;
-        var triviaBuilder = lastToken.TrailingTrivia.ToBuilder();
-        triviaBuilder.AddRange(Current.LeadingTrivia);
-        triviaBuilder.Add(new (syntaxTree, SyntaxKind.SkippedTextTrivia, Current.Text, Current.Span));
-        triviaBuilder.AddRange(Current.TrailingTrivia);
-        var token = new SyntaxToken(syntaxTree, lastToken.Kind, lastToken.Span, lastToken.Text, lastToken.Value, lastToken.LeadingTrivia,
-                                    triviaBuilder.ToImmutable());
+        var skipped = Current;
         NextToken();
-        return SyntaxTreeNodeReplacer.Replace(lastNode, lastToken, token);
+        var triviaBuilder = Current.LeadingTrivia.ToBuilder();
+        int index = 0;
+        foreach (var t in skipped.LeadingTrivia)
+            triviaBuilder.Insert(index++, t);
+        triviaBuilder.Insert(index++, new (syntaxTree, SyntaxKind.SkippedTextTrivia, skipped.Text, skipped.Span));
+        foreach (var t in skipped.TrailingTrivia)
+            triviaBuilder.Insert(index++, t);
+        tokens[position] = new(syntaxTree, Current.Kind, Current.Span, Current.Text, Current.Value, triviaBuilder.ToImmutable(),
+                               Current.TrailingTrivia);
     }
     ImmutableArray<MemberSyntax> ParseMembers()
     {
@@ -93,16 +95,14 @@ sealed class Parser
         while (Current.Kind != SyntaxKind.EndOfFileToken)
         {
             var currentToken = Current;
-            var member = ParseMember();
+            members.Add(ParseMember());
             // Check if we consumend a token.
             // If not, we need to skip this, because
             // othwrwise we end up in an infinit loop.
             // Error will be reported by the unfinished
             // statement.
             if (currentToken == Current) 
-                member = (MemberSyntax)SkipToken(member);
-
-            members.Add(member);
+                SkipToken();
         }
 
         return members.ToImmutable();
@@ -153,16 +153,15 @@ sealed class Parser
         while (Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.ClosedBraceToken)
         {
             var currentToken = Current;
-            var statement = ParseStatement();
+            statementsBuilder.Add(ParseStatement());
+
             // Check if we consumend a token.
             // If not, we need to skip this, because
             // othwrwise we end up in an infinit loop.
             // Error will be reported by the unfinished
             // statement.
             if (currentToken == Current) 
-                statement = (StatementSyntax)SkipToken(statement);
-            statementsBuilder.Add(statement);
-            
+                SkipToken();
         }
 
         var closed = MatchToken(SyntaxKind.ClosedBraceToken);

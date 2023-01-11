@@ -19,10 +19,4 @@ public sealed class NameExpressionSyntax : ExpressionSyntax
     { 
         IdentifierrToken = identifierrToken ?? throw new ArgumentNullException(nameof(identifierrToken));
     }
-
-    internal override SyntaxNode Rewrite(SyntaxTreeRewriter rewriter)
-    {
-        SyntaxToken identifierToken = (SyntaxToken)rewriter.Visit(IdentifierrToken);
-        return identifierToken == IdentifierrToken ? this : new(SyntaxTree, identifierToken);
-    }
 }
