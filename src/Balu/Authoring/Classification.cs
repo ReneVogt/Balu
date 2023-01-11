@@ -8,5 +8,6 @@ public enum Classification
     Identifier,
     Number,
     String,
-    Comment
+    Comment,
+    Bad
 }

@@ -138,6 +138,7 @@ sealed class BaluRepl : Repl
                 Classification.Number => ConsoleColor.Cyan,
                 Classification.String => ConsoleColor.Magenta,
                                          Classification.Comment => ConsoleColor.Green,
+                Classification.Bad => ConsoleColor.Red,
                 _ => ConsoleColor.DarkGray
             };
 

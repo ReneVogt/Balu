@@ -49,6 +49,7 @@ public static class Classifier
                                           SyntaxKind.IdentifierToken => Classification.Identifier,
                                           SyntaxKind.NumberToken => Classification.Number,
                                           SyntaxKind.StringToken => Classification.String,
+                                          SyntaxKind.BadToken or SyntaxKind.SkippedTextTrivia => Classification.Bad,
                                           _ => Classification.Text
                                       };
 
