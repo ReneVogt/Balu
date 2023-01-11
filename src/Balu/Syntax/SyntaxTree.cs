@@ -14,7 +14,7 @@ public sealed class SyntaxTree
     public ImmutableArray<Diagnostic> Diagnostics { get; }
     public SourceText Text { get; }
 
-    public bool IsLastTokenMissing => Root.Members.LastOrDefault()?.LastToken.IsMissing ?? false;
+    public bool IsLastTokenMissing => Root.Members.LastOrDefault()?.LastToken.IsMissing ?? true;
 
     SyntaxTree(SourceText text, ParseHandler parser)
     {
