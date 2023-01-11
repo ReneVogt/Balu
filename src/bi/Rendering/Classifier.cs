@@ -38,6 +38,7 @@ static class Classifier
 
     static void AddClassifiedSpan(SyntaxKind kind, TextSpan elementSpan, TextSpan span, ImmutableArray<ClassifiedSpan>.Builder resultBuilder)
     {
+        if (!elementSpan.OverlapsWith(span)) return;
         var classififcation = kind.IsKeyword()
                                   ? Classification.Keyword
                                   : kind.IsComment()
