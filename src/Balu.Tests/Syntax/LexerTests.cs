@@ -149,7 +149,9 @@ public class LexerTests
         (" ", kind: SyntaxKind.WhiteSpaceTrivia),
         ("  ", kind: SyntaxKind.WhiteSpaceTrivia),
         ("\r\n ", kind: SyntaxKind.WhiteSpaceTrivia),
-        ("\t\v", kind: SyntaxKind.WhiteSpaceTrivia)
+        ("\t\v", kind: SyntaxKind.WhiteSpaceTrivia),
+        ("// single \r\n", kind: SyntaxKind.SingleLineCommentTrivia),
+        ("/* multi\r\nline*/", kind: SyntaxKind.MultiLineCommentTrivia)
     };
 
     public static IEnumerable<object[]> ProvideTokenPairs() => from left in GetSingleTokens()
@@ -183,6 +185,11 @@ public class LexerTests
     public static IEnumerable<object[]> ProvideSeparatedTokenPairs() => from left in GetSingleTokens()
                                                                         from right in GetSingleTokens()
                                                                         from separator in GetSeparators()
+                                                                        where (left.kind, separator.kind, right.kind) switch
+                                                                        {
+                                                                            (SyntaxKind.SlashToken, SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia, _) => false,
+                                                                            _ => true
+                                                                        }
                                                                         select new object[]
                                                                         {
                                                                             left.text, left.kind, separator.text, separator.kind, right.text,

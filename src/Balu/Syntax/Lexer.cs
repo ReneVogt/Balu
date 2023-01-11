@@ -143,8 +143,7 @@ sealed class Lexer
             _ => SyntaxKind.BadTokenTrivia
         };
     }
-
-
+    
     char Peek(int offset)
     {
         var index = position + offset;
