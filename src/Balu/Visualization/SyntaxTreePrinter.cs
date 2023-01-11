@@ -8,11 +8,10 @@ namespace Balu.Visualization;
 public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
 {
     readonly TextWriter writer;
-    readonly bool console;
     string indent = string.Empty;
     bool last = true;
 
-    SyntaxTreePrinter(TextWriter writer) => (this.writer, console) = (writer, writer == Console.Out);
+    SyntaxTreePrinter(TextWriter writer) => this.writer = writer;
 
     public override SyntaxNode Visit(SyntaxNode node)
     {
@@ -23,20 +22,14 @@ public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
             foreach (var trivia in token.LeadingTrivia)
             {
                 writer.Write(indent);
-                if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
-                writer.Write(TreeTexts.Leaf);
-                writer.Write($"L: {trivia.Kind}");
-                if (console) Console.ResetColor();
+                writer.WriteColoredText(TreeTexts.Leaf + $"L: {trivia.Kind}", ConsoleColor.DarkGray);
                 writer.WriteLine();
             }
         }
 
         writer.Write(indent);
-        if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
-        writer.Write(last && (token is null || token.TrailingTrivia.Length == 0) ? TreeTexts.LastLeaf : TreeTexts.Leaf);
-        if (console) Console.ForegroundColor = node is SyntaxToken ? ConsoleColor.Blue : ConsoleColor.Cyan;
-        writer.Write(node);
-        if (console) Console.ResetColor();
+        writer.WriteColoredText(last && (token is null || token.TrailingTrivia.Length == 0) ? TreeTexts.LastLeaf : TreeTexts.Leaf, ConsoleColor.DarkGray);
+        writer.WriteColoredText(node.ToString(), node is SyntaxToken ? ConsoleColor.Blue : ConsoleColor.Cyan);
         writer.WriteLine();
 
         if (token is not null)
@@ -44,10 +37,7 @@ public sealed class SyntaxTreePrinter : SyntaxTreeRewriter
             for (int i=0; i<token.TrailingTrivia.Length; i++)
             {
                 writer.Write(indent);
-                if (console) Console.ForegroundColor = ConsoleColor.DarkGray;
-                writer.Write(last && i == token.TrailingTrivia.Length - 1 ? TreeTexts.LastLeaf : TreeTexts.Leaf);
-                writer.Write($"T: {token.TrailingTrivia[i].Kind}");
-                if (console) Console.ResetColor();
+                writer.WriteColoredText((last && i == token.TrailingTrivia.Length - 1 ? TreeTexts.LastLeaf : TreeTexts.Leaf) + $"T: {token.TrailingTrivia[i].Kind}", ConsoleColor.DarkGray);
                 writer.WriteLine();
             }
         }
