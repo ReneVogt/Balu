@@ -3,13 +3,14 @@
 public enum SyntaxKind
 {
     #region Trivia
-    BadTokenTrivia,
+    SkippedTextTrivia,
     WhiteSpaceTrivia,
     LineBreakTrivia,
     SingleLineCommentTrivia,
     MultiLineCommentTrivia,
     #endregion
     #region Tokens
+    BadToken,
     EndOfFileToken,
 
     NumberToken,

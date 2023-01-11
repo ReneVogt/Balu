@@ -21,11 +21,36 @@ sealed class Parser
     {
         this.syntaxTree = syntaxTree;
         sourceText = this.syntaxTree.Text;
+
+        var badTokens = new List<SyntaxToken>();
+
         var lexer = new Lexer(syntaxTree);
         foreach (var token in lexer.Lex())
         {
-            tokens.Add(token);
-            if (token.Kind == SyntaxKind.EndOfFileToken) break;
+            if (token.Kind == SyntaxKind.BadToken)
+                badTokens.Add(token);
+            else
+            {
+                if (!badTokens.Any())
+                    tokens.Add(token);
+                else
+                {
+                    var triviaBuilder = token.LeadingTrivia.ToBuilder();
+                    int index = 0;
+                    foreach (var badToken in badTokens)
+                    {
+                        foreach (var trivia in badToken.LeadingTrivia)
+                            triviaBuilder.Insert(index++, trivia);
+                        triviaBuilder.Insert(index++, new (token.SyntaxTree, SyntaxKind.SkippedTextTrivia, badToken.Text, badToken.Span));
+                        foreach (var trivia in badToken.TrailingTrivia)
+                            triviaBuilder.Insert(index++, trivia);
+                    }
+                    tokens.Add(new(token.SyntaxTree, token.Kind, token.Span, token.Text, token.Value, triviaBuilder.ToImmutable(),
+                                   token.TrailingTrivia));
+                    badTokens.Clear();
+                }
+                if (token.Kind == SyntaxKind.EndOfFileToken) break;
+            }
         }
 
         diagnostics.AddRange(lexer.Diagnostics);
@@ -50,7 +75,6 @@ sealed class Parser
         if (position < tokens.Count) position++;
         return current;
     }
-
     ImmutableArray<MemberSyntax> ParseMembers()
     {
         var members = ImmutableArray.CreateBuilder<MemberSyntax>();

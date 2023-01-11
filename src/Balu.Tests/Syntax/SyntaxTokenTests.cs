@@ -11,7 +11,7 @@ public sealed class SyntaxTokenTests
     public void SyntaxToken_ProvidesFactoryForAllTokens()
     {
         var expectedMethodNames = from SyntaxKind kind in typeof(SyntaxKind).GetEnumValues()
-                                  where kind.IsToken()
+                                  where kind.IsToken() && kind != SyntaxKind.BadToken
                                   let s = kind.ToString()
                                   select kind.IsKeyword() ? s : kind.IsTrivia() ? s[..^6] : s[..^5];
         var actualMethodNames = from method in typeof(SyntaxToken).GetMethods(BindingFlags.Public | BindingFlags.Static)

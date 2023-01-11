@@ -73,9 +73,6 @@ sealed class Lexer
                 case SyntaxKind.MultiLineCommentTrivia:
                     ReadMultiLineComment();
                     break;
-                case SyntaxKind.BadTokenTrivia:
-                    ReadBadTokenTrivia();
-                    break;
                 default:
                     return;
             }
@@ -96,6 +93,8 @@ sealed class Lexer
             ReadIdentifierOrKeywordToken();
         else if (kind == SyntaxKind.StringToken)
             ReadString();
+        else if (kind == SyntaxKind.BadToken)
+            ReadBadToken();
         else
         {
             text = kind.GetText() ?? Current.ToString();
@@ -107,7 +106,7 @@ sealed class Lexer
         if (Current == '\0') 
             return SyntaxKind.EndOfFileToken;
         if (char.IsWhiteSpace(Current))
-            return Current == '\r' || Current == '\n' ? SyntaxKind.LineBreakTrivia : SyntaxKind.WhiteSpaceTrivia;
+            return Current is '\r' or '\n' ? SyntaxKind.LineBreakTrivia : SyntaxKind.WhiteSpaceTrivia;
         if (char.IsDigit(Current))
             return SyntaxKind.NumberToken;
         if (char.IsLetter(Current) || Current == '_')
@@ -143,7 +142,7 @@ sealed class Lexer
             ('<', _) => SyntaxKind.LessToken,
             (',', _) => SyntaxKind.CommaToken,
             (':', _) => SyntaxKind.ColonToken,
-            _ => SyntaxKind.BadTokenTrivia
+            _ => SyntaxKind.BadToken
         };
     }
     
@@ -275,11 +274,11 @@ sealed class Lexer
         Next();
         text = sourceText.ToString(start, position - start);
     }
-    void ReadBadTokenTrivia()
+    void ReadBadToken()
     {
-        kind = SyntaxKind.BadTokenTrivia;
+        kind = SyntaxKind.BadToken;
         value = null;
-        while (CurrentKind() == SyntaxKind.BadTokenTrivia) Next();
+        while (CurrentKind() == SyntaxKind.BadToken) Next();
         text = sourceText.ToString(start, position - start);
         diagnostics.ReportUnexpectedToken(new(sourceText, new(start, position - start)));
     }

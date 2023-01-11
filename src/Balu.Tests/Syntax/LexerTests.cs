@@ -12,7 +12,7 @@ public class LexerTests
     [Fact]
     public void Lexer_Tests_CoveringAllTokens()
     {
-        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadTokenTrivia };
+        var nonTestingKinds = new[] { SyntaxKind.EndOfFileToken, SyntaxKind.BadToken };
         var allTokenKinds = Enum.GetValues(typeof(SyntaxKind))
                                 .Cast<SyntaxKind>()
                                 .Where(kind => kind.IsToken())
