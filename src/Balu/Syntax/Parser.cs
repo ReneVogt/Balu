@@ -80,7 +80,7 @@ sealed class Parser
         var lastToken = lastNode.LastToken;
         var triviaBuilder = lastToken.TrailingTrivia.ToBuilder();
         triviaBuilder.AddRange(Current.LeadingTrivia);
-        triviaBuilder.Add(new SyntaxTrivia(syntaxTree, SyntaxKind.SkippedTextTrivia, Current.Text, Current.Span));
+        triviaBuilder.Add(new (syntaxTree, SyntaxKind.SkippedTextTrivia, Current.Text, Current.Span));
         triviaBuilder.AddRange(Current.TrailingTrivia);
         var token = new SyntaxToken(syntaxTree, lastToken.Kind, lastToken.Span, lastToken.Text, lastToken.Value, lastToken.LeadingTrivia,
                                     triviaBuilder.ToImmutable());
