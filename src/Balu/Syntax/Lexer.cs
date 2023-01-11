@@ -1,4 +1,5 @@
-﻿using Balu.Text;
+﻿using System;
+using Balu.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
@@ -53,13 +54,10 @@ sealed class Lexer
     {
         triviaBuilder.Clear();
 
-        while (true)
+        do
         {
             start = position;
             kind = CurrentKind();
-
-            if (Current == '\n' && !leading)
-                return;
 
             switch (kind)
             {
@@ -80,7 +78,8 @@ sealed class Lexer
             }
 
             triviaBuilder.Add(new(syntaxTree, kind, text, new(start, position - start)));
-        }
+            // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
+        } while (leading || !text.Contains('\n', StringComparison.InvariantCulture));
     }
     void ReadToken()
     {
