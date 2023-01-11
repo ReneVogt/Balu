@@ -32,7 +32,7 @@ public static class SyntaxFacts
 
     public static bool IsKeyword(this SyntaxKind kind) => kind.ToString().EndsWith("Keyword");
     public static bool IsTrivia(this SyntaxKind kind) => kind.ToString().EndsWith("Trivia");
-    public static bool IsComment(this SyntaxKind kind) => kind == SyntaxKind.SingleLineCommentTrivia || kind == SyntaxKind.MultiLineCommentTrivia;
+    public static bool IsComment(this SyntaxKind kind) => kind is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia;
     public static bool IsToken(this SyntaxKind kind) => !kind.IsTrivia() && (kind.ToString().EndsWith("Token")  || kind.IsKeyword());
     public static SyntaxKind KeywordKind(this string literal) => literal switch
     {

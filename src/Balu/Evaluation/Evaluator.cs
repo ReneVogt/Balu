@@ -10,17 +10,15 @@ using Balu.Visualization;
 
 namespace Balu.Evaluation;
 
-sealed class Evaluator : BoundTreeVisitor, IDisposable
+sealed class Evaluator : BoundTreeVisitor
 {
     readonly VariableDictionary globals;
     readonly Stack<VariableDictionary> locals = new();
     readonly ImmutableDictionary<FunctionSymbol, BoundBlockStatement> functions;
-    readonly RNGCryptoServiceProvider rng = new();
 
     public object? Result { get; private set; }
 
     Evaluator(VariableDictionary globals, ImmutableDictionary<FunctionSymbol,BoundBlockStatement> functions) => (this.globals, this.functions) = (globals, functions);
-    public void Dispose() => rng.Dispose();
 
     protected override void VisitBoundBlockStatement(BoundBlockStatement blockStatement)
     {
@@ -207,14 +205,11 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
         Result = Console.ReadLine();
     }
 
-    readonly byte[] randomArray = new byte[4];
     void ExecuteRandom(IEnumerable<BoundExpression> arguments)
     {
         Visit(arguments.Single());
         int maximum = (int)Result!;
-        rng.GetBytes(randomArray);
-        int random = BitConverter.ToInt32(randomArray, 0);
-        Result = (random & 0x7FFFFFFF) % maximum; // TODO: avoid modulo bias
+        Result = RandomNumberGenerator.GetInt32(0, maximum);
     }
 
     public static object? Evaluate(BoundProgram program, VariableDictionary globals)
@@ -229,7 +224,7 @@ sealed class Evaluator : BoundTreeVisitor, IDisposable
         }
 
         var functionDictionary = functionDictionaryBuilder.ToImmutable();
-        using var evaluator = new Evaluator(globals, functionDictionary);
+        var evaluator = new Evaluator(globals, functionDictionary);
         evaluator.VisitBoundCallExpression(new (program.EntryPoint, ImmutableArray<BoundExpression>.Empty));
         return evaluator.Result;
     }

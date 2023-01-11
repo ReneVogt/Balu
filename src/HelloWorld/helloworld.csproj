@@ -1,13 +1,14 @@
 ﻿<Project ToolsVersion="15.0">
 	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
 	<PropertyGroup>
-		<TargetFramework>netcoreapp3.1</TargetFramework>
+		<TargetFramework>net6.0</TargetFramework>
 		<OutputType>Exe</OutputType>
 	</PropertyGroup>
 
 	<PropertyGroup>
 		<DefaultLanguageSourceExtension>.b</DefaultLanguageSourceExtension>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -24,7 +25,7 @@
 						   '%(Filename)' != 'System.Runtime.Extensions' AND 
 						   '%(Filename)' != 'System.Console'"/>
 		</ItemGroup>
-		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\netcoreapp3.1\bc.exe&quot; @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')" 
+		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\net6.0\bc.exe&quot; @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')" 
 		      WorkingDirectory="$(MSBuildProjectDirectory)" 
 		      ConsoleToMSBuild="true" 
 		      EchoOff="true" 

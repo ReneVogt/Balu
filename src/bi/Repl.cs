@@ -101,7 +101,7 @@ abstract class Repl
             cursorTop = Console.CursorTop;
             Render();
         }
-        void OnSubmissionDocumentChanged(object sender, NotifyCollectionChangedEventArgs e)
+        void OnSubmissionDocumentChanged(object? sender, NotifyCollectionChangedEventArgs e)
         {
             Render();
         }
