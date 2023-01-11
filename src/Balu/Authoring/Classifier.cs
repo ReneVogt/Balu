@@ -3,12 +3,13 @@ using System.Collections.Immutable;
 using Balu.Syntax;
 using Balu.Text;
 
-namespace Balu.Interactive.Rendering;
+namespace Balu.Authoring;
 
-static class Classifier
+public static class Classifier
 {
     public static ImmutableArray<ClassifiedSpan> Classify(SyntaxTree syntaxTree, TextSpan span)
     {
+        _ = syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree));
         var resultBuilder = ImmutableArray.CreateBuilder<ClassifiedSpan>();
         ClassifyNode(syntaxTree.Root, span, resultBuilder);
         return resultBuilder.ToImmutable();

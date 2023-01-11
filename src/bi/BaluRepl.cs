@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using Balu.Interactive.Rendering;
+using Balu.Authoring;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;

@@ -1,8 +1,8 @@
 ﻿using Balu.Text;
 
-namespace Balu.Interactive.Rendering;
+namespace Balu.Authoring;
 
-sealed class ClassifiedSpan
+public sealed class ClassifiedSpan
 {
     public TextSpan Span { get; }
     public Classification Classification { get; }
