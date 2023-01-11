@@ -5,6 +5,7 @@ public enum SyntaxKind
     #region Trivia
     BadTokenTrivia,
     WhiteSpaceTrivia,
+    LineBreakTrivia,
     SingleLineCommentTrivia,
     MultiLineCommentTrivia,
     #endregion

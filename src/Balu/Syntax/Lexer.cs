@@ -64,6 +64,9 @@ sealed class Lexer
                 case SyntaxKind.WhiteSpaceTrivia:
                     ReadWhiteSpaces();
                     break;
+                case SyntaxKind.LineBreakTrivia:
+                     ReadLineBreak();
+                    break;
                 case SyntaxKind.SingleLineCommentTrivia:
                     ReadSingleLineComment();
                     break;
@@ -104,7 +107,7 @@ sealed class Lexer
         if (Current == '\0') 
             return SyntaxKind.EndOfFileToken;
         if (char.IsWhiteSpace(Current))
-            return SyntaxKind.WhiteSpaceTrivia;
+            return Current == '\r' || Current == '\n' ? SyntaxKind.LineBreakTrivia : SyntaxKind.WhiteSpaceTrivia;
         if (char.IsDigit(Current))
             return SyntaxKind.NumberToken;
         if (char.IsLetter(Current) || Current == '_')
@@ -168,7 +171,31 @@ sealed class Lexer
     void ReadWhiteSpaces()
     {
         kind = SyntaxKind.WhiteSpaceTrivia;
-        while (char.IsWhiteSpace(Current)) Next();
+        var done = false;
+        while (!done)
+        {
+            switch (Current)
+            {
+                case '\0':
+                case '\r':
+                case '\n':
+                    done = true;
+                    break;
+                default:
+                    if (!char.IsWhiteSpace(Current))
+                        done = true;
+                    else Next();
+                    break;
+            }
+        }
+        text = sourceText.ToString(start, position - start);
+    }
+    void ReadLineBreak()
+    {
+        kind = SyntaxKind.LineBreakTrivia;
+        if (Current == '\r' && Peek(1) == '\n')
+            position++;
+        position++;
         text = sourceText.ToString(start, position - start);
     }
     void ReadIdentifierOrKeywordToken()

@@ -43,8 +43,6 @@ public sealed class SyntaxToken : SyntaxNode
     public override string ToString() => $"{Kind}{Span} \"{Text}\" ({(Value is string v ? v.EscapeString() : Value?.ToString())})";
 
     public static SyntaxToken EndOfFile(SyntaxTree syntaxTree, TextSpan span) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.EndOfFileToken, span, "\0", null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
-    public static SyntaxToken Bad(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree, SyntaxKind.BadTokenTrivia, span, text, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
-    public static SyntaxToken WhiteSpace(SyntaxTree syntaxTree, TextSpan span, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.WhiteSpaceTrivia, span, text ?? throw new ArgumentNullException(nameof(text)), null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
     public static SyntaxToken Number(SyntaxTree syntaxTree, TextSpan span, int value, string text) => new(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.NumberToken, span, text ?? throw new ArgumentNullException(nameof(text)), value, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
     public static SyntaxToken String(SyntaxTree syntaxTree, TextSpan span, string value, string text) => new(
         syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)), SyntaxKind.StringToken, span,

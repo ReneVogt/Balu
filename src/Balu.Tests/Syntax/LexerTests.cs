@@ -148,7 +148,7 @@ public class LexerTests
     {
         (" ", kind: SyntaxKind.WhiteSpaceTrivia),
         ("  ", kind: SyntaxKind.WhiteSpaceTrivia),
-        ("\r\n ", kind: SyntaxKind.WhiteSpaceTrivia),
+        ("\r\n", kind: SyntaxKind.LineBreakTrivia),
         ("\t\v", kind: SyntaxKind.WhiteSpaceTrivia),
         ("// single \r\n", kind: SyntaxKind.SingleLineCommentTrivia),
         ("/* multi\r\nline*/", kind: SyntaxKind.MultiLineCommentTrivia)
