@@ -53,10 +53,14 @@ public class LexerTests
         Assert.Equal(2, tokens.Length);
         Assert.Equal(kind1, tokens[0].Kind);
         Assert.Equal(text1, tokens[0].Text);
-        //Assert.Equal(separatorKind, tokens[1].Kind);
-        //Assert.Equal(separatorText, tokens[1].Text);
+        Assert.Empty(tokens[0].LeadingTrivia);
+        var actualSeparator = Assert.Single(tokens[0].TrailingTrivia);
+        Assert.Equal(separatorKind, actualSeparator.Kind);
+        Assert.Equal(separatorText, actualSeparator.Text);
         Assert.Equal(kind2, tokens[1].Kind);
         Assert.Equal(text2, tokens[1].Text);
+        Assert.Empty(tokens[1].LeadingTrivia);
+        Assert.Empty(tokens[1].TrailingTrivia);
     }
 
     [Theory]

@@ -6,7 +6,6 @@ using System.Linq;
 using Balu.Interactive.Rendering;
 using Balu.Symbols;
 using Balu.Syntax;
-using Balu.Text;
 using Balu.Visualization;
 // ReSharper disable UnusedMember.Local
 
@@ -18,16 +17,6 @@ namespace Balu.Interactive;
 
 sealed class BaluRepl : Repl
 {
-    sealed class RenderState
-    {
-        public SourceText Text { get; }
-        public SyntaxTree SyntaxTree { get;}
-        public RenderState(SourceText text, SyntaxTree syntaxTree)
-        {
-            Text = text;
-            SyntaxTree = syntaxTree;
-        }
-    }
     readonly VariableDictionary globals = new();
 
     bool showSyntax, showVars, showProgram;
@@ -135,16 +124,10 @@ sealed class BaluRepl : Repl
 
     protected override object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
     {
-        if (state is not RenderState renderState)
-        {
-            var text = string.Join(Environment.NewLine, lines);
-            var sourceText = SourceText.From(text);
-            renderState = new (sourceText, SyntaxTree.Parse(sourceText));
-            state = renderState;
-        }
+        var syntaxTree = state as SyntaxTree ?? SyntaxTree.Parse(string.Join(Environment.NewLine, lines));
 
-        var line = renderState.Text.Lines[lineIndex];
-        var classifiedSpans = Classifier.Classify(renderState.SyntaxTree, line.Span);
+        var line = syntaxTree.Text.Lines[lineIndex];
+        var classifiedSpans = Classifier.Classify(syntaxTree, line.Span);
         int width = 0;
         foreach (var classifiedSpan in classifiedSpans)
         {
@@ -158,11 +141,11 @@ sealed class BaluRepl : Repl
                 _ => ConsoleColor.DarkGray
             };
 
-            Console.Out.WriteColoredText(renderState.Text.ToString(classifiedSpan.Span), color);
+            Console.Out.WriteColoredText(syntaxTree.Text.ToString(classifiedSpan.Span), color);
             width += classifiedSpan.Span.Length;
         }
         Console.Out.Write(new string(' ', Console.WindowWidth-2-width));
-        return state;
+        return syntaxTree;
     }
 
     [MetaCommand("showSyntax", "Toggles display of the syntax tree.")]

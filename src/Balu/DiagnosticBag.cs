@@ -13,8 +13,8 @@ sealed class DiagnosticBag : List<Diagnostic>
     public DiagnosticBag(){}
     public DiagnosticBag(IEnumerable<Diagnostic> diagnostics) : base(diagnostics){}
 
-    public void ReportUnexpectedToken(TextLocation location, string text) =>
-        Add(new(Diagnostic.LEX0000, location, $"Unexpected token '{text}'."));
+    public void ReportUnexpectedToken(TextLocation location) =>
+        Add(new(Diagnostic.LEX0000, location, $"Unexpected token '{location.Text.ToString(location.Span)}'."));
     public void ReportNumberNotValid(TextLocation location, string text) =>
         Add(new(Diagnostic.LEX0001, location, $"The number '{text}' is not a valid 32bit integer."));
     public void ReportInvalidEscapeSequence(TextLocation location, string text) =>

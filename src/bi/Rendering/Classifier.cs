@@ -25,6 +25,8 @@ static class Classifier
     }
     static void ClassifyToken(SyntaxToken token, TextSpan span, ImmutableArray<ClassifiedSpan>.Builder resultBuilder)
     {
+        if (token.IsMissing) return;
+
         foreach (var trivia in token.LeadingTrivia)
             AddClassifiedSpan(trivia.Kind, trivia.Span, span, resultBuilder);
 
