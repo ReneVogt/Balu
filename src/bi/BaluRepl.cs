@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
+using Balu.Interactive.Rendering;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Text;
@@ -21,11 +21,11 @@ sealed class BaluRepl : Repl
     sealed class RenderState
     {
         public SourceText Text { get; }
-        public ImmutableArray<SyntaxToken> Tokens { get;}
-        public RenderState(SourceText text, ImmutableArray<SyntaxToken> tokens)
+        public SyntaxTree SyntaxTree { get;}
+        public RenderState(SourceText text, SyntaxTree syntaxTree)
         {
             Text = text;
-            Tokens = tokens;
+            SyntaxTree = syntaxTree;
         }
     }
     readonly VariableDictionary globals = new();
@@ -139,34 +139,27 @@ sealed class BaluRepl : Repl
         {
             var text = string.Join(Environment.NewLine, lines);
             var sourceText = SourceText.From(text);
-            renderState = new (sourceText, SyntaxTree.ParseTokens(sourceText));
+            renderState = new (sourceText, SyntaxTree.Parse(sourceText));
             state = renderState;
         }
 
         var line = renderState.Text.Lines[lineIndex];
+        var classifiedSpans = Classifier.Classify(renderState.SyntaxTree, line.Span);
         int width = 0;
-
-        foreach (var token in renderState.Tokens)
+        foreach (var classifiedSpan in classifiedSpans)
         {
-            if (!line.Span.OverlapsWith(token.Span)) continue;
+            var color = classifiedSpan.Classification switch
+            {
+                Classification.Keyword => ConsoleColor.Blue,
+                Classification.Identifier => ConsoleColor.DarkYellow,
+                Classification.Number => ConsoleColor.Cyan,
+                Classification.String => ConsoleColor.Magenta,
+                                         Classification.Comment => ConsoleColor.Green,
+                _ => ConsoleColor.DarkGray
+            };
 
-            var color = token.Kind.IsKeyword()
-                            ? ConsoleColor.Blue
-                            : token.Kind.IsComment()
-                                ? ConsoleColor.Green
-                                : token.Kind switch
-                                {
-                                    SyntaxKind.IdentifierToken => ConsoleColor.DarkYellow, SyntaxKind.NumberToken => ConsoleColor.Cyan,
-                                    SyntaxKind.StringToken => ConsoleColor.Magenta,
-                                    _ => ConsoleColor.DarkGray
-                                };
-
-            var start = Math.Max(token.Span.Start, line.Span.Start);
-            var end = Math.Min(token.Span.End, line.Span.End);
-            var span = new TextSpan(start, end-start);
-            var text = renderState.Text.ToString(span);
-            width += text.Length;
-            Console.Out.WriteColoredText(text, color);
+            Console.Out.WriteColoredText(renderState.Text.ToString(classifiedSpan.Span), color);
+            width += classifiedSpan.Span.Length;
         }
         Console.Out.Write(new string(' ', Console.WindowWidth-2-width));
         return state;
