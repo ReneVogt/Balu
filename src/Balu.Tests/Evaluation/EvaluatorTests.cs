@@ -427,7 +427,8 @@ public class EvaluatorTests
             { 
                 return [[}]]".AssertEvaluation(@"
                     Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
-                    'test' needs to return a value of type 'int', not '?'.");
+                    'test' needs to return a value of type 'int', not '?'.
+");
     }
     [Fact]
     public void Evaluate_Return_ReportsWrongExpressionType()

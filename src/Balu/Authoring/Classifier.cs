@@ -29,7 +29,8 @@ public static class Classifier
         foreach (var trivia in token.LeadingTrivia)
             AddClassifiedSpan(trivia.Kind, trivia.Span, span, resultBuilder);
 
-        AddClassifiedSpan(token.Kind, token.Span, span, resultBuilder);
+        if (!token.IsMissing)
+            AddClassifiedSpan(token.Kind, token.Span, span, resultBuilder);
 
         foreach (var trivia in token.TrailingTrivia)
             AddClassifiedSpan(trivia.Kind, trivia.Span, span, resultBuilder);
