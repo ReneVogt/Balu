@@ -5,7 +5,6 @@ using Balu.Text;
 
 namespace Balu.Syntax;
 
-#pragma warning disable CA1720 // "Identifier contains type name" -> STring() factory method for string tokens
 public sealed class SyntaxToken : SyntaxNode
 {
     public override SyntaxKind Kind { get; }
