@@ -18,7 +18,7 @@ public sealed class ReturnStatementSyntax : StatementSyntax
     public SyntaxToken ReturnKeyword { get; }
     public ExpressionSyntax? Expression { get; }
 
-    public ReturnStatementSyntax(SyntaxTree syntaxTree, SyntaxToken returnKeyword, ExpressionSyntax? expression)
+    internal ReturnStatementSyntax(SyntaxTree syntaxTree, SyntaxToken returnKeyword, ExpressionSyntax? expression)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ReturnKeyword = returnKeyword ?? throw new ArgumentNullException(nameof(returnKeyword));

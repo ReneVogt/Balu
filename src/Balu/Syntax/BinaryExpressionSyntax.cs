@@ -19,7 +19,7 @@ public sealed class BinaryExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public BinaryExpressionSyntax(SyntaxTree syntaxTree, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
+    internal BinaryExpressionSyntax(SyntaxTree syntaxTree, ExpressionSyntax left, SyntaxToken operatorToken, ExpressionSyntax right)
     : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Left = left ?? throw new ArgumentNullException(nameof(left));

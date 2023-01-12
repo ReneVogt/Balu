@@ -18,7 +18,7 @@ public sealed class WhileStatementSyntax : StatementSyntax
     public ExpressionSyntax Condition { get; }
     public StatementSyntax Body { get; }
 
-    public WhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body)
+    internal WhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken whileKeyword, ExpressionSyntax condition, StatementSyntax body)
     :base(syntaxTree)
     {
         WhileKeyword = whileKeyword ?? throw new ArgumentNullException(nameof(whileKeyword));

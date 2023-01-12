@@ -19,7 +19,7 @@ public sealed class CompilationUnitSyntax : SyntaxNode
         }
     }
 
-    public CompilationUnitSyntax(SyntaxTree syntaxTree, ImmutableArray<MemberSyntax> members, SyntaxToken endOfFileToken)
+    internal CompilationUnitSyntax(SyntaxTree syntaxTree, ImmutableArray<MemberSyntax> members, SyntaxToken endOfFileToken)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Members = members;

@@ -21,7 +21,7 @@ public sealed class IfStatementSyntax : StatementSyntax
     public StatementSyntax ThenStatement { get; }
     public ElseClauseSyntax? ElseClause { get; }
 
-    public IfStatementSyntax(SyntaxTree syntaxTree, SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
+    internal IfStatementSyntax(SyntaxTree syntaxTree, SyntaxToken ifKeyword, ExpressionSyntax condition, StatementSyntax thenStatement, ElseClauseSyntax? elseClause) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         IfKeyword = ifKeyword ?? throw new ArgumentNullException(nameof(ifKeyword));
         Condition = condition ?? throw new ArgumentNullException(nameof(condition));

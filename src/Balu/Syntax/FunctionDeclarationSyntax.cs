@@ -28,9 +28,9 @@ public sealed class FunctionDeclarationSyntax : MemberSyntax
     public TypeClauseSyntax? TypeClause { get; }
     public BlockStatementSyntax Body { get; }
 
-    public FunctionDeclarationSyntax(SyntaxTree syntaxTree, SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
-                                     SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? type,
-                                     BlockStatementSyntax body)
+    internal FunctionDeclarationSyntax(SyntaxTree syntaxTree, SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
+                                       SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? type,
+                                       BlockStatementSyntax body)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         FunctionKeyword = functionKeyword ?? throw new ArgumentNullException(nameof(functionKeyword));

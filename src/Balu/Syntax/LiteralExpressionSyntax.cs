@@ -17,8 +17,8 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
 
     public object? Value { get; }
 
-    public LiteralExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken literalToken) : this(syntaxTree, literalToken ?? throw new ArgumentNullException(nameof(literalToken)), literalToken.Value){}
-    public LiteralExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken literalToken, object? value) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
+    internal LiteralExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken literalToken) : this(syntaxTree, literalToken ?? throw new ArgumentNullException(nameof(literalToken)), literalToken.Value){}
+    internal LiteralExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken literalToken, object? value) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         LiteralToken = literalToken ?? throw new ArgumentNullException(nameof(literalToken));
         Value = value;

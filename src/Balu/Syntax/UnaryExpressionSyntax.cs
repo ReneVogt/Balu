@@ -17,7 +17,7 @@ public sealed class UnaryExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public UnaryExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken operatorToken, ExpressionSyntax expression) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
+    internal UnaryExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken operatorToken, ExpressionSyntax expression) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         OperatorToken = operatorToken ?? throw new ArgumentNullException(nameof(operatorToken));
         Expression = expression ?? throw new ArgumentNullException(nameof(expression));

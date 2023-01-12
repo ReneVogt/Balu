@@ -13,7 +13,7 @@ public sealed class GlobalStatementSyntax : MemberSyntax
 
     public StatementSyntax Statement { get; }
 
-    public GlobalStatementSyntax(SyntaxTree syntaxTree, StatementSyntax statement) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
+    internal GlobalStatementSyntax(SyntaxTree syntaxTree, StatementSyntax statement) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Statement = statement ?? throw new ArgumentNullException(nameof(statement)) ;
     }

@@ -20,7 +20,7 @@ public sealed class BlockStatementSyntax : StatementSyntax
     public ImmutableArray<StatementSyntax> Statements { get; }
     public SyntaxToken ClosedBraceToken { get; }
 
-    public BlockStatementSyntax(SyntaxTree syntaxTree, SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken)
+    internal BlockStatementSyntax(SyntaxTree syntaxTree, SyntaxToken openBraceToken, ImmutableArray<StatementSyntax> statements, SyntaxToken closedBraceToken)
     : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         OpenBraceToken = openBraceToken ?? throw new ArgumentNullException(nameof(openBraceToken));

@@ -17,7 +17,7 @@ public sealed class ElseClauseSyntax : SyntaxNode
     public SyntaxToken ElseKeyword { get; }
     public StatementSyntax Statement { get; }
 
-    public ElseClauseSyntax(SyntaxTree syntaxTree, SyntaxToken elseKeyword, StatementSyntax statement)
+    internal ElseClauseSyntax(SyntaxTree syntaxTree, SyntaxToken elseKeyword, StatementSyntax statement)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ElseKeyword = elseKeyword ?? throw new ArgumentNullException(nameof(elseKeyword));

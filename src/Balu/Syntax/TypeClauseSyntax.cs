@@ -17,7 +17,7 @@ public sealed class TypeClauseSyntax : SyntaxNode
     public SyntaxToken ColonToken { get; }
     public SyntaxToken Identifier { get; }
 
-    public TypeClauseSyntax(SyntaxTree syntaxTree, SyntaxToken colonToken, SyntaxToken identifier) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
+    internal TypeClauseSyntax(SyntaxTree syntaxTree, SyntaxToken colonToken, SyntaxToken identifier) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ColonToken = colonToken ?? throw new ArgumentNullException(nameof(colonToken));
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));

@@ -12,6 +12,6 @@ public sealed class ExpressionStatementSyntax : StatementSyntax
     }
     public ExpressionSyntax Expression { get; }
 
-    public ExpressionStatementSyntax(SyntaxTree syntaxTree, ExpressionSyntax? expression)
+    internal ExpressionStatementSyntax(SyntaxTree syntaxTree, ExpressionSyntax? expression)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => Expression = expression ?? throw new ArgumentNullException(nameof(expression));
 }

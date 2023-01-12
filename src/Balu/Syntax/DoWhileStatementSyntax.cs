@@ -21,8 +21,8 @@ public sealed class DoWhileStatementSyntax : StatementSyntax
     public SyntaxToken WhileKeyword { get; }
     public ExpressionSyntax Condition { get; }
 
-    public DoWhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken doKeyword, StatementSyntax body, SyntaxToken whileKeyword,
-                                  ExpressionSyntax condition)
+    internal DoWhileStatementSyntax(SyntaxTree syntaxTree, SyntaxToken doKeyword, StatementSyntax body, SyntaxToken whileKeyword,
+                                    ExpressionSyntax condition)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         DoKeyword = doKeyword ?? throw new ArgumentNullException(nameof(doKeyword));

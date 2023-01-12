@@ -15,7 +15,7 @@ public sealed class NameExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public NameExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierrToken) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
+    internal NameExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierrToken) : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     { 
         IdentifierrToken = identifierrToken ?? throw new ArgumentNullException(nameof(identifierrToken));
     }

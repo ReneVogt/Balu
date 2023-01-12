@@ -19,7 +19,7 @@ public sealed class AssignmentExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public AssignmentExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierrToken, SyntaxToken equalsToken, ExpressionSyntax expression)
+    internal AssignmentExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierrToken, SyntaxToken equalsToken, ExpressionSyntax expression)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         IdentifierToken = identifierrToken;

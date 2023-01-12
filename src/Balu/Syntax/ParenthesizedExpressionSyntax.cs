@@ -20,7 +20,7 @@ public sealed class ParenthesizedExpressionSyntax : ExpressionSyntax
         }
     }
 
-    public ParenthesizedExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken openParenthesisToken, ExpressionSyntax expression, SyntaxToken closedParenthesisToken)
+    internal ParenthesizedExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken openParenthesisToken, ExpressionSyntax expression, SyntaxToken closedParenthesisToken)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         OpenParenthesisToken = openParenthesisToken ?? throw new ArgumentNullException(nameof(openParenthesisToken));

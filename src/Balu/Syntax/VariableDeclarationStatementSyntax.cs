@@ -23,7 +23,7 @@ public sealed class VariableDeclarationStatementSyntax : StatementSyntax
     public ExpressionSyntax Expression { get; }
     public TypeClauseSyntax? TypeClause { get; }
 
-    public VariableDeclarationStatementSyntax(SyntaxTree syntaxTree, SyntaxToken keywordToken, SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression, TypeClauseSyntax? typeClause)
+    internal VariableDeclarationStatementSyntax(SyntaxTree syntaxTree, SyntaxToken keywordToken, SyntaxToken identifierToken, SyntaxToken equalsToken, ExpressionSyntax expression, TypeClauseSyntax? typeClause)
     : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         KeywordToken = keywordToken ?? throw new ArgumentNullException(nameof(keywordToken));

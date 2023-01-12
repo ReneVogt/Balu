@@ -27,8 +27,8 @@ public sealed class ForStatementSyntax : StatementSyntax
     public ExpressionSyntax UpperBound { get; }
     public StatementSyntax Body { get; }
 
-    public ForStatementSyntax(SyntaxTree syntaxTree, SyntaxToken forKeyword, SyntaxToken identifierToken, SyntaxToken equals,
-                              ExpressionSyntax lowerBound, SyntaxToken toKeyWord, ExpressionSyntax upperBound, StatementSyntax body)
+    internal ForStatementSyntax(SyntaxTree syntaxTree, SyntaxToken forKeyword, SyntaxToken identifierToken, SyntaxToken equals,
+                                ExpressionSyntax lowerBound, SyntaxToken toKeyWord, ExpressionSyntax upperBound, StatementSyntax body)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ForKeyword = forKeyword ?? throw new ArgumentNullException(nameof(forKeyword));

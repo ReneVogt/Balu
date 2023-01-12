@@ -15,6 +15,6 @@ public sealed class BreakStatementSyntax : StatementSyntax
     }
     public SyntaxToken BreakKeyword { get; }
 
-    public BreakStatementSyntax(SyntaxTree syntaxTree, SyntaxToken breakKeyword)
+    internal BreakStatementSyntax(SyntaxTree syntaxTree, SyntaxToken breakKeyword)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => BreakKeyword = breakKeyword ?? throw new ArgumentNullException(nameof(breakKeyword));
 }

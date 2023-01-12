@@ -15,7 +15,7 @@ public sealed class ContinueStatementSyntax : StatementSyntax
     }
     public SyntaxToken ContinueKeyword { get; }
 
-    public ContinueStatementSyntax(SyntaxTree syntaxTree, SyntaxToken continueKeyword)
+    internal ContinueStatementSyntax(SyntaxTree syntaxTree, SyntaxToken continueKeyword)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree))) => ContinueKeyword = continueKeyword ?? throw new ArgumentNullException(nameof(continueKeyword));
 
 }

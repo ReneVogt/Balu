@@ -22,8 +22,8 @@ public sealed class CallExpressionSyntax : ExpressionSyntax
     public SeparatedSyntaxList<ExpressionSyntax> Arguments { get; }
     public SyntaxToken ClosedParenthesis { get; }
 
-    public CallExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifier, SyntaxToken openParenthesis,
-                                SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closedParenthesis)
+    internal CallExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifier, SyntaxToken openParenthesis,
+                                  SeparatedSyntaxList<ExpressionSyntax> arguments, SyntaxToken closedParenthesis)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         Identifier = identifier ?? throw new ArgumentNullException(nameof(identifier));
