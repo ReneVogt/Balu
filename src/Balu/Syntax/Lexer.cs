@@ -58,6 +58,7 @@ sealed class Lexer
         {
             start = position;
             kind = CurrentKind();
+            text = string.Empty;
 
             switch (kind)
             {
@@ -86,6 +87,7 @@ sealed class Lexer
         start = position;
         value = null; 
         kind = CurrentKind();
+        text = string.Empty;
 
         if (kind == SyntaxKind.NumberToken)
             ReadNumberToken();
