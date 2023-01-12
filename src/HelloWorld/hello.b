@@ -1,13 +1,23 @@
-﻿// mal sehen
-let t = true
-let f = false
-var tt = true
-var ff = false
+﻿function output(age : int, name : string)
+{
+	print(name + " is ")
+	print(age)
+	println(" years old.")
+}
 
-/* hier mit multiline
- über mehrere Zeilen*/
+function getName() : string
+{
+	print("Your name: ")
+	return input()
+}
 
-//print(string(f && tt))
-println(string(f || tt)) // endline
-println(string(t && ff))
-println(string(t || ff))
+function getAge(name : string) : int
+{
+	println("Hi, " + name)
+	print("How old are you: ")
+	return int(input())
+}
+
+var name = getName()
+var age = getAge(name)
+output(age, name)

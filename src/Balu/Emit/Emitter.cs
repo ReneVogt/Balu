@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using Balu.Binding;
@@ -9,11 +10,17 @@ using Balu.Syntax;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-
+#pragma warning disable CA1032, CA1064
 namespace Balu.Emit;
 
 sealed class Emitter : IDisposable
 {
+    sealed class MissingReferencesException : Exception
+    {
+        public ImmutableArray<Diagnostic> Diagnostics { get; }
+        public MissingReferencesException(ImmutableArray<Diagnostic> diagnostics) => Diagnostics = diagnostics;
+    }
+
     readonly BoundProgram program;
     readonly string[] references;
     readonly string outputPath;
@@ -21,9 +28,9 @@ sealed class Emitter : IDisposable
 
     readonly AssemblyDefinition assembly;
     readonly List<AssemblyDefinition> referencedAssemblies = new();
-    readonly TypeDefinition? programType;
+    readonly TypeDefinition programType;
 
-    TypeDefinition? randomType;
+    TypeDefinition randomType;
     FieldDefinition? randomField;
 
     readonly Dictionary<TypeSymbol, TypeReference> typeMap = new();
@@ -33,9 +40,10 @@ sealed class Emitter : IDisposable
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
 
-    MethodReference? consoleWrite, consoleWriteLine, consoleReadLine, 
+    MethodReference consoleWrite, consoleWriteLine, consoleReadLine, 
                      stringConcat, convertToBool, convertToString, 
-                     convertToInt, objectEquals, randomCtor, randomNext;
+                     convertToInt, objectEquals;
+    MethodReference? randomCtor, randomNext;
 
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
@@ -47,14 +55,23 @@ sealed class Emitter : IDisposable
         assembly = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Dll);
 
         diagnostics.AddRange(program.Diagnostics);
-        if (diagnostics.Any()) return;
         LoadReferences();
-        if (diagnostics.Any()) return;
+        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
 
         ResolveTypes();
-        if (diagnostics.Any()) return;
+        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
+        Debug.Assert(randomType is not null);
         ResolveMethods();
-        if (diagnostics.Any()) return;
+        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
+        Debug.Assert(
+            consoleWrite is not null &&
+            consoleWriteLine is not null &&
+            consoleReadLine is not null &&
+            stringConcat is not null &&
+            convertToBool is not null &&
+            convertToString is not null &&
+            convertToInt is not null &&
+            objectEquals is not null);
 
         programType = new(string.Empty, "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, MapType(TypeSymbol.Any));
         assembly.MainModule.Types.Add(programType);
@@ -92,7 +109,7 @@ sealed class Emitter : IDisposable
         AddToTypeMap(TypeSymbol.String, "System.String");
         AddToTypeMap(TypeSymbol.Void, "System.Void");
 
-        randomType = ResolveTypeDefinition("System.Random");
+        randomType = ResolveTypeDefinition("System.Random")!;
 
         void AddToTypeMap(TypeSymbol typeSymbol, string fullName)
         {
@@ -109,20 +126,20 @@ sealed class Emitter : IDisposable
         var convertTypeDefinition = ResolveTypeDefinition("System.Convert")!;
         if (diagnostics.Any()) return;
 
-        consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.Object" });
-        consoleWriteLine = ResolveMethod(consoleTypeDefinition, "WriteLine", new[] { "System.Object" });
-        consoleReadLine = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
+        consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.Object" })!;
+        consoleWriteLine = ResolveMethod(consoleTypeDefinition, "WriteLine", new[] { "System.Object" })!;
+        consoleReadLine = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>())!;
 
-        stringConcat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
+        stringConcat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" })!;
 
-        convertToBool = ResolveMethod(convertTypeDefinition, "ToBoolean", new[] { "System.Object" });
-        convertToInt = ResolveMethod(convertTypeDefinition, "ToInt32", new[] { "System.Object" });
-        convertToString = ResolveMethod(convertTypeDefinition, "ToString", new[] { "System.Object" });
+        convertToBool = ResolveMethod(convertTypeDefinition, "ToBoolean", new[] { "System.Object" })!;
+        convertToInt = ResolveMethod(convertTypeDefinition, "ToInt32", new[] { "System.Object" })!;
+        convertToString = ResolveMethod(convertTypeDefinition, "ToString", new[] { "System.Object" })!;
 
-        objectEquals = ResolveMethod(objectTypeDefinition, "Equals", new[] { "System.Object", "System.Object" });
+        objectEquals = ResolveMethod(objectTypeDefinition, "Equals", new[] { "System.Object", "System.Object" })!;
 
-        randomCtor = ResolveMethod(randomType!, ".ctor", Array.Empty<string>());
-        randomNext = ResolveMethod(randomType!, "Next", new[] { "System.Int32" });
+        randomCtor = ResolveMethod(randomType, ".ctor", Array.Empty<string>());
+        randomNext = ResolveMethod(randomType, "Next", new[] { "System.Int32" });
     }
     TypeDefinition? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
     {
@@ -160,7 +177,7 @@ sealed class Emitter : IDisposable
         foreach (var parameter in function.Parameters)
             method.Parameters.Add(new (parameter.Name, ParameterAttributes.None, MapType(parameter.Type)));
         
-        programType!.Methods.Add(method);
+        programType.Methods.Add(method);
         return method;
     }
     void EmitMethod(MethodDefinition method, FunctionSymbol function)
@@ -452,7 +469,7 @@ sealed class Emitter : IDisposable
         if (randomField is not null) return;
         var randomTypeReference = assembly.MainModule.ImportReference(randomType);
         randomField = new("<random>", FieldAttributes.Static | FieldAttributes.Private | FieldAttributes.SpecialName, randomTypeReference);
-        programType!.Fields.Add(randomField);
+        programType.Fields.Add(randomField);
 
         var staticConstructor = new MethodDefinition(
             ".cctor", 
@@ -480,9 +497,16 @@ sealed class Emitter : IDisposable
 
     public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
-        if (program.Diagnostics.Any()) return program.Diagnostics;
-        using var emitter = new Emitter(program, moduleName, references, outputPath);
-        emitter.Emit();
-        return emitter.diagnostics.ToImmutableArray();
+        try
+        {
+            if (program.Diagnostics.Any()) return program.Diagnostics;
+            using var emitter = new Emitter(program, moduleName, references, outputPath);
+            emitter.Emit();
+            return emitter.diagnostics.ToImmutableArray();
+        }
+        catch (MissingReferencesException exception)
+        {
+            return exception.Diagnostics;
+        }
     }
 }
