@@ -19,19 +19,21 @@ public sealed class SyntaxToken : SyntaxNode
     public ImmutableArray<SyntaxTrivia> LeadingTrivia { get; }
     public ImmutableArray<SyntaxTrivia> TrailingTrivia { get; }
 
-    public bool IsMissing => string.IsNullOrEmpty(Text);
+    public bool IsMissing { get; }
 
-    internal SyntaxToken(SyntaxTree syntaxTree, SyntaxKind kind, TextSpan span, string text, object? value,
+    internal SyntaxToken(SyntaxTree syntaxTree, SyntaxKind kind, TextSpan span, string? text, object? value,
                          ImmutableArray<SyntaxTrivia> leadingTrivia, ImmutableArray<SyntaxTrivia> trailingTrivia)
         : base(syntaxTree)
     {
         Kind = kind;
-        Text = text;
+        Text = text ?? string.Empty;
         Span = span;
         Value = value;
 
         LeadingTrivia = leadingTrivia;
         TrailingTrivia = trailingTrivia;
+
+        IsMissing = text is null;
 
         var start = LeadingTrivia.Length == 0 ? Span.Start : LeadingTrivia[0].Span.Start;
         var end = TrailingTrivia.Length == 0 ? Span.End : TrailingTrivia.Last().Span.End;

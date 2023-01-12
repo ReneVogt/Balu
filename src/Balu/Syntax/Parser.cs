@@ -75,20 +75,6 @@ sealed class Parser
         if (position < tokens.Count) position++;
         return current;
     }
-    void SkipToken()
-    {
-        var skipped = Current;
-        NextToken();
-        var triviaBuilder = Current.LeadingTrivia.ToBuilder();
-        int index = 0;
-        foreach (var t in skipped.LeadingTrivia)
-            triviaBuilder.Insert(index++, t);
-        triviaBuilder.Insert(index++, new (syntaxTree, SyntaxKind.SkippedTextTrivia, skipped.Text, skipped.Span));
-        foreach (var t in skipped.TrailingTrivia)
-            triviaBuilder.Insert(index++, t);
-        tokens[position] = new(syntaxTree, Current.Kind, Current.Span, Current.Text, Current.Value, triviaBuilder.ToImmutable(),
-                               Current.TrailingTrivia);
-    }
     ImmutableArray<MemberSyntax> ParseMembers()
     {
         var members = ImmutableArray.CreateBuilder<MemberSyntax>();
@@ -347,6 +333,20 @@ sealed class Parser
             return NextToken();
 
         diagnostics.ReportUnexpectedToken(Current, kind);
-        return new(syntaxTree, kind, Current.Span, string.Empty, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
+        return new(syntaxTree, kind, Current.Span, null, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
+    }
+    void SkipToken()
+    {
+        var skipped = Current;
+        NextToken();
+        var triviaBuilder = Current.LeadingTrivia.ToBuilder();
+        int index = 0;
+        foreach (var t in skipped.LeadingTrivia)
+            triviaBuilder.Insert(index++, t);
+        triviaBuilder.Insert(index++, new(syntaxTree, SyntaxKind.SkippedTextTrivia, skipped.Text, skipped.Span));
+        foreach (var t in skipped.TrailingTrivia)
+            triviaBuilder.Insert(index++, t);
+        tokens[position] = new(syntaxTree, Current.Kind, Current.Span, Current.Text, Current.Value, triviaBuilder.ToImmutable(),
+                               Current.TrailingTrivia);
     }
 }
