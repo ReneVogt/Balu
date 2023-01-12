@@ -21,3 +21,5 @@ function getAge(name : string) : int
 var name = getName()
 var age = getAge(name)
 output(age, name)
+
+println("A random number between 0 and " + string(age) + ": " + string(random(age)))

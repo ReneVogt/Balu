@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using Balu.Binding;
 using Balu.Symbols;
@@ -10,166 +8,38 @@ using Balu.Syntax;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
-#pragma warning disable CA1032, CA1064
 namespace Balu.Emit;
 
 sealed class Emitter : IDisposable
 {
-    sealed class MissingReferencesException : Exception
-    {
-        public ImmutableArray<Diagnostic> Diagnostics { get; }
-        public MissingReferencesException(ImmutableArray<Diagnostic> diagnostics) => Diagnostics = diagnostics;
-    }
-
     readonly BoundProgram program;
-    readonly string[] references;
     readonly string outputPath;
     readonly DiagnosticBag diagnostics = new();
 
-    readonly AssemblyDefinition assembly;
-    readonly List<AssemblyDefinition> referencedAssemblies = new();
-    readonly TypeDefinition programType;
+    readonly ReferencedMembers referencedMembers;
 
-    TypeDefinition randomType;
     FieldDefinition? randomField;
 
-    readonly Dictionary<TypeSymbol, TypeReference> typeMap = new();
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
 
     readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
 
-    MethodReference consoleWrite, consoleWriteLine, consoleReadLine, 
-                     stringConcat, convertToBool, convertToString, 
-                     convertToInt, objectEquals;
-    MethodReference? randomCtor, randomNext;
-
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
         this.program = program;
-        this.references = references;
         this.outputPath = outputPath;
 
-        var assemblyName = new AssemblyNameDefinition(moduleName, new(1, 0));
-        assembly = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Dll);
-
         diagnostics.AddRange(program.Diagnostics);
-        LoadReferences();
-        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
-
-        ResolveTypes();
-        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
-        Debug.Assert(randomType is not null);
-        ResolveMethods();
-        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
-        Debug.Assert(
-            consoleWrite is not null &&
-            consoleWriteLine is not null &&
-            consoleReadLine is not null &&
-            stringConcat is not null &&
-            convertToBool is not null &&
-            convertToString is not null &&
-            convertToInt is not null &&
-            objectEquals is not null);
-
-        programType = new(string.Empty, "Program", TypeAttributes.Abstract | TypeAttributes.Sealed, MapType(TypeSymbol.Any));
-        assembly.MainModule.Types.Add(programType);
+        referencedMembers = new(moduleName, references);
 
         foreach (var function in program.Functions.Keys)
             methods.Add(function, CreateMethod(function));
     }
-    public void Dispose() => assembly.Dispose();
+    public void Dispose() => referencedMembers.Dispose();
 
-    TypeReference MapType(TypeSymbol typeSymbol) => typeMap.TryGetValue(typeSymbol, out var reference) ? reference : throw new EmitterException($"Invalid type symbol '{typeSymbol}'");
-
-    void LoadReferences()
-    {
-        foreach (var reference in references)
-        {
-            try
-            {
-                referencedAssemblies.Add(AssemblyDefinition.ReadAssembly(reference));
-            }
-            catch (BadImageFormatException exception)
-            {
-                diagnostics.ReportInvalidAssemblyReference(reference, exception.Message);
-            }
-            catch (IOException exception)
-            {
-                diagnostics.ReportInvalidAssemblyReference(reference, exception.Message);
-            }
-        }
-    }
-    void ResolveTypes()
-    {
-        AddToTypeMap(TypeSymbol.Any, "System.Object");
-        AddToTypeMap(TypeSymbol.Boolean, "System.Boolean");
-        AddToTypeMap(TypeSymbol.Integer, "System.Int32");
-        AddToTypeMap(TypeSymbol.String, "System.String");
-        AddToTypeMap(TypeSymbol.Void, "System.Void");
-
-        randomType = ResolveTypeDefinition("System.Random")!;
-
-        void AddToTypeMap(TypeSymbol typeSymbol, string fullName)
-        {
-            var definition = ResolveTypeDefinition(fullName, typeSymbol);
-            if (definition is null) return;
-            typeMap[typeSymbol] = assembly.MainModule.ImportReference(definition);
-        }
-    }
-    void ResolveMethods()
-    {
-        var objectTypeDefinition = ResolveTypeDefinition("System.Object")!;
-        var consoleTypeDefinition = ResolveTypeDefinition("System.Console")!;
-        var stringTypeDefinition = ResolveTypeDefinition("System.String")!;
-        var convertTypeDefinition = ResolveTypeDefinition("System.Convert")!;
-        if (diagnostics.Any()) return;
-
-        consoleWrite = ResolveMethod(consoleTypeDefinition, "Write", new[] { "System.Object" })!;
-        consoleWriteLine = ResolveMethod(consoleTypeDefinition, "WriteLine", new[] { "System.Object" })!;
-        consoleReadLine = ResolveMethod(consoleTypeDefinition, "ReadLine", Array.Empty<string>())!;
-
-        stringConcat = ResolveMethod(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" })!;
-
-        convertToBool = ResolveMethod(convertTypeDefinition, "ToBoolean", new[] { "System.Object" })!;
-        convertToInt = ResolveMethod(convertTypeDefinition, "ToInt32", new[] { "System.Object" })!;
-        convertToString = ResolveMethod(convertTypeDefinition, "ToString", new[] { "System.Object" })!;
-
-        objectEquals = ResolveMethod(objectTypeDefinition, "Equals", new[] { "System.Object", "System.Object" })!;
-
-        randomCtor = ResolveMethod(randomType, ".ctor", Array.Empty<string>());
-        randomNext = ResolveMethod(randomType, "Next", new[] { "System.Int32" });
-    }
-    TypeDefinition? ResolveTypeDefinition(string fullName, TypeSymbol? typeSybmol = null)
-    {
-        var typeDefinitions = referencedAssemblies.SelectMany(referencedAssembly => referencedAssembly.Modules)
-                                                  .SelectMany(module => module.Types)
-                                                  .Where(t => t.FullName == fullName)
-                                                  .ToArray();
-
-        if (typeDefinitions.Length == 1)
-            return typeDefinitions[0];
-
-        if (typeDefinitions.Length == 0)
-            diagnostics.ReportRequiredTypeNotFound(fullName, typeSybmol);
-        else
-            diagnostics.ReportRequiredTypeAmbiguous(fullName, typeDefinitions);
-
-        return null;
-    }
-    MethodReference? ResolveMethod(TypeDefinition typeDefinition, string name, string[] parameterTypeNames)
-    {
-        var candidates = from method in typeDefinition.Methods
-                         where method.Name == name &&
-                               method.Parameters.Select(p => p.ParameterType.FullName).SequenceEqual(parameterTypeNames)
-                         select method;
-        var winner = candidates.FirstOrDefault();
-        if (winner is not null) return assembly.MainModule.ImportReference(winner);
-
-        diagnostics.ReportRequiredMethodNotFound(typeDefinition.FullName, name, parameterTypeNames);
-        return null;
-    }
+    TypeReference MapType(TypeSymbol typeSymbol) => referencedMembers.TypeMap.TryGetValue(typeSymbol, out var reference) ? reference : throw new EmitterException($"Invalid type symbol '{typeSymbol}'");
 
     MethodDefinition CreateMethod(FunctionSymbol function)
     {
@@ -177,7 +47,7 @@ sealed class Emitter : IDisposable
         foreach (var parameter in function.Parameters)
             method.Parameters.Add(new (parameter.Name, ParameterAttributes.None, MapType(parameter.Type)));
         
-        programType.Methods.Add(method);
+        referencedMembers.ProgramType.Methods.Add(method);
         return method;
     }
     void EmitMethod(MethodDefinition method, FunctionSymbol function)
@@ -295,7 +165,7 @@ sealed class Emitter : IDisposable
         {
             case BoundBinaryOperatorKind.Addition:
                 if (expression.Type == TypeSymbol.String)
-                    processor.Emit(OpCodes.Call, stringConcat);
+                    processor.Emit(OpCodes.Call, referencedMembers.StringConcat);
                 else
                     processor.Emit(OpCodes.Add);
                 break;
@@ -321,13 +191,13 @@ sealed class Emitter : IDisposable
                 break;
             case BoundBinaryOperatorKind.Equals:
                 if (expression.Left.Type.IsReferenceType)
-                    processor.Emit(OpCodes.Call, objectEquals);
+                    processor.Emit(OpCodes.Call, referencedMembers.ObjectEquals);
                 else
                     processor.Emit(OpCodes.Ceq);
                 break;
             case BoundBinaryOperatorKind.NotEqual:
                 if (expression.Left.Type.IsReferenceType)
-                    processor.Emit(OpCodes.Call, objectEquals);
+                    processor.Emit(OpCodes.Call, referencedMembers.ObjectEquals);
                 else
                     processor.Emit(OpCodes.Ceq);
                 processor.Emit(OpCodes.Ldc_I4_0);
@@ -400,15 +270,15 @@ sealed class Emitter : IDisposable
             EmitExpression(processor, argument);
 
         if (expression.Function == BuiltInFunctions.Print)
-            processor.Emit(OpCodes.Call, consoleWrite);
+            processor.Emit(OpCodes.Call, referencedMembers.ConsoleWrite);
         else if (expression.Function == BuiltInFunctions.PrintLine)
-            processor.Emit(OpCodes.Call, consoleWriteLine);
+            processor.Emit(OpCodes.Call, referencedMembers.ConsoleWriteLine);
         else if (expression.Function == BuiltInFunctions.Input)
-            processor.Emit(OpCodes.Call, consoleReadLine);
+            processor.Emit(OpCodes.Call, referencedMembers.ConsoleReadLine);
         else if (expression.Function == BuiltInFunctions.Random)
         {
             EmitRandomField();
-            processor.Emit(OpCodes.Callvirt, randomNext);
+            processor.Emit(OpCodes.Callvirt, referencedMembers.RandomNext);
         }
         else
             processor.Emit(OpCodes.Call, methods[expression.Function]);
@@ -421,11 +291,11 @@ sealed class Emitter : IDisposable
 
         if (expression.Type == TypeSymbol.Any) return;
         if (expression.Type == TypeSymbol.Boolean)
-            processor.Emit(OpCodes.Call, convertToBool);
+            processor.Emit(OpCodes.Call, referencedMembers.ConvertToBool);
         else if (expression.Type == TypeSymbol.Integer)
-            processor.Emit(OpCodes.Call, convertToInt);
+            processor.Emit(OpCodes.Call, referencedMembers.ConvertToInt);
         else if (expression.Type == TypeSymbol.String)
-            processor.Emit(OpCodes.Call, convertToString);
+            processor.Emit(OpCodes.Call, referencedMembers.ConvertToString);
         else 
             throw new EmitterException($"Unexpected conversion from '{expression.Expression.Type}' to '{expression.Type}'.");
     }
@@ -467,9 +337,9 @@ sealed class Emitter : IDisposable
     void EmitRandomField()
     {
         if (randomField is not null) return;
-        var randomTypeReference = assembly.MainModule.ImportReference(randomType);
+        var randomTypeReference = referencedMembers.Assembly.MainModule.ImportReference(referencedMembers.RandomType);
         randomField = new("<random>", FieldAttributes.Static | FieldAttributes.Private | FieldAttributes.SpecialName, randomTypeReference);
-        programType.Fields.Add(randomField);
+        referencedMembers.ProgramType.Fields.Add(randomField);
 
         var staticConstructor = new MethodDefinition(
             ".cctor", 
@@ -477,9 +347,9 @@ sealed class Emitter : IDisposable
             MethodAttributes.RTSpecialName | MethodAttributes.SpecialName | 
             MethodAttributes.Private,
             MapType(TypeSymbol.Void));
-        programType.Methods.Add(staticConstructor);
+        referencedMembers.ProgramType.Methods.Add(staticConstructor);
         var processor = staticConstructor.Body.GetILProcessor();
-        processor.Emit(OpCodes.Newobj, randomCtor);
+        processor.Emit(OpCodes.Newobj, referencedMembers.RandomCtor);
         processor.Emit(OpCodes.Stsfld, randomField);
         processor.Emit(OpCodes.Ret);
     }
@@ -491,8 +361,8 @@ sealed class Emitter : IDisposable
         foreach (var (function, method) in methods)
             EmitMethod(method, function);
 
-        assembly.EntryPoint = methods[program.EntryPoint];
-        assembly.Write(outputPath);
+        referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
+        referencedMembers.Assembly.Write(outputPath);
     }
 
     public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
