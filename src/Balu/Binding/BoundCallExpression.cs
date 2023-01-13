@@ -12,6 +12,7 @@ sealed class BoundCallExpression : BoundExpression
     public override BoundNodeKind Kind => BoundNodeKind.CallExpression;
 
     public override IEnumerable<BoundNode> Children => Arguments;
+    public override bool HasSideEffects => true;
 
     public FunctionSymbol Function { get; }
     public ImmutableArray<BoundExpression> Arguments { get; }

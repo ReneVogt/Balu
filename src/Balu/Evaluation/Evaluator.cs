@@ -66,6 +66,8 @@ sealed class Evaluator : BoundTreeVisitor
     }
     protected override void VisitBoundUnaryExpression(BoundUnaryExpression unaryExpression)
     {
+        if (CheckConstant(unaryExpression)) return;
+
         Visit(unaryExpression.Operand);
         switch (unaryExpression.Operator.OperatorKind)
         {
@@ -86,6 +88,8 @@ sealed class Evaluator : BoundTreeVisitor
     }
     protected override void VisitBoundBinaryExpression(BoundBinaryExpression binaryExpression)
     {
+        if (CheckConstant(binaryExpression)) return;
+
         Visit(binaryExpression.Left);
         object left = Result!;
         Visit(binaryExpression.Right);
@@ -112,6 +116,7 @@ sealed class Evaluator : BoundTreeVisitor
     }
     protected override void VisitBoundVariableExpression(BoundVariableExpression variableExpression)
     {
+        if (CheckConstant(variableExpression)) return;
         Result = variableExpression.Variable.Kind switch
         {
             SymbolKind.GlobalVariable => globals[variableExpression.Variable],
@@ -197,6 +202,14 @@ sealed class Evaluator : BoundTreeVisitor
         else if (conversionExpression.Type != TypeSymbol.Any)
             throw EvaluationException.InvalidCast(conversionExpression.Expression.Type, conversionExpression.Type);
     }
+
+    bool CheckConstant(BoundExpression expression)
+    {
+        if (expression.HasSideEffects || expression.Constant is null) return false;
+        Result = expression.Constant.Value;
+        return true;
+    }
+
     void ExecutePrint(IEnumerable<BoundExpression> arguments, bool line)
     {
         Visit(arguments.Single());
