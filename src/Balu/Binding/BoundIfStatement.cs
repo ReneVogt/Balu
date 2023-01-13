@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Balu.Syntax;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -19,7 +20,13 @@ sealed class BoundIfStatement : BoundStatement
     public BoundStatement ThenStatement { get; }
     public BoundStatement? ElseStatement { get; }
 
-    public BoundIfStatement(BoundExpression condition, BoundStatement thenStatement, BoundStatement? elseStatement) => (Condition, ThenStatement, ElseStatement) = (condition, thenStatement, elseStatement);
+    public BoundIfStatement(SyntaxNode syntax, BoundExpression condition, BoundStatement thenStatement, BoundStatement? elseStatement)
+        : base(syntax)
+    {
+        Condition = condition;
+        ThenStatement = thenStatement;
+        ElseStatement = elseStatement;
+    }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
@@ -28,6 +35,6 @@ sealed class BoundIfStatement : BoundStatement
         var elseStatement = ElseStatement is null ? null : (BoundStatement)rewriter.Visit(ElseStatement);
         return condition == Condition && thenStatement == ThenStatement && elseStatement == ElseStatement
                    ? this
-                   : new (condition, thenStatement, elseStatement);
+                   : new (Syntax, condition, thenStatement, elseStatement);
     }
 }

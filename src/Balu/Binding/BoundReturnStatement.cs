@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Balu.Syntax;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -16,12 +17,15 @@ sealed class BoundReturnStatement : BoundStatement
         }
     }
 
-    public BoundReturnStatement(BoundExpression? expression) => Expression = expression;
+    public BoundReturnStatement(SyntaxNode syntax, BoundExpression? expression) : base(syntax)
+    {
+        Expression = expression;
+    }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
         var expression = Expression is null ? null : (BoundExpression)rewriter.Visit(Expression);
-        return expression == Expression ? this : new (expression);
+        return expression == Expression ? this : new (Syntax, expression);
     }
 
     public override string ToString() => $"return {Expression}";

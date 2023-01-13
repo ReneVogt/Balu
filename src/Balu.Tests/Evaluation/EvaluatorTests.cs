@@ -440,12 +440,12 @@ public class EvaluatorTests
     [Fact]
     public void Evaluate_Return_ReportsNotAllPathsReturn()
     {
-        "function [test]() : int { if false return 0 }".AssertEvaluation("Not all code paths of function 'test' return a value of type 'int'.");
+        "function test() : int { if false return 0 [}]".AssertEvaluation("Not all code paths of function 'test' return a value of type 'int'.");
     }
     [Fact]
     public void Evaluate_Return_ReportsNotAllPathsReturnForEmptyFunction()
     {
-        "function [test]() : int { }".AssertEvaluation("Not all code paths of function 'test' return a value of type 'int'.");
+        "function test() : int { [}]".AssertEvaluation("Not all code paths of function 'test' return a value of type 'int'.");
     }
     [Fact]
     public void Evaluate_Return_DetectsDeadPaths()

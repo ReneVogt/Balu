@@ -1,3 +1,8 @@
-﻿namespace Balu.Binding;
+﻿using Balu.Syntax;
 
-abstract class BoundStatement : BoundNode{}
+namespace Balu.Binding;
+
+abstract class BoundStatement : BoundNode
+{
+    private protected BoundStatement(SyntaxNode syntax) : base(syntax) { }
+}

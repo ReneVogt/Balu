@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Balu.Symbols;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -21,7 +22,7 @@ sealed class BoundForStatement : BoundLoopStatement
     public BoundExpression UpperBound { get; }
     public BoundStatement Body { get; }
 
-    public BoundForStatement(VariableSymbol variable, BoundExpression lowerBound, BoundExpression upperBound, BoundStatement body, BoundLabel breakLabel, BoundLabel continueLabel) : base(breakLabel, continueLabel)
+    public BoundForStatement(SyntaxNode syntax, VariableSymbol variable, BoundExpression lowerBound, BoundExpression upperBound, BoundStatement body, BoundLabel breakLabel, BoundLabel continueLabel) : base(syntax, breakLabel, continueLabel)
     {
         Variable = variable;
         LowerBound = lowerBound; 
@@ -36,7 +37,7 @@ sealed class BoundForStatement : BoundLoopStatement
         var body = (BoundStatement)rewriter.Visit(Body);
         return lowerBound == LowerBound && upperBound == UpperBound && body == Body
                    ? this
-                   : new (Variable, lowerBound, upperBound, body, BreakLabel, ContinueLabel);
+                   : new (Syntax, Variable, lowerBound, upperBound, body, BreakLabel, ContinueLabel);
     }
 
     public override string ToString() => $"{Kind} \"{Variable.Name}\"";

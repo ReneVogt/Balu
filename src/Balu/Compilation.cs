@@ -78,7 +78,7 @@ public sealed class Compilation
     Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
     {
         Previous = previous;
-        SyntaxTrees = syntaxTrees.ToImmutableArray();
+        SyntaxTrees = syntaxTrees.DefaultIfEmpty(SyntaxTree.Parse(string.Empty)).ToImmutableArray();
         IsScript = isScript;
     }
 

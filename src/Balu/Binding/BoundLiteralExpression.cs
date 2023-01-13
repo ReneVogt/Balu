@@ -1,6 +1,7 @@
 ﻿using Balu.Symbols;
 using System;
 using System.Collections.Generic;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -14,7 +15,7 @@ sealed class BoundLiteralExpression : BoundExpression
 
     public object Value => Constant.Value;
 
-    public BoundLiteralExpression(object value)
+    public BoundLiteralExpression(SyntaxNode syntax, object value) : base(syntax)
     {
         Constant = new (value);
         Type = Value switch

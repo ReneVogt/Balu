@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Balu.Syntax;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -17,7 +18,7 @@ sealed class BoundDoWhileStatement : BoundLoopStatement
     public BoundStatement Body { get; }
     public BoundExpression Condition { get; }
 
-    public BoundDoWhileStatement(BoundStatement body, BoundExpression condition, BoundLabel breakLabel, BoundLabel continueLabel) : base(breakLabel, continueLabel)
+    public BoundDoWhileStatement(SyntaxNode syntax, BoundStatement body, BoundExpression condition, BoundLabel breakLabel, BoundLabel continueLabel) : base(syntax, breakLabel, continueLabel)
     {
         Body = body;
         Condition = condition;
@@ -29,6 +30,6 @@ sealed class BoundDoWhileStatement : BoundLoopStatement
         var condition = (BoundExpression)rewriter.Visit(Condition);
         return body == Body && condition == Condition
                    ? this
-                   : new (body, condition, BreakLabel, ContinueLabel);
+                   : new (Syntax, body, condition, BreakLabel, ContinueLabel);
     }
 }
