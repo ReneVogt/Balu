@@ -10,7 +10,9 @@ static class BoundNodeFactory
         new(syntax, variable, expression);
     public static BoundBinaryExpression Binary(SyntaxNode syntax, BoundExpression left, BoundBinaryOperator op, BoundExpression right) => new(syntax, left, op, right);
     public static BoundBlockStatement Block(SyntaxNode syntax, params BoundStatement[] statements) => new(syntax, statements.ToImmutableArray());
+    public static BoundBlockStatement Block(SyntaxNode syntax, ImmutableArray<BoundStatement> statements) => new(syntax, statements);
     public static BoundCallExpression Call(SyntaxNode syntax, FunctionSymbol function, params BoundExpression[] arguments) => new(syntax, function, arguments.ToImmutableArray());
+    public static BoundCallExpression Call(SyntaxNode syntax, FunctionSymbol function, ImmutableArray<BoundExpression> arguments) => new(syntax, function, arguments);
     public static BoundConversionExpression Conversion(SyntaxNode syntax, TypeSymbol type, BoundExpression expression) => new(syntax, type, expression);
     public static BoundDoWhileStatement DoWhile(SyntaxNode syntax, BoundStatement body, BoundExpression condition, BoundLabel breakLabel,
                                                 BoundLabel continueLabel) => new(syntax, body, condition, breakLabel, continueLabel);
