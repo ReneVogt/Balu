@@ -1,14 +1,18 @@
 ﻿using Balu.Text;
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 
 namespace Balu.Syntax;
 
 public sealed class SyntaxTree
 {
     delegate void ParseHandler(SyntaxTree syntaxTree, out CompilationUnitSyntax root, out ImmutableArray<Diagnostic> diagnostics);
+
+    Dictionary<SyntaxNode, SyntaxNode?>? parents;
 
     public CompilationUnitSyntax Root { get; }
     public ImmutableArray<Diagnostic> Diagnostics { get; }
@@ -22,6 +26,31 @@ public sealed class SyntaxTree
         parser(this, out var root, out var diagnostics);
         Root = root;
         Diagnostics = diagnostics;
+    }
+
+    internal SyntaxNode? GetParent(SyntaxNode syntaxNode)
+    {
+        if (parents == null)
+        {
+            var created = CreateParentsDictionary(Root);
+            Interlocked.CompareExchange(ref parents, created, null);
+        }
+
+        return parents[syntaxNode];
+    }
+    static Dictionary<SyntaxNode, SyntaxNode?> CreateParentsDictionary(CompilationUnitSyntax root)
+    {
+        var result = new Dictionary<SyntaxNode, SyntaxNode?> { { root, null } };
+        CreateParentsDictionary(result, root);
+        return result;
+    }
+    static void CreateParentsDictionary(Dictionary<SyntaxNode, SyntaxNode?> result, SyntaxNode node)
+    {
+        foreach (var child in node.Children)
+        {
+            result.Add(child, node);
+            CreateParentsDictionary(result, child);
+        }
     }
 
     public static SyntaxTree Load(string fileName)

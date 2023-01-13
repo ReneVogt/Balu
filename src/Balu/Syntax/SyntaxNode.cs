@@ -10,6 +10,8 @@ public abstract class SyntaxNode
     readonly Lazy<TextSpan> span, fullSpan;
 
     public SyntaxTree SyntaxTree { get; }
+    public SyntaxNode? Parent => SyntaxTree.GetParent(this);
+
     public abstract SyntaxKind Kind { get; }
     public virtual TextSpan Span => span.Value;
     public virtual TextSpan FullSpan => fullSpan.Value;
@@ -35,6 +37,17 @@ public abstract class SyntaxNode
             return first.FullSpan with { Length = last.FullSpan.End - first.FullSpan.Start };
         });
     }
+
+    public IEnumerable<SyntaxNode> AncestorsAndSelf()
+    {
+        var node = this;
+        while (node is not null)
+        {
+            yield return node;
+            node = node.Parent;
+        }
+    }
+    public IEnumerable<SyntaxNode> Ancestors() => AncestorsAndSelf().Skip(1);
 
     internal virtual void Accept(SyntaxTreeVisitor visitor)
     {
