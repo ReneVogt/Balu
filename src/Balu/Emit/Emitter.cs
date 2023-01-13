@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
 using Balu.Binding;
 using Balu.Symbols;
@@ -361,8 +362,16 @@ sealed class Emitter : IDisposable
         foreach (var (function, method) in methods)
             EmitMethod(method, function);
 
+        using var outputStream = File.Create(outputPath);
+        using var symbolStream = File.Create(Path.ChangeExtension(outputPath, ".pdb"));
+        var writerParameters = new WriterParameters
+        {
+            WriteSymbols = true,
+            SymbolStream = symbolStream,
+            SymbolWriterProvider = new PortablePdbWriterProvider()
+        };
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
-        referencedMembers.Assembly.Write(outputPath);
+        referencedMembers.Assembly.Write(outputStream, writerParameters);
     }
 
     public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
