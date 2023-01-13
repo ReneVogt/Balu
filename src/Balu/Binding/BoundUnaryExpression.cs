@@ -9,6 +9,7 @@ sealed class BoundUnaryExpression : BoundExpression
     public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
     public override TypeSymbol Type => Operator.Type;
     public override BoundConstant? Constant { get; }
+    public override bool HasSideEffects { get; }
 
     public override IEnumerable<BoundNode> Children
     {
@@ -26,6 +27,7 @@ sealed class BoundUnaryExpression : BoundExpression
         Operator = op;
         Operand = operand;
         Constant = ConstantFolder.ComputeConstant(op, operand);
+        HasSideEffects = operand.HasSideEffects;
     }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)

@@ -8,6 +8,7 @@ sealed class BoundAssignmentExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.AssignmentExpression;
     public override BoundConstant? Constant => Expression.Constant;
+    public override bool HasSideEffects => true;
     public override TypeSymbol Type => Expression.Type;
     public override IEnumerable<BoundNode> Children
     {
@@ -22,7 +23,8 @@ sealed class BoundAssignmentExpression : BoundExpression
 
     public BoundAssignmentExpression(SyntaxNode syntax, VariableSymbol symbol, BoundExpression expression) : base(syntax)
     {
-        (Symbol, Expression) = (symbol, expression);
+        Symbol = symbol;
+        Expression = expression;
     }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)

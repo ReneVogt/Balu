@@ -104,7 +104,7 @@ sealed class Emitter : IDisposable
     }
     void EmitExpression(ILProcessor processor, BoundExpression expression)
     {
-        if (expression.Constant is not null)
+        if (expression is { Constant: {}, HasSideEffects: false })
         {
             EmitConstantExpression(processor, expression);
             return;
