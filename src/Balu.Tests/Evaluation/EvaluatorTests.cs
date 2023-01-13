@@ -495,4 +495,18 @@ public class EvaluatorTests
     [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'GlobalVariable', expected 'a' to be a function.")]
     public void Evaluate_Reports_SymbolTypeMisatch(string text, string diagnostics) => text.AssertEvaluation(diagnostics);
 
+    [Fact]
+    public void Evaluate_ConstantFolding_DoesNotRemoveSideEffects()
+    {
+        @"
+            var result = false
+            function SetResultAndReturnTrue() : bool
+            {
+                result = true
+                return true
+            }
+            var test = SetResultAndReturnTrue() && false
+            result
+        ".AssertEvaluation(value: true);
+    }
 }
