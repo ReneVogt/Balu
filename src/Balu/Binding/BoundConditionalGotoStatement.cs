@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Balu.Syntax;
+using System.Collections.Generic;
 
 namespace Balu.Binding;
 
@@ -14,12 +15,17 @@ sealed class BoundConditionalGotoStatement : BoundStatement
         get { yield return Condition; }
     }
     
-    public BoundConditionalGotoStatement(BoundLabel label, BoundExpression condition, bool jumpIfTrue = true) => (Label, Condition, JumpIfTrue) = (label, condition, jumpIfTrue);
+    public BoundConditionalGotoStatement(SyntaxNode syntax, BoundLabel label, BoundExpression condition, bool jumpIfTrue = true) : base(syntax)
+    {
+        Label = label;
+        Condition = condition;
+        JumpIfTrue = jumpIfTrue;
+    }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
         var condition = (BoundExpression)rewriter.Visit(Condition);
-        return condition == Condition ? this : new (Label, condition, JumpIfTrue);
+        return condition == Condition ? this : new (Syntax, Label, condition, JumpIfTrue);
     }
 
     public override string ToString() => $"goto {Label} {(JumpIfTrue ? "if" : "if not")} {Condition}";

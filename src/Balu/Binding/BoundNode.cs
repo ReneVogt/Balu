@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -9,6 +10,10 @@ abstract class BoundNode
 {
     public abstract BoundNodeKind Kind { get; }
     public abstract IEnumerable<BoundNode> Children { get; }
+    public SyntaxNode Syntax { get; }
+
+    private protected BoundNode(SyntaxNode syntax) => Syntax = syntax;
+
     internal abstract BoundNode Rewrite(BoundTreeRewriter rewriter);
 
     internal virtual void Accept(BoundTreeVisitor visitor)

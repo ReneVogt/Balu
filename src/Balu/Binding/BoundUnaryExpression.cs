@@ -21,7 +21,7 @@ sealed class BoundUnaryExpression : BoundExpression
     public BoundUnaryOperator Operator { get; }
     public BoundExpression Operand { get; }
 
-    public BoundUnaryExpression(BoundUnaryOperator op, BoundExpression operand)
+    public BoundUnaryExpression(SyntaxNode syntax, BoundUnaryOperator op, BoundExpression operand) : base(syntax)
     {
         Operator = op;
         Operand = operand;
@@ -31,7 +31,7 @@ sealed class BoundUnaryExpression : BoundExpression
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
         var operand = (BoundExpression)rewriter.Visit(Operand);
-        return operand == Operand ? this : new (Operator, operand);
+        return operand == Operand ? this : new (Syntax, Operator, operand);
     }
 
     public override string ToString() => $"{Operator.SyntaxKind.GetText()} {Operand}";

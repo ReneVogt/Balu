@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Balu.Symbols;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -19,12 +20,15 @@ sealed class BoundAssignmentExpression : BoundExpression
     public VariableSymbol Symbol { get; }
     public BoundExpression Expression { get; }
 
-    public BoundAssignmentExpression(VariableSymbol symbol, BoundExpression expression) => (Symbol, Expression) = (symbol, expression);
+    public BoundAssignmentExpression(SyntaxNode syntax, VariableSymbol symbol, BoundExpression expression) : base(syntax)
+    {
+        (Symbol, Expression) = (symbol, expression);
+    }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
         var expression = (BoundExpression)rewriter.Visit(Expression);
-        return expression == Expression ? this : new (Symbol, expression);
+        return expression == Expression ? this : new (Syntax, Symbol, expression);
     }
 
     public override string ToString() => $"{Symbol.Name} = {Expression}";

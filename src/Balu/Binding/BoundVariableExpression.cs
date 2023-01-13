@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Balu.Symbols;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -13,7 +14,10 @@ sealed class BoundVariableExpression : BoundExpression
 
     public VariableSymbol Variable { get; }
 
-    public BoundVariableExpression(VariableSymbol variable) => Variable = variable;
+    public BoundVariableExpression(SyntaxNode syntax, VariableSymbol variable) : base(syntax)
+    {
+        Variable = variable;
+    }
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 

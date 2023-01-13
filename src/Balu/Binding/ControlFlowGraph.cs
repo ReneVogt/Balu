@@ -142,7 +142,7 @@ sealed class ControlFlowGraph
                             break;
                         case BoundNodeKind.ConditionalGotoStatement:
                             var cgs = (BoundConditionalGotoStatement)statement;
-                            var negated = new BoundUnaryExpression(BoundUnaryOperator.Bind(SyntaxKind.BangToken, TypeSymbol.Boolean)!, cgs.Condition);
+                            var negated = new BoundUnaryExpression(cgs.Condition.Syntax, BoundUnaryOperator.Bind(SyntaxKind.BangToken, TypeSymbol.Boolean)!, cgs.Condition);
                             var jumpCondition = cgs.JumpIfTrue ? cgs.Condition : negated;
                             var nextCondition = cgs.JumpIfTrue ? negated : cgs.Condition;
                             Connect(block, blockFromLabel[cgs.Label], jumpCondition);

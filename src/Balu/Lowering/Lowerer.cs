@@ -26,9 +26,9 @@ sealed class Lowerer : BoundTreeRewriter
              *      <then>              <then>
              *                          end:
              */
-            var endLabel = new BoundLabelStatement(GenerateNextLabel());
-            var gotoStatement = new BoundConditionalGotoStatement(endLabel.Label, ifStatement.Condition, false);
-            result = new BoundBlockStatement(ImmutableArray.Create(gotoStatement, ifStatement.ThenStatement, endLabel));
+            var endLabel = new BoundLabelStatement(ifStatement.Syntax, GenerateNextLabel());
+            var gotoStatement = new BoundConditionalGotoStatement(ifStatement.Syntax, endLabel.Label, ifStatement.Condition, false);
+            result = new BoundBlockStatement(ifStatement.Syntax, ImmutableArray.Create(gotoStatement, ifStatement.ThenStatement, endLabel));
         }
         else
         {
@@ -41,10 +41,10 @@ sealed class Lowerer : BoundTreeRewriter
              *                          end:
              */
 
-            var elseLabel = new BoundLabelStatement(GenerateNextLabel());
-            var endLabel = new BoundLabelStatement(GenerateNextLabel());
-            var gotoElse = new BoundConditionalGotoStatement(elseLabel.Label, ifStatement.Condition, false);
-            var gotoEnd = new BoundGotoStatement(endLabel.Label);
+            var elseLabel = new BoundLabelStatement(ifStatement.Syntax, GenerateNextLabel());
+            var endLabel = new BoundLabelStatement(ifStatement.Syntax, GenerateNextLabel());
+            var gotoElse = new BoundConditionalGotoStatement(ifStatement.Syntax, elseLabel.Label, ifStatement.Condition, false);
+            var gotoEnd = new BoundGotoStatement(ifStatement.Syntax, endLabel.Label);
             var builder = ImmutableArray.CreateBuilder<BoundStatement>(6);
             builder.Add(gotoElse);
             builder.Add(ifStatement.ThenStatement);
@@ -52,7 +52,7 @@ sealed class Lowerer : BoundTreeRewriter
             builder.Add(elseLabel);
             builder.Add(ifStatement.ElseStatement);
             builder.Add(endLabel);
-            result = new BoundBlockStatement(builder.ToImmutable());
+            result = new BoundBlockStatement(ifStatement.Syntax, builder.ToImmutable());
         }
 
         return Visit(result);
@@ -67,17 +67,17 @@ sealed class Lowerer : BoundTreeRewriter
          *                         end:
          */
 
-        var checkLabel = new BoundLabelStatement(whileStatement.ContinueLabel);
-        var endLabel = new BoundLabelStatement(whileStatement.BreakLabel);
-        var gotoEnd = new BoundConditionalGotoStatement(endLabel.Label, whileStatement.Condition, false);
-        var gotoCheck = new BoundGotoStatement(checkLabel.Label);
+        var checkLabel = new BoundLabelStatement(whileStatement.Syntax, whileStatement.ContinueLabel);
+        var endLabel = new BoundLabelStatement(whileStatement.Syntax, whileStatement.BreakLabel);
+        var gotoEnd = new BoundConditionalGotoStatement(whileStatement.Syntax, endLabel.Label, whileStatement.Condition, false);
+        var gotoCheck = new BoundGotoStatement(whileStatement.Syntax, checkLabel.Label);
         var builder = ImmutableArray.CreateBuilder<BoundStatement>(5);
         builder.Add(checkLabel);
         builder.Add(gotoEnd);
         builder.Add(whileStatement.Body);
         builder.Add(gotoCheck);
         builder.Add(endLabel);
-        var result = new BoundBlockStatement(builder.ToImmutable());
+        var result = new BoundBlockStatement(whileStatement.Syntax, builder.ToImmutable());
         return Visit(result);
     }
     protected override BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
@@ -91,17 +91,17 @@ sealed class Lowerer : BoundTreeRewriter
          *                         break:
          */
 
-        var startLabel = new BoundLabelStatement(GenerateNextLabel());
-        var continueLabel = new BoundLabelStatement(doWhileStatement.ContinueLabel);
-        var gotoStart = new BoundConditionalGotoStatement(startLabel.Label, doWhileStatement.Condition);
-        var breakLabel = new BoundLabelStatement(doWhileStatement.BreakLabel);
+        var startLabel = new BoundLabelStatement(doWhileStatement.Syntax, GenerateNextLabel());
+        var continueLabel = new BoundLabelStatement(doWhileStatement.Syntax, doWhileStatement.ContinueLabel);
+        var gotoStart = new BoundConditionalGotoStatement(doWhileStatement.Syntax, startLabel.Label, doWhileStatement.Condition);
+        var breakLabel = new BoundLabelStatement(doWhileStatement.Syntax, doWhileStatement.BreakLabel);
         var builder = ImmutableArray.CreateBuilder<BoundStatement>(5);
         builder.Add(startLabel);
         builder.Add(doWhileStatement.Body);
         builder.Add(continueLabel);
         builder.Add(gotoStart);
         builder.Add(breakLabel);
-        var result = new BoundBlockStatement(builder.ToImmutable());
+        var result = new BoundBlockStatement(doWhileStatement.Syntax, builder.ToImmutable());
         return Visit(result);
     }
     protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
@@ -124,37 +124,37 @@ sealed class Lowerer : BoundTreeRewriter
          *   }
          */
 
-        var loopVariable = new BoundVariableExpression(forStatement.Variable);
-        var loopVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Variable, forStatement.LowerBound);
+        var loopVariable = new BoundVariableExpression(forStatement.Syntax, forStatement.Variable);
+        var loopVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Syntax, forStatement.Variable, forStatement.LowerBound);
 
         var upperVariableSymbol = CreateVariable("upperBound", true, TypeSymbol.Integer, forStatement.UpperBound.Constant);
-        var upperVariableDeclaration = new BoundVariableDeclarationStatement(upperVariableSymbol, forStatement.UpperBound);
+        var upperVariableDeclaration = new BoundVariableDeclarationStatement(forStatement.Syntax, upperVariableSymbol, forStatement.UpperBound);
 
-        var continueLabel = new BoundLabelStatement(forStatement.ContinueLabel);
-        var increment = new BoundExpressionStatement(
-            new BoundAssignmentExpression(
-                forStatement.Variable,
-                new BoundBinaryExpression(
-                    loopVariable,
-                    BoundBinaryOperator.BinaryPlus,
-                    new BoundLiteralExpression(1))));
+        var continueLabel = new BoundLabelStatement(forStatement.Syntax, forStatement.ContinueLabel);
+        var increment = new BoundExpressionStatement(forStatement.Syntax,
+                                                     new BoundAssignmentExpression(forStatement.Syntax,
+                                                                                   forStatement.Variable,
+                                                                                   new BoundBinaryExpression(forStatement.Syntax,
+                                                                                       loopVariable,
+                                                                                       BoundBinaryOperator.BinaryPlus,
+                                                                                       new BoundLiteralExpression(forStatement.Syntax, 1))));
 
-        var whileCondition = new BoundBinaryExpression(
-            loopVariable,
-            BoundBinaryOperator.LessOrEquals,
-            new BoundVariableExpression(upperVariableSymbol));
-        var whileBody = new BoundBlockStatement(ImmutableArray.Create(forStatement.Body, continueLabel, increment));
-        var whileStatement = new BoundWhileStatement(whileCondition, whileBody, forStatement.BreakLabel, new ($"lowcontinue{labelCount++}"));
+        var whileCondition = new BoundBinaryExpression(forStatement.Syntax,
+                                                       loopVariable,
+                                                       BoundBinaryOperator.LessOrEquals,
+                                                       new BoundVariableExpression(forStatement.Syntax, upperVariableSymbol));
+        var whileBody = new BoundBlockStatement(forStatement.Syntax, ImmutableArray.Create(forStatement.Body, continueLabel, increment));
+        var whileStatement = new BoundWhileStatement(forStatement.Syntax, whileCondition, whileBody, forStatement.BreakLabel, new ($"lowcontinue{labelCount++}"));
 
-        var rewritten = new BoundBlockStatement(ImmutableArray.Create<BoundStatement>(loopVariableDeclaration, upperVariableDeclaration, whileStatement));
+        var rewritten = new BoundBlockStatement(forStatement.Syntax, ImmutableArray.Create<BoundStatement>(loopVariableDeclaration, upperVariableDeclaration, whileStatement));
         return Visit(rewritten);
     }
     protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
     {
         if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;
         return (bool)conditionalGotoStatement.Condition.Constant.Value == conditionalGotoStatement.JumpIfTrue
-               ? Visit(new BoundGotoStatement(conditionalGotoStatement.Label))
-               : Visit(new BoundNopStatement());
+               ? Visit(new BoundGotoStatement(conditionalGotoStatement.Syntax, conditionalGotoStatement.Label))
+               : Visit(new BoundNopStatement(conditionalGotoStatement.Syntax));
     }
 
     VariableSymbol CreateVariable(string name, bool readOnly, TypeSymbol type, BoundConstant? constant) =>
@@ -177,9 +177,9 @@ sealed class Lowerer : BoundTreeRewriter
         }
 
         if (containingFunction?.ReturnType == TypeSymbol.Void && (resultBuilder.Count == 0 || CanFallThrough(resultBuilder[^1])))
-                resultBuilder.Add(new BoundReturnStatement(null));
+                resultBuilder.Add(new BoundReturnStatement(statement.Syntax, null));
         
-        return new (resultBuilder.ToImmutable());
+        return new (statement.Syntax, resultBuilder.ToImmutable());
 
         static bool CanFallThrough(BoundStatement lastStatement) => 
             lastStatement.Kind != BoundNodeKind.ReturnStatement &&
@@ -196,7 +196,7 @@ sealed class Lowerer : BoundTreeRewriter
             if (!reachableStatements.Contains(builder[i]))
                 builder.RemoveAt(i);
         }
-        return new (builder.ToImmutable());
+        return new (statement.Syntax, builder.ToImmutable());
     }
     public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => RemoveDeadCode(Flatten((BoundStatement)new Lowerer(containingFunction).Visit(statement), containingFunction));
 }

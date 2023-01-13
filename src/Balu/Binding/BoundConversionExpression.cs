@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Balu.Symbols;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -13,7 +14,7 @@ sealed class BoundConversionExpression : BoundExpression
         get { yield return Expression; }
     }
 
-    public BoundConversionExpression(TypeSymbol type, BoundExpression expression)
+    public BoundConversionExpression(SyntaxNode syntax, TypeSymbol type, BoundExpression expression) : base(syntax)
     {
         Type = type;
         Expression = expression;
@@ -22,7 +23,7 @@ sealed class BoundConversionExpression : BoundExpression
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
         var expression = (BoundExpression)rewriter.Visit(Expression);
-        return expression == Expression ? this : new(Type, expression);
+        return expression == Expression ? this : new(Syntax, Type, expression);
     }
 
     public override string ToString() => $"{Type}({Expression})";

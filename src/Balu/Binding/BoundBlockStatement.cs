@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using Balu.Syntax;
 
 namespace Balu.Binding;
 
@@ -10,7 +11,7 @@ sealed class BoundBlockStatement : BoundStatement
 
     public ImmutableArray<BoundStatement> Statements { get; }
 
-    public BoundBlockStatement(ImmutableArray<BoundStatement> statements)
+    public BoundBlockStatement(SyntaxNode syntax, ImmutableArray<BoundStatement> statements) : base(syntax)
     {
         Statements = statements;
     }
@@ -18,6 +19,6 @@ sealed class BoundBlockStatement : BoundStatement
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
         var transformed = RewriteList(rewriter, Statements);
-        return transformed == Statements ? this : new (transformed);
+        return transformed == Statements ? this : new (Syntax, transformed);
     }
 }

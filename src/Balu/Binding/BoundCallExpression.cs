@@ -1,4 +1,5 @@
 ﻿using Balu.Symbols;
+using Balu.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 
@@ -15,7 +16,7 @@ sealed class BoundCallExpression : BoundExpression
     public FunctionSymbol Function { get; }
     public ImmutableArray<BoundExpression> Arguments { get; }
 
-    internal BoundCallExpression(FunctionSymbol function, ImmutableArray<BoundExpression> arguments)
+    internal BoundCallExpression(SyntaxNode syntax, FunctionSymbol function, ImmutableArray<BoundExpression> arguments) : base(syntax)
     {
         Function = function;
         Arguments = arguments;
@@ -24,7 +25,7 @@ sealed class BoundCallExpression : BoundExpression
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
         var arguments = RewriteList(rewriter, Arguments);
-        return arguments == Arguments ? this : new(Function, arguments);
+        return arguments == Arguments ? this : new(Syntax, Function, arguments);
     }
 
     public override string ToString() => $"{Function.Name}({string.Join(", ", Arguments)})";

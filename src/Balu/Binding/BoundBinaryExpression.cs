@@ -22,7 +22,7 @@ sealed class BoundBinaryExpression : BoundExpression
     public BoundBinaryOperator Operator { get; }
     public BoundExpression Right { get; }
     
-    public BoundBinaryExpression(BoundExpression left, BoundBinaryOperator op, BoundExpression right)
+    public BoundBinaryExpression(SyntaxNode syntax, BoundExpression left, BoundBinaryOperator op, BoundExpression right) : base(syntax)
     {
         Left = left;
         Operator = op;
@@ -34,7 +34,7 @@ sealed class BoundBinaryExpression : BoundExpression
     {
         var left = (BoundExpression)rewriter.Visit(Left);
         var right = (BoundExpression)rewriter.Visit(Right);
-        return left == Left && right == Right ? this : new (left, Operator, right);
+        return left == Left && right == Right ? this : new (Syntax, left, Operator, right);
     }
 
     public override string ToString() => $"{Left} {Operator.SyntaxKind.GetText()} {Right}";
