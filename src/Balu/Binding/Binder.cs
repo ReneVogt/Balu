@@ -5,6 +5,8 @@ using Balu.Lowering;
 using Balu.Symbols;
 using Balu.Syntax;
 
+using static Balu.Binding.BoundNodeFactory;
+
 namespace Balu.Binding;
 
 sealed class Binder : SyntaxTreeVisitor
@@ -74,7 +76,7 @@ sealed class Binder : SyntaxTreeVisitor
             SetErrorExpression(node);
         }
         else
-            boundNode = new BoundBinaryExpression(node, left, op, right);
+            boundNode = Binary(node, left, op, right);
     }
     protected override void VisitNameExpression(NameExpressionSyntax node)
     {
@@ -123,7 +125,7 @@ sealed class Binder : SyntaxTreeVisitor
         var expression = (BoundExpression)boundNode!;
         expression = BindConversion(node.EqualsToken, expression, variable.Type);
 
-        boundNode = new BoundAssignmentExpression(node, variable, expression);
+        boundNode = Assignment(node, variable, expression);
     }
     protected override void VisitCallExpression(CallExpressionSyntax node)
     {
