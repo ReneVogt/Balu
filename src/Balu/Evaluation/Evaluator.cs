@@ -18,7 +18,12 @@ sealed class Evaluator : BoundTreeVisitor
 
     public object? Result { get; private set; }
 
-    Evaluator(VariableDictionary globals, ImmutableDictionary<FunctionSymbol,BoundBlockStatement> functions) => (this.globals, this.functions) = (globals, functions);
+    Evaluator(VariableDictionary globals, ImmutableDictionary<FunctionSymbol,BoundBlockStatement> functions)
+    {
+        this.globals = globals;
+        this.functions = functions;
+        locals.Push(new());
+    }
 
     protected override void VisitBoundBlockStatement(BoundBlockStatement blockStatement)
     {
