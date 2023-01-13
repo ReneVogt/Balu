@@ -9,6 +9,10 @@ static class BoundNodeFactory
     public static BoundAssignmentExpression Assignment(SyntaxNode syntax, VariableSymbol variable, BoundExpression expression) =>
         new(syntax, variable, expression);
     public static BoundBinaryExpression Binary(SyntaxNode syntax, BoundExpression left, BoundBinaryOperator op, BoundExpression right) => new(syntax, left, op, right);
+    public static BoundBinaryExpression Add(SyntaxNode syntax, BoundExpression left, BoundExpression right)
+        => Binary(syntax, left, BoundBinaryOperator.BinaryPlus, right);
+    public static BoundBinaryExpression LessOrEqual(SyntaxNode syntax, BoundExpression left, BoundExpression right)
+        => Binary(syntax, left, BoundBinaryOperator.LessOrEquals, right);
     public static BoundBlockStatement Block(SyntaxNode syntax, params BoundStatement[] statements) => new(syntax, statements.ToImmutableArray());
     public static BoundBlockStatement Block(SyntaxNode syntax, ImmutableArray<BoundStatement> statements) => new(syntax, statements);
     public static BoundCallExpression Call(SyntaxNode syntax, FunctionSymbol function, params BoundExpression[] arguments) => new(syntax, function, arguments.ToImmutableArray());
@@ -18,6 +22,12 @@ static class BoundNodeFactory
                                                 BoundLabel continueLabel) => new(syntax, body, condition, breakLabel, continueLabel);
     public static BoundErrorExpression Error(SyntaxNode syntax) => new(syntax);
     public static BoundExpressionStatement Expression(SyntaxNode syntax, BoundExpression expression) => new(syntax, expression);
+    public static BoundExpressionStatement Increment(SyntaxNode syntax, BoundVariableExpression variable)
+    {
+        var increment = Add(syntax, variable, Literal(syntax, 1));
+        var incrementAssign = new BoundAssignmentExpression(syntax, variable.Variable, increment);
+        return new (syntax, incrementAssign);
+    }
     public static BoundForStatement For(SyntaxNode syntax, VariableSymbol variable, BoundExpression lowerBound, BoundExpression upperBound,
                                         BoundStatement body, BoundLabel breakLabel, BoundLabel continueLabel) =>
         new(syntax, variable, lowerBound, upperBound, body, breakLabel, continueLabel);
