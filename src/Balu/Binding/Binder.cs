@@ -504,8 +504,11 @@ sealed class Binder : SyntaxTreeVisitor
             diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
         }
 
-        var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint);
-        functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
+        if (!functionBodyBuilder.ContainsKey(globalScope.EntryPoint))
+        {
+            var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint);
+            functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
+        }
 
         return new(previous, globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
     }
