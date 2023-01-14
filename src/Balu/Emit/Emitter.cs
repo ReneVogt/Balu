@@ -346,7 +346,8 @@ sealed class Emitter : IDisposable
 
         if (!documents.TryGetValue(statement.Location.Text, out var document))
         {
-            document = new(statement.Location.FileName);
+            var uri = new Uri(statement.Location.FileName).ToString();
+            document = new(uri);
             documents[statement.Location.Text] = document;
         }
 
@@ -380,9 +381,19 @@ sealed class Emitter : IDisposable
         processor.Emit(OpCodes.Ret);
     }
 
-    void Emit()
+    void EmitDebuggableAttribute(bool debug)
+    {
+        var attribute = new CustomAttribute(referencedMembers.DebuggableAttributeCtor);
+        attribute.ConstructorArguments.Add(new CustomAttributeArgument(MapType(TypeSymbol.Boolean), debug));
+        attribute.ConstructorArguments.Add(new CustomAttributeArgument(MapType(TypeSymbol.Boolean), debug));
+        referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
+    }
+
+    void Emit(bool debug)
     {
         if (diagnostics.Any()) return;
+
+        EmitDebuggableAttribute(debug);
 
         foreach (var (function, method) in methods)
             EmitMethod(method, function);
@@ -399,13 +410,13 @@ sealed class Emitter : IDisposable
         referencedMembers.Assembly.Write(outputStream, writerParameters);
     }
 
-    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath)
+    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath, bool debug)
     {
         try
         {
             if (program.Diagnostics.Any()) return program.Diagnostics;
             using var emitter = new Emitter(program, moduleName, references, outputPath);
-            emitter.Emit();
+            emitter.Emit(debug);
             return emitter.diagnostics.ToImmutableArray();
         }
         catch (MissingReferencesException exception)

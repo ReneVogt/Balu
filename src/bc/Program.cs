@@ -57,7 +57,7 @@ sealed class Program
 
             var syntaxTrees = sourcePaths.Select(path => SyntaxTree.Load(Path.GetFullPath(path))).ToArray();
             var compilation = Compilation.Create(syntaxTrees);
-            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath);
+            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, true);
             if (!diagnostics.Any()) return 0;
 
             Console.Error.WriteDiagnostics(diagnostics);

@@ -93,12 +93,12 @@ public sealed class Compilation
         return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(Program, globals));
     }
 
-    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath) =>
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, bool debug) =>
         Emitter.Emit(
             Program, 
             moduleName ?? throw new ArgumentNullException(nameof(moduleName)), 
             references ?? throw new ArgumentNullException(nameof(references)), 
-            outputPath ?? throw new ArgumentNullException(nameof(outputPath)));
+            outputPath ?? throw new ArgumentNullException(nameof(outputPath)), debug);
 
     public void WriteSyntaxTrees(TextWriter writer)
     {

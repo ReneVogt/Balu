@@ -14,6 +14,8 @@ sealed class ReferencedMembers : IDisposable
     readonly DiagnosticBag diagnostics = new();
     readonly List<AssemblyDefinition> referencedAssemblies = new();
 
+    public  MethodReference DebuggableAttributeCtor { get; }
+
     public AssemblyDefinition Assembly { get; }
     public TypeDefinition ProgramType { get; }
 
@@ -27,8 +29,9 @@ sealed class ReferencedMembers : IDisposable
     public MethodReference ConvertToInt { get; }
     public MethodReference ObjectEquals { get; }
     public MethodReference RandomCtor { get; }
-    public MethodReference RandomNext { get; }
+
     public TypeDefinition RandomType { get; }
+    public MethodReference RandomNext { get; }
 
     public ImmutableDictionary<TypeSymbol, TypeReference> TypeMap { get; }
 
@@ -45,6 +48,7 @@ sealed class ReferencedMembers : IDisposable
         var boolTypeDefinition = ResolveTypeDefinition("System.Boolean");
         var voidTypeDefinition = ResolveTypeDefinition("System.Void");
         var randomTypeDefinition = ResolveTypeDefinition("System.Random");
+        var debuggableAttributeTypeDefinition = ResolveTypeDefinition("System.Diagnostics.DebuggableAttribute");
         if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
         Debug.Assert(
             objectTypeDefinition is not null &&
@@ -54,7 +58,8 @@ sealed class ReferencedMembers : IDisposable
             intTypeDefinition is not null &&
             boolTypeDefinition is not null &&
             voidTypeDefinition is not null &&
-            randomTypeDefinition is not null);
+            randomTypeDefinition is not null &&
+            debuggableAttributeTypeDefinition is not null);
 
         RandomType = randomTypeDefinition;
 
@@ -68,6 +73,7 @@ sealed class ReferencedMembers : IDisposable
         var objectEquals = ResolveMethodDefinition(objectTypeDefinition, "Equals", new[] { "System.Object", "System.Object" });
         var randomCtor = ResolveMethodDefinition(RandomType, ".ctor", Array.Empty<string>());
         var randomNext = ResolveMethodDefinition(RandomType, "Next", new[] { "System.Int32" });
+        var debuggableCtor = ResolveMethodDefinition(debuggableAttributeTypeDefinition, ".ctor", new[] { "System.Boolean", "System.Boolean" });
         if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
         Debug.Assert(
             consoleWrite is not null &&
@@ -79,7 +85,8 @@ sealed class ReferencedMembers : IDisposable
             convertToString is not null &&
             objectEquals is not null &&
             randomCtor is not null &&
-            randomNext is not null);
+            randomNext is not null && 
+            debuggableCtor is not null);
 
         var assemblyName = new AssemblyNameDefinition(moduleName, new(1, 0));
         Assembly = AssemblyDefinition.CreateAssembly(assemblyName, moduleName, ModuleKind.Dll);
@@ -94,6 +101,7 @@ sealed class ReferencedMembers : IDisposable
         ObjectEquals = Assembly.MainModule.ImportReference(objectEquals);
         RandomCtor = Assembly.MainModule.ImportReference(randomCtor);
         RandomNext = Assembly.MainModule.ImportReference(randomNext);
+        DebuggableAttributeCtor = Assembly.MainModule.ImportReference(debuggableCtor);
 
         var typeMapBuilder = ImmutableDictionary.CreateBuilder<TypeSymbol, TypeReference>();
         typeMapBuilder.Add(TypeSymbol.Void, Assembly.MainModule.ImportReference(voidTypeDefinition));
