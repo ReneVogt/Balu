@@ -14,10 +14,78 @@ sealed class Lowerer : BoundTreeRewriter
 
     BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
+    protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
+    {
+        if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;
+        return (bool)conditionalGotoStatement.Condition.Constant.Value == conditionalGotoStatement.JumpIfTrue
+                   ? Visit(new BoundGotoStatement(conditionalGotoStatement.Syntax, conditionalGotoStatement.Label))
+                   : Visit(new BoundNopStatement(conditionalGotoStatement.Syntax));
+    }
+    protected override BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
+    {
+        /*
+         * do                      start:
+         *   <body>                <body>
+         *                         continue:
+         * while <condition>       <condition>
+         *                         GotoTrue <start>
+         *                         break:
+         */
+
+        var syntax = doWhileStatement.Syntax;
+        var startLabel = GenerateNextLabel();
+        var result = Block(syntax,
+                           Label(syntax, startLabel),
+                           doWhileStatement.Body,
+                           Label(syntax, doWhileStatement.ContinueLabel),
+                           GotoTrue(syntax, startLabel, doWhileStatement.Condition),
+                           Label(syntax, doWhileStatement.BreakLabel));
+        return Visit(result);
+    }
     protected override BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement)
     {
         var rewritten = (BoundStatement)base.VisitBoundExpressionStatement(expressionStatement);
         return SequencePoint(rewritten, rewritten.Syntax.Location);
+    }
+    protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
+    {
+        /*
+         * Source statement:
+         *   for <var> = <lower> to <upper>
+         *     <body>
+         *
+         * Target statement:
+         *   {
+         *     var <var> = <lower>
+         *     var <tmp> = <upper>
+         *     while <var> <= <tmp>
+         *     {
+         *       <body>
+         *       continue:
+         *       <var> = <var> + 1
+         *     }
+         *   }
+         */
+
+        var syntax = forStatement.Syntax;
+
+
+        var upperVariableDeclaration = ConstantDeclaration(syntax, "<upperBound>", forStatement.UpperBound);
+        var result = Block(syntax,
+                           VariableDeclaration(syntax, forStatement.Variable, forStatement.LowerBound),
+                           upperVariableDeclaration,
+                           While(syntax,
+                                 LessOrEqual(syntax,
+                                             Variable(syntax, forStatement.Variable),
+                                             Variable(syntax, upperVariableDeclaration.Variable)),
+                                 Block(syntax,
+                                       forStatement.Body,
+                                       Label(syntax, forStatement.ContinueLabel),
+                                       Increment(syntax, Variable(syntax, forStatement.Variable))),
+                                 forStatement.BreakLabel,
+                                 new($"<lowcontinue{labelCount++}>"))
+        );
+        return Visit(result);
     }
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
     {
@@ -63,6 +131,11 @@ sealed class Lowerer : BoundTreeRewriter
 
         return Visit(result);
     }
+    protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
+    {
+        var rewritten = (BoundStatement)base.VisitBoundVariableDeclarationStatement(variableDeclarationStatement);
+        return SequencePoint(rewritten, rewritten.Syntax.Location);
+    }
     protected override BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement)
     {
         /*
@@ -82,74 +155,6 @@ sealed class Lowerer : BoundTreeRewriter
                            Goto(syntax, whileStatement.ContinueLabel),
                            Label(syntax, whileStatement.BreakLabel));
         return Visit(result);
-    }
-    protected override BoundNode VisitBoundDoWhileStatement(BoundDoWhileStatement doWhileStatement)
-    {
-        /*
-         * do                      start:
-         *   <body>                <body>
-         *                         continue:
-         * while <condition>       <condition>
-         *                         GotoTrue <start>
-         *                         break:
-         */
-
-        var syntax = doWhileStatement.Syntax;
-        var startLabel = GenerateNextLabel();
-        var result = Block(syntax,
-                           Label(syntax, startLabel),
-                           doWhileStatement.Body,
-                           Label(syntax, doWhileStatement.ContinueLabel),
-                           GotoTrue(syntax, startLabel, doWhileStatement.Condition),
-                           Label(syntax, doWhileStatement.BreakLabel));
-        return Visit(result);
-    }
-    protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
-    {
-        /*
-         * Source statement:
-         *   for <var> = <lower> to <upper>
-         *     <body>
-         *
-         * Target statement:
-         *   {
-         *     var <var> = <lower>
-         *     var <tmp> = <upper>
-         *     while <var> <= <tmp>
-         *     {
-         *       <body>
-         *       continue:
-         *       <var> = <var> + 1
-         *     }
-         *   }
-         */
-
-        var syntax = forStatement.Syntax;
-
-
-        var upperVariableDeclaration = ConstantDeclaration(syntax, "<upperBound>", forStatement.UpperBound);
-        var result = Block(syntax,
-                           VariableDeclaration(syntax, forStatement.Variable, forStatement.LowerBound),
-                           upperVariableDeclaration,
-                           While(syntax,
-                                 LessOrEqual(syntax, 
-                                             Variable(syntax, forStatement.Variable), 
-                                             Variable(syntax, upperVariableDeclaration.Variable)),
-                                 Block(syntax,
-                                       forStatement.Body,
-                                       Label(syntax, forStatement.ContinueLabel),
-                                       Increment(syntax, Variable(syntax, forStatement.Variable))),
-                                 forStatement.BreakLabel,
-                                 new($"<lowcontinue{labelCount++}>"))
-        );
-        return Visit(result);
-    }
-    protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
-    {
-        if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;
-        return (bool)conditionalGotoStatement.Condition.Constant.Value == conditionalGotoStatement.JumpIfTrue
-               ? Visit(new BoundGotoStatement(conditionalGotoStatement.Syntax, conditionalGotoStatement.Label))
-               : Visit(new BoundNopStatement(conditionalGotoStatement.Syntax));
     }
 
     static BoundBlockStatement Flatten(BoundStatement statement, FunctionSymbol? containingFunction)

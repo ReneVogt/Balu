@@ -68,6 +68,13 @@ sealed class Emitter : IDisposable
             processor.Body.Instructions[instrcutionIndex].Operand = processor.Body.Instructions[labels[label]];
         
         method.Body.OptimizeMacros();
+
+        if (method.Body.Instructions.Any())
+        {
+            method.DebugInformation.Scope = new(method.Body.Instructions.First(), method.Body.Instructions.Last());
+            foreach (var (symbol, definition) in locals)
+                method.DebugInformation.Scope.Variables.Add(new(definition, symbol.Name));
+        }
     }
     void EmitStatement(ILProcessor processor, BoundStatement statement)
     {
@@ -384,8 +391,8 @@ sealed class Emitter : IDisposable
     void EmitDebuggableAttribute(bool debug)
     {
         var attribute = new CustomAttribute(referencedMembers.DebuggableAttributeCtor);
-        attribute.ConstructorArguments.Add(new CustomAttributeArgument(MapType(TypeSymbol.Boolean), debug));
-        attribute.ConstructorArguments.Add(new CustomAttributeArgument(MapType(TypeSymbol.Boolean), debug));
+        attribute.ConstructorArguments.Add(new (MapType(TypeSymbol.Boolean), debug));
+        attribute.ConstructorArguments.Add(new (MapType(TypeSymbol.Boolean), debug));
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
