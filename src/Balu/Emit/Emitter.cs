@@ -340,13 +340,13 @@ sealed class Emitter : IDisposable
     }
     void EmitSequencePointStatement(ILProcessor processor, BoundSequencePointStatement statement)
     {
-        var index = processor.Body.Instructions.Count - 1;
+        var index = processor.Body.Instructions.Count;
         EmitStatement(processor, statement.Statement);
         var instruction = processor.Body.Instructions[index];
 
         if (!documents.TryGetValue(statement.Location.Text, out var document))
         {
-            document = new Document(statement.Location.FileName);
+            document = new(statement.Location.FileName);
             documents[statement.Location.Text] = document;
         }
 

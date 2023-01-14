@@ -24,7 +24,7 @@ sealed class BoundSequencePointStatement : BoundStatement
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
     {
-        var statement = (BoundStatement)rewriter.Visit(this);
+        var statement = (BoundStatement)rewriter.Visit(Statement);
         return statement == Statement ? this : new(Syntax, statement, Location);
     }
 }

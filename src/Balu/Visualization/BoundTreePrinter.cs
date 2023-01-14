@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
-using System.IO;    
+using System.IO;
+using System.Linq;
 using Balu.Binding;
 using Balu.Symbols;
 using Balu.Syntax;
@@ -211,7 +212,14 @@ sealed class BoundTreePrinter : BoundTreeVisitor
     }
     protected override void VisitBoundSequencePointStatement(BoundSequencePointStatement sequencePointStatement)
     {
-        writer.WritePunctuation("seq");
+        var texts = sequencePointStatement.Location.Text.ToString(sequencePointStatement.Location.Span).Split('\n');
+        var text = texts.First().Trim();
+        var tooLong = text.Length > 10;
+        if (tooLong) text = text[..10] + "...";
+        if (tooLong || texts.Length > 1) text += "...";
+
+        writer.WritePunctuation($"seq: {text}");
+        writer.WriteLine();
         base.VisitBoundSequencePointStatement(sequencePointStatement);
     }
 

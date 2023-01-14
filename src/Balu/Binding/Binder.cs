@@ -481,7 +481,7 @@ sealed class Binder : SyntaxTreeVisitor
         }
 
         var syntaxNode = (treesWithGlobalStatements.FirstOrDefault() ?? syntaxTrees.First()).Root;
-        var statement = Refactor(Block(syntaxNode, statementBuilder.ToImmutable()), null);
+        var statement = Block(syntaxNode, statementBuilder.ToImmutable());
 
         var diagnostics = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(binder.diagnostics).ToImmutableArray();
         return new(previous, entryPoint, statement, symbols, diagnostics);

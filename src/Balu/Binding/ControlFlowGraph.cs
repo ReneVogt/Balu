@@ -63,6 +63,7 @@ sealed class ControlFlowGraph
                     case BoundNodeKind.VariableDeclarationStatement:
                     case BoundNodeKind.ExpressionStatement:
                     case BoundNodeKind.NopStatement:
+                    case BoundNodeKind.SequencePointStatement:
                         statements.Add(statement);
                         break;
                     case BoundNodeKind.LabelStatement:
@@ -132,6 +133,7 @@ sealed class ControlFlowGraph
                         case BoundNodeKind.ExpressionStatement:
                         case BoundNodeKind.LabelStatement:
                         case BoundNodeKind.NopStatement:
+                        case BoundNodeKind.SequencePointStatement:
                             if (isLast) Connect(block, nextBlock);
                             break;
                         case BoundNodeKind.ReturnStatement:

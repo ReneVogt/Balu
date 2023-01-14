@@ -14,6 +14,11 @@ sealed class Lowerer : BoundTreeRewriter
 
     BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
+    protected override BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement)
+    {
+        var rewritten = (BoundStatement)base.VisitBoundExpressionStatement(expressionStatement);
+        return SequencePoint(rewritten, rewritten.Syntax.Location);
+    }
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
     {
         BoundStatement result;
