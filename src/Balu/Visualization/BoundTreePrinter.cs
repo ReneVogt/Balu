@@ -209,6 +209,11 @@ sealed class BoundTreePrinter : BoundTreeVisitor
     {
         writer.WritePunctuation("nop");
     }
+    protected override void VisitBoundSequencePointStatement(BoundSequencePointStatement sequencePointStatement)
+    {
+        writer.WritePunctuation("seq");
+        base.VisitBoundSequencePointStatement(sequencePointStatement);
+    }
 
     void WriteNestedStatement(BoundStatement statement)
     {

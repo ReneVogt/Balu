@@ -22,5 +22,6 @@ enum BoundNodeKind
     ConditionalGotoStatement,
     LabelStatement,
     ReturnStatement,
-    NopStatement
+    NopStatement,
+    SequencePointStatement
 }

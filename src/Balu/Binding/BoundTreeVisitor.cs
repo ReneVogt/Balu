@@ -68,6 +68,9 @@ abstract class BoundTreeVisitor
             case BoundNodeKind.NopStatement:
                 VisitBoundNopStatement((BoundNopStatement)node);
                 break;
+            case BoundNodeKind.SequencePointStatement:
+                VisitBoundSequencePointStatement((BoundSequencePointStatement)node);
+                break;
             default:
                 throw new ArgumentException($"Unknown {nameof(BoundNodeKind)} '{node.Kind}'.");
         }
@@ -92,4 +95,5 @@ abstract class BoundTreeVisitor
     protected virtual void VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement) => conditionalGotoStatement.Accept(this);
     protected virtual void VisitBoundReturnStatement(BoundReturnStatement returnStatement) => returnStatement.Accept(this);
     protected virtual void VisitBoundNopStatement(BoundNopStatement nopStatement) => nopStatement.Accept(this);
+    protected virtual void VisitBoundSequencePointStatement(BoundSequencePointStatement sequencePointStatement) => sequencePointStatement.Accept(this);
 }
