@@ -4,13 +4,9 @@ using Balu.Text;
 
 namespace Balu.Binding;
 
-sealed class BoundSequencePointStatement : BoundStatement
+sealed partial class BoundSequencePointStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.SequencePointStatement;
-    public override IEnumerable<BoundNode> Children
-    {
-        get { yield return Statement; }
-    }
 
     public BoundStatement Statement { get; }
     public TextLocation Location { get; }

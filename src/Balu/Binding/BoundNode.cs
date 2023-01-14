@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Balu.Syntax;
@@ -9,16 +8,19 @@ namespace Balu.Binding;
 abstract class BoundNode
 {
     public abstract BoundNodeKind Kind { get; }
-    public abstract IEnumerable<BoundNode> Children { get; }
+    public abstract int ChildrenCount { get; }
     public SyntaxNode Syntax { get; }
 
     private protected BoundNode(SyntaxNode syntax) => Syntax = syntax;
+
+    public abstract BoundNode GetChild(int index);
 
     internal abstract BoundNode Rewrite(BoundTreeRewriter rewriter);
 
     internal virtual void Accept(BoundTreeVisitor visitor)
     {
-        foreach (var child in Children) visitor.Visit(child);
+        for(int i=0; i<ChildrenCount; i++)
+            visitor.Visit(GetChild(i));
     }
 
     protected static ImmutableArray<T> RewriteList<T>(BoundTreeRewriter rewriter, ImmutableArray<T> nodes) where T : BoundNode

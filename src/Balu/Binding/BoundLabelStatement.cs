@@ -4,12 +4,11 @@ using System.Collections.Generic;
 
 namespace Balu.Binding;
 
-sealed class BoundLabelStatement : BoundStatement
+sealed partial class BoundLabelStatement : BoundStatement
 {
     public BoundLabel Label { get; }
 
     public override BoundNodeKind Kind => BoundNodeKind.LabelStatement;
-    public override IEnumerable<BoundNode> Children { get; } = Array.Empty<BoundNode>();
 
     public BoundLabelStatement(SyntaxNode syntax, BoundLabel label)
         : base(syntax)

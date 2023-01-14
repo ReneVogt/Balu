@@ -1,21 +1,11 @@
-﻿using System.Collections.Generic;
-using Balu.Symbols;
+﻿using Balu.Symbols;
 using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundForStatement : BoundLoopStatement
+sealed partial class BoundForStatement : BoundLoopStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.ForStatement;
-    public override IEnumerable<BoundNode> Children
-    {
-        get
-        {
-            yield return LowerBound;
-            yield return UpperBound;
-            yield return Body;
-        }
-    }
 
     public VariableSymbol Variable { get; }
     public BoundExpression LowerBound { get; }

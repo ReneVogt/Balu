@@ -1,19 +1,10 @@
-﻿using System.Collections.Generic;
-using Balu.Syntax;
+﻿using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundWhileStatement : BoundLoopStatement
+sealed partial class BoundWhileStatement : BoundLoopStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.WhileStatement;
-    public override IEnumerable<BoundNode> Children
-    {
-        get
-        {
-            yield return Condition;
-            yield return Body;
-        }
-    }
 
     public BoundExpression Condition { get; }
     public BoundStatement Body { get; }

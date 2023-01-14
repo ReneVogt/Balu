@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundBlockStatement : BoundStatement
+sealed partial class BoundBlockStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.BlockStatement;
-    public override IEnumerable<BoundNode> Children => Statements;
 
     public ImmutableArray<BoundStatement> Statements { get; }
 

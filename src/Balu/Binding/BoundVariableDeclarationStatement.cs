@@ -1,18 +1,10 @@
-﻿using System.Collections.Generic;
-using Balu.Symbols;
+﻿using Balu.Symbols;
 using Balu.Syntax;
 
 namespace Balu.Binding;
-sealed class BoundVariableDeclarationStatement : BoundStatement
+sealed partial class BoundVariableDeclarationStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.VariableDeclarationStatement;
-    public override IEnumerable<BoundNode> Children
-    {
-        get
-        {
-            yield return Expression;
-        }
-    }
 
     public VariableSymbol Variable { get; }
     public BoundExpression Expression { get; }

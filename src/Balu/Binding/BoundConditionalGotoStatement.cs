@@ -1,19 +1,14 @@
 ﻿using Balu.Syntax;
-using System.Collections.Generic;
 
 namespace Balu.Binding;
 
-sealed class BoundConditionalGotoStatement : BoundStatement
+sealed partial class BoundConditionalGotoStatement : BoundStatement
 {
     public BoundLabel Label { get; }
     public BoundExpression Condition { get; }
     public bool JumpIfTrue { get; }
 
     public override BoundNodeKind Kind => BoundNodeKind.ConditionalGotoStatement;
-    public override IEnumerable<BoundNode> Children
-    {
-        get { yield return Condition; }
-    }
     
     public BoundConditionalGotoStatement(SyntaxNode syntax, BoundLabel label, BoundExpression condition, bool jumpIfTrue = true) : base(syntax)
     {
