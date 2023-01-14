@@ -1,22 +1,14 @@
-﻿using System.Collections.Generic;
-using Balu.Symbols;
+﻿using Balu.Symbols;
 using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundAssignmentExpression : BoundExpression
+sealed partial class BoundAssignmentExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.AssignmentExpression;
     public override BoundConstant? Constant => Expression.Constant;
     public override bool HasSideEffects => true;
     public override TypeSymbol Type => Expression.Type;
-    public override IEnumerable<BoundNode> Children
-    {
-        get
-        {
-            yield return Expression;
-        }
-    }
 
     public VariableSymbol Symbol { get; }
     public BoundExpression Expression { get; }

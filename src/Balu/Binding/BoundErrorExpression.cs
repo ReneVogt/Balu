@@ -5,7 +5,7 @@ using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundErrorExpression : BoundExpression
+sealed partial class BoundErrorExpression : BoundExpression
 {
     public override TypeSymbol Type => TypeSymbol.Error;
     public override BoundNodeKind Kind => BoundNodeKind.ErrorExpression;
@@ -14,8 +14,6 @@ sealed class BoundErrorExpression : BoundExpression
         : base(syntax)
     {
     }
-
-    public override IEnumerable<BoundNode> Children => Array.Empty<BoundNode>();
 
     internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
 

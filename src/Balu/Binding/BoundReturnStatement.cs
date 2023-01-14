@@ -1,21 +1,12 @@
 ﻿using Balu.Syntax;
-using System.Collections.Generic;
 
 namespace Balu.Binding;
 
-sealed class BoundReturnStatement : BoundStatement
+sealed partial class BoundReturnStatement : BoundStatement
 {
     public BoundExpression? Expression { get; }
 
     public override BoundNodeKind Kind => BoundNodeKind.ReturnStatement;
-    public override IEnumerable<BoundNode> Children
-    {
-        get
-        {
-            if (Expression is not null) yield return Expression;
-
-        }
-    }
 
     public BoundReturnStatement(SyntaxNode syntax, BoundExpression? expression) : base(syntax)
     {

@@ -1,13 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using Balu.Syntax;
+﻿using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundNopStatement : BoundStatement
+sealed partial class BoundNopStatement : BoundStatement
 {
     public override BoundNodeKind Kind => BoundNodeKind.NopStatement;
-    public override IEnumerable<BoundNode> Children { get; } = Array.Empty<BoundNode>();
 
     internal BoundNopStatement(SyntaxNode syntax) : base(syntax){}
 

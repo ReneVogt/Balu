@@ -1,17 +1,15 @@
 ﻿using Balu.Symbols;
 using Balu.Syntax;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Balu.Binding;
 
-sealed class BoundCallExpression : BoundExpression
+sealed partial class BoundCallExpression : BoundExpression
 {
     public override TypeSymbol Type => Function.ReturnType;
 
     public override BoundNodeKind Kind => BoundNodeKind.CallExpression;
 
-    public override IEnumerable<BoundNode> Children => Arguments;
     public override bool HasSideEffects => true;
 
     public FunctionSymbol Function { get; }

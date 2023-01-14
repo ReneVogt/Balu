@@ -4,20 +4,12 @@ using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundBinaryExpression : BoundExpression
+sealed partial class BoundBinaryExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
     public override TypeSymbol Type => Operator.Type;
     public override BoundConstant? Constant { get; }
     public override bool HasSideEffects { get; }
-    public override IEnumerable<BoundNode> Children
-    {
-        get
-        {
-            yield return Left;
-            yield return Right;
-        }
-    }
 
     public BoundExpression Left { get; }
     public BoundBinaryOperator Operator { get; }

@@ -1,14 +1,11 @@
 ﻿using Balu.Symbols;
-using System;
-using System.Collections.Generic;
 using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed class BoundLiteralExpression : BoundExpression
+sealed partial class BoundLiteralExpression : BoundExpression
 {
     public override BoundNodeKind Kind => BoundNodeKind.LiteralExpression;
-    public override IEnumerable<BoundNode> Children { get; } = Array.Empty<BoundNode>();
     public override BoundConstant Constant { get; }
 
     public override TypeSymbol Type { get; }
