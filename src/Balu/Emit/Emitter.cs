@@ -6,6 +6,7 @@ using System.Linq;
 using Balu.Binding;
 using Balu.Symbols;
 using Balu.Syntax;
+using Balu.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
@@ -19,13 +20,13 @@ sealed class Emitter : IDisposable
 
     readonly ReferencedMembers referencedMembers;
 
-    FieldDefinition? randomField;
-
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
-
     readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
+    readonly Dictionary<SourceText, Document> documents = new();
+
+    FieldDefinition? randomField;
 
     Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
     {
@@ -92,6 +93,9 @@ sealed class Emitter : IDisposable
                 break;
             case BoundNodeKind.NopStatement:
                 EmitNopStatement(processor);
+                break;
+            case BoundNodeKind.SequencePointStatement:
+                EmitSequencePointStatement(processor, (BoundSequencePointStatement)statement);
                 break;
             default:
                 throw new EmitterException($"Invalid statement kind '{statement.Kind}'.");
@@ -333,6 +337,27 @@ sealed class Emitter : IDisposable
     static void EmitNopStatement(ILProcessor processor)
     {
         processor.Emit(OpCodes.Nop);
+    }
+    void EmitSequencePointStatement(ILProcessor processor, BoundSequencePointStatement statement)
+    {
+        var index = processor.Body.Instructions.Count - 1;
+        EmitStatement(processor, statement.Statement);
+        var instruction = processor.Body.Instructions[index];
+
+        if (!documents.TryGetValue(statement.Location.Text, out var document))
+        {
+            document = new Document(statement.Location.FileName);
+            documents[statement.Location.Text] = document;
+        }
+
+        var sequencePoint = new SequencePoint(instruction, document)
+        {
+            StartLine = statement.Location.StartLine + 1,
+            StartColumn = statement.Location.StartCharacter + 1,
+            EndLine = statement.Location.EndLine + 1,
+            EndColumn = statement.Location.EndCharacter + 1
+        };
+        processor.Body.Method.DebugInformation.SequencePoints.Add(sequencePoint);
     }
 
     void EmitRandomField()
