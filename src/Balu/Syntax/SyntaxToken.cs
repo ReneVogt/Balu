@@ -1,14 +1,12 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using Balu.Text;
 
 namespace Balu.Syntax;
 
-public sealed class SyntaxToken : SyntaxNode
+public sealed partial class SyntaxToken : SyntaxNode
 {
     public override SyntaxKind Kind { get; }
-    public override IEnumerable<SyntaxNode> Children => Enumerable.Empty<SyntaxNode>();
     public string Text { get; }
     public override TextSpan Span { get; }
     public override TextSpan FullSpan { get; }

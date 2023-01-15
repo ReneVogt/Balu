@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
 using Balu.Syntax;
 
 namespace Balu.Visualization;
@@ -47,13 +46,12 @@ public sealed class SyntaxTreePrinter : SyntaxTreeVisitor
         indent += last ? TreeTexts.Indent : TreeTexts.Branch;
         last = false;
 
-        var children = node.Children.ToArray();
-        for (int i = 0; i < children.Length - 1; i++)
-            Visit(children[i]);
-        if (children.Length > 0)
+        for (int i = 0; i < node.ChildrenCount - 1; i++)
+            Visit(node.GetChild(i));
+        if (node.ChildrenCount > 0)
         {
             last = true;
-            Visit(children[^1]);
+            Visit(node.GetChild(node.ChildrenCount-1));
         }
 
         last = lastLast;

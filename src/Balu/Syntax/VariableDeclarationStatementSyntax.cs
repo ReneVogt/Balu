@@ -1,22 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class VariableDeclarationStatementSyntax : StatementSyntax
+public sealed partial class VariableDeclarationStatementSyntax : StatementSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.VariableDeclarationStatement;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return KeywordToken;
-            yield return IdentifierToken;
-            yield return EqualsToken;
-            yield return Expression;
-            if (TypeClause != null) yield return TypeClause;
-        }
-    }
     public SyntaxToken KeywordToken { get; }
     public SyntaxToken IdentifierToken { get; }
     public SyntaxToken EqualsToken { get; }

@@ -1,6 +1,4 @@
-﻿using System;
-using Balu.Symbols;
-using System.Collections.Generic;
+﻿using Balu.Symbols;
 using Balu.Syntax;
 
 namespace Balu.Binding;

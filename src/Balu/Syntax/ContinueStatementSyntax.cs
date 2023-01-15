@@ -1,18 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class ContinueStatementSyntax : StatementSyntax
+public sealed partial class ContinueStatementSyntax : StatementSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.ContinueStatement;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return ContinueKeyword;
-        }
-    }
     public SyntaxToken ContinueKeyword { get; }
 
     internal ContinueStatementSyntax(SyntaxTree syntaxTree, SyntaxToken continueKeyword)

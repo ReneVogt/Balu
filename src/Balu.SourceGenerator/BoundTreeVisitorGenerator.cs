@@ -46,7 +46,7 @@ public sealed class BoundTreeVisitorGenerator : ISourceGenerator
                         writer.WriteLine($"case BoundNodeKind.{kind}:");
                         writer.Indent++;
                         writer.WriteLine($"VisitBound{kind}((Bound{kind})node);");
-                        writer.WriteLine($"break;");
+                        writer.WriteLine("break;");
                         writer.Indent--;
                     }
 

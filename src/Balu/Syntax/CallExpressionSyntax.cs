@@ -1,22 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class CallExpressionSyntax : ExpressionSyntax
+public sealed partial class CallExpressionSyntax : ExpressionSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.CallExpression;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return Identifier;
-            yield return OpenParenthesis;
-            foreach (var node in Arguments.ElementsWithSeparators)
-                yield return node;
-            yield return ClosedParenthesis;
-        }
-    }
     public SyntaxToken Identifier { get; }
     public SyntaxToken OpenParenthesis { get; }
     public SeparatedSyntaxList<ExpressionSyntax> Arguments { get; }

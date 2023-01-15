@@ -2,7 +2,6 @@
 using Balu.Syntax;
 using System.Collections.Generic;
 using Xunit;
-using System.Linq;
 
 namespace Balu.Tests.TestHelper;
 
@@ -28,7 +27,7 @@ sealed class SyntaxTreeAsserter : IDisposable
         {
             var n = stack.Pop();
             yield return n;
-            foreach (var child in n.Children.Reverse()) stack.Push(child);
+            for(int i = n.ChildrenCount-1; i>= 0; i--) stack.Push(n.GetChild(i));
         }
     }
 

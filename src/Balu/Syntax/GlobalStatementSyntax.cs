@@ -1,15 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class GlobalStatementSyntax : MemberSyntax
+public sealed partial class GlobalStatementSyntax : MemberSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.GlobalStatement;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get { yield return Statement; }
-    }
 
     public StatementSyntax Statement { get; }
 

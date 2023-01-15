@@ -1,21 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class IfStatementSyntax : StatementSyntax
+public sealed partial class IfStatementSyntax : StatementSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.IfStatement;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return IfKeyword;
-            yield return Condition;
-            yield return ThenStatement;
-            if (ElseClause is { }) yield return ElseClause;
-        }
-    }
     public SyntaxToken IfKeyword { get; }
     public ExpressionSyntax Condition { get; }
     public StatementSyntax ThenStatement { get; }

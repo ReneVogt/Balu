@@ -1,21 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class DoWhileStatementSyntax : StatementSyntax
+public sealed partial class DoWhileStatementSyntax : StatementSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.DoWhileStatement;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return DoKeyword;
-            yield return Body;
-            yield return WhileKeyword;
-            yield return Condition;
-        }
-    }
     public SyntaxToken DoKeyword { get; }
     public StatementSyntax Body { get; }
     public SyntaxToken WhileKeyword { get; }

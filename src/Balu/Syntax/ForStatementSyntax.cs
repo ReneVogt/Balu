@@ -1,24 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class ForStatementSyntax : StatementSyntax
+public sealed partial class ForStatementSyntax : StatementSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.ForStatement;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return ForKeyword;
-            yield return IdentifierToken;
-            yield return EqualsToken;
-            yield return LowerBound;
-            yield return ToKeyword;
-            yield return UpperBound;
-            yield return Body;
-        }
-    }
     public SyntaxToken ForKeyword { get; }
     public SyntaxToken IdentifierToken { get; }
     public SyntaxToken EqualsToken { get; }
