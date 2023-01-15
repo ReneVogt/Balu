@@ -70,7 +70,7 @@ public sealed class SyntaxTreeVisitorGenerator : ISourceGenerator
 
             foreach (var kind in kindsToVisit)
                 writer.WriteLine($"protected virtual void Visit{kind}({kind}Syntax node) => VisitChildren(node);");
-            writer.WriteLine($"protected virtual void VisitToken(SyntaxToken node) => VisitChildren(node);");
+            writer.WriteLine("protected virtual void VisitToken(SyntaxToken node) => VisitChildren(node);");
         }
 
         context.AddSource(

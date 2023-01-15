@@ -21,11 +21,5 @@ sealed partial class BoundCallExpression : BoundExpression
         Arguments = arguments;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var arguments = RewriteList(rewriter, Arguments);
-        return arguments == Arguments ? this : new(Syntax, Function, arguments);
-    }
-
     public override string ToString() => $"{Function.Name}({string.Join(", ", Arguments)})";
 }

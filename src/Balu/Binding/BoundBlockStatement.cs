@@ -14,9 +14,4 @@ sealed partial class BoundBlockStatement : BoundStatement
         Statements = statements;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var transformed = RewriteList(rewriter, Statements);
-        return transformed == Statements ? this : new (Syntax, transformed);
-    }
 }

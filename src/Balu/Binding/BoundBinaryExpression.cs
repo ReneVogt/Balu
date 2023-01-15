@@ -23,12 +23,5 @@ sealed partial class BoundBinaryExpression : BoundExpression
         HasSideEffects = Left.HasSideEffects || Right.HasSideEffects;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var left = (BoundExpression)rewriter.Visit(Left);
-        var right = (BoundExpression)rewriter.Visit(Right);
-        return left == Left && right == Right ? this : new (Syntax, left, Operator, right);
-    }
-
     public override string ToString() => $"{Left} {Operator.SyntaxKind.GetText()} {Right}";
 }

@@ -8,7 +8,5 @@ sealed partial class BoundNopStatement : BoundStatement
 
     internal BoundNopStatement(SyntaxNode syntax) : base(syntax){}
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
-
     public override string ToString() => "nop";
 }

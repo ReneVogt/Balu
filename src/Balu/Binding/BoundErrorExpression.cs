@@ -13,7 +13,5 @@ sealed partial class BoundErrorExpression : BoundExpression
     {
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
-
     public override string ToString() => "?";
 }

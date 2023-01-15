@@ -14,7 +14,5 @@ sealed partial class BoundLabelStatement : BoundStatement
         Label = label;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
-
     public override string ToString() => Label.ToString();
 }

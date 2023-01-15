@@ -16,10 +16,4 @@ sealed partial class BoundSequencePointStatement : BoundStatement
         Statement = statement;
         Location = location;
     }
-
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var statement = (BoundStatement)rewriter.Visit(Statement);
-        return statement == Statement ? this : new(Syntax, statement, Location);
-    }
 }

@@ -19,11 +19,5 @@ sealed partial class BoundAssignmentExpression : BoundExpression
         Expression = expression;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var expression = (BoundExpression)rewriter.Visit(Expression);
-        return expression == Expression ? this : new (Syntax, Symbol, expression);
-    }
-
     public override string ToString() => $"{Symbol.Name} = {Expression}";
 }

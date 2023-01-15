@@ -13,11 +13,5 @@ sealed partial class BoundExpressionStatement : BoundStatement
         Expression = expression;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var expression = (BoundExpression)rewriter.Visit(Expression);
-        return expression == Expression ? this : new (Syntax, expression);
-    }
-
     public override string ToString() => Expression.ToString();
 }

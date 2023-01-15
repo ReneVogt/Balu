@@ -15,11 +15,5 @@ sealed partial class BoundVariableDeclarationStatement : BoundStatement
         Expression = expression;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var expression = (BoundExpression)rewriter.Visit(Expression);
-        return expression == Expression ? this : new (Syntax, Variable, expression);
-    }
-
     public override string ToString() => $"{(Variable.ReadOnly ? "let" : "var")} {Variable.Name} =  {Expression}";
 }

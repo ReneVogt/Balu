@@ -13,7 +13,5 @@ sealed partial class BoundGotoStatement : BoundStatement
         Label = label;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
-
     public override string ToString() => $"goto {Label}";
 }
