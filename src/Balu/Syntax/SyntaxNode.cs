@@ -51,11 +51,6 @@ public abstract class SyntaxNode
 
     public abstract SyntaxNode GetChild(int index);
 
-    internal virtual void Accept(SyntaxTreeVisitor visitor)
-    {
-        for(int i=0; i<ChildrenCount; i++) visitor.Visit(GetChild(i));
-    }
-
     SyntaxToken GetLastToken() => this as SyntaxToken ?? GetChild(ChildrenCount-1).GetLastToken();
 
     public override string ToString() => $"{Kind}{Span}";
