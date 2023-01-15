@@ -30,34 +30,30 @@ public sealed class BoundNodeChildrenGenerator : ISourceGenerator
         writer.WriteLine("using System;");
         writer.WriteLine("using System.Collections.Generic;");
         writer.WriteLine("using System.Collections.Immutable;");
+        writer.WriteLine();
 
         var types = compilation.Assembly.GetAllTypes();
         var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(boundNodeType));
 
         foreach (var type in boundNodeTypes)
         {
-            writer.WriteLine($"namespace {type.ContainingNamespace.GetFullName()}");
-            writer.WriteLine("{");
-            writer.Indent++;
-            WriteType(writer, type, boundNodeType, immutableArrayType);
-            writer.Indent--;
-            writer.WriteLine("}");
+            using(new CurlyIndenter(writer, $"namespace {type.ContainingNamespace.GetFullName()}"))
+            {
+                WriteType(writer, type, boundNodeType, immutableArrayType);
+            }
         }
 
         context.AddSource(
             "BoundNodeChildren.g.cs",
             SourceText.From(source.ToString(), Encoding.UTF8));
-        File.WriteAllText(@"C:\Privat\Sourcen\Balu\BoundNodeChildren.generated", source.ToString());
     }
     static void WriteType(IndentedTextWriter writer, INamedTypeSymbol type, INamedTypeSymbol boundNodeType, INamedTypeSymbol immutableArrayType)
     {
-        writer.WriteLine($"partial class {type.Name}");
-        writer.WriteLine("{");
-        writer.Indent++;
-        WriteChildrenCount(writer, type, boundNodeType, immutableArrayType);
-        WriteGetChild(writer, type, boundNodeType, immutableArrayType);
-        writer.Indent--;
-        writer.WriteLine("}");
+        using(new CurlyIndenter(writer, $"partial class {type.Name}"))
+        {
+            WriteChildrenCount(writer, type, boundNodeType, immutableArrayType);
+            WriteGetChild(writer, type, boundNodeType, immutableArrayType);
+        }
     }
     static void WriteChildrenCount(IndentedTextWriter writer, INamedTypeSymbol type, INamedTypeSymbol boundNodeType, INamedTypeSymbol immutableArrayType)
     {
@@ -87,21 +83,18 @@ public sealed class BoundNodeChildrenGenerator : ISourceGenerator
             return;
         }
 
-        writer.WriteLine("public override int ChildrenCount");
-        writer.WriteLine("{");
-        writer.Indent++;
-        writer.WriteLine("get");
-        writer.WriteLine("{");
-        writer.Indent++;
-        writer.Write("int count = ");
-        WriteNonNullableSum();
-        writer.WriteLine(";");
-        writer.WriteLine(string.Join(Environment.NewLine, nullableProperties.Select(property => $"if ({property.Name} is not null) count++;")));
-        writer.WriteLine("return count;");
-        writer.Indent--;
-        writer.WriteLine("}");
-        writer.Indent--;
-        writer.WriteLine("}");
+        using(new CurlyIndenter(writer, "public override int ChildrenCount"))
+        {
+            using(new CurlyIndenter(writer, "get"))
+            {
+                writer.Write("int count = ");
+                WriteNonNullableSum();
+                writer.WriteLine(";");
+                writer.WriteLine(
+                    string.Join(Environment.NewLine, nullableProperties.Select(property => $"if ({property.Name} is not null) count++;")));
+                writer.WriteLine("return count;");
+            }
+        }
 
         void WriteNonNullableSum()
         {
@@ -146,59 +139,55 @@ public sealed class BoundNodeChildrenGenerator : ISourceGenerator
 
             return;
         }
-        
-        writer.WriteLine(signature);
-        writer.WriteLine("{");
-        writer.Indent++;
 
-        int propIndex = 0;
-        var leadingNonNullableProperties = properties
-                                           .TakeWhile(property => ((INamedTypeSymbol)property.Type).IsDerivedFrom(boundNodeType) &&
-                                                                  property.NullableAnnotation != NullableAnnotation.Annotated)
-                                           .ToImmutableArray();
-        if (properties.Any(property => ((INamedTypeSymbol)property.Type).IsDerivedFrom(boundNodeType) && property.NullableAnnotation == NullableAnnotation.Annotated))
-            writer.WriteLine($"if (index < 0) {exception};");
+        using(new CurlyIndenter(writer, signature))
+        {
+            int propIndex = 0;
+            var leadingNonNullableProperties = properties
+                                               .TakeWhile(property => ((INamedTypeSymbol)property.Type).IsDerivedFrom(boundNodeType) &&
+                                                                      property.NullableAnnotation != NullableAnnotation.Annotated)
+                                               .ToImmutableArray();
+            if (properties.Any(property => ((INamedTypeSymbol)property.Type).IsDerivedFrom(boundNodeType) &&
+                                           property.NullableAnnotation == NullableAnnotation.Annotated))
+                writer.WriteLine($"if (index < 0) {exception};");
 
-        if (leadingNonNullableProperties.Length == 1)
-            writer.WriteLine($"if (index == 0) return {leadingNonNullableProperties[0].Name};");
-        else if (leadingNonNullableProperties.Length > 1)
-        {
-            writer.WriteLine("switch(index)");
-            writer.WriteLine("{");
-            writer.Indent++;
-            foreach(var property in leadingNonNullableProperties)
-                writer.WriteLine($"case {propIndex++}: return {property.Name};");
-            writer.Indent--;
-            writer.WriteLine("}");
-        }
-        
-        if (leadingNonNullableProperties.Length < properties.Length)
-            writer.WriteLine($"int adjustedIndex = index, propIndex = {propIndex};");
-        for (int i = leadingNonNullableProperties.Length; i < properties.Length; i++)
-        {
-            var property = properties[i];
-            var propertyType = (INamedTypeSymbol)property.Type;
-            if (propertyType.IsDerivedFrom(boundNodeType))
+            if (leadingNonNullableProperties.Length == 1)
+                writer.WriteLine($"if (index == 0) return {leadingNonNullableProperties[0].Name};");
+            else if (leadingNonNullableProperties.Length > 1)
             {
-                if (propertyType.NullableAnnotation == NullableAnnotation.Annotated)
+                using(new CurlyIndenter(writer, "switch(index)"))
                 {
-                    writer.WriteLine($"if ({property.Name} is null) adjustedIndex++;");
-                    writer.WriteLine($"else if (adjustedIndex == propIndex) return {property.Name};");
+                    foreach (var property in leadingNonNullableProperties)
+                        writer.WriteLine($"case {propIndex++}: return {property.Name};");
+                }
+            }
+
+            if (leadingNonNullableProperties.Length < properties.Length)
+                writer.WriteLine($"int adjustedIndex = index, propIndex = {propIndex};");
+            for (int i = leadingNonNullableProperties.Length; i < properties.Length; i++)
+            {
+                var property = properties[i];
+                var propertyType = (INamedTypeSymbol)property.Type;
+                if (propertyType.IsDerivedFrom(boundNodeType))
+                {
+                    if (propertyType.NullableAnnotation == NullableAnnotation.Annotated)
+                    {
+                        writer.WriteLine($"if ({property.Name} is null) adjustedIndex++;");
+                        writer.WriteLine($"else if (adjustedIndex == propIndex) return {property.Name};");
+                    }
+                    else
+                        writer.WriteLine($"if (adjustedIndex == propIndex) return {property.Name};");
+
+                    if (i < properties.Length - 1) writer.WriteLine("propIndex++;");
                 }
                 else
-                    writer.WriteLine($"if (adjustedIndex == propIndex) return {property.Name};");
+                {
+                    writer.WriteLine($"if (adjustedIndex - propIndex < {property.Name}.Length) return {property.Name}[adjustedIndex-propIndex];");
+                    if (i < properties.Length - 1) writer.WriteLine($"propIndex += {property.Name}.Length;");
+                }
+            }
 
-                if (i < properties.Length - 1) writer.WriteLine("propIndex++;");
-            }
-            else
-            {
-                writer.WriteLine($"if (adjustedIndex - propIndex < {property.Name}.Length) return {property.Name}[adjustedIndex-propIndex];");
-                if (i < properties.Length-1) writer.WriteLine($"propIndex += {property.Name}.Length;");
-            }
+            writer.WriteLine($"{exception};");
         }
-
-        writer.WriteLine($"{exception};");
-        writer.Indent--;
-        writer.WriteLine("}");
     }
 }
