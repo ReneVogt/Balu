@@ -17,12 +17,6 @@ abstract class BoundNode
 
     internal abstract BoundNode Rewrite(BoundTreeRewriter rewriter);
 
-    internal virtual void Accept(BoundTreeVisitor visitor)
-    {
-        for(int i=0; i<ChildrenCount; i++)
-            visitor.Visit(GetChild(i));
-    }
-
     protected static ImmutableArray<T> RewriteList<T>(BoundTreeRewriter rewriter, ImmutableArray<T> nodes) where T : BoundNode
     {
         _ = rewriter ?? throw new ArgumentNullException(nameof(rewriter));

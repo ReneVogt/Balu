@@ -190,7 +190,7 @@ sealed class BoundTreePrinter : BoundTreeVisitor
         writer.WriteSpace();
         writer.WritePunctuation(SyntaxKind.EqualsToken.GetText());
         writer.WriteSpace();
-        variableDeclarationStatement.Accept(this);
+        base.VisitBoundVariableDeclarationStatement(variableDeclarationStatement);
     }
 
     protected override void VisitBoundVariableExpression(BoundVariableExpression variableExpression)
