@@ -1,25 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class FunctionDeclarationSyntax : MemberSyntax
+public sealed partial class FunctionDeclarationSyntax : MemberSyntax
 {
     public override SyntaxKind Kind => SyntaxKind.FunctionDeclaration;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return FunctionKeyword;
-            yield return Identifier;
-            yield return OpenParenthesis;
-            foreach(var node in Parameters.ElementsWithSeparators)
-                yield return node;
-            yield return ClosedParenthesis;
-            if (TypeClause is not null) yield return TypeClause;
-            yield return Body;
-        }
-    }
     public SyntaxToken FunctionKeyword { get; }
     public SyntaxToken Identifier { get; }
     public SyntaxToken OpenParenthesis { get; }

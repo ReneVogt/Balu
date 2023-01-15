@@ -1,19 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class ParameterSyntax : SyntaxNode
+public sealed partial class ParameterSyntax : SyntaxNode
 {
     public override SyntaxKind Kind => SyntaxKind.Parameter;
-    public override IEnumerable<SyntaxNode> Children
-    {
-        get
-        {
-            yield return Identifier;
-            yield return TypeClause;
-        }
-    }
     public SyntaxToken Identifier { get; }
     public TypeClauseSyntax TypeClause { get; }
 

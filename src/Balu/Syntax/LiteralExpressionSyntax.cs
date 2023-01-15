@@ -1,19 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 
 namespace Balu.Syntax;
 
-public sealed class LiteralExpressionSyntax : ExpressionSyntax
+public sealed partial class LiteralExpressionSyntax : ExpressionSyntax
 {
     public SyntaxToken LiteralToken { get; }
     public override SyntaxKind Kind => SyntaxKind.LiteralExpression;
-    public override IEnumerable<SyntaxNode> Children 
-    {
-        get
-        {
-            yield return LiteralToken;
-        }
-    }
 
     public object? Value { get; }
 

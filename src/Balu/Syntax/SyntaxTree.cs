@@ -46,8 +46,9 @@ public sealed class SyntaxTree
     }
     static void CreateParentsDictionary(Dictionary<SyntaxNode, SyntaxNode?> result, SyntaxNode node)
     {
-        foreach (var child in node.Children)
+        for (int i = 0; i < node.ChildrenCount; i++)
         {
+            var child = node.GetChild(i);
             result.Add(child, node);
             CreateParentsDictionary(result, child);
         }

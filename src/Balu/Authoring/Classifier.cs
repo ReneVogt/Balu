@@ -21,8 +21,8 @@ public static class Classifier
         if (node is SyntaxToken token)
             ClassifyToken(token, span, resultBuilder);
 
-        foreach (var child in node.Children)
-            ClassifyNode(child, span, resultBuilder);
+        for(int i=0; i<node.ChildrenCount; i++)
+            ClassifyNode(node.GetChild(i), span, resultBuilder);
     }
     static void ClassifyToken(SyntaxToken token, TextSpan span, ImmutableArray<ClassifiedSpan>.Builder resultBuilder)
     {

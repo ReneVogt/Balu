@@ -1,5 +1,4 @@
 ﻿using Balu.Symbols;
-using System.Collections.Generic;
 using Balu.Syntax;
 
 namespace Balu.Binding;
