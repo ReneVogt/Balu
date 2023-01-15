@@ -20,15 +20,5 @@ sealed partial class BoundForStatement : BoundLoopStatement
         Body = body;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var lowerBound = (BoundExpression)rewriter.Visit(LowerBound);
-        var upperBound = (BoundExpression)rewriter.Visit(UpperBound);
-        var body = (BoundStatement)rewriter.Visit(Body);
-        return lowerBound == LowerBound && upperBound == UpperBound && body == Body
-                   ? this
-                   : new (Syntax, Variable, lowerBound, upperBound, body, BreakLabel, ContinueLabel);
-    }
-
     public override string ToString() => $"{Kind} \"{Variable.Name}\"";
 }

@@ -21,11 +21,5 @@ sealed partial class BoundUnaryExpression : BoundExpression
         HasSideEffects = operand.HasSideEffects;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var operand = (BoundExpression)rewriter.Visit(Operand);
-        return operand == Operand ? this : new (Syntax, Operator, operand);
-    }
-
     public override string ToString() => $"{Operator.SyntaxKind.GetText()} {Operand}";
 }

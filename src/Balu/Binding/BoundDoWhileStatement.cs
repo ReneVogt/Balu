@@ -14,13 +14,4 @@ sealed partial class BoundDoWhileStatement : BoundLoopStatement
         Body = body;
         Condition = condition;
     }
-
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var body = (BoundStatement)rewriter.Visit(Body);
-        var condition = (BoundExpression)rewriter.Visit(Condition);
-        return body == Body && condition == Condition
-                   ? this
-                   : new (Syntax, body, condition, BreakLabel, ContinueLabel);
-    }
 }

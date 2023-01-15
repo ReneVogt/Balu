@@ -17,14 +17,4 @@ sealed partial class BoundIfStatement : BoundStatement
         ThenStatement = thenStatement;
         ElseStatement = elseStatement;
     }
-
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var condition = (BoundExpression)rewriter.Visit(Condition);
-        var thenStatement = (BoundStatement)rewriter.Visit(ThenStatement);
-        var elseStatement = ElseStatement is null ? null : (BoundStatement)rewriter.Visit(ElseStatement);
-        return condition == Condition && thenStatement == ThenStatement && elseStatement == ElseStatement
-                   ? this
-                   : new (Syntax, condition, thenStatement, elseStatement);
-    }
 }

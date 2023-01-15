@@ -15,8 +15,6 @@ sealed partial class BoundVariableExpression : BoundExpression
     {
         Variable = variable;
     }
-
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter) => this;
-
+    
     public override string ToString() => Variable.Name;
 }

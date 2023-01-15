@@ -17,11 +17,5 @@ sealed partial class BoundConditionalGotoStatement : BoundStatement
         JumpIfTrue = jumpIfTrue;
     }
 
-    internal override BoundNode Rewrite(BoundTreeRewriter rewriter)
-    {
-        var condition = (BoundExpression)rewriter.Visit(Condition);
-        return condition == Condition ? this : new (Syntax, Label, condition, JumpIfTrue);
-    }
-
     public override string ToString() => $"goto {Label} {(JumpIfTrue ? "if" : "if not")} {Condition}";
 }
