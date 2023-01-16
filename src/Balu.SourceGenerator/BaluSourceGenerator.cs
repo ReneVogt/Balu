@@ -17,7 +17,7 @@ public sealed class BaluSourceGenerator : ISourceGenerator
 
     static readonly DiagnosticDescriptor MissingTypeDiagnostic = new(id: "BLS0000",
                                                                      title: "Missing type",
-                                                                     messageFormat: "The type '{0}' was not found in the compilation",
+                                                                     messageFormat: "The type '{0}' was not found in the compilation.",
                                                                      category: "Balu source generation",
                                                                      DiagnosticSeverity.Error,
                                                                      isEnabledByDefault: true);

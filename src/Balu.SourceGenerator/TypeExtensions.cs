@@ -56,9 +56,4 @@ static class TypeExtensions
         }
         return builder.ToString();
     }
-    public static string GetFullName(this ITypeSymbol typeSymbol)
-    {
-        var ns = typeSymbol.ContainingNamespace.GetFullName();
-        return string.IsNullOrWhiteSpace(ns) ? typeSymbol.Name : $"{ns}.{typeSymbol.Name}";
-    }
 }
