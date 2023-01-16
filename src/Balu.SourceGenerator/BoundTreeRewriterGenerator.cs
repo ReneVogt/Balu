@@ -1,6 +1,4 @@
-﻿using System.CodeDom.Compiler;
-using System.Collections.Immutable;
-using System.IO;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -9,51 +7,49 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Balu.SourceGenerator;
 
-[Generator]
-public sealed class BoundTreeRewriterGenerator : ISourceGenerator
+sealed class BoundTreeRewriterGenerator : BaseGenerator
 {
-    public void Initialize(GeneratorInitializationContext context) { }
-    public void Execute(GeneratorExecutionContext context)
+    readonly CSharpCompilation compilation;
+    readonly INamedTypeSymbol boundNodeType, boundNodeKindType, boundLoopStatementType, immutableArrayType;
+
+    internal BoundTreeRewriterGenerator(CSharpCompilation compilation, INamedTypeSymbol boundNodeType, INamedTypeSymbol boundNodeKindType, INamedTypeSymbol boundLoopStatementType, INamedTypeSymbol immutableArrayType)
     {
-        using var source = new StringWriter();
-        using var writer = new IndentedTextWriter(source, "    ");
+        this.compilation = compilation;
+        this.boundNodeType = boundNodeType;
+        this.boundNodeKindType = boundNodeKindType;
+        this.boundLoopStatementType = boundLoopStatementType;
+        this.immutableArrayType = immutableArrayType;
+    }
 
-        var compilation = (CSharpCompilation)context.Compilation;
-        var boundNodeType = compilation.GetTypeByMetadataName("Balu.Binding.BoundNode");
-        var nodeKindType = compilation.GetTypeByMetadataName("Balu.Binding.BoundNodeKind");
-        var loopStatementType = compilation.GetTypeByMetadataName("Balu.Binding.BoundLoopStatement");
-        var immutableArrayType = compilation.GetTypeByMetadataName("System.Collections.Immutable.ImmutableArray`1");
-
-        if (boundNodeType is null || nodeKindType is null || immutableArrayType is null || loopStatementType is null)
-            return;
-
-        var kindNames = nodeKindType.MemberNames.ToImmutableArray();
+    public override void Generate(GeneratorExecutionContext context)
+    {
+        var kindNames = boundNodeKindType.MemberNames.ToImmutableArray();
         var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsDerivedFrom(boundNodeType));
+        var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, boundNodeType.ContainingNamespace));
         var kindsToVisit = kindNames
                            .Select(kindName => (kind: kindName,
                                                    type: boundNodeTypes.SingleOrDefault(nodeType => nodeType.Name == $"Bound{kindName}")))
                            .Where(x => x.type is not null)
                            .ToImmutableArray();
 
-        writer.WriteLine("using System;");
-        writer.WriteLine("using System.Collections.Immutable;");
-        writer.WriteLine("using System.Linq;");
-        writer.WriteLine("#nullable enable");
-        writer.WriteLine();
-        writer.WriteLine("namespace Balu.Binding;");
-        writer.WriteLine();
-        using(new CurlyIndenter(writer, "abstract class BoundTreeRewriter"))
+        Writer.WriteLine("using System;");
+        Writer.WriteLine("using System.Collections.Immutable;");
+        Writer.WriteLine("using System.Linq;");
+        Writer.WriteLine("#nullable enable");
+        Writer.WriteLine();
+        Writer.WriteLine("namespace Balu.Binding;");
+        Writer.WriteLine();
+        using(new CurlyIndenter(Writer, "abstract class BoundTreeRewriter"))
         {
-            using(new CurlyIndenter(writer, "public virtual BoundNode Visit(BoundNode node) => node.Kind switch", semicolon: true))
+            using(new CurlyIndenter(Writer, "public virtual BoundNode Visit(BoundNode node) => node.Kind switch", semicolon: true))
             {
                 foreach (var (kind, type) in kindsToVisit)
-                    writer.WriteLine($"BoundNodeKind.{kind} => VisitBound{kind}(({type!.GetFullName()})node),");
+                    Writer.WriteLine($"BoundNodeKind.{kind} => VisitBound{kind}(({type!.GetFullName()})node),");
 
-                writer.WriteLine("_ => throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\")");
+                Writer.WriteLine("_ => throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\")");
             }
 
-            writer.WriteLine(@"
+            Writer.WriteLine(@"
     private protected ImmutableArray<T> RewriteList<T>(ImmutableArray<T> nodes) where T : BoundNode
     {
         ImmutableArray<T>.Builder? resultBuilder = null;
@@ -83,30 +79,30 @@ public sealed class BoundTreeRewriterGenerator : ISourceGenerator
 
                 if (properties.Length == 0)
                 {
-                    writer.WriteLine($"protected virtual BoundNode VisitBound{kind}({type.GetFullName()} node) => node;");
+                    Writer.WriteLine($"protected virtual BoundNode VisitBound{kind}({type.GetFullName()} node) => node;");
                     continue;
                 }
 
-                using(new CurlyIndenter(writer, $"protected virtual BoundNode VisitBound{kind}({type.GetFullName()} node)"))
+                using(new CurlyIndenter(Writer, $"protected virtual BoundNode VisitBound{kind}({type.GetFullName()} node)"))
                 {
                     foreach (var property in properties)
                     {
                         if (((INamedTypeSymbol)property.Type).IsDerivedFrom(boundNodeType))
                         {
                             if (property.NullableAnnotation == NullableAnnotation.Annotated)
-                                writer.WriteLine(
+                                Writer.WriteLine(
                                     $"var rewritten{property.Name} = node.{property.Name} is null ? null : ({property.Type.GetFullName()})Visit(node.{property.Name});");
                             else
-                                writer.WriteLine($"var rewritten{property.Name} = ({property.Type.GetFullName()})Visit(node.{property.Name});");
+                                Writer.WriteLine($"var rewritten{property.Name} = ({property.Type.GetFullName()})Visit(node.{property.Name});");
                         }
                         else
-                            writer.WriteLine($"var rewritten{property.Name} = RewriteList(node.{property.Name});");
+                            Writer.WriteLine($"var rewritten{property.Name} = RewriteList(node.{property.Name});");
                     }
 
-                    writer.WriteLine();
-                    writer.Write("return ");
-                    writer.Write(string.Join(" && ", properties.Select(property => $"node.{property.Name} == rewritten{property.Name}")));
-                    writer.Write($" ? node : new {type.GetFullName()}(node.Syntax");
+                    Writer.WriteLine();
+                    Writer.Write("return ");
+                    Writer.Write(string.Join(" && ", properties.Select(property => $"node.{property.Name} == rewritten{property.Name}")));
+                    Writer.Write($" ? node : new {type.GetFullName()}(node.Syntax");
 
                     var allProperties = type.GetMembers()
                                             .OfType<IPropertySymbol>()
@@ -118,19 +114,19 @@ public sealed class BoundTreeRewriterGenerator : ISourceGenerator
                     {
                         arguments++;
 
-                        writer.Write(", ");
+                        Writer.Write(", ");
                         if (properties.Contains(property))
-                            writer.Write($"rewritten{property.Name}");
+                            Writer.Write($"rewritten{property.Name}");
                         else
-                            writer.Write($"node.{property.Name}");
+                            Writer.Write($"node.{property.Name}");
 
                         if (arguments >= constructorParameter.Length) break;
                     }
 
-                    if (type.IsDerivedFrom(loopStatementType))
-                        writer.Write(", node.BreakLabel, node.ContinueLabel");
+                    if (type.IsDerivedFrom(boundLoopStatementType))
+                        Writer.Write(", node.BreakLabel, node.ContinueLabel");
 
-                    writer.WriteLine(");");
+                    Writer.WriteLine(");");
                 }
             }
         }
@@ -138,6 +134,6 @@ public sealed class BoundTreeRewriterGenerator : ISourceGenerator
 
         context.AddSource(
             "BoundTreeRewriter.g.cs",
-            SourceText.From(source.ToString(), Encoding.UTF8));
+            SourceText.From(Writer.InnerWriter.ToString(), Encoding.UTF8));
     }
 }
