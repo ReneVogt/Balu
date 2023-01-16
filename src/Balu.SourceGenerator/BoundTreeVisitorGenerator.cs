@@ -1,6 +1,4 @@
-﻿using System.CodeDom.Compiler;
-using System.Collections.Immutable;
-using System.IO;
+﻿using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -9,69 +7,66 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Balu.SourceGenerator;
 
-[Generator]
-public sealed class BoundTreeVisitorGenerator : ISourceGenerator
+sealed class BoundTreeVisitorGenerator : BaseGenerator
 {
-    public void Initialize(GeneratorInitializationContext context)
+    readonly CSharpCompilation compilation;
+    readonly INamedTypeSymbol boundNodeType, boundNodeKindType;
+
+    internal BoundTreeVisitorGenerator(CSharpCompilation compilation, INamedTypeSymbol boundNodeType, INamedTypeSymbol boundNodeKindType)
     {
+        this.compilation = compilation;
+        this.boundNodeType = boundNodeType;
+        this.boundNodeKindType = boundNodeKindType;
     }
-    public void Execute(GeneratorExecutionContext context)
+
+    public override void Generate(GeneratorExecutionContext context)
     {
-        using var source = new StringWriter();
-        using var writer = new IndentedTextWriter(source, "    ");
-
-        var compilation = (CSharpCompilation)context.Compilation;
-        var boundNodeType = compilation.GetTypeByMetadataName("Balu.Binding.BoundNode");
-        var nodeKindType = compilation.GetTypeByMetadataName("Balu.Binding.BoundNodeKind");
-        if (boundNodeType is null || nodeKindType is null)
-            return;
-
-        var kindNames = nodeKindType.MemberNames.ToImmutableArray();
+        var kindNames = boundNodeKindType.MemberNames.ToImmutableArray();
         var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsDerivedFrom(boundNodeType));
+        var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
         var kindsToVisit = kindNames.Where(kindName => boundNodeTypes.Any(nodeType => nodeType.Name == $"Bound{kindName}")).ToImmutableArray();
 
-        writer.WriteLine("using System;");
-        writer.WriteLine();
-        writer.WriteLine("namespace Balu.Binding;");
-        writer.WriteLine();
-        using(new CurlyIndenter(writer, "abstract class BoundTreeVisitor"))
+        Writer.WriteLine("using System;");
+        Writer.WriteLine();
+        Writer.WriteLine("namespace Balu.Binding;");
+        Writer.WriteLine();
+        using(new CurlyIndenter(Writer, "abstract class BoundTreeVisitor"))
         {
-            using(new CurlyIndenter(writer, "public virtual void Visit(BoundNode node)"))
+            using(new CurlyIndenter(Writer, "public virtual void Visit(BoundNode node)"))
             {
-                using(new CurlyIndenter(writer, "switch (node.Kind)"))
+                using(new CurlyIndenter(Writer, "switch (node.Kind)"))
                 {
                     foreach (var kind in kindsToVisit)
                     {
-                        writer.WriteLine($"case BoundNodeKind.{kind}:");
-                        writer.Indent++;
-                        writer.WriteLine($"VisitBound{kind}((Bound{kind})node);");
-                        writer.WriteLine("break;");
-                        writer.Indent--;
+                        Writer.WriteLine($"case BoundNodeKind.{kind}:");
+                        Writer.Indent++;
+                        Writer.WriteLine($"VisitBound{kind}((Bound{kind})node);");
+                        Writer.WriteLine("break;");
+                        Writer.Indent--;
                     }
 
-                    writer.WriteLine("default:");
-                    writer.Indent++;
-                    writer.WriteLine("throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\");");
-                    writer.Indent--;
+                    Writer.WriteLine("default:");
+                    Writer.Indent++;
+                    Writer.WriteLine("throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\");");
+                    Writer.Indent--;
                 }
             }
 
-            writer.WriteLine();
+            Writer.WriteLine();
 
-            using(new CurlyIndenter(writer, "void VisitChildren(BoundNode node)"))
+            using(new CurlyIndenter(Writer, "void VisitChildren(BoundNode node)"))
             {
-                writer.WriteLine("for (int i=0; i<node.ChildrenCount; i++) Visit(node.GetChild(i));");
+                Writer.WriteLine("for (int i=0; i<node.ChildrenCount; i++) Visit(node.GetChild(i));");
             }
 
-            writer.WriteLine();
+            Writer.WriteLine();
 
             foreach (var kind in kindsToVisit)
-                writer.WriteLine($"protected virtual void VisitBound{kind}(Bound{kind} node) => VisitChildren(node);");
+                Writer.WriteLine($"protected virtual void VisitBound{kind}(Bound{kind} node) => VisitChildren(node);");
         }
 
         context.AddSource(
             "BoundTreeVisitor.g.cs",
-            SourceText.From(source.ToString(), Encoding.UTF8));
+            SourceText.From(Writer.InnerWriter.ToString(), Encoding.UTF8));
     }
 }
