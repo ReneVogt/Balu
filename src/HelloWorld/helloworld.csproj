@@ -1,5 +1,6 @@
 ﻿<Project ToolsVersion="15.0">
-	<Import Project="Sdk.props" Sdk="Microsoft.NET.Sdk" />
+	<Import Project="sdk.props" Sdk="Microsoft.NET.Sdk"/>
+	<Import Sdk="Balu.Sdk" Version="0.1.0" Project="sdk.props"/>
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<OutputType>Exe</OutputType>
@@ -11,26 +12,10 @@
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 	</PropertyGroup>
 
+	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+	<Import Sdk="Balu.Sdk" Version="0.1.0" Project="sdk.targets"/>
+
 	<ItemGroup>
 		<ProjectReference Include="..\bc\bc.csproj" />
 	</ItemGroup>
-
-	<Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-
-	<Target Name="CoreCompile">
-		<ItemGroup>
-			<OnlyBaluFiles Include="*.b" />
-			<ReferencePath Remove="@(ReferencePath)" Condition="
-						   '%(Filename)' != 'System.Runtime' AND 
-						   '%(Filename)' != 'System.Runtime.Extensions' AND 
-						   '%(Filename)' != 'System.Console'"/>
-		</ItemGroup>
-		<Exec Command="&quot;$(MSBuildThisFileDirectory)\..\bc\bin\Debug\net6.0\bc.exe&quot; @(OnlyBaluFiles->'&quot;%(Identity)&quot;', ' ') /o &quot;@(IntermediateAssembly)&quot; @(ReferencePath->'/r &quot;%(Identity)&quot;', ' ')" 
-		      WorkingDirectory="$(MSBuildProjectDirectory)" 
-		      ConsoleToMSBuild="true" 
-		      EchoOff="true" 
-		      IgnoreExitCode="false">
-		</Exec>
-	</Target>
-
 </Project>
