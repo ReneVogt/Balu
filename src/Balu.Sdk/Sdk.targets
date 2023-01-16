@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<!--A target that generates code, which is executed before the compilation-->
+	<Target Name="CoreCompile">
+		<ItemGroup>
+			<OnlyBaluFiles Include="*.b" />
+			<ReferencePath Remove="@(ReferencePath)" Condition="
+						   '%(Filename)' != 'System.Runtime' AND 
+						   '%(Filename)' != 'System.Runtime.Extensions' AND 						   
+						   '%(Filename)' != 'System.Console'"/>
+		</ItemGroup>
+		<PropertyGroup>
+			<Debug Condition="'$(Configuration)' == 'Debug'">true</Debug>
+			<Debug Condition="'$(Configuration)' != 'Debug'">false</Debug>
+		</PropertyGroup>
+		<!--Calling our custom task-->
+		<BaluCompiler CompilerPath="$(BaluCompilerPath)" SourceFiles="@(OnlyBaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" Debug="$(Debug)"/>
+	</Target>
+</Project>
