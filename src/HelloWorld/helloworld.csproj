@@ -1,6 +1,5 @@
-﻿<Project ToolsVersion="15.0">
+﻿<Project ToolsVersion="15.0" Sdk="Balu.Sdk/0.1.0">
 	<Import Project="sdk.props" Sdk="Microsoft.NET.Sdk"/>
-	<Import Sdk="Balu.Sdk" Version="0.1.0" Project="sdk.props"/>
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<OutputType>Exe</OutputType>
@@ -13,8 +12,7 @@
 	</PropertyGroup>
 
 	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
-	<Import Sdk="Balu.Sdk" Version="0.1.0" Project="sdk.targets"/>
-
+	
 	<ItemGroup>
 		<ProjectReference Include="..\bc\bc.csproj" />
 	</ItemGroup>
