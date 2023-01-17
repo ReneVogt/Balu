@@ -1,15 +1,7 @@
 ﻿<Project ToolsVersion="15.0" Sdk="Balu.Sdk/0.1.0">
-	<Import Project="sdk.props" Sdk="Microsoft.NET.Sdk"/>
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<OutputType>Exe</OutputType>
+		<BaluCompilerPath>../bc/bin/debug/net6.0/</BaluCompilerPath>
 	</PropertyGroup>
-
-	<PropertyGroup>
-		<DefaultLanguageSourceExtension>.b</DefaultLanguageSourceExtension>
-		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
-		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
-	</PropertyGroup>
-
-	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
 </Project>

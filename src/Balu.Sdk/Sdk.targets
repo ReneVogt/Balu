@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
 	<!--A target that generates code, which is executed before the compilation-->
 	<Target Name="CoreCompile">
 		<ItemGroup>
-			<OnlyBaluFiles Include="*.b" />
 			<ReferencePath Remove="@(ReferencePath)" Condition="
 						   '%(Filename)' != 'System.Runtime' AND 
 						   '%(Filename)' != 'System.Runtime.Extensions' AND 						   
@@ -14,6 +14,6 @@
 			<Debug Condition="'$(Configuration)' != 'Debug'">false</Debug>
 		</PropertyGroup>
 		<!--Calling our custom task-->
-		<BaluCompiler BcPath="$(BaluCompilerPath)/bc.exe" SourceFiles="@(OnlyBaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" Debug="$(Debug)"/>
+		<BaluCompiler BcPath="$(BaluCompilerPath)/bc.exe" SourceFiles="@(BaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" Debug="$(Debug)"/>
 	</Target>
 </Project>
