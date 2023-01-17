@@ -10,10 +10,8 @@
 						   '%(Filename)' != 'System.Console'"/>
 		</ItemGroup>
 		<PropertyGroup>
-			<Debug Condition="'$(Configuration)' == 'Debug'">true</Debug>
-			<Debug Condition="'$(Configuration)' != 'Debug'">false</Debug>
+			<BaluSymbolPath Condition="'$(Configuration)' == 'Debug' AND '$(BaluSymbolPath)' == ''">@(IntermediateAssembly -> '%(RootDir)%(Directory)%(filename).pdb')</BaluSymbolPath>
 		</PropertyGroup>
-		<!--Calling our custom task-->
-		<BaluCompiler BcPath="$(BaluCompilerPath)/bc.exe" SourceFiles="@(BaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" Debug="$(Debug)"/>
+		<BaluCompiler BcPath="$(BaluCompilerPath)/bc.exe" SourceFiles="@(BaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" SymbolPath="$(BaluSymbolPath)"/>
 	</Target>
 </Project>

@@ -12,6 +12,7 @@
 		<DefaultLanguageSourceExtension>.b</DefaultLanguageSourceExtension>
 		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+		<BaluSymbolPath/>
 	</PropertyGroup>
 	<ItemGroup>
 		<BaluFiles Include="**/*.b"/>

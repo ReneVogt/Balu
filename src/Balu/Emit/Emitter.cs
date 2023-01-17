@@ -15,7 +15,6 @@ namespace Balu.Emit;
 sealed class Emitter : IDisposable
 {
     readonly BoundProgram program;
-    readonly string outputPath;
     readonly DiagnosticBag diagnostics = new();
 
     readonly ReferencedMembers referencedMembers;
@@ -28,10 +27,11 @@ sealed class Emitter : IDisposable
 
     FieldDefinition? randomField;
 
-    Emitter(BoundProgram program, string moduleName, string[] references, string outputPath)
+    bool debug;
+
+    Emitter(BoundProgram program, string moduleName, string[] references)
     {
         this.program = program;
-        this.outputPath = outputPath;
 
         diagnostics.AddRange(program.Diagnostics);
         referencedMembers = new(moduleName, references);
@@ -347,6 +347,13 @@ sealed class Emitter : IDisposable
     }
     void EmitSequencePointStatement(ILProcessor processor, BoundSequencePointStatement statement)
     {
+        if (!debug)
+        {
+            if (statement.Statement.Kind != BoundNodeKind.NopStatement)
+                EmitStatement(processor, statement.Statement);
+            return;
+        }
+
         var index = processor.Body.Instructions.Count;
         EmitStatement(processor, statement.Statement);
         var instruction = processor.Body.Instructions[index];
@@ -388,42 +395,53 @@ sealed class Emitter : IDisposable
         processor.Emit(OpCodes.Ret);
     }
 
-    void EmitDebuggableAttribute(bool debug)
+    void EmitDebuggableAttribute()
     {
+        if (!debug) return;
         var attribute = new CustomAttribute(referencedMembers.DebuggableAttributeCtor);
-        attribute.ConstructorArguments.Add(new (MapType(TypeSymbol.Boolean), debug));
-        attribute.ConstructorArguments.Add(new (MapType(TypeSymbol.Boolean), debug));
+        attribute.ConstructorArguments.Add(new (MapType(TypeSymbol.Boolean), true));
+        attribute.ConstructorArguments.Add(new (MapType(TypeSymbol.Boolean), true));
+        referencedMembers.Assembly.CustomAttributes.Add(attribute);
+        
+        attribute = new(referencedMembers.DebuggableAttributeCtor);
+        attribute.ConstructorArguments.Add(new(MapType(TypeSymbol.Boolean), true));
+        attribute.ConstructorArguments.Add(new(MapType(TypeSymbol.Boolean), true));
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
-    void Emit(bool debug)
+    void Emit(Stream outputStream, Stream? symbolStream)
     {
         if (diagnostics.Any()) return;
 
-        EmitDebuggableAttribute(debug);
+        debug = symbolStream is not null;
+        EmitDebuggableAttribute();
 
         foreach (var (function, method) in methods)
             EmitMethod(method, function);
 
-        using var outputStream = File.Create(outputPath);
-        using var symbolStream = File.Create(Path.ChangeExtension(outputPath, ".pdb"));
-        var writerParameters = new WriterParameters
-        {
-            WriteSymbols = true,
-            SymbolStream = symbolStream,
-            SymbolWriterProvider = new PortablePdbWriterProvider()
-        };
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
-        referencedMembers.Assembly.Write(outputStream, writerParameters);
+
+        if (symbolStream is null)
+            referencedMembers.Assembly.Write(outputStream);
+        else
+        {
+            var writerParameters = new WriterParameters
+            {
+                WriteSymbols = true,
+                SymbolStream = symbolStream,
+                SymbolWriterProvider = new PortablePdbWriterProvider()
+            };
+            referencedMembers.Assembly.Write(outputStream, writerParameters);
+        }
     }
 
-    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, string outputPath, bool debug)
+    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream)
     {
         try
         {
             if (program.Diagnostics.Any()) return program.Diagnostics;
-            using var emitter = new Emitter(program, moduleName, references, outputPath);
-            emitter.Emit(debug);
+            using var emitter = new Emitter(program, moduleName, references);
+            emitter.Emit(outputStream, symbolStream);
             return emitter.diagnostics.ToImmutableArray();
         }
         catch (MissingReferencesException exception)
