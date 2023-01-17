@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Balu;
 using Balu.Syntax;
 using Balu.Visualization;
 using Mono.Options;
-
 #pragma warning disable CA1031 // Main catches all exceptions
 
 sealed class Program
@@ -37,7 +37,6 @@ sealed class Program
             return 0;
         }
 
-        
         try
         {
             if (sourcePaths.Count == 0)
@@ -55,11 +54,11 @@ sealed class Program
 
             outputPath = Path.GetFullPath(outputPath);
 
-            var syntaxTrees = sourcePaths.Select(path => SyntaxTree.Load(Path.GetFullPath(path))).ToArray();
+            var syntaxTrees = sourcePaths.AsParallel().Select(Parse).ToArray();
             var compilation = Compilation.Create(syntaxTrees);
-            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, true);
+            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, true)
+                                         .Except(syntaxTrees.SelectMany(tree => tree.Diagnostics)).ToImmutableArray();
             if (!diagnostics.Any()) return 0;
-
             Console.Error.WriteDiagnostics(diagnostics);
             return 1;
         }
@@ -69,5 +68,13 @@ sealed class Program
             Console.Error.WriteLine();
             return 1;
         }
+    }
+
+    static SyntaxTree Parse(string path)
+    {
+        var tree = SyntaxTree.Load(Path.GetFullPath(path));
+        if (tree.Diagnostics.Any()) 
+            Console.Error.WriteDiagnostics(tree.Diagnostics);
+        return tree;
     }
 }
