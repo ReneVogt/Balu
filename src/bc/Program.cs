@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Balu;
 using Balu.Syntax;
 using Balu.Visualization;
@@ -11,6 +11,7 @@ using Mono.Options;
 
 sealed class Program
 {
+    static bool quiet;
     public static int Main(string[] args)
     {
         List<string> references = new();
@@ -27,6 +28,7 @@ sealed class Program
             { "o=", "The output {path} of the assembly to create.", v => outputPath = v },
             { "s=", "The optional symbol {path} of the pdb to create.", v => symbolPath = v },
             { "m=", "The module {name} of the assembly to create.", v => moduleName = v },
+            { "q", _ => quiet = true },
             { "<>", v => sourcePaths.Add(v) },
             { "?|h|help", "Shows help.", _ => helpRequested = true }
         };
@@ -39,17 +41,18 @@ sealed class Program
             return 0;
         }
 
+        LogInfo($"Balu compiler v{Assembly.GetExecutingAssembly().GetName().Version}");
+
         try
         {
             if (sourcePaths.Count == 0)
             {
-                Console.Error.WriteColoredText("Error: need at least one source file.", ConsoleColor.Red);
-                Console.Error.WriteLine();
+                LogError("Error: need at least one source file.");
                 return 1;
             }
 
             if (string.IsNullOrWhiteSpace(outputPath))
-                outputPath = Path.ChangeExtension(sourcePaths[0], ".exe");
+                outputPath = Path.ChangeExtension(sourcePaths[0], ".dll");
 
             if (string.IsNullOrWhiteSpace(moduleName))
                 moduleName = Path.GetFileNameWithoutExtension(outputPath);
@@ -58,25 +61,41 @@ sealed class Program
 
             var syntaxTrees = sourcePaths.AsParallel().Select(Parse).ToArray();
             var compilation = Compilation.Create(syntaxTrees);
-            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, symbolPath)
-                                         .Except(syntaxTrees.SelectMany(tree => tree.Diagnostics)).ToImmutableArray();
-            if (!diagnostics.Any()) return 0;
-            Console.Error.WriteDiagnostics(diagnostics);
-            return 1;
+            LogInfo(
+                $"Emitting assembly '{outputPath}'{(string.IsNullOrWhiteSpace(symbolPath) ? string.Empty : $" and symbol file '{symbolPath}'")}.");
+            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, symbolPath);
+            LogDiagnostics(diagnostics);
+            LogInfo("Done.");
+            return diagnostics.Any() ? 1 : 0;
         }
         catch (Exception error)
         {
-            Console.Error.WriteColoredText($"Fatal error: {error.Message}.", ConsoleColor.Red);
-            Console.Error.WriteLine();
+            LogError(error.Message);
             return 1;
         }
     }
 
     static SyntaxTree Parse(string path)
     {
-        var tree = SyntaxTree.Load(Path.GetFullPath(path));
-        if (tree.Diagnostics.Any()) 
-            Console.Error.WriteDiagnostics(tree.Diagnostics);
-        return tree;
+        LogInfo($"Compiling '{path}'...");
+        return SyntaxTree.Load(Path.GetFullPath(path));
+    }
+
+    static void LogInfo(string message)
+    {
+        if (!quiet)
+            Console.WriteLine(message);
+    }
+
+    static void LogError(string message)
+    {
+        if (quiet) return;
+        Console.Error.WriteColoredText(message, ConsoleColor.Red);
+        Console.Error.WriteLine();
+    }
+    static void LogDiagnostics(IEnumerable<Diagnostic> diagnostics)
+    {
+        if (!quiet) 
+            Console.Error.WriteDiagnostics(diagnostics);
     }
 }

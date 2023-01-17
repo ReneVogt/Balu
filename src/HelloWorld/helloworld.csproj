@@ -2,6 +2,6 @@
 	<PropertyGroup>
 		<TargetFramework>net6.0</TargetFramework>
 		<OutputType>Exe</OutputType>
-		<BaluCompilerPath>../bc/bin/debug/net6.0/</BaluCompilerPath>
+		<BaluCompilerPath>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)../bc/bin/debug/net6.0/))</BaluCompilerPath>
 	</PropertyGroup>
 </Project>

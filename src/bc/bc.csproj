@@ -8,6 +8,8 @@
 		<EnableNETAnalyzers>true</EnableNETAnalyzers>
 		<AnalysisLevel>latest</AnalysisLevel>
 		<AnalysisMode>AllEnabledByDefault</AnalysisMode>
+		<Version>0.1.0</Version>
+		<AssemblyVersion>0.1.0</AssemblyVersion>
 	</PropertyGroup>
 	<ItemGroup>
 	  <PackageReference Include="Mono.Options" Version="6.12.0.148" />
