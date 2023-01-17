@@ -15,6 +15,7 @@ sealed class Program
     {
         List<string> references = new();
         string outputPath = string.Empty;
+        string symbolPath = string.Empty;
         string moduleName = string.Empty;
         List<string> sourcePaths = new();
         bool helpRequested = false;
@@ -24,6 +25,7 @@ sealed class Program
             "Usage: bc <soure-paths> [options]",
             { "r=", "The {path} of an assembly to reference.", v => references.Add(v) },
             { "o=", "The output {path} of the assembly to create.", v => outputPath = v },
+            { "s=", "The optional symbol {path} of the pdb to create.", v => symbolPath = v },
             { "m=", "The module {name} of the assembly to create.", v => moduleName = v },
             { "<>", v => sourcePaths.Add(v) },
             { "?|h|help", "Shows help.", _ => helpRequested = true }
@@ -56,7 +58,7 @@ sealed class Program
 
             var syntaxTrees = sourcePaths.AsParallel().Select(Parse).ToArray();
             var compilation = Compilation.Create(syntaxTrees);
-            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, true)
+            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, symbolPath)
                                          .Except(syntaxTrees.SelectMany(tree => tree.Diagnostics)).ToImmutableArray();
             if (!diagnostics.Any()) return 0;
             Console.Error.WriteDiagnostics(diagnostics);
