@@ -1,30 +1,31 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
 namespace Balu.Sdk;
 
-public sealed class BaluCompiler : Task
+public sealed class BaluCompiler : ToolTask
 {
+    protected override string ToolName => "bc";
+
     [Required]
-    public string CompilerPath { get; set; } = string.Empty;
+    public string BcPath { get; set; } = string.Empty;
+
     [Required]
     public ITaskItem[] SourceFiles { get; set; } = Array.Empty<ITaskItem>();
 
     [Required]
     public ITaskItem[] ReferencedAssemblies { get; set; } = Array.Empty<ITaskItem>();
+
     [Required]
     public string OutputPath { get; set; } = string.Empty;
-    [Required]
+
     public bool Debug { get; set; }
 
-    public override bool Execute()
-    {
-        Log.LogMessage(MessageImportance.High, $"CompilerPath {CompilerPath}");
-        Log.LogMessage(MessageImportance.High, $"SourceFiles: {string.Join(", ", SourceFiles.Select(sf => sf.ItemSpec))}");
-        Log.LogMessage(MessageImportance.High, $"RefAsm: {string.Join(", ", ReferencedAssemblies.Select(sf => sf.ItemSpec))}");
-        Log.LogMessage(MessageImportance.High, $"OutputPath: {OutputPath}");
-        return true;
-    }
+    protected override string GenerateFullPathToTool() => Path.GetFullPath(BcPath);
+    /// <inheritdoc />
+    protected override string GenerateCommandLineCommands() =>
+        $"/o {OutputPath} {string.Join(" ", ReferencedAssemblies.Select(item => $"/r \"{item.GetMetadata("FullPath")}\""))} {string.Join(" ", SourceFiles.Select(item => $"\"{item.GetMetadata("FullPath")}\""))}";
 }
