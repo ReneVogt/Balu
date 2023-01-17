@@ -12,8 +12,4 @@
 	</PropertyGroup>
 
 	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
-	
-	<ItemGroup>
-		<ProjectReference Include="..\bc\bc.csproj" />
-	</ItemGroup>
 </Project>

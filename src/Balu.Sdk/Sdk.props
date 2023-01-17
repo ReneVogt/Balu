@@ -4,7 +4,7 @@
 	<PropertyGroup>
 		<!--The folder where the custom task will be present. It points to inside the nuget package. -->
 		<BaluCompilerTaskFolder>$(MSBuildThisFileDirectory)..\tasks\netstandard2.0</BaluCompilerTaskFolder>
-		<BaluCompilerPath>$(MSBuildThisFileDirectory)..\bc</BaluCompilerPath>
+		<BaluCompilerPath>$(MSBuildThisFileDirectory)..\tasks\netstandard2.0</BaluCompilerPath>
 		<!--Reference to the assembly which contains the MSBuild Task-->
 		<CustomTasksAssembly>$(BaluCompilerTaskFolder)\Balu.Sdk.dll</CustomTasksAssembly>
 	</PropertyGroup>

@@ -18,7 +18,7 @@
 		<!-- This property tells MSBuild where the root folder of the package's build assets should be. Because we are not a library package, we should not pack to 'lib'. Instead, we choose 'tasks' by convention. -->
 		<BuildOutputTargetFolder>tasks</BuildOutputTargetFolder>
 		<!-- NuGet does validation that libraries in a package are exposed as dependencies, but we _explicitly_ do not want that behavior for MSBuild tasks. They are isolated by design. Therefore we ignore this specific warning. -->
-		<NoWarn>NU5100</NoWarn>
+		<NoWarn>NU5100,NU5128</NoWarn>
 		<GenerateDependencyFile>true</GenerateDependencyFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	</PropertyGroup>
@@ -38,10 +38,10 @@
 		<ItemGroup>
 			<!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
 			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
+			<BuildOutputInPackage Include="../bc/bin/$(Configuration)/net6.0/*" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)"/>
 		</ItemGroup>
 	</Target>
 	<Target Name="AddBuildDependencyFileToBuiltProjectOutputGroupOutput" BeforeTargets="BuiltProjectOutputGroup" Condition=" '$(GenerateDependencyFile)' == 'true'">
-
 		<ItemGroup>
 			<BuiltProjectOutputGroupOutput Include="$(ProjectDepsFilePath)" TargetPath="$(ProjectDepsFileName)" FinalOutputPath="$(ProjectDepsFilePath)" />
 		</ItemGroup>
