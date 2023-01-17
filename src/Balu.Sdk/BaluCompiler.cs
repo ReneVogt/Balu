@@ -25,7 +25,6 @@ public sealed class BaluCompiler : ToolTask
     public bool Debug { get; set; }
 
     protected override string GenerateFullPathToTool() => Path.GetFullPath(BcPath);
-    /// <inheritdoc />
     protected override string GenerateCommandLineCommands() =>
         $"/o {OutputPath} {string.Join(" ", ReferencedAssemblies.Select(item => $"/r \"{item.GetMetadata("FullPath")}\""))} {string.Join(" ", SourceFiles.Select(item => $"\"{item.GetMetadata("FullPath")}\""))}";
 }

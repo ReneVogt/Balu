@@ -8,7 +8,18 @@
 		<!--Reference to the assembly which contains the MSBuild Task-->
 		<CustomTasksAssembly>$(BaluCompilerTaskFolder)\Balu.Sdk.dll</CustomTasksAssembly>
 	</PropertyGroup>
+	<PropertyGroup>
+		<DefaultLanguageSourceExtension>.b</DefaultLanguageSourceExtension>
+		<GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
+	</PropertyGroup>
+	<ItemGroup>
+		<BaluFiles Include="**/*.b"/>
+	</ItemGroup>
+
 
 	<!--Register our custom task-->
 	<UsingTask TaskName="Balu.Sdk.BaluCompiler" AssemblyFile="$(CustomTasksAssembly)"/>
+
+	<Import Project="sdk.props" Sdk="Microsoft.NET.Sdk"/>
 </Project>

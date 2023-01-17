@@ -19,6 +19,9 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bc", "bc\bc.csproj", "{581F1500-768C-4827-9EA1-8E1CA482203C}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "helloworld", "HelloWorld\helloworld.csproj", "{E4EADF50-F57F-4AA6-A28F-68A8879BBE70}"
+	ProjectSection(ProjectDependencies) = postProject
+		{581F1500-768C-4827-9EA1-8E1CA482203C} = {581F1500-768C-4827-9EA1-8E1CA482203C}
+	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balu.SourceGenerator", "Balu.SourceGenerator\Balu.SourceGenerator.csproj", "{BEA8F756-DC9F-434D-96BC-B10AC9FEFE08}"
 EndProject
