@@ -28,6 +28,13 @@ public enum SyntaxKind
     ClosedBraceToken,
 
     EqualsToken,
+    PlusEqualsToken,
+    MinusEqualsToken,
+    StarEqualsToken,
+    SlashEqualsToken,
+    AmpersandEqualsToken,
+    PipeEqualsToken,
+    CircumflexEqualsToken,
 
     BangToken,
     AmpersandToken,
