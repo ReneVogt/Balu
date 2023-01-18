@@ -16,6 +16,7 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<BaluFiles Include="**/*.b"/>
+		<UpToDateCheckInput Include="@(BaluFiles)"/>
 	</ItemGroup>
 
 

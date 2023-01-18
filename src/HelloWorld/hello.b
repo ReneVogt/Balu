@@ -20,6 +20,7 @@ function getAge(name : string) : int
 
 function main()
 {
+	println(13)
 	var name = getName()
 	var age = getAge(name)
 	output(age, name)

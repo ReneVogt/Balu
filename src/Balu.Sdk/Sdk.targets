@@ -2,7 +2,7 @@
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
 	<!--A target that generates code, which is executed before the compilation-->
-	<Target Name="CoreCompile">
+	<Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn)" Inputs="@(BaluFiles -> '%(FullPath)')" Outputs="@(IntermediateAssembly -> '%(FullPath)')">
 		<ItemGroup>
 			<ReferencePath Remove="@(ReferencePath)" Condition="
 						   '%(Filename)' != 'System.Runtime' AND 
