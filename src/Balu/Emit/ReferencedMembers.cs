@@ -23,7 +23,10 @@ sealed class ReferencedMembers : IDisposable
     public MethodReference ConsoleWrite { get; }
     public MethodReference ConsoleWriteLine { get; }
     public MethodReference ConsoleReadLine { get; }
-    public MethodReference StringConcat { get; }
+    public MethodReference StringConcat2 { get; }
+    public MethodReference StringConcat3 { get; }
+    public MethodReference StringConcat4 { get; }
+    public MethodReference StringConcatArray { get; }
     public MethodReference ConvertToBool { get; }
     public MethodReference ConvertToString { get; }
     public MethodReference ConvertToInt { get; }
@@ -66,7 +69,10 @@ sealed class ReferencedMembers : IDisposable
         var consoleWrite = ResolveMethodDefinition(consoleTypeDefinition, "Write", new[] { "System.Object" });
         var consoleWriteLine = ResolveMethodDefinition(consoleTypeDefinition, "WriteLine", new[] { "System.Object" });
         var consoleReadLine = ResolveMethodDefinition(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
-        var stringConcat = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
+        var stringConcat2 = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
+        var stringConcat3 = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String", "System.String", "System.String" });
+        var stringConcat4 = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String", "System.String", "System.String", "System.String" });
+        var stringConcatArray = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String[]" });
         var convertToBool = ResolveMethodDefinition(convertTypeDefinition, "ToBoolean", new[] { "System.Object" });
         var convertToInt = ResolveMethodDefinition(convertTypeDefinition, "ToInt32", new[] { "System.Object" });
         var convertToString = ResolveMethodDefinition(convertTypeDefinition, "ToString", new[] { "System.Object" });
@@ -79,7 +85,10 @@ sealed class ReferencedMembers : IDisposable
             consoleWrite is not null &&
             consoleWriteLine is not null &&
             consoleReadLine is not null &&
-            stringConcat is not null &&
+            stringConcat2 is not null &&
+            stringConcat3 is not null &&
+            stringConcat4 is not null &&
+            stringConcatArray is not null &&
             convertToBool is not null &&
             convertToInt is not null &&
             convertToString is not null &&
@@ -94,7 +103,10 @@ sealed class ReferencedMembers : IDisposable
         ConsoleWrite = Assembly.MainModule.ImportReference(consoleWrite);
         ConsoleWriteLine = Assembly.MainModule.ImportReference(consoleWriteLine);
         ConsoleReadLine = Assembly.MainModule.ImportReference(consoleReadLine);
-        StringConcat = Assembly.MainModule.ImportReference(stringConcat);
+        StringConcat2 = Assembly.MainModule.ImportReference(stringConcat2);
+        StringConcat3 = Assembly.MainModule.ImportReference(stringConcat3);
+        StringConcat4 = Assembly.MainModule.ImportReference(stringConcat4);
+        StringConcatArray = Assembly.MainModule.ImportReference(stringConcatArray);
         ConvertToBool = Assembly.MainModule.ImportReference(convertToBool);
         ConvertToInt = Assembly.MainModule.ImportReference(convertToInt);
         ConvertToString = Assembly.MainModule.ImportReference(convertToString);

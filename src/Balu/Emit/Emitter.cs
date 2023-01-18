@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Balu.Binding;
 using Balu.Symbols;
 using Balu.Syntax;
@@ -10,6 +11,8 @@ using Balu.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Mono.Cecil.Rocks;
+using static Balu.Binding.BoundNodeFactory;
+
 namespace Balu.Emit;
 
 sealed class Emitter : IDisposable
@@ -169,6 +172,12 @@ sealed class Emitter : IDisposable
     }
     void EmitBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
     {
+        if (IsStringConcat(expression))
+        {
+            EmitStringConcat(processor, expression);
+            return;
+        }
+
         // TODO: implement short-circuit evaluation for logical operations
         EmitExpression(processor, expression.Left);
         EmitExpression(processor, expression.Right);
@@ -176,10 +185,7 @@ sealed class Emitter : IDisposable
         switch (expression.Operator.OperatorKind)
         {
             case BoundBinaryOperatorKind.Addition:
-                if (expression.Type == TypeSymbol.String)
-                    processor.Emit(OpCodes.Call, referencedMembers.StringConcat);
-                else
-                    processor.Emit(OpCodes.Add);
+                processor.Emit(OpCodes.Add);
                 break;
             case BoundBinaryOperatorKind.Substraction:
                 processor.Emit(OpCodes.Sub);
@@ -238,6 +244,93 @@ sealed class Emitter : IDisposable
             default:
                 throw new EmitterException(
                     $"Unexpected binary operator '{expression.Operator.SyntaxKind.GetText() ?? expression.Operator.OperatorKind.ToString()}'.");
+        }
+    }
+    static bool IsStringConcat(BoundExpression expression) =>
+        expression is BoundBinaryExpression { Operator.OperatorKind: BoundBinaryOperatorKind.Addition, Type: var type } && type == TypeSymbol.String;
+    void EmitStringConcat(ILProcessor processor, BoundBinaryExpression expression)
+    {
+        var builder = ImmutableArray.CreateBuilder<BoundExpression>();
+        StringBuilder? constantBuilder = null;
+        var stack = new Stack<BoundBinaryExpression>();
+        var current = expression;
+        while (IsStringConcat(current.Left))
+        {
+            stack.Push(current);
+            current = (BoundBinaryExpression)current.Left;
+        }
+
+        AddOperand(current.Left);
+        AddOperand(current.Right);
+        while (stack.Count > 0)
+        {
+            current = stack.Pop();
+            AddOperand(current.Right);
+        }
+
+        void AddOperand(BoundExpression operand)
+        {
+            if (operand is { Constant.Value: string constant, HasSideEffects: false })
+            {
+                constantBuilder ??= new();
+                constantBuilder.Append(constant);
+            }
+            else
+            {
+                if (constantBuilder?.Length > 0)
+                {
+                    builder.Add(new BoundLiteralExpression(expression.Syntax, constantBuilder.ToString()));
+                    constantBuilder.Clear();
+                }
+
+                builder.Add(operand);
+            }
+        }
+        if (constantBuilder?.Length > 0)
+            builder.Add(new BoundLiteralExpression(expression.Syntax, constantBuilder.ToString()));
+
+        var operands = builder.ToImmutable();
+        switch (operands.Length)
+        {
+            case 0:
+                processor.Emit(OpCodes.Ldstr, string.Empty);
+                break;
+            case 1:
+                EmitExpression(processor, operands[0]);
+                break;
+            case 2:
+                EmitExpression(processor, operands[0]);
+                EmitExpression(processor, operands[1]);
+                processor.Emit(OpCodes.Call, referencedMembers.StringConcat2);
+                break;
+            case 3:
+                EmitExpression(processor, operands[0]);
+                EmitExpression(processor, operands[1]);
+                EmitExpression(processor, operands[2]);
+                processor.Emit(OpCodes.Call, referencedMembers.StringConcat3);
+                break;
+            case 4:
+                EmitExpression(processor, operands[0]);
+                EmitExpression(processor, operands[1]);
+                EmitExpression(processor, operands[2]);
+                EmitExpression(processor, operands[3]);
+                processor.Emit(OpCodes.Call, referencedMembers.StringConcat4);
+                break;
+            default:
+                processor.Emit(OpCodes.Ldc_I4, operands.Length);
+                processor.Emit(OpCodes.Newarr, MapType(TypeSymbol.String));
+
+                for (var i = 0; i < operands.Length; i++)
+                {
+                    processor.Emit(OpCodes.Dup);
+                    processor.Emit(OpCodes.Ldc_I4, i);
+                    EmitExpression(processor, operands[i]);
+                    processor.Emit(OpCodes.Stelem_Ref);
+                }
+
+                processor.Emit(OpCodes.Call, referencedMembers.StringConcatArray);
+                break;
+
         }
     }
     static void EmitConstantExpression(ILProcessor processor, BoundExpression expression)
