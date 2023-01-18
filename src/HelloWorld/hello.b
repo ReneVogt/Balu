@@ -1,29 +1,13 @@
-﻿function output(age : int, name : string)
+﻿function main()
 {
-	print(name + " is ")
-	print(age)
-	println(" years old.")
-}
+    let a = "erster"
+    let b = "zweiter"
+    let c = "dritter"
+    let d = "vierter"
+    let e = "fünfter"
 
-function getName() : string
-{
-	print("Your name: ")
-	return input()
-}
-
-function getAge(name : string) : int
-{
-	println("Hi, " + name)
-	print("How old are you: ")
-	return int(input())
-}
-
-function main()
-{
-	println(13)
-	var name = getName()
-	var age = getAge(name)
-	output(age, name)
-
-	println("A random number between 0 and " + string(age) + ": " + string(random(age)))
+    println(a+b)
+    println(a+b+c)
+    println(a+b+c+d)
+    println(a+b+c+d+e)
 }
