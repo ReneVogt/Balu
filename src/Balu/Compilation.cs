@@ -86,9 +86,15 @@ public sealed class Compilation
     {
         _ = globals ?? throw new ArgumentNullException(nameof(globals));
 
-        var diagnostics = Program.Diagnostics;
+        var memoryStream = new MemoryStream();
+        var diagnostics = Emit("BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), memoryStream, null);
         if (diagnostics.Any())
             return new(diagnostics, null);
+
+        var asm = Assembly.Load(memoryStream.GetBuffer());
+        var type = asm.GetType("Program");
+        var method = type!.GetMethod("$eval", BindingFlags.Static | BindingFlags.NonPublic);
+        method!.Invoke(null, null);
 
         return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(Program, globals));
     }
@@ -103,12 +109,19 @@ public sealed class Compilation
         try
         {
             using var outputStream = File.Create(outputPath);
-            return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream);
+            return Emit(moduleName, references, outputStream, symbolStream);
         }
         finally
         {
             symbolStream?.Dispose();
         }
+    }
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, Stream outputStream, Stream? symbolStream)
+    {
+        _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
+        _ = references ?? throw new ArgumentNullException(nameof(references));
+        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream);
     }
 
     public void WriteSyntaxTrees(TextWriter writer)
