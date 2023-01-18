@@ -122,10 +122,23 @@ sealed class Binder : SyntaxTreeVisitor
             return;
         }
 
-        var expression = (BoundExpression)boundNode!;
-        expression = BindConversion(node.EqualsToken, expression, variable.Type);
+        var right = (BoundExpression)boundNode!;
+        if (node.AssignmentToken.Kind == SyntaxKind.EqualsToken)
+        {
+            var expression = BindConversion(node.AssignmentToken, right, variable.Type);
+            boundNode = Assignment(node, variable, expression);
+            return;
+        }
+        var op = BoundBinaryOperator.Bind(node.AssignmentToken.Kind, variable.Type, right.Type);
+        if (op is null)
+        {
+            if (right.Type != TypeSymbol.Error)
+                diagnostics.ReportBinaryOperatorTypeMismatch(node.AssignmentToken, variable.Type, right.Type);
+            SetErrorExpression(node);
+            return;
+        }
 
-        boundNode = Assignment(node, variable, expression);
+        boundNode = Assignment(node, variable, Binary(node, Variable(node.IdentifierToken, variable), op, right));
     }
     protected override void VisitCallExpression(CallExpressionSyntax node)
     {
