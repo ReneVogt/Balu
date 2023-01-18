@@ -34,6 +34,11 @@ public static class SyntaxFacts
     public static bool IsTrivia(this SyntaxKind kind) => kind.ToString().EndsWith("Trivia");
     public static bool IsComment(this SyntaxKind kind) => kind is SyntaxKind.SingleLineCommentTrivia or SyntaxKind.MultiLineCommentTrivia;
     public static bool IsToken(this SyntaxKind kind) => !kind.IsTrivia() && (kind.ToString().EndsWith("Token")  || kind.IsKeyword());
+    public static bool IsAssingmentToken(this SyntaxKind kind) => kind is SyntaxKind.EqualsToken or SyntaxKind.PlusEqualsToken
+                                                                      or SyntaxKind.MinusEqualsToken or SyntaxKind.StarEqualsToken
+                                                                      or SyntaxKind.SlashEqualsToken or SyntaxKind.AmpersandEqualsToken
+                                                                      or SyntaxKind.PipeEqualsToken or SyntaxKind.CircumflexEqualsToken;
+
     public static SyntaxKind KeywordKind(this string literal) => literal switch
     {
         "else" => SyntaxKind.ElseKeyword,

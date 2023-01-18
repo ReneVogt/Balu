@@ -239,10 +239,10 @@ sealed class Parser
     }
 
     ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
-    ExpressionSyntax ParseAssignmentExpression() =>
-        Current.Kind != SyntaxKind.IdentifierToken || Peek(1).Kind != SyntaxKind.EqualsToken
-            ? ParseBinaryExpression()
-            : new AssignmentExpressionSyntax(syntaxTree, NextToken(), NextToken(), ParseAssignmentExpression());
+    ExpressionSyntax ParseAssignmentExpression() => Current.Kind != SyntaxKind.IdentifierToken || !Peek(1).Kind.IsAssingmentToken()
+                                                        ? ParseBinaryExpression()
+                                                        : new AssignmentExpressionSyntax(syntaxTree, NextToken(), NextToken(),
+                                                                                         ParseAssignmentExpression());
     ExpressionSyntax ParseBinaryExpression(int parentprecedence = 0)
     {
         var unaryOperatorPrecedence = Current.Kind.UnaryOperatorPrecedence();
