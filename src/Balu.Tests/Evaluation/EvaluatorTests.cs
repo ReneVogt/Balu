@@ -384,7 +384,7 @@ public class EvaluatorTests
     [Fact]
     public void Evaluate_FunctionCall_InsideLoop()
     {
-        "function test() {} {var result = true while result { test() result = false } }".AssertEvaluation(value: false);
+        "function test() {} var result = true while result { test() result = false } result ".AssertEvaluation(value: false);
     }
     [Fact]
     public void Evaluate_FunctionCall_ReturnInsideLoop()
