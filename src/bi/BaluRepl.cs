@@ -47,6 +47,7 @@ sealed class BaluRepl : Repl
             compilation.WriteBoundGlobalTree(Console.Out);
         }
 
+        Console.ForegroundColor = ConsoleColor.White;
         var result = compilation.Evaluate(globals);
         Console.ResetColor();
         if (result.Diagnostics.Any())
