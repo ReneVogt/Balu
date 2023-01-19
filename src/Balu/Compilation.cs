@@ -91,12 +91,11 @@ public sealed class Compilation
         if (diagnostics.Any())
             return new(diagnostics, null);
 
-        var asm = Assembly.Load(memoryStream.GetBuffer());
-        var type = asm.GetType("Program");
-        var method = type!.GetMethod("$eval", BindingFlags.Static | BindingFlags.NonPublic);
-        method!.Invoke(null, null);
-
-        return new(ImmutableArray<Diagnostic>.Empty, Evaluator.Evaluate(Program, globals));
+        var rawAssembly = memoryStream.GetBuffer();
+        File.WriteAllBytes("script.dll", rawAssembly);
+        var asm = Assembly.Load(rawAssembly);
+        var result = asm.EntryPoint!.Invoke(null, null);
+        return new(ImmutableArray<Diagnostic>.Empty, result);
     }
 
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath)
