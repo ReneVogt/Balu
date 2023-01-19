@@ -27,8 +27,7 @@ sealed class Emitter : IDisposable
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
     readonly Dictionary<SourceText, Document> documents = new();
-
-    FieldDefinition? randomField;
+    readonly Dictionary<GlobalVariableSymbol, string> globalFieldNames = new();
 
     bool debug;
 
@@ -382,10 +381,7 @@ sealed class Emitter : IDisposable
     void EmitCallExpression(ILProcessor processor, BoundCallExpression expression)
     {
         if (expression.Function == BuiltInFunctions.Random)
-        {
-            EmitRandomField();
-            processor.Emit(OpCodes.Ldsfld, randomField);
-        }
+            processor.Emit(OpCodes.Ldsfld, referencedMembers.RandomField);
 
         foreach (var argument in expression.Arguments)
             EmitExpression(processor, argument);
@@ -397,10 +393,7 @@ sealed class Emitter : IDisposable
         else if (expression.Function == BuiltInFunctions.Input)
             processor.Emit(OpCodes.Call, referencedMembers.ConsoleReadLine);
         else if (expression.Function == BuiltInFunctions.Random)
-        {
-            EmitRandomField();
             processor.Emit(OpCodes.Callvirt, referencedMembers.RandomNext);
-        }
         else
             processor.Emit(OpCodes.Call, methods[expression.Function]);
     }
@@ -433,13 +426,8 @@ sealed class Emitter : IDisposable
                 break;
             case SymbolKind.GlobalVariable:
                 var global = (GlobalVariableSymbol)statement.Variable;
-                if (!globals.TryGetValue(global, out var fieldDefinition))
-                {
-                    fieldDefinition = new (statement.Variable.Name, FieldAttributes.Static, MapType(statement.Variable.Type));
-                    referencedMembers.ProgramType.Fields.Add(fieldDefinition);
-                    globals.Add((GlobalVariableSymbol)statement.Variable, fieldDefinition);
-                }
-                processor.Emit(OpCodes.Stsfld, fieldDefinition);
+                EmitField(global);
+                processor.Emit(OpCodes.Stsfld, globals[global]);
                 break;
             default:
                 throw new EmitterException($"Unexpected symbol kind '{statement.Variable.Kind}' in variable declaration statement.");
@@ -501,13 +489,8 @@ sealed class Emitter : IDisposable
         processor.Body.Method.DebugInformation.SequencePoints.Add(sequencePoint);
     }
 
-    void EmitRandomField()
+    void EmitFields(ImmutableDictionary<GlobalVariableSymbol, object> initializedFields)
     {
-        if (randomField is not null) return;
-        var randomTypeReference = referencedMembers.Assembly.MainModule.ImportReference(referencedMembers.RandomType);
-        randomField = new("<random>", FieldAttributes.Static | FieldAttributes.Private | FieldAttributes.SpecialName, randomTypeReference);
-        referencedMembers.ProgramType.Fields.Add(randomField);
-
         var staticConstructor = new MethodDefinition(
             ".cctor", 
             MethodAttributes.Static | 
@@ -516,9 +499,47 @@ sealed class Emitter : IDisposable
             MapType(TypeSymbol.Void));
         referencedMembers.ProgramType.Methods.Add(staticConstructor);
         var processor = staticConstructor.Body.GetILProcessor();
+
         processor.Emit(OpCodes.Newobj, referencedMembers.RandomCtor);
-        processor.Emit(OpCodes.Stsfld, randomField);
+        processor.Emit(OpCodes.Stsfld, referencedMembers.RandomField);
+
+        foreach (var (global, value) in initializedFields)
+        {
+            EmitField(global);
+            bool box = true;
+            switch (value)
+            {
+                case false:
+                    processor.Emit(OpCodes.Ldc_I4_0);
+                    break;
+                case true:
+                    processor.Emit(OpCodes.Ldc_I4_1);
+                    break;
+                case int i:
+                    processor.Emit(OpCodes.Ldc_I4, i);
+                    break;
+                case string s:
+                    processor.Emit(OpCodes.Ldstr, s);
+                    box = false;
+                    break;
+                default:
+                    throw new EmitterException($"Invalid value type '{value.GetType().Name}' in global variables.");
+            }
+
+            if (box && global.Type == TypeSymbol.Any)
+                processor.Emit(OpCodes.Box);
+            processor.Emit(OpCodes.Stsfld, globals[global]);
+        }
+
         processor.Emit(OpCodes.Ret);
+    }
+    void EmitField(GlobalVariableSymbol global)
+    {
+        var name = $"<global{globals.Count}>";
+        var fieldDefinition = new FieldDefinition(name, FieldAttributes.Static | FieldAttributes.SpecialName | FieldAttributes.Private, MapType(global.Type)); 
+        referencedMembers.ProgramType.Fields.Add(fieldDefinition);
+        globals.Add(global, fieldDefinition);
+        globalFieldNames[global] = name;
     }
 
     void EmitDebuggableAttribute()
@@ -535,18 +556,22 @@ sealed class Emitter : IDisposable
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
-    void Emit(Stream outputStream, Stream? symbolStream, VariableDictionary? exisitingGlobalVariables)
+    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedFields)
     {
         if (diagnostics.Any()) return;
 
         debug = symbolStream is not null;
         EmitDebuggableAttribute();
 
+        EmitFields(initializedFields);
+
         foreach (var function in program.Functions.Keys)
             methods.Add(function, CreateMethod(function));
 
+        // emit entry point first, in scripts this declares global variables as fields
+        EmitMethod(methods[program.EntryPoint], program.EntryPoint);
         foreach (var (function, method) in methods)
-            EmitMethod(method, function);
+            if (function != program.EntryPoint) EmitMethod(method, function);
 
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
 
@@ -564,18 +589,18 @@ sealed class Emitter : IDisposable
         }
     }
 
-    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, VariableDictionary? globals)
+    public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedFields)
     {
         try
         {
-            if (program.Diagnostics.Any()) return program.Diagnostics;
+            if (program.Diagnostics.Any()) return new(program.Diagnostics, ImmutableDictionary<GlobalVariableSymbol, string>.Empty);
             using var emitter = new Emitter(program, moduleName, references);
-            emitter.Emit(outputStream, symbolStream, globals);
-            return emitter.diagnostics.ToImmutableArray();
+            emitter.Emit(outputStream, symbolStream, initializedFields);
+            return new(emitter.diagnostics.ToImmutableArray(), emitter.globalFieldNames.ToImmutableDictionary());
         }
         catch (MissingReferencesException exception)
         {
-            return exception.Diagnostics;
+            return new (exception.Diagnostics, ImmutableDictionary<GlobalVariableSymbol, string>.Empty);
         }
     }
 }

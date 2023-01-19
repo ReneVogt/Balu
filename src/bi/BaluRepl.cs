@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -8,8 +9,8 @@ using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
 // ReSharper disable UnusedMember.Local
-
 #pragma warning disable IDE0051
+
 #pragma warning disable IDE0040
 #pragma warning disable CA1303
 
@@ -17,10 +18,9 @@ namespace Balu.Interactive;
 
 sealed class BaluRepl : Repl
 {
-    readonly VariableDictionary globals = new();
-
     bool showSyntax, showVars, showProgram;
     Compilation? previous;
+    ImmutableDictionary<GlobalVariableSymbol,object> globals = ImmutableDictionary<GlobalVariableSymbol, object>.Empty;
 
     public BaluRepl()
     {
@@ -49,6 +49,7 @@ sealed class BaluRepl : Repl
 
         Console.ForegroundColor = ConsoleColor.White;
         var result = compilation.Evaluate(globals);
+        globals = result.GlobalVariables;
         Console.ResetColor();
         if (result.Diagnostics.Any())
             Console.Out.WriteDiagnostics(result.Diagnostics);
@@ -70,16 +71,16 @@ sealed class BaluRepl : Repl
             {
                 Console.Out.WriteColoredText("Variables:", ConsoleColor.Yellow);
                 Console.Out.WriteLine();
-                foreach (var element in globals)
+                foreach (var (global, value) in result.GlobalVariables)
                 {
-                    Console.Out.WriteIdentifier(element.Key.Name);
+                    Console.Out.WriteIdentifier(global.Name);
                     Console.Out.WritePunctuation("(");
-                    Console.Out.WriteIdentifier(element.Key.Type.Name);
+                    Console.Out.WriteIdentifier(global.Type.Name);
                     Console.Out.WritePunctuation(")");
                     Console.Out.WriteSpace();
                     Console.Out.WritePunctuation("=");
                     Console.Out.WriteSpace();
-                    Console.Out.Write(element.Value?.ToString() ?? "<null>");
+                    Console.Out.Write(value.ToString() ?? "<null>");
                     Console.Out.WriteLine();
                 }
             }
@@ -174,7 +175,6 @@ sealed class BaluRepl : Repl
     void Reset()
     {
         previous = null;
-        globals.Clear();
         ClearSubmissions();
     }
     [MetaCommand("load", "Loads a script file.")]

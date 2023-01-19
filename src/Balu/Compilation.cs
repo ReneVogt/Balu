@@ -7,7 +7,6 @@ using System.Reflection;
 using System.Threading;
 using Balu.Binding;
 using Balu.Emit;
-using Balu.Evaluation;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
@@ -82,20 +81,24 @@ public sealed class Compilation
         IsScript = isScript;
     }
 
-    public EvaluationResult Evaluate(VariableDictionary globals)
+    public EvaluationResult Evaluate(ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
-        _ = globals ?? throw new ArgumentNullException(nameof(globals));
-
         using var memoryStream = new MemoryStream();
-        var diagnostics = Emit("BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), memoryStream, null);
-        if (diagnostics.Any())
-            return new(diagnostics, null);
+        var emitterResult = Emitter.Emit(Program, "BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), memoryStream, null, initializedGlobalVariables);
+        if (emitterResult.Diagnostics.Any())
+            return new(emitterResult.Diagnostics, null, initializedGlobalVariables);
 
         var rawAssembly = memoryStream.GetBuffer();
-//        File.WriteAllBytes("script.dll", rawAssembly);
         var asm = Assembly.Load(rawAssembly);
         var result = asm.EntryPoint!.Invoke(null, null);
-        return new(ImmutableArray<Diagnostic>.Empty, result);
+        var programType = asm.GetType("Program")!;
+
+        var globals = emitterResult.GlobalFieldNames
+                                   .Where(x => !x.Key.Name.IsSpecialName())
+                                   .ToImmutableDictionary(
+                                       x => x.Key, x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
+
+        return new(ImmutableArray<Diagnostic>.Empty, result, globals);
     }
 
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath)
@@ -120,9 +123,8 @@ public sealed class Compilation
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
         _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
-        return Emit(moduleName, references, outputStream, symbolStream, null);
+        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, ImmutableDictionary<GlobalVariableSymbol, object>.Empty).Diagnostics;
     }
-    ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, Stream outputStream, Stream? symbolStream, VariableDictionary? globals) => Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, globals);
 
     public void WriteSyntaxTrees(TextWriter writer)
     {

@@ -7,4 +7,5 @@ function main()
 {
 	for i=1 to 10
 		showRandom(i)
+	println("Done.")
 }
