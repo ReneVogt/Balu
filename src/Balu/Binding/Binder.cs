@@ -516,7 +516,11 @@ sealed class Binder : SyntaxTreeVisitor
         var statement = Block(syntaxNode, statementBuilder.ToImmutable());
 
         var diagnostics = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(binder.diagnostics).ToImmutableArray();
-        return new(previous, entryPoint, statement, symbols, diagnostics);
+
+        var uniqueNames = symbols.Select(symbol => symbol.Name).ToHashSet();
+        symbols = symbols.AddRange(parentScope.GetDeclaredSymbols().Where(symbol => uniqueNames.Add(symbol.Name)));
+
+        return new(entryPoint, statement, symbols, diagnostics);
     }
     public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
     {
@@ -542,29 +546,26 @@ sealed class Binder : SyntaxTreeVisitor
             functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
         }
 
-        return new(previous, globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
+        if (previous is not null)
+        {
+            var uniqueNames = functionBodyBuilder.Select(x => x.Key.Name).ToHashSet();
+            functionBodyBuilder.AddRange(previous.Functions.Where(x => uniqueNames.Add(x.Key.Name)));
+        }
+
+        return new(globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
     }
     static BoundScope CreateParentScopes(BoundGlobalScope? previous)
     {
-        var stack = new Stack<BoundGlobalScope>();
-        while (previous is not null)
+        var parentScope = new BoundScope(null);
+        if (previous is null)
         {
-            stack.Push(previous);
-            previous = previous.Previous;
+            foreach (var builtInFunction in BuiltInFunctions.GetBuiltInFunctions())
+                parentScope.TryDeclareSymbol(builtInFunction);
+
         }
-
-        BoundScope parentScope = new (null);
-        foreach (var builtInFunction in BuiltInFunctions.GetBuiltInFunctions())
-            parentScope.TryDeclareSymbol(builtInFunction);
-
-        while (stack.Count > 0)
-        {
-            previous = stack.Pop();
-            var scope = new BoundScope(parentScope);
+        else
             foreach (var symbol in previous.Symbols)
-                scope.TryDeclareSymbol(symbol);
-            parentScope = scope;
-        }
+                parentScope.TryDeclareSymbol(symbol);
 
         return parentScope;
     }

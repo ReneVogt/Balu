@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -17,6 +16,7 @@ namespace Balu;
 
 public sealed class Compilation
 {
+    readonly Compilation? previous;
     BoundGlobalScope? globalScope;
     BoundProgram? program;
 
@@ -26,7 +26,7 @@ public sealed class Compilation
         {
             if (globalScope is null)
             {
-                var scope = Binder.BindGlobalScope(IsScript, Previous?.GlobalScope, SyntaxTrees);
+                var scope = Binder.BindGlobalScope(IsScript, previous?.GlobalScope, SyntaxTrees);
                 Interlocked.CompareExchange(ref globalScope, scope, null);
             }
 
@@ -39,7 +39,7 @@ public sealed class Compilation
         {
             if (program is null)
             {
-                var p = Binder.BindProgram(IsScript, Previous?.Program, GlobalScope);
+                var p = Binder.BindProgram(IsScript, previous?.Program, GlobalScope);
                 Interlocked.CompareExchange(ref program, p, null);
             }
 
@@ -49,34 +49,13 @@ public sealed class Compilation
 
     public bool IsScript { get; }
     public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
-    public Compilation? Previous { get; }
 
     public FunctionSymbol? MainFunction => GlobalScope.EntryPoint;
     public ImmutableArray<Symbol> Symbols => GlobalScope.Symbols;
-    public IEnumerable<Symbol> AllVisibleSymbols
-    {
-        get
-        {
-            var uniqueNames = new HashSet<string>();
-            var submission = this;
-            while (submission is not null)
-            {
-                foreach (var symbol in submission.Symbols.Where(symbol => uniqueNames.Add(symbol.Name)))
-                        yield return symbol;
-                submission = submission.Previous;
-            }
-
-            var builtIniFunctions = from property in typeof(BuiltInFunctions).GetProperties(BindingFlags.Public | BindingFlags.Static)
-                                    where property.PropertyType == typeof(FunctionSymbol)
-                                    select (FunctionSymbol)property.GetValue(null)!;
-            foreach (var builtInFunction in builtIniFunctions.Where(symbol => uniqueNames.Add(symbol.Name)))
-                yield return builtInFunction;
-        }
-    }
 
     Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
     {
-        Previous = previous;
+        this.previous = previous;
         SyntaxTrees = syntaxTrees.DefaultIfEmpty(SyntaxTree.Parse(string.Empty)).ToImmutableArray();
         IsScript = isScript;
     }
@@ -139,7 +118,7 @@ public sealed class Compilation
 
         function.WriteTo(writer);
         writer.WriteLine();
-        if (!Program.AllVisibleFunctions.TryGetValue(function, out var body))
+        if (!Program.Functions.TryGetValue(function, out var body))
             writer.WritePunctuation("<no body>");
         else
             BoundTreePrinter.Print(body, writer);
@@ -148,7 +127,7 @@ public sealed class Compilation
     public void WriteControlFlowGraph(TextWriter writer, FunctionSymbol function)
     {
         _ = writer ?? throw new ArgumentNullException(nameof(writer));
-        var cfg = ControlFlowGraph.Create(Program.AllVisibleFunctions[function]);
+        var cfg = ControlFlowGraph.Create(Program.Functions[function]);
         cfg.WriteTo(writer);
     }
     public static Compilation Create(params SyntaxTree[] syntaxTrees) => new (false, null, syntaxTrees);

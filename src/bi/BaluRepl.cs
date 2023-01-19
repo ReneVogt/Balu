@@ -193,7 +193,7 @@ sealed class BaluRepl : Repl
     void ListSymbols()
     {
         var compilation = previous ?? Compilation.CreateScript(null);
-        foreach (var symbol in compilation.AllVisibleSymbols.OrderBy(symbol => symbol.Name))
+        foreach (var symbol in compilation.Symbols.OrderBy(symbol => symbol.Name))
         {
             symbol.WriteTo(Console.Out);
             Console.Out.WriteLine();
@@ -203,7 +203,7 @@ sealed class BaluRepl : Repl
     void Dump(string functionName)
     {
         var compilation = previous ?? Compilation.CreateScript(null);
-        var function = compilation.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
+        var function = compilation.Symbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
         if (function is null)
         {
             Console.Error.WriteColoredText($"Error: Function '{functionName}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
@@ -217,7 +217,7 @@ sealed class BaluRepl : Repl
     void Graph(string functionName, string path)
     {
         var compilation = previous ?? Compilation.CreateScript(null);
-        var function = compilation.AllVisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
+        var function = compilation.Symbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
         if (function is null)
         {
             Console.Error.WriteColoredText($"Error: Function '{functionName}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
