@@ -1,12 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using Balu.Symbols;
 
 namespace Balu.Binding;
 
 sealed class BoundProgram
 {
-    public BoundProgram? Previous { get; }
     public FunctionSymbol EntryPoint { get; }
     public ImmutableArray<Symbol> Symbols { get; }
     public ImmutableDictionary<FunctionSymbol, BoundBlockStatement> Functions { get; }
@@ -15,21 +15,21 @@ sealed class BoundProgram
 
     public BoundProgram(BoundProgram?  previous, FunctionSymbol entryPoint, ImmutableArray<Symbol> symbols, ImmutableDictionary<FunctionSymbol, BoundBlockStatement> functions, ImmutableArray<Diagnostic> diagnostics)
     {
-        Previous = previous;
         EntryPoint = entryPoint;
         Symbols = symbols;
         Functions = functions;
         Diagnostics = diagnostics;
 
-        var prg = this;
-        var builder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
-        while (prg is not null)
+        if (previous is null)
+            AllVisibleFunctions = Functions;
+        else
         {
-            foreach (var kvp in prg.Functions)
-                builder.TryAdd(kvp.Key, kvp.Value);
-            prg = prg.Previous;
+            var builder = Functions.ToBuilder();
+            var functionNames = Functions.Select(x => x.Key.Name).ToHashSet();
+            foreach (var (symbol, body) in previous.AllVisibleFunctions)
+                if (functionNames.Add(symbol.Name))
+                    builder.TryAdd(symbol, body);
+            AllVisibleFunctions = builder.ToImmutable();
         }
-
-        AllVisibleFunctions = builder.ToImmutable();
     }
 }

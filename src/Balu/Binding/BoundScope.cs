@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Balu.Symbols;
 
 namespace Balu.Binding;
@@ -26,11 +25,5 @@ sealed class BoundScope
         symbols.Add(symbol.Name, symbol);
         return true;
     }
-    public ImmutableArray<Symbol> GetDeclaredSymbols()
-    {
-        var current = symbols?.Values.ToImmutableArray() ?? ImmutableArray<Symbol>.Empty;
-        if (Parent is null) return current;
-        var hashSet = current.Select(symbol => symbol.Name).ToHashSet();
-        return current.AddRange(Parent.GetDeclaredSymbols().Where(symbol => hashSet.Add(symbol.Name)));
-    }
+    public ImmutableArray<Symbol> GetDeclaredSymbols() => symbols?.Values.ToImmutableArray() ?? ImmutableArray<Symbol>.Empty;
 }

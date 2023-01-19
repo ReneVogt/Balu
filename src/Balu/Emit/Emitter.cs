@@ -59,7 +59,7 @@ sealed class Emitter : IDisposable
         gotosToFix.Clear();
         labels.Clear();
 
-        var body = program.Functions[function];
+        var body = program.AllVisibleFunctions[function];
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
 
@@ -565,7 +565,7 @@ sealed class Emitter : IDisposable
 
         EmitFields(initializedFields);
 
-        foreach (var function in program.Functions.Keys)
+        foreach (var function in program.AllVisibleFunctions.Keys)
             methods.Add(function, CreateMethod(function));
 
         // emit entry point first, in scripts this declares global variables as fields

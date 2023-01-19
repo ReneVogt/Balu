@@ -23,7 +23,7 @@ sealed class Binder : SyntaxTreeVisitor
 
     bool IsError => boundNode is BoundExpression { Type: var type } && type == TypeSymbol.Error;
 
-    Binder(bool isScript, BoundScope? parent, FunctionSymbol? containingFunction = null)
+    Binder(bool isScript, BoundScope parent, FunctionSymbol? containingFunction = null)
     {
         this.isScript = isScript;
         scope = new(parent);
@@ -544,7 +544,7 @@ sealed class Binder : SyntaxTreeVisitor
 
         return new(previous, globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
     }
-    static BoundScope? CreateParentScopes(BoundGlobalScope? previous)
+    static BoundScope CreateParentScopes(BoundGlobalScope? previous)
     {
         var stack = new Stack<BoundGlobalScope>();
         while (previous is not null)
