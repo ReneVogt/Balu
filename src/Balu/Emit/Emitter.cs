@@ -22,7 +22,8 @@ sealed class Emitter : IDisposable
     readonly ReferencedMembers referencedMembers;
 
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
-    readonly Dictionary<VariableSymbol, VariableDefinition> locals = new();
+    readonly Dictionary<LocalVariableSymbol, VariableDefinition> locals = new();
+    readonly Dictionary<GlobalVariableSymbol, FieldDefinition> globals = new();
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
     readonly Dictionary<SourceText, Document> documents = new();
@@ -37,9 +38,6 @@ sealed class Emitter : IDisposable
 
         diagnostics.AddRange(program.Diagnostics);
         referencedMembers = new(moduleName, references);
-
-        foreach (var function in program.Functions.Keys)
-            methods.Add(function, CreateMethod(function));
     }
     public void Dispose() => referencedMembers.Dispose();
 
@@ -345,22 +343,41 @@ sealed class Emitter : IDisposable
     }
     void EmitVariableExpression(ILProcessor processor, BoundVariableExpression expression)
     {
-        if (expression.Variable.Kind == SymbolKind.Parameter)
-            processor.Emit(OpCodes.Ldarg, ((ParameterSymbol)expression.Variable).Ordinal);
-        else
+        switch (expression.Variable.Kind)
         {
-            var variableDefinition = locals[expression.Variable];
-            processor.Emit(OpCodes.Ldloc, variableDefinition);
+            case SymbolKind.Parameter:
+                processor.Emit(OpCodes.Ldarg, ((ParameterSymbol)expression.Variable).Ordinal);
+                break;
+            case SymbolKind.LocalVariable:
+                var variableDefinition = locals[(LocalVariableSymbol)expression.Variable];
+                processor.Emit(OpCodes.Ldloc, variableDefinition);
+                break;
+            case SymbolKind.GlobalVariable:
+                var fieldDefinition = globals[(GlobalVariableSymbol)expression.Variable];
+                processor.Emit(OpCodes.Ldsfld, fieldDefinition);
+                break;
+            default:
+                throw new EmitterException($"Unexpected symbol kind '{expression.Variable.Kind}' in variable expression.");
         }
     }
     void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression)
     {
         EmitExpression(processor, expression.Expression);
         processor.Emit(OpCodes.Dup);
-        if (expression.Symbol.Kind == SymbolKind.Parameter)
-            processor.Emit(OpCodes.Starg, ((ParameterSymbol)expression.Symbol).Ordinal);
-        else
-            processor.Emit(OpCodes.Stloc, locals[expression.Symbol]);
+        switch (expression.Symbol.Kind)
+        {
+            case SymbolKind.Parameter:
+                processor.Emit(OpCodes.Starg, ((ParameterSymbol)expression.Symbol).Ordinal);
+                break;
+            case SymbolKind.GlobalVariable:
+                processor.Emit(OpCodes.Stsfld, globals[(GlobalVariableSymbol)expression.Symbol]);
+                break;
+            case SymbolKind.LocalVariable:
+                processor.Emit(OpCodes.Stloc, locals[(LocalVariableSymbol)expression.Symbol]);
+                break;
+            default:
+                throw new EmitterException($"Unexpected symbol kind '{expression.Symbol.Kind}' in assignment expression.");
+        }
     }
     void EmitCallExpression(ILProcessor processor, BoundCallExpression expression)
     {
@@ -405,12 +422,29 @@ sealed class Emitter : IDisposable
     }
     void EmitVariableDeclarationStatement(ILProcessor processor, BoundVariableDeclarationStatement statement)
     {
-        var variableDefinition = new VariableDefinition(MapType(statement.Variable.Type));
-        locals.Add(statement.Variable, variableDefinition);
-        processor.Body.Variables.Add(variableDefinition);
-
         EmitExpression(processor, statement.Expression);
-        processor.Emit(OpCodes.Stloc, variableDefinition);
+        switch (statement.Variable.Kind)
+        {
+            case SymbolKind.LocalVariable:
+                var variableDefinition = new VariableDefinition(MapType(statement.Variable.Type));
+                locals.Add((LocalVariableSymbol)statement.Variable, variableDefinition);
+                processor.Body.Variables.Add(variableDefinition);
+                processor.Emit(OpCodes.Stloc, variableDefinition);
+                break;
+            case SymbolKind.GlobalVariable:
+                var global = (GlobalVariableSymbol)statement.Variable;
+                if (!globals.TryGetValue(global, out var fieldDefinition))
+                {
+                    fieldDefinition = new (statement.Variable.Name, FieldAttributes.Static, MapType(statement.Variable.Type));
+                    referencedMembers.ProgramType.Fields.Add(fieldDefinition);
+                    globals.Add((GlobalVariableSymbol)statement.Variable, fieldDefinition);
+                }
+                processor.Emit(OpCodes.Stsfld, fieldDefinition);
+                break;
+            default:
+                throw new EmitterException($"Unexpected symbol kind '{statement.Variable.Kind}' in variable declaration statement.");
+
+        }
     }
     void EmitGotoStatement(ILProcessor processor, BoundGotoStatement statement)
     {
@@ -501,12 +535,15 @@ sealed class Emitter : IDisposable
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
-    void Emit(Stream outputStream, Stream? symbolStream)
+    void Emit(Stream outputStream, Stream? symbolStream, VariableDictionary? exisitingGlobalVariables)
     {
         if (diagnostics.Any()) return;
 
         debug = symbolStream is not null;
         EmitDebuggableAttribute();
+
+        foreach (var function in program.Functions.Keys)
+            methods.Add(function, CreateMethod(function));
 
         foreach (var (function, method) in methods)
             EmitMethod(method, function);
@@ -527,13 +564,13 @@ sealed class Emitter : IDisposable
         }
     }
 
-    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream)
+    public static ImmutableArray<Diagnostic> Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, VariableDictionary? globals)
     {
         try
         {
             if (program.Diagnostics.Any()) return program.Diagnostics;
             using var emitter = new Emitter(program, moduleName, references);
-            emitter.Emit(outputStream, symbolStream);
+            emitter.Emit(outputStream, symbolStream, globals);
             return emitter.diagnostics.ToImmutableArray();
         }
         catch (MissingReferencesException exception)

@@ -1,6 +1,10 @@
-﻿function main()
+﻿function showRandom(i:int)
 {
-	var a = 12	
-	a += 17
-	println(a)
+   print(string(i) + ". Zahl: ")
+   println(random(10))
+}
+function main()
+{
+	for i=1 to 10
+		showRandom(i)
 }

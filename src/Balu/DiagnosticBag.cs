@@ -61,7 +61,7 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportParameterAlreadyDeclared(SyntaxToken identifier) => Add(new("BL1016", identifier.Location, $"Parameter '{identifier.Text}' is already declared."));
     public void ReportFunctionAlreadyDeclared(SyntaxToken identifier) => Add(new("BL1017", identifier.Location, $"Function '{identifier.Text}' is already declared."));
     public void ReportInvalidBreakOrContinue(SyntaxToken keyword) => Add(new("BL1018", keyword.Location, $"Invalid '{keyword.Text}' outside any loop."));
-    public void ReportMainCannotReturnValue(ReturnStatementSyntax returnStatement) => Add(new("BL1019", returnStatement.Location, "'main' cannot return a value."));
+    public void ReportMainCannotReturnValue(ReturnStatementSyntax returnStatement) => Add(new("BL1019", returnStatement.Location, $"'{GlobalSymbolNames.Main}' cannot return a value."));
     public void ReportReturnMissingValue(TextLocation location, TypeSymbol returnType, string functionName) => Add(new("BL1020", location, $"'{functionName}' needs to return a value of type '{returnType}'."));
     public void ReportReturnTypeMismatch(TextLocation location, TypeSymbol returnType, string functionName, TypeSymbol actualType) => Add(new("1021", location,
         returnType == TypeSymbol.Void
@@ -70,13 +70,13 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new("BL1022", function.Declaration?.Body.ClosedBraceToken.Location ?? default, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
     public void ReportInvalidExpressionStatement(TextLocation location) => Add(new("BL1023", location, "Only assignment or call expressions can be used as a statement."));
     public void ReportCannotMixMainAndGlobalStatements(TextLocation location) =>
-        Add(new("BL1024", location, "Global statements cannot be mixed with a main function."));
+        Add(new("BL1024", location, $"Global statements cannot be mixed with a '{GlobalSymbolNames.Main}' function."));
     public void ReportInvalidMainSignature(TextLocation location) =>
-        Add(new("BL1025", location, "'main' must be parameterless and of type 'void'."));
+        Add(new("BL1025", location, $"'{GlobalSymbolNames.Main}' must be parameterless and of type 'void'."));
     public void ReportOnlyOneFileCanHaveGlobalStatements(TextLocation location) =>
         Add(new("BL1026", location, "At most one file can contain global statements."));
     public void ReportNoEntryPointDefined() =>
-        Add(new("BL1027", default, "No entry point found (neither a 'main' function nor global statements)."));
+        Add(new("BL1027", default, $"No entry point found (neither a '{GlobalSymbolNames.Main}' function nor global statements)."));
     public void ReportInvalidAssemblyReference(string reference, string exceptionMessage) =>
         Add(new("BL2001", default, $"Could not load referenced assembly '{reference}': {exceptionMessage}"));
     public void ReportRequiredTypeNotFound(string metaDataname, TypeSymbol? type = null) =>
