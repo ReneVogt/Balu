@@ -28,7 +28,11 @@ sealed class Binder : SyntaxTreeVisitor
         this.isScript = isScript;
         scope = new(parent);
         this.containingFunction = containingFunction;
-        if (this.containingFunction is null) return;
+        if (this.containingFunction is null)
+        {
+            scope.TryDeclareSymbol(new GlobalVariableSymbol(GlobalSymbolNames.Result, false, TypeSymbol.Any, null));
+            return;
+        }
         foreach (var parameter in this.containingFunction.Parameters)
             scope.TryDeclareSymbol(parameter);
     }
@@ -212,12 +216,18 @@ sealed class Binder : SyntaxTreeVisitor
         bool global = isGlobal;
         Visit(node.Expression);
         var expression = (BoundExpression)boundNode!;
-        boundNode = Expression(node, expression);
-        if (!(isScript && global) &&  
-            expression.Kind != BoundNodeKind.ErrorExpression &&
-            expression.Kind != BoundNodeKind.AssignmentExpression &&
-            expression.Kind != BoundNodeKind.CallExpression)
+        if (isScript && global && expression.Type != TypeSymbol.Void)
+        {
+            scope.TryLookupSymbol(GlobalSymbolNames.Result, out var resultVariable);
+            boundNode = Expression(node, Assignment(node, (VariableSymbol)resultVariable, Conversion(node, TypeSymbol.Any, expression)));
+            return;
+        }
+
+        if (expression.Kind != BoundNodeKind.ErrorExpression &&
+                 expression.Kind != BoundNodeKind.AssignmentExpression &&
+                 expression.Kind != BoundNodeKind.CallExpression)
             diagnostics.ReportInvalidExpressionStatement(node.Location);
+        boundNode = Expression(node, expression);
     }
     protected override void VisitVariableDeclarationStatement(VariableDeclarationStatementSyntax node)
     {
@@ -321,7 +331,7 @@ sealed class Binder : SyntaxTreeVisitor
         }
 
         var returnType = containingFunction?.ReturnType ?? (isScript ? TypeSymbol.Any : TypeSymbol.Void);
-        var functionName = containingFunction?.Name ?? (isScript ? "$eval" : "main");
+        var functionName = containingFunction?.Name ?? (isScript ? GlobalSymbolNames.Eval : GlobalSymbolNames.Main);
         
         if (expression is null)
         {
@@ -459,10 +469,10 @@ sealed class Binder : SyntaxTreeVisitor
 
         FunctionSymbol entryPoint;
         if (isScript)
-            entryPoint = new ("$eval", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Any);
+            entryPoint = new (GlobalSymbolNames.Eval, ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Any);
         else
         {
-            var main = symbols.OfType<FunctionSymbol>().FirstOrDefault(symbol => symbol.Name == "main");
+            var main = symbols.OfType<FunctionSymbol>().FirstOrDefault(symbol => symbol.Name == GlobalSymbolNames.Main);
             var firstGlobalStatements = treesWithGlobalStatements
                                         .Select(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>().First())
                                         .ToImmutableArray();
@@ -487,13 +497,22 @@ sealed class Binder : SyntaxTreeVisitor
                         binder.diagnostics.ReportOnlyOneFileCanHaveGlobalStatements(globalStatement.Location);
                 }
 
-                entryPoint = new ("main", ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Void);
+                entryPoint = new (GlobalSymbolNames.Main, ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Void);
                 if (globalStatements.Length == 0)
                     binder.diagnostics.ReportNoEntryPointDefined();
             }
         }
 
         var syntaxNode = (treesWithGlobalStatements.FirstOrDefault() ?? syntaxTrees.First()).Root;
+        if (isScript && statementBuilder.LastOrDefault()?.Kind != BoundNodeKind.ReturnStatement)
+        {
+            var resultField = symbols.OfType<VariableSymbol>().Single(symbol => symbol.Name == GlobalSymbolNames.Result);
+            statementBuilder.Insert(0, VariableDeclaration(syntaxNode.GetChild(0), resultField, Literal(syntaxNode.GetChild(0), 0)));
+            statementBuilder.Add(Return(syntaxNode.LastToken,
+                                        Variable(syntaxNode.LastToken,
+                                                 resultField)));
+        }
+
         var statement = Block(syntaxNode, statementBuilder.ToImmutable());
 
         var diagnostics = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(binder.diagnostics).ToImmutableArray();
