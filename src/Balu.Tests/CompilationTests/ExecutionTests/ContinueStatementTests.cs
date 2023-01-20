@@ -6,7 +6,7 @@ namespace Balu.Tests.CompilationTests.ExecutionTests;
 public partial class ExecutionTests
 {
     [Fact]
-    public void Execute_Continue_ContinuesCorrectLoop()
+    public void Script_Continue_ContinuesCorrectLoop()
     {
         @"
             var result = 0
@@ -20,7 +20,7 @@ public partial class ExecutionTests
                 }
              }
              result            
-        ".AssertEvaluation(value: 265);
+        ".AssertScriptEvaluation(value: 265);
 
     }
 }

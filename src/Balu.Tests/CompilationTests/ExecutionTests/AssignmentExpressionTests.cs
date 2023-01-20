@@ -6,10 +6,10 @@ namespace Balu.Tests.CompilationTests.ExecutionTests;
 public partial class ExecutionTests
 {
     [Fact]
-    public void Execute_AssignmentExpression_ReportsUndefinedName() => " [abc] = 12".AssertEvaluation("Undefined variable 'abc'.");
+    public void Script_AssignmentExpression_ReportsUndefinedName() => " [abc] = 12".AssertScriptEvaluation("Undefined variable 'abc'.");
     [Fact]
-    public void Execute_AssignmentExpression_ReportsReadOnly() =>
-        "{ let abc = 12 [abc] = 10 }".AssertEvaluation("Variable 'abc' is readonly and cannot be assigned to.");
+    public void Script_AssignmentExpression_ReportsReadOnly() =>
+        "{ let abc = 12 [abc] = 10 }".AssertScriptEvaluation("Variable 'abc' is readonly and cannot be assigned to.");
     [Theory]
     [InlineData("{ var abc = 12 abc [=] false }", "Cannot convert 'bool' to 'int'.")]
     [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'int' to 'bool'.")]
@@ -17,7 +17,7 @@ public partial class ExecutionTests
     [InlineData("var a = 12  a [+=] \"\"", "Binary operator '+=' cannot be applied to types 'int' and 'string'.")]
     [InlineData("var a = \"\"  a [+=] true", "Binary operator '+=' cannot be applied to types 'string' and 'bool'.")]
     [InlineData("var a = 12  a [^=] true", "Binary operator '^=' cannot be applied to types 'int' and 'bool'.")]
-    public void Execute_AssignmentExpression_ReportsTypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
+    public void Script_AssignmentExpression_ReportsTypeMismatch(string code, string? diagnostics) => code.AssertScriptEvaluation(diagnostics);
 
     [Theory]
     [InlineData("var a = 12 a = 7 a", 7)]
@@ -33,5 +33,5 @@ public partial class ExecutionTests
     [InlineData("var a = true a ^= true a", false)]
     [InlineData("var a = 5 a ^= 7 a", 2)]
     [InlineData("var a = \"eins\" a += \"zwei\" a", "einszwei")]
-    public void Execute_AssignmentExpression_AssignsCorrectly(string code, object result) => code.AssertEvaluation(value: result);
+    public void Script_AssignmentExpression_AssignsCorrectly(string code, object result) => code.AssertScriptEvaluation(value: result);
 }

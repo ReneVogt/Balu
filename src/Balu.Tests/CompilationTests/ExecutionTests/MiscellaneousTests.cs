@@ -87,15 +87,15 @@ public partial class ExecutionTests
     [InlineData("\"test\" != \"test\"", false)]
     [InlineData("\"test\" == \"diff\"", false)]
     [InlineData("\"test\" != \"diff\"", true)]
-    public void Execute_Expression_CorrectResults(string text, object expectedResult) => text.AssertEvaluation(value: expectedResult);
+    public void Script_Expression_CorrectResults(string text, object expectedResult) => text.AssertScriptEvaluation(value: expectedResult);
 
     [Theory]
     [InlineData("{ [print] = 12 }", "Unexpected symbol kind 'Function', expected 'print' to be a variable or argument.")]
     [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'GlobalVariable', expected 'a' to be a function.")]
-    public void Execute_Reports_SymbolTypeMisatch(string text, string diagnostics) => text.AssertEvaluation(diagnostics);
+    public void Script_Reports_SymbolTypeMisatch(string text, string diagnostics) => text.AssertScriptEvaluation(diagnostics);
 
     [Fact]
-    public void Execute_ConstantFolding_DoesNotRemoveSideEffects()
+    public void Script_ConstantFolding_DoesNotRemoveSideEffects()
     {
         @"
             var result = false
@@ -106,6 +106,6 @@ public partial class ExecutionTests
             }
             var test = SetResultAndReturnTrue() && false
             result
-        ".AssertEvaluation(value: true);
+        ".AssertScriptEvaluation(value: true);
     }
 }

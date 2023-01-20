@@ -6,31 +6,31 @@ namespace Balu.Tests.CompilationTests.ExecutionTests;
 public partial class ExecutionTests
 {
     [Fact]
-    public void Execute_Call_Reports_UndefinedFunction()
+    public void Script_Call_Reports_UndefinedFunction()
     {
         const string text = "{ [unknown]() }";
         const string diagnostics = @"
             Undefined function 'unknown'.
 ";
-        text.AssertEvaluation(diagnostics);
+        text.AssertScriptEvaluation(diagnostics);
     }
     [Fact]
-    public void Execute_CallExpression_NoInfiniteLoopIfClosedParenthesisMissing()
+    public void Script_CallExpression_NoInfiniteLoopIfClosedParenthesisMissing()
     {
         const string text = "{print([[}]]";
         const string diagnostics = @"
             Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
             Unexpected ClosedBraceToken ('}'), expected ClosedParenthesisToken.
 ";
-        text.AssertEvaluation(diagnostics);
+        text.AssertScriptEvaluation(diagnostics);
     }
     [Fact]
-    public void Execute_CallExpression_InsideLoop()
+    public void Script_CallExpression_InsideLoop()
     {
-        "function test() {} var result = true while result { test() result = false } result ".AssertEvaluation(value: false);
+        "function test() {} var result = true while result { test() result = false } result ".AssertScriptEvaluation(value: false);
     }
     [Fact]
-    public void Execute_CallExpression_LocalVariables()
+    public void Script_CallExpression_LocalVariables()
     {
         @"
               var sum = 0
@@ -41,10 +41,10 @@ public partial class ExecutionTests
                 sum = 100*sum + b
               }
 
-              inner(42) inner(17) sum".AssertEvaluation(value: 4217);
+              inner(42) inner(17) sum".AssertScriptEvaluation(value: 4217);
     }
     [Fact]
-    public void Execute_CallExpression_LocalVariablesNested()
+    public void Script_CallExpression_LocalVariablesNested()
     {
         @"
               var sum = 0 var sumx = 0
@@ -61,10 +61,10 @@ public partial class ExecutionTests
                  sumx = 100*sumx + 2*b
               }
 
-              outer(42) outer(17) 10000*sum + sumx".AssertEvaluation(value: 42178434);
+              outer(42) outer(17) 10000*sum + sumx".AssertScriptEvaluation(value: 42178434);
     }
     [Fact]
-    public void Execute_CallExpression_Recursion()
+    public void Script_CallExpression_Recursion()
     {
         @"
               var sum = 0
@@ -76,10 +76,10 @@ public partial class ExecutionTests
                 sum = sum + b
               }
 
-              inner(5) sum".AssertEvaluation(value: 15);
+              inner(5) sum".AssertScriptEvaluation(value: 15);
     }
     [Fact]
-    public void Execute_CallExpression_RecursionNested()
+    public void Script_CallExpression_RecursionNested()
     {
         @"
               var sum = 0 var sumb = 0
@@ -96,12 +96,12 @@ public partial class ExecutionTests
                 sumb = 100*sum + b                              
               }
 
-              outer(42) sumb".AssertEvaluation(value: 1542);
+              outer(42) sumb".AssertScriptEvaluation(value: 1542);
     }
 
     [Fact]
-    public void Execute_CallExpression_ReturnInsideLoop()
+    public void Script_CallExpression_ReturnInsideLoop()
     {
-        "function increase(i:int) : int { return i+1 } var result = 0 while result < 12 { result = increase(result) } result".AssertEvaluation(value: 12);
+        "function increase(i:int) : int { return i+1 } var result = 0 while result < 12 { result = increase(result) } result".AssertScriptEvaluation(value: 12);
     }
 }

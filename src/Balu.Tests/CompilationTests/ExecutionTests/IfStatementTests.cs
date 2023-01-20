@@ -14,18 +14,18 @@ public partial class ExecutionTests
     [InlineData("var a = 10 if a != 10 a = 5 a", 10)]
     [InlineData("var a = 10 if a == 10 a = 5 else a = 20 a", 5)]
     [InlineData("var a = 10 if a != 10 a = 5 else a = 20 a", 20)]
-    public void Execute_IfStatement_BasicallyWorks(string text, object? result) => text.AssertEvaluation(value: result);
+    public void Script_IfStatement_BasicallyWorks(string text, object? result) => text.AssertScriptEvaluation(value: result);
     [Fact]
-    public void Execute_IfStatement_Reports_WrongConditionType()
+    public void Script_IfStatement_Reports_WrongConditionType()
     {
         const string text = "if [(12 + 3)] {} else {}";
         const string diagnostics = @"
             Cannot convert 'int' to 'bool'.
 ";
-        text.AssertEvaluation(diagnostics);
+        text.AssertScriptEvaluation(diagnostics);
     }
     [Fact]
-    public void Execute_ElseClause_Reports_UnexpectedToken()
+    public void Script_ElseClause_Reports_UnexpectedToken()
     {
         const string text = @"
                     {
@@ -36,6 +36,6 @@ public partial class ExecutionTests
         const string diagnostics = @"
                 Unexpected ElseKeyword ('else'), expected IdentifierToken.
     ";
-        text.AssertEvaluation(diagnostics);
+        text.AssertScriptEvaluation(diagnostics);
     }
 }
