@@ -1,0 +1,26 @@
+﻿using Balu.Tests.TestHelper;
+using Xunit;
+
+namespace Balu.Tests.CompilationTests.ExecutionTests;
+
+public partial class ExecutionTests
+{
+    [Fact]
+    public void Execute_Break_BreaksCorrectLoop()
+    {
+        @"
+            var result = 0
+            for i = 1 to 10
+            {
+                if i > 5 break
+                for j = 11 to 15
+                {
+                   if (j > 13) break
+                   result = result + i + j
+                }
+            }
+            result
+         ".AssertEvaluation(value: 225);
+
+    }
+}
