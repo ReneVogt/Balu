@@ -7,7 +7,7 @@ using System.Threading;
 
 #pragma warning disable CA1031
 
-namespace Balu;
+namespace Balu.Interactive;
 
 internal static class ReferencedAssembliesFinder
 {
