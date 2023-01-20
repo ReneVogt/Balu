@@ -4,7 +4,7 @@ using System.Linq;
 using Balu.Text;
 using Xunit;
 
-namespace Balu.Tests.Text;
+namespace Balu.Tests.UnitTests.Text;
 
 public class SourceTextTests
 {
@@ -34,7 +34,7 @@ public class SourceTextTests
     {
         const string text = "some\r\nlines\r\n";
         var sourceText = SourceText.From(text);
-        Assert.Throws<ArgumentOutOfRangeException>("position", () => sourceText.GetLineIndex(text.Length+1));
+        Assert.Throws<ArgumentOutOfRangeException>("position", () => sourceText.GetLineIndex(text.Length + 1));
     }
 
     public static IEnumerable<object[]> ProvideParseTests() =>

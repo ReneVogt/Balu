@@ -1,8 +1,7 @@
-﻿
-using Balu.Tests.TestHelper;
+﻿using Balu.Tests.TestHelper;
 using Xunit;
 
-namespace Balu.Tests.Evaluation;
+namespace Balu.Tests.CompilationTests.ExecutionTests;
 
 public class EvaluatorTests
 {

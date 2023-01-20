@@ -1,7 +1,7 @@
 ﻿using Balu.Tests.TestHelper;
 using Xunit;
 
-namespace Balu.Tests.AssignmentExpressions;
+namespace Balu.Tests.CompilationTests.ExecutionTests.AssignmentExpressions;
 
 public class AssignmentExpressionTests
 {

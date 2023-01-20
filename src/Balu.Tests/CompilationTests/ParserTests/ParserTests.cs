@@ -4,7 +4,7 @@ using System.Linq;
 using Balu.Tests.TestHelper;
 using Xunit;
 
-namespace Balu.Tests.Syntax;
+namespace Balu.Tests.CompilationTests.ParserTests;
 public class ParserTests
 {
 
@@ -123,6 +123,6 @@ public class ParserTests
                                                                         from right in SyntaxFacts.GetBinaryOperators()
                                                                         select new object[] { left, right };
     public static IEnumerable<object[]> ProvideUnaryBinaryOperatorPairs() => from unary in SyntaxFacts.GetUnaryOperators()
-                                                                        from binary in SyntaxFacts.GetBinaryOperators()
-                                                                        select new object[] { unary, binary };
+                                                                             from binary in SyntaxFacts.GetBinaryOperators()
+                                                                             select new object[] { unary, binary };
 }
