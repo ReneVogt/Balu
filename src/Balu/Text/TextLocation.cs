@@ -10,6 +10,7 @@ public readonly record struct TextLocation(SourceText Text, TextSpan Span)
 
     public override string ToString()
     {
+        if (Text is null) return string.Empty; // happens for non-located diagnostics like "missing entry point"
         var line = Text.GetLineIndex(Span.Start);
         return $"{Text.FileName}({line + 1},{Span.Start - Text.Lines[line].Start + 1})";
     }
