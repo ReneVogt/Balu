@@ -10,13 +10,23 @@ namespace Balu.Tests.TestHelper;
 sealed class SyntaxTreeAsserter : IDisposable
 {
     readonly IEnumerator<object> enumerator;
-    readonly bool includeTrivia;
+    readonly bool includeTrivia, includeDiagnostics;
     bool hasErrors;
 
     public SyntaxTreeAsserter(SyntaxNode node, bool includeTrivia = false)
     {
         this.includeTrivia = includeTrivia;
+        includeDiagnostics = true;
         enumerator = Flatten(node).GetEnumerator();
+    }
+    public SyntaxTreeAsserter(string annotatedCode, string? expectedDiagnostics = null, bool includeTrivia = false)
+    {
+        this.includeTrivia = includeTrivia;
+        var annotatedText = AnnotatedText.Parse(annotatedCode);
+        var tree = SyntaxTree.Parse(annotatedText.Text);
+        DiagnosticAsserter.AssertDiagnostics(annotatedText, tree.Diagnostics, expectedDiagnostics);
+        includeDiagnostics = false;
+        enumerator = Flatten(tree.Root).GetEnumerator();
     }
     public void Dispose()
     {
@@ -27,11 +37,10 @@ sealed class SyntaxTreeAsserter : IDisposable
 
     IEnumerable<object> Flatten(SyntaxNode node)
     {
-        if (node.SyntaxTree.Diagnostics.Any())
+        if (node.SyntaxTree.Diagnostics.Any() && includeDiagnostics)
         {
             foreach (var diagnostic in node.SyntaxTree.Diagnostics)
                 yield return diagnostic;
-            yield break;
         }
 
         Stack<SyntaxNode> stack = new();
@@ -42,18 +51,18 @@ sealed class SyntaxTreeAsserter : IDisposable
             var n = stack.Pop();
             if (includeTrivia && n is SyntaxToken t1)
                 foreach (var trivia in t1.LeadingTrivia)
-                    yield return trivia;
+                    yield return (trivia, true);
             yield return n;
             if (includeTrivia && n is SyntaxToken t2)
                 foreach (var trivia in t2.TrailingTrivia)
-                    yield return trivia;
+                    yield return (trivia, false);
             for (int i = n.ChildrenCount-1; i>= 0; i--) stack.Push(n.GetChild(i));
         }
     }
 
     bool Markfailed() => !(hasErrors = true);
 
-    public void AsssertDiagnostic(string message)
+    public void AssertDiagnostic(string message)
     {
         try
         {
@@ -66,7 +75,7 @@ sealed class SyntaxTreeAsserter : IDisposable
             throw;
         }
     }
-    public void AsssertDiagnostic(string message, TextLocation location)
+    public void AssertDiagnostic(string message, TextLocation location)
     {
         try
         {
@@ -80,26 +89,57 @@ sealed class SyntaxTreeAsserter : IDisposable
             throw;
         }
     }
-    public void AssertTrivia(SyntaxKind kind)
+    public void AssertLeadingTrivia(SyntaxKind kind)
     {
         try
         {
             Assert.True(enumerator.MoveNext());
-            var trivia = Assert.IsType<SyntaxTrivia>(enumerator.Current);
+            var (trivia, leading) = Assert.IsType<(SyntaxTrivia, bool)>(enumerator.Current);
             Assert.Equal(kind, trivia.Kind);
+            Assert.True(leading);
         }
         catch when (Markfailed())
         {
             throw;
         }
     }
-    public void AssertTrivia(SyntaxKind kind, string text)
+    public void AssertLeadingTrivia(SyntaxKind kind, string text)
     {
         try
         {
             Assert.True(enumerator.MoveNext());
-            var trivia = Assert.IsType<SyntaxTrivia>(enumerator.Current);
+            var (trivia, leading) = Assert.IsType<(SyntaxTrivia, bool)>(enumerator.Current);
             Assert.Equal(kind, trivia.Kind);
+            Assert.True(leading);
+            Assert.Equal(text, trivia.Text);
+        }
+        catch when (Markfailed())
+        {
+            throw;
+        }
+    }
+    public void AssertTrailingTrivia(SyntaxKind kind)
+    {
+        try
+        {
+            Assert.True(enumerator.MoveNext());
+            var (trivia, leading) = Assert.IsType<(SyntaxTrivia, bool)>(enumerator.Current);
+            Assert.Equal(kind, trivia.Kind);
+            Assert.False(leading);
+        }
+        catch when (Markfailed())
+        {
+            throw;
+        }
+    }
+    public void AssertTrailingTrivia(SyntaxKind kind, string text)
+    {
+        try
+        {
+            Assert.True(enumerator.MoveNext());
+            var (trivia, leading) = Assert.IsType<(SyntaxTrivia, bool)>(enumerator.Current);
+            Assert.Equal(kind, trivia.Kind);
+            Assert.False(leading);
             Assert.Equal(text, trivia.Text);
         }
         catch when (Markfailed())
