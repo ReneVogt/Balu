@@ -7,6 +7,7 @@ using System.Linq;
 using Balu.Authoring;
 using Balu.Symbols;
 using Balu.Syntax;
+using Balu.Text;
 using Balu.Visualization;
 // ReSharper disable UnusedMember.Local
 #pragma warning disable IDE0051
@@ -31,7 +32,8 @@ sealed class BaluRepl : Repl
 
     protected override void EvaluateSubmission(string text)
     {
-        SyntaxTree syntaxTree = SyntaxTree.Parse(text);
+        var sourceText = SourceText.From(text, Path.GetFullPath("BaluInterpreter.b"));
+        SyntaxTree syntaxTree = SyntaxTree.Parse(sourceText);
         Console.ForegroundColor = ConsoleColor.DarkYellow;
         var compilation = Compilation.CreateScript(previous, syntaxTree);
         if (showSyntax)
@@ -48,7 +50,7 @@ sealed class BaluRepl : Repl
         }
 
         Console.ForegroundColor = ConsoleColor.White;
-        var result = compilation.Evaluate(globals);
+        var result = compilation.Evaluate(ReferencedAssembliesFinder.GetReferences(), globals);
         globals = result.GlobalVariables;
         Console.ResetColor();
         if (result.Diagnostics.Any())
@@ -211,6 +213,20 @@ sealed class BaluRepl : Repl
         }
 
         compilation.WriteBoundFunctionTree(Console.Out, function);
+    }
+    [MetaCommand("emit", "Emits the current script as assembly to the specified location.")]
+    void Emit(string path)
+    {
+        var compilation = previous ?? Compilation.CreateScript(null);
+        var diagnostics = compilation.Emit("BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), path, null);
+        Console.Error.WriteDiagnostics(diagnostics);
+    }
+    [MetaCommand("emitd", "Emits the current script with debug symbols as assembly to the specified location.")]
+    void EmitDebug(string path)
+    {
+        var compilation = previous ?? Compilation.CreateScript(null);
+        var diagnostics = compilation.Emit("BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), path, Path.ChangeExtension(path, ".pdb"));
+        Console.Error.WriteDiagnostics(diagnostics);
     }
     [MetaCommand("graph", "Writes the control flow graph of a function as a GraphViz dot representation to the specified path.")]
     [SuppressMessage("Design", "CA1031:Keine allgemeinen Ausnahmetypen abfangen", Justification = "...")]

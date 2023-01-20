@@ -60,10 +60,10 @@ public sealed class Compilation
         IsScript = isScript;
     }
 
-    public EvaluationResult Evaluate(ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    public EvaluationResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         using var memoryStream = new MemoryStream();
-        var emitterResult = Emitter.Emit(Program, "BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), memoryStream, null, initializedGlobalVariables);
+        var emitterResult = Emitter.Emit(Program, "BaluInterpreter", referencedAssemblies, memoryStream, null, initializedGlobalVariables);
         if (emitterResult.Diagnostics.Any())
             return new(emitterResult.Diagnostics, null, initializedGlobalVariables);
 
