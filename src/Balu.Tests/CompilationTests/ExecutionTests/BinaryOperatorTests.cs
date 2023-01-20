@@ -46,5 +46,5 @@ public partial class ExecutionTests
     [InlineData("1 [>=] true", "Binary operator '>=' cannot be applied to types 'int' and 'bool'.")]
     [InlineData("false [>=] 2", "Binary operator '>=' cannot be applied to types 'bool' and 'int'.")]
     [InlineData("false [>=] true", "Binary operator '>=' cannot be applied to types 'bool' and 'bool'.")]
-    public void Execute_BinaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
+    public void Script_BinaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertScriptEvaluation(diagnostics);
 }

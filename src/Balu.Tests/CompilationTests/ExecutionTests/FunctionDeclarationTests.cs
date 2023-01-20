@@ -6,9 +6,9 @@ namespace Balu.Tests.CompilationTests.ExecutionTests;
 public partial class ExecutionTests
 {
     [Fact]
-    public void Execute_FunctionDeclaration_ReportsMissingName()
+    public void Script_FunctionDeclaration_ReportsMissingName()
     {
-        "function [(]) : int { var i = 0 return i }".AssertEvaluation(" Unexpected OpenParenthesisToken ('('), expected IdentifierToken.");
+        "function [(]) : int { var i = 0 return i }".AssertScriptEvaluation(" Unexpected OpenParenthesisToken ('('), expected IdentifierToken.");
     }
 
 }

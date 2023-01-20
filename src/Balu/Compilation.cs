@@ -49,6 +49,7 @@ public sealed class Compilation
 
     public bool IsScript { get; }
     public ImmutableArray<SyntaxTree> SyntaxTrees { get; }
+    public ImmutableArray<Diagnostic> Diagnostics => Program.Diagnostics;
 
     public FunctionSymbol? MainFunction => GlobalScope.EntryPoint;
     public ImmutableArray<Symbol> Symbols => GlobalScope.Symbols;
@@ -60,6 +61,8 @@ public sealed class Compilation
         IsScript = isScript;
     }
 
+    public EvaluationResult Evaluate(string[] referencedAssemblies) =>
+        Evaluate(referencedAssemblies, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
     public EvaluationResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         using var memoryStream = new MemoryStream();

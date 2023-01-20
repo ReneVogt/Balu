@@ -10,5 +10,5 @@ public partial class ExecutionTests
     [InlineData("[+]true", "Unary operator '+' cannot be applied to type 'bool'.")]
     [InlineData("[-]false", "Unary operator '-' cannot be applied to type 'bool'.")]
     [InlineData("[~]false", "Unary operator '~' cannot be applied to type 'bool'.")]
-    public void Execute_UnaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertEvaluation(diagnostics);
+    public void Script_UnaryOperator_Reports_TypeMismatch(string code, string? diagnostics) => code.AssertScriptEvaluation(diagnostics);
 }

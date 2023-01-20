@@ -6,7 +6,7 @@ namespace Balu.Tests.CompilationTests.ExecutionTests;
 public partial class ExecutionTests
 {
     [Fact]
-    public void Execute_VariableDeclaration_Reports_Redeclaration()
+    public void Script_VariableDeclaration_Reports_Redeclaration()
     {
         const string text = @"
                 {
@@ -21,24 +21,24 @@ public partial class ExecutionTests
         const string diagnostics = @"
             Symbol 'x' is already declared.
 ";
-        text.AssertEvaluation(diagnostics);
+        text.AssertScriptEvaluation(diagnostics);
     }
     [Fact]
-    public void Execute_VariableDeclaration_Reports_UnknownType()
+    public void Script_VariableDeclaration_Reports_UnknownType()
     {
         const string text = "var x : [unknown] = 10";
         const string diagnostics = @"
             Undefined type 'unknown'.
 ";
-        text.AssertEvaluation(diagnostics);
+        text.AssertScriptEvaluation(diagnostics);
     }
     [Fact]
-    public void Execute_VariableDeclaration_Reports_InvalidCast()
+    public void Script_VariableDeclaration_Reports_InvalidCast()
     {
         const string text = "var x : int [=] true";
         const string diagnostics = @"
             Cannot convert 'bool' to 'int'.
 ";
-        text.AssertEvaluation(diagnostics);
+        text.AssertScriptEvaluation(diagnostics);
     }
 }
