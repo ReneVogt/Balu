@@ -4,7 +4,7 @@ using System.Linq;
 using Balu.Syntax;
 using Xunit;
 
-namespace Balu.Tests.Syntax;
+namespace Balu.Tests.UnitTests.Syntax;
 
 public class SyntaxFactsTests
 {

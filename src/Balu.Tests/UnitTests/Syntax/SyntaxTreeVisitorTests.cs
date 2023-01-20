@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 using Balu.Syntax;
 using Xunit;
 
-namespace Balu.Tests.Syntax;
+namespace Balu.Tests.UnitTests.Syntax;
 
 public class SyntaxTreeVisitorTests
 {
