@@ -177,6 +177,7 @@ sealed class BaluRepl : Repl
     void Reset()
     {
         previous = null;
+        globals = ImmutableDictionary<GlobalVariableSymbol, object>.Empty;
         ClearSubmissions();
     }
     [MetaCommand("load", "Loads a script file.")]

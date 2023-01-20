@@ -530,6 +530,11 @@ sealed class Binder : SyntaxTreeVisitor
 
         foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
         {
+            if (previous?.Functions.TryGetValue(function, out var existingBody) == true)
+            {
+                functionBodyBuilder.Add(function, existingBody);
+                continue;
+            }
             var functionBinder = new Binder(isScript, parentScope, function);
             functionBinder.Visit(function.Declaration!.Body);
             var body = (BoundStatement)functionBinder.boundNode!;
@@ -544,12 +549,6 @@ sealed class Binder : SyntaxTreeVisitor
         {
             var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint);
             functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
-        }
-
-        if (previous is not null)
-        {
-            var uniqueNames = functionBodyBuilder.Select(x => x.Key.Name).ToHashSet();
-            functionBodyBuilder.AddRange(previous.Functions.Where(x => uniqueNames.Add(x.Key.Name)));
         }
 
         return new(globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
