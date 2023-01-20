@@ -9,19 +9,22 @@ namespace Balu.Tests.TestHelper;
 
 static class CompilationAsserter
 {
-    internal static void AssertScriptEvaluation(this string code, string? diagnostics = null, IDictionary<GlobalVariableSymbol, object>? globalVariables = null, object? value = null)
+    internal static Compilation AssertScriptEvaluation(this string code, string? diagnostics = null, IDictionary<GlobalVariableSymbol, object>? globalVariables = null, object? value = null, Compilation? previous = null)
     {
         var annotatedText = AnnotatedText.Parse(code);
-        var result = Compilation.CreateScript(null, SyntaxTree.Parse(annotatedText.Text)).Evaluate(ReferenceProvider.References, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
+        var compilation = Compilation.CreateScript(previous, SyntaxTree.Parse(annotatedText.Text));
+        var result = compilation.Evaluate(ReferenceProvider.References, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
 
         var numberOfDiagnostics = DiagnosticAsserter.AssertDiagnostics(annotatedText, result.Diagnostics, diagnostics);
-        if (numberOfDiagnostics > 0) return;
+        if (numberOfDiagnostics > 0) return compilation;
             
         Assert.Equal(value, result.Value);
-        if (globalVariables is null) return;
+        if (globalVariables is null) return compilation;
         Assert.Equal(globalVariables.Count, result.GlobalVariables.Count);
         Assert.Equal(globalVariables.Select(x => (x.Key.Name, x.Value)).OrderBy(x => x.Name),
                       result.GlobalVariables.Select(x => (x.Key.Name, x.Value)).OrderBy(x => x.Name));
+
+        return compilation;
     }
     internal static void AssertProgramDiagnostics(this IEnumerable<(string hintName, string code)> files, string? diagnostics = null)
     {
