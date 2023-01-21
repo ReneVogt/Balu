@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Balu.Binding;
+using Balu.Diagnostics;
 using Balu.Emit;
 using Balu.Execution;
 using Balu.Symbols;

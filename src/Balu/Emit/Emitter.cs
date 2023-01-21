@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Balu.Binding;
+using Balu.Diagnostics;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Text;
@@ -567,7 +568,7 @@ sealed class Emitter : IDisposable
 
     void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<Symbol, object> initializedSymbols)
     {
-        if (diagnostics.Any()) return;
+        if (diagnostics.HasErrors()) return;
 
         debug = symbolStream is not null;
         EmitDebuggableAttribute();
@@ -601,7 +602,7 @@ sealed class Emitter : IDisposable
     {
         try
         {
-            if (program.Diagnostics.Any()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
+            if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
             using var emitter = new Emitter(program, moduleName, references);
             emitter.Emit(outputStream, symbolStream, initializedSymbols);
             return new(emitter.diagnostics.ToImmutableArray(), emitter.globalSymbolNames.ToImmutableDictionary());

@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System;
+using Balu.Diagnostics;
 
 namespace Balu.Emit;
 #pragma warning disable CA1032, CA1064

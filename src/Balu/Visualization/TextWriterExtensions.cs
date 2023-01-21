@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Balu.Diagnostics;
 
 namespace Balu.Visualization;
 
@@ -47,20 +48,23 @@ public static class TextWriterExtensions
             var startLine = sourceText.Lines[diagnostic.Location.StartLine];
             var endLine = sourceText.Lines[diagnostic.Location.EndLine];
             int column = diagnostic.Location.Span.Start - startLine.Start;
-            WriteColoredText(textWriter, $"{diagnostic.Location}: error {diagnostic.Id}: {diagnostic.Message}", ConsoleColor.Red);
+            bool warning = diagnostic.Severity == DiagnosticSeverity.Error;
+            var color = warning ? ConsoleColor.Yellow : ConsoleColor.Red;
+            WriteColoredText(textWriter, $"{diagnostic.Location}: {(warning ? "error" : "warning")} {diagnostic.IdString}: {diagnostic.Message}", color);
             textWriter.WriteLine();
             if (diagnostic.Location.Span.Length > 0)
             {
                 textWriter.Write("    ");
                 textWriter.Write(sourceText.ToString(startLine.Start, column));
-                WriteColoredText(textWriter, sourceText.ToString(diagnostic.Location.Span), ConsoleColor.Red);
+                WriteColoredText(textWriter, sourceText.ToString(diagnostic.Location.Span), color);
                 textWriter.WriteLine(sourceText.ToString(diagnostic.Location.Span.End, Math.Max(0, endLine.End - diagnostic.Location.Span.End)));
             }
         }
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text is null))
         {
-            WriteColoredText(textWriter, $"[{diagnostic.Id}]: {diagnostic.Message}", ConsoleColor.Red);
+            WriteColoredText(textWriter, $"[{diagnostic.IdString}]: {diagnostic.Message}",
+                             diagnostic.Severity == DiagnosticSeverity.Error ? ConsoleColor.Red : ConsoleColor.Yellow);
             textWriter.WriteLine();
         }
     }

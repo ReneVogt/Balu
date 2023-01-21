@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Runtime.Loader;
 using Balu.Binding;
 using Balu.Symbols;
+using Balu.Diagnostics;
 
 namespace Balu.Execution;
 
@@ -15,7 +16,7 @@ static class Executer
     {
         using var memoryStream = new MemoryStream();
         var emitterResult = Emitter.Emit(program, "BaluInterpreter", referencedAssemblies, memoryStream, null, initializedGlobalSymbols);
-        if (emitterResult.Diagnostics.Any())
+        if (emitterResult.Diagnostics.HasErrors())
             return new(emitterResult.Diagnostics, null, initializedGlobalSymbols);
 
         memoryStream.Seek(0, SeekOrigin.Begin);

@@ -5,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Balu.Authoring;
+using Balu.Diagnostics;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Text;
@@ -53,43 +54,41 @@ sealed class BaluRepl : Repl
         var result = compilation.Evaluate(ReferencedAssembliesFinder.GetReferences(), globals);
         globals = result.GlobalSymbols;
         Console.ResetColor();
-        if (result.Diagnostics.Any())
-            Console.Out.WriteDiagnostics(result.Diagnostics);
-        else
+        Console.Out.WriteDiagnostics(result.Diagnostics);
+        if (result.Diagnostics.HasErrors()) return;
+        
+        if (result.Value is not null)
         {
-            if (result.Value is not null)
-            {
-                Console.Out.WriteColoredText("Result: ", ConsoleColor.Yellow);
-                if (result.Value is string s)
-                    Console.Out.WriteColoredText($"\"{s.EscapeString()}\"", ConsoleColor.Magenta);
-                else
-                    Console.Out.WriteColoredText(result.Value.ToString(), ConsoleColor.Magenta);
-                Console.Out.WriteLine();
-            }
-
-            previous = compilation;
-            SaveSubmission(text);
-            if (showVars)
-            {
-                Console.Out.WriteColoredText("Variables:", ConsoleColor.Yellow);
-                Console.Out.WriteLine();
-                foreach (var (global, value) in result.GlobalSymbols)
-                {
-                    if (global is not GlobalVariableSymbol { Name: var name, Type.Name: var type }) continue;
-                    Console.Out.WriteIdentifier(name);
-                    Console.Out.WritePunctuation("(");
-                    Console.Out.WriteIdentifier(type);
-                    Console.Out.WritePunctuation(")");
-                    Console.Out.WriteSpace();
-                    Console.Out.WritePunctuation("=");
-                    Console.Out.WriteSpace();
-                    Console.Out.Write(value.ToString() ?? "<null>");
-                    Console.Out.WriteLine();
-                }
-            }
-
-            Console.ResetColor();
+            Console.Out.WriteColoredText("Result: ", ConsoleColor.Yellow);
+            if (result.Value is string s)
+                Console.Out.WriteColoredText($"\"{s.EscapeString()}\"", ConsoleColor.Magenta);
+            else
+                Console.Out.WriteColoredText(result.Value.ToString(), ConsoleColor.Magenta);
+            Console.Out.WriteLine();
         }
+
+        previous = compilation;
+        SaveSubmission(text);
+        if (showVars)
+        {
+            Console.Out.WriteColoredText("Variables:", ConsoleColor.Yellow);
+            Console.Out.WriteLine();
+            foreach (var (global, value) in result.GlobalSymbols)
+            {
+                if (global is not GlobalVariableSymbol { Name: var name, Type.Name: var type }) continue;
+                Console.Out.WriteIdentifier(name);
+                Console.Out.WritePunctuation("(");
+                Console.Out.WriteIdentifier(type);
+                Console.Out.WritePunctuation(")");
+                Console.Out.WriteSpace();
+                Console.Out.WritePunctuation("=");
+                Console.Out.WriteSpace();
+                Console.Out.Write(value.ToString() ?? "<null>");
+                Console.Out.WriteLine();
+            }
+        }
+
+        Console.ResetColor();
     }
 
     bool loadingSubmission;

@@ -1,4 +1,5 @@
-﻿using Balu.Text;
+﻿using Balu.Diagnostics;
+using Balu.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;

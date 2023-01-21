@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using Balu.Diagnostics;
 using Balu.Symbols;
 using Mono.Cecil;
 
@@ -41,7 +42,7 @@ sealed class ReferencedMembers : IDisposable
     public ReferencedMembers(string moduleName, string[] referencedAssemblies)
     {
         LoadReferences(referencedAssemblies);
-        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
+        if (diagnostics.HasErrors()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
 
         var objectTypeDefinition = ResolveTypeDefinition("System.Object");
         var consoleTypeDefinition = ResolveTypeDefinition("System.Console");
@@ -52,7 +53,7 @@ sealed class ReferencedMembers : IDisposable
         var voidTypeDefinition = ResolveTypeDefinition("System.Void");
         var randomTypeDefinition = ResolveTypeDefinition("System.Random");
         var debuggableAttributeTypeDefinition = ResolveTypeDefinition("System.Diagnostics.DebuggableAttribute");
-        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
+        if (diagnostics.HasErrors()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
         Debug.Assert(
             objectTypeDefinition is not null &&
             consoleTypeDefinition is not null &&
@@ -78,7 +79,7 @@ sealed class ReferencedMembers : IDisposable
         var randomCtor = ResolveMethodDefinition(randomTypeDefinition, ".ctor", Array.Empty<string>());
         var randomNext = ResolveMethodDefinition(randomTypeDefinition, "Next", new[] { "System.Int32" });
         var debuggableCtor = ResolveMethodDefinition(debuggableAttributeTypeDefinition, ".ctor", new[] { "System.Boolean", "System.Boolean" });
-        if (diagnostics.Any()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
+        if (diagnostics.HasErrors()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
         Debug.Assert(
             consoleWrite is not null &&
             consoleWriteLine is not null &&
