@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Balu.Text;
 using Xunit;
+using Balu.Diagnostics;
 
 namespace Balu.Tests.TestHelper;
 

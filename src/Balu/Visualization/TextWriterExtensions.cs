@@ -3,6 +3,7 @@ using System.CodeDom.Compiler;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Balu.Diagnostics;
 
 namespace Balu.Visualization;
 
@@ -47,7 +48,7 @@ public static class TextWriterExtensions
             var startLine = sourceText.Lines[diagnostic.Location.StartLine];
             var endLine = sourceText.Lines[diagnostic.Location.EndLine];
             int column = diagnostic.Location.Span.Start - startLine.Start;
-            WriteColoredText(textWriter, $"{diagnostic.Location}: error {diagnostic.Id}: {diagnostic.Message}", ConsoleColor.Red);
+            WriteColoredText(textWriter, $"{diagnostic.Location}: {(diagnostic.Severity == DiagnosticSeverity.Error ? "error" : "warning")} {diagnostic.IdString}: {diagnostic.Message}", ConsoleColor.Red);
             textWriter.WriteLine();
             if (diagnostic.Location.Span.Length > 0)
             {
@@ -60,7 +61,7 @@ public static class TextWriterExtensions
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text is null))
         {
-            WriteColoredText(textWriter, $"[{diagnostic.Id}]: {diagnostic.Message}", ConsoleColor.Red);
+            WriteColoredText(textWriter, $"[{diagnostic.IdString}]: {diagnostic.Message}", ConsoleColor.Red);
             textWriter.WriteLine();
         }
     }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Immutable;
 using System.Linq;
+using Balu.Diagnostics;
 using Xunit;
 
 namespace Balu.Tests.TestHelper;

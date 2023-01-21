@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using Balu;
+using Balu.Diagnostics;
 using Balu.Syntax;
 using Balu.Visualization;
 using Mono.Options;
@@ -66,7 +67,7 @@ sealed class Program
             var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, symbolPath);
             LogDiagnostics(diagnostics);
             LogInfo("Done.");
-            return diagnostics.Any() ? 1 : 0;
+            return diagnostics.HasErrors() ? 1 : 0;
         }
         catch (Exception error)
         {

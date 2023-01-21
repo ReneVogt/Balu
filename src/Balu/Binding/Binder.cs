@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Balu.Diagnostics;
 using Balu.Lowering;
 using Balu.Symbols;
 using Balu.Syntax;

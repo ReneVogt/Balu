@@ -1,4 +1,4 @@
-﻿namespace Balu;
+﻿namespace Balu.Symbols;
 
 static class GlobalSymbolNames
 {

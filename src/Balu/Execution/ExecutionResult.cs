@@ -1,4 +1,5 @@
 ﻿using System.Collections.Immutable;
+using Balu.Diagnostics;
 using Balu.Symbols;
 
 namespace Balu.Execution;

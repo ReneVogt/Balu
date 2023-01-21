@@ -3,6 +3,7 @@ using Balu.Text;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using Balu.Diagnostics;
 
 namespace Balu.Syntax;
 

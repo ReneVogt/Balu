@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
+using Balu.Diagnostics;
 using Balu.Symbols;
 
 namespace Balu.Binding;
