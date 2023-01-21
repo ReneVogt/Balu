@@ -1,8 +1,13 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
-	<!--A target that generates code, which is executed before the compilation-->
-	<Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn)" Inputs="@(BaluFiles -> '%(FullPath)')" Outputs="@(IntermediateAssembly -> '%(FullPath)')">
+	<Target Name="BaluCollectFiles" BeforeTargets="CoreCompile">
+		<ItemGroup>
+			<BaluFiles Include="**/*.b"/>
+			<UpToDateCheckInput Include="@(BaluFiles)"/>
+		</ItemGroup>
+	</Target>
+	<Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn);BaluCollectFiles" Inputs="@(BaluFiles -> '%(FullPath)')" Outputs="@(IntermediateAssembly -> '%(FullPath)')">
 		<ItemGroup>
 			<ReferencePath Remove="@(ReferencePath)" Condition="
 						   '%(Filename)' != 'System.Runtime' AND 
