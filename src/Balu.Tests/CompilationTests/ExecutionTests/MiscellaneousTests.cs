@@ -91,7 +91,8 @@ public partial class ExecutionTests
 
     [Theory]
     [InlineData("{ [print] = 12 }", "Unexpected symbol kind 'Function', expected 'print' to be a variable or argument.")]
-    [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'GlobalVariable', expected 'a' to be a function.")]
+    [InlineData("{ var a = 7 [a](12) }", "Unexpected symbol kind 'LocalVariable', expected 'a' to be a function.")]
+    [InlineData(" var a = 7 [a](12) ", "Unexpected symbol kind 'GlobalVariable', expected 'a' to be a function.")]
     public void Script_Reports_SymbolTypeMisatch(string text, string diagnostics) => text.AssertScriptEvaluation(diagnostics);
 
     [Fact]

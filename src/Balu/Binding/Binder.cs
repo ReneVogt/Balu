@@ -28,13 +28,9 @@ sealed class Binder : SyntaxTreeVisitor
         this.isScript = isScript;
         scope = new(parent);
         this.containingFunction = containingFunction;
-        if (this.containingFunction is null)
-        {
-            scope.TryDeclareSymbol(new GlobalVariableSymbol(GlobalSymbolNames.Result, false, TypeSymbol.Any, null));
-            return;
-        }
-        foreach (var parameter in this.containingFunction.Parameters)
-            scope.TryDeclareSymbol(parameter);
+        if (this.containingFunction is not null)
+            foreach (var parameter in this.containingFunction.Parameters)
+                scope.TryDeclareSymbol(parameter);
     }
 
     public override void Visit(SyntaxNode node)
@@ -231,7 +227,9 @@ sealed class Binder : SyntaxTreeVisitor
     }
     protected override void VisitVariableDeclarationStatement(VariableDeclarationStatementSyntax node)
     {
+        bool global = isGlobal;
         Visit(node.Expression);
+        isGlobal = global;
         var expression = (BoundExpression)boundNode!;
         if (expression.Type == TypeSymbol.Void)
             diagnostics.ReportExpressionMustHaveValue(node.Expression.Location);
@@ -354,7 +352,7 @@ sealed class Binder : SyntaxTreeVisitor
     VariableSymbol BindVariable(SyntaxToken identifier, bool isReadonly, TypeSymbol type, BoundConstant? constant = null)
     {
         var name = identifier.IsMissing ? "?" : identifier.Text;
-        VariableSymbol variable = containingFunction is null
+        VariableSymbol variable = isGlobal
                            ? new GlobalVariableSymbol(name, isReadonly, type, constant)
                            : new LocalVariableSymbol(name, isReadonly, type, constant);
         if (!identifier.IsMissing && !scope.TryDeclareSymbol(variable))
@@ -448,11 +446,17 @@ sealed class Binder : SyntaxTreeVisitor
 
     public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
     {
-        var parentScope = CreateParentScopes(previous);
+        var parentScope = CreateParentScope(isScript, previous);
         var binder = new Binder(isScript, parentScope);
 
+        //
+        // Bind all (new) function declarations.
+        //
         binder.BindFunctionDeclarations(syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<FunctionDeclarationSyntax>()));
 
+        //
+        // Bind the global statements.
+        //
         var globalStatements = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>()).ToArray();
         var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
         foreach (var globalStatement in globalStatements)
@@ -461,8 +465,12 @@ sealed class Binder : SyntaxTreeVisitor
             statementBuilder.Add((BoundStatement)binder.boundNode!);
         }
 
+        // The newly created symbols in the current global scope.
         var symbols = binder.scope.GetDeclaredSymbols();
 
+        //
+        // Check for entry point, main or <eval> method.
+        //
         var treesWithGlobalStatements = syntaxTrees
                                         .Where(syntaxTree => syntaxTree.Root.Members.Any(syntax => syntax.Kind == SyntaxKind.GlobalStatement))
                                         .ToImmutableArray();
@@ -503,38 +511,45 @@ sealed class Binder : SyntaxTreeVisitor
             }
         }
 
+        //
+        // Compute new visiblity of symbols for this global scope.
+        //
+        var previouslyVisibleSymbols = previous?.VisibleSymbols ?? parentScope.GetDeclaredSymbols();
+        var combinedScope = new BoundScope(null);
+        foreach (var createdSymbol in symbols)
+            combinedScope.TryDeclareSymbol(createdSymbol);
+        foreach (var previousSymbol in previouslyVisibleSymbols)
+            combinedScope.TryDeclareSymbol(previousSymbol);
+        var visibleSymbols = combinedScope.GetDeclaredSymbols();
+        var shadowedSymbols = (previous?.ShadowedSymbols ?? ImmutableArray<Symbol>.Empty).AddRange(previouslyVisibleSymbols.Except(visibleSymbols));
+
+        //
+        // Check that the result field is returned from <eval>.
+        //
         var syntaxNode = (treesWithGlobalStatements.FirstOrDefault() ?? syntaxTrees.First()).Root;
         if (isScript && statementBuilder.LastOrDefault()?.Kind != BoundNodeKind.ReturnStatement)
         {
-            var resultField = symbols.OfType<VariableSymbol>().Single(symbol => symbol.Name == GlobalSymbolNames.Result);
-            statementBuilder.Insert(0, VariableDeclaration(syntaxNode.GetChild(0), resultField, Literal(syntaxNode.GetChild(0), 0)));
+            binder.scope.TryLookupSymbol(GlobalSymbolNames.Result, out var resultField);
             statementBuilder.Add(Return(syntaxNode.LastToken,
                                         Variable(syntaxNode.LastToken,
-                                                 resultField)));
+                                                 (GlobalVariableSymbol)resultField)));
         }
 
         var statement = Block(syntaxNode, statementBuilder.ToImmutable());
-
         var diagnostics = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(binder.diagnostics).ToImmutableArray();
-
-        var uniqueNames = symbols.Select(symbol => symbol.Name).ToHashSet();
-        symbols = symbols.AddRange(parentScope.GetDeclaredSymbols().Where(symbol => uniqueNames.Add(symbol.Name)));
-
-        return new(entryPoint, statement, symbols, diagnostics);
+        return new(entryPoint, statement, shadowedSymbols, visibleSymbols, diagnostics);
     }
     public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
     {
-        var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         var diagnostics = globalScope.Diagnostics;
-        var parentScope = CreateParentScopes(globalScope);
+        var parentScope = CreateParentScope(isScript, globalScope);
 
-        foreach (var function in globalScope.Symbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null))
+        var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
+        if (previous is not null) functionBodyBuilder.AddRange(previous.Functions.Where(x => x.Key != previous.EntryPoint));
+
+
+        foreach (var function in globalScope.VisibleSymbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null && !functionBodyBuilder.ContainsKey(function)))
         {
-            if (previous?.Functions.TryGetValue(function, out var existingBody) == true)
-            {
-                functionBodyBuilder.Add(function, existingBody);
-                continue;
-            }
             var functionBinder = new Binder(isScript, parentScope, function);
             functionBinder.Visit(function.Declaration!.Body);
             var body = (BoundStatement)functionBinder.boundNode!;
@@ -551,19 +566,20 @@ sealed class Binder : SyntaxTreeVisitor
             functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
         }
 
-        return new(globalScope.EntryPoint, globalScope.Symbols, functionBodyBuilder.ToImmutable(), diagnostics);
+        return new(globalScope.EntryPoint, globalScope.AllSymbols, globalScope.VisibleSymbols, functionBodyBuilder.ToImmutable(), diagnostics);
     }
-    static BoundScope CreateParentScopes(BoundGlobalScope? previous)
+    static BoundScope CreateParentScope(bool isScript, BoundGlobalScope? previous)
     {
         var parentScope = new BoundScope(null);
         if (previous is null)
         {
             foreach (var builtInFunction in BuiltInFunctions.GetBuiltInFunctions())
                 parentScope.TryDeclareSymbol(builtInFunction);
-
+            if (isScript)
+                parentScope.TryDeclareSymbol(new GlobalVariableSymbol(GlobalSymbolNames.Result, false, TypeSymbol.Any, null));
         }
         else
-            foreach (var symbol in previous.Symbols)
+            foreach (var symbol in previous.VisibleSymbols)
                 parentScope.TryDeclareSymbol(symbol);
 
         return parentScope;

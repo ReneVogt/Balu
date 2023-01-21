@@ -21,7 +21,7 @@ sealed class BaluRepl : Repl
 {
     bool showSyntax, showVars, showProgram;
     Compilation? previous;
-    ImmutableDictionary<GlobalVariableSymbol,object> globals = ImmutableDictionary<GlobalVariableSymbol, object>.Empty;
+    ImmutableDictionary<Symbol,object> globals = ImmutableDictionary<Symbol, object>.Empty;
 
     public BaluRepl()
     {
@@ -51,7 +51,7 @@ sealed class BaluRepl : Repl
 
         Console.ForegroundColor = ConsoleColor.White;
         var result = compilation.Evaluate(ReferencedAssembliesFinder.GetReferences(), globals);
-        globals = result.GlobalVariables;
+        globals = result.GlobalSymbols;
         Console.ResetColor();
         if (result.Diagnostics.Any())
             Console.Out.WriteDiagnostics(result.Diagnostics);
@@ -73,11 +73,12 @@ sealed class BaluRepl : Repl
             {
                 Console.Out.WriteColoredText("Variables:", ConsoleColor.Yellow);
                 Console.Out.WriteLine();
-                foreach (var (global, value) in result.GlobalVariables)
+                foreach (var (global, value) in result.GlobalSymbols)
                 {
-                    Console.Out.WriteIdentifier(global.Name);
+                    if (global is not GlobalVariableSymbol { Name: var name, Type.Name: var type }) continue;
+                    Console.Out.WriteIdentifier(name);
                     Console.Out.WritePunctuation("(");
-                    Console.Out.WriteIdentifier(global.Type.Name);
+                    Console.Out.WriteIdentifier(type);
                     Console.Out.WritePunctuation(")");
                     Console.Out.WriteSpace();
                     Console.Out.WritePunctuation("=");
@@ -177,7 +178,7 @@ sealed class BaluRepl : Repl
     void Reset()
     {
         previous = null;
-        globals = ImmutableDictionary<GlobalVariableSymbol, object>.Empty;
+        globals = ImmutableDictionary<Symbol, object>.Empty;
         ClearSubmissions();
     }
     [MetaCommand("load", "Loads a script file.")]
@@ -196,7 +197,7 @@ sealed class BaluRepl : Repl
     void ListSymbols()
     {
         var compilation = previous ?? Compilation.CreateScript(null);
-        foreach (var symbol in compilation.Symbols.OrderBy(symbol => symbol.Name))
+        foreach (var symbol in compilation.VisibleSymbols.OrderBy(symbol => symbol.Name))
         {
             symbol.WriteTo(Console.Out);
             Console.Out.WriteLine();
@@ -206,7 +207,7 @@ sealed class BaluRepl : Repl
     void Dump(string functionName)
     {
         var compilation = previous ?? Compilation.CreateScript(null);
-        var function = compilation.Symbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
+        var function = compilation.VisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
         if (function is null)
         {
             Console.Error.WriteColoredText($"Error: Function '{functionName}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
@@ -234,7 +235,7 @@ sealed class BaluRepl : Repl
     void Graph(string functionName, string path)
     {
         var compilation = previous ?? Compilation.CreateScript(null);
-        var function = compilation.Symbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
+        var function = compilation.VisibleSymbols.OfType<FunctionSymbol>().SingleOrDefault(function => function.Name == functionName);
         if (function is null)
         {
             Console.Error.WriteColoredText($"Error: Function '{functionName}' does not exist.{Environment.NewLine}", ConsoleColor.Red);
