@@ -9,22 +9,22 @@ namespace Balu.Tests.TestHelper;
 
 static class CompilationAsserter
 {
-    internal static Compilation AssertScriptEvaluation(this string code, string? diagnostics = null, IDictionary<GlobalVariableSymbol, object>? globalVariables = null, object? value = null, Compilation? previous = null)
+    internal static (Compilation compilation, ImmutableDictionary<Symbol, object> globals) AssertScriptEvaluation(this string code, string? diagnostics = null, ImmutableDictionary<Symbol, object>? initializedGlobalVariables = null, IDictionary<GlobalVariableSymbol, object>? expectedGlobalVariables = null, object? value = null, Compilation? previous = null)
     {
         var annotatedText = AnnotatedText.Parse(code);
         var compilation = Compilation.CreateScript(previous, SyntaxTree.Parse(annotatedText.Text));
-        var result = compilation.Evaluate(ReferenceProvider.References, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
+        var result = compilation.Evaluate(ReferenceProvider.References, initializedGlobalVariables ?? ImmutableDictionary<Symbol, object>.Empty);
 
         var numberOfDiagnostics = DiagnosticAsserter.AssertDiagnostics(annotatedText, result.Diagnostics, diagnostics);
-        if (numberOfDiagnostics > 0) return compilation;
+        if (numberOfDiagnostics > 0) return (compilation, result.GlobalSymbols);
             
         Assert.Equal(value, result.Value);
-        if (globalVariables is null) return compilation;
-        Assert.Equal(globalVariables.Count, result.GlobalVariables.Count);
-        Assert.Equal(globalVariables.Select(x => (x.Key.Name, x.Value)).OrderBy(x => x.Name),
-                      result.GlobalVariables.Select(x => (x.Key.Name, x.Value)).OrderBy(x => x.Name));
+        if (expectedGlobalVariables is null) return (compilation, result.GlobalSymbols);
+        Assert.Equal(expectedGlobalVariables.Count, result.GlobalSymbols.Count(x => x.Key is GlobalVariableSymbol));
+        Assert.Equal(expectedGlobalVariables.Select(x => (x.Key.Name, x.Value)).OrderBy(x => x.Name),
+                      result.GlobalSymbols.Where(x => x.Key is GlobalVariableSymbol).Select(x => (x.Key.Name, x.Value)).OrderBy(x => x.Name));
 
-        return compilation;
+        return (compilation, result.GlobalSymbols);
     }
     internal static void AssertProgramDiagnostics(this IEnumerable<(string hintName, string code)> files, string? diagnostics = null)
     {

@@ -6,10 +6,10 @@ namespace Balu.Emit;
 sealed class EmitterResult
 {
     public ImmutableArray<Diagnostic> Diagnostics { get; }
-    public ImmutableDictionary<GlobalVariableSymbol, string> GlobalFieldNames { get; }
-    public EmitterResult(ImmutableArray<Diagnostic> diagnostics, ImmutableDictionary<GlobalVariableSymbol, string> globalFieldNames)
+    public ImmutableDictionary<Symbol, string> GlobalSymbolNames { get; }
+    public EmitterResult(ImmutableArray<Diagnostic> diagnostics, ImmutableDictionary<Symbol, string> globalSymbolNames)
     {
         Diagnostics = diagnostics;
-        GlobalFieldNames = globalFieldNames;
+        GlobalSymbolNames = globalSymbolNames;
     }
 }

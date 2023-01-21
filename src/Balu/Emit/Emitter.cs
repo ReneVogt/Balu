@@ -27,7 +27,7 @@ sealed class Emitter : IDisposable
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
     readonly Dictionary<SourceText, Document> documents = new();
-    readonly Dictionary<GlobalVariableSymbol, string> globalFieldNames = new();
+    readonly Dictionary<Symbol, string> globalSymbolNames = new();
 
     bool debug;
 
@@ -44,11 +44,16 @@ sealed class Emitter : IDisposable
 
     MethodDefinition CreateMethod(FunctionSymbol function)
     {
-        var method = new MethodDefinition(function.Name, MethodAttributes.Static | MethodAttributes.Private, MapType(function.ReturnType));
+        bool isVisilbe = program.VisibleSymbols.Contains(function);
+        var name = isVisilbe ? function.Name : $"<{function.Name}{globals.Count}>";
+        var attributes = MethodAttributes.Static | MethodAttributes.Private;
+        if (name.IsSpecialName()) attributes |= MethodAttributes.SpecialName;
+        var method = new MethodDefinition(name, attributes, MapType(function.ReturnType));
         foreach (var parameter in function.Parameters)
             method.Parameters.Add(new (parameter.Name, ParameterAttributes.None, MapType(parameter.Type)));
         
         referencedMembers.ProgramType.Methods.Add(method);
+        globalSymbolNames[function] = name;
         return method;
     }
     void EmitMethod(MethodDefinition method, FunctionSymbol function)
@@ -425,8 +430,8 @@ sealed class Emitter : IDisposable
                 processor.Emit(OpCodes.Stloc, variableDefinition);
                 break;
             case SymbolKind.GlobalVariable:
+                // global variables were already added as fields 
                 var global = (GlobalVariableSymbol)statement.Variable;
-                EmitField(global);
                 processor.Emit(OpCodes.Stsfld, globals[global]);
                 break;
             default:
@@ -489,7 +494,7 @@ sealed class Emitter : IDisposable
         processor.Body.Method.DebugInformation.SequencePoints.Add(sequencePoint);
     }
 
-    void EmitFields(ImmutableDictionary<GlobalVariableSymbol, object> initializedFields)
+    void EmitFields(ImmutableDictionary<Symbol, object> initializedSymbols)
     {
         var staticConstructor = new MethodDefinition(
             ".cctor", 
@@ -503,9 +508,10 @@ sealed class Emitter : IDisposable
         processor.Emit(OpCodes.Newobj, referencedMembers.RandomCtor);
         processor.Emit(OpCodes.Stsfld, referencedMembers.RandomField);
 
-        foreach (var (global, value) in initializedFields)
+        foreach(var global in program.Symbols.OfType<GlobalVariableSymbol>())
         {
             EmitField(global);
+            if (!initializedSymbols.TryGetValue(global, out var value)) continue;
             bool box = true;
             switch (value)
             {
@@ -535,11 +541,14 @@ sealed class Emitter : IDisposable
     }
     void EmitField(GlobalVariableSymbol global)
     {
-        var name = $"<global{globals.Count}>";
-        var fieldDefinition = new FieldDefinition(name, FieldAttributes.Static | FieldAttributes.SpecialName | FieldAttributes.Private, MapType(global.Type)); 
+        bool isVisible = program.VisibleSymbols.Contains(global);
+        var name = isVisible ? global.Name : $"<{global.Name}{globals.Count}>";
+        var attributes = FieldAttributes.Static | FieldAttributes.Private;
+        if (!isVisible) attributes |= FieldAttributes.SpecialName;
+        var fieldDefinition = new FieldDefinition(name, attributes, MapType(global.Type));
         referencedMembers.ProgramType.Fields.Add(fieldDefinition);
         globals.Add(global, fieldDefinition);
-        globalFieldNames[global] = name;
+        globalSymbolNames[global] = name;
     }
 
     void EmitDebuggableAttribute()
@@ -556,22 +565,21 @@ sealed class Emitter : IDisposable
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
-    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedFields)
+    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<Symbol, object> initializedSymbols)
     {
         if (diagnostics.Any()) return;
 
         debug = symbolStream is not null;
         EmitDebuggableAttribute();
 
-        EmitFields(initializedFields);
+        EmitFields(initializedSymbols);
 
         foreach (var function in program.Functions.Keys)
             methods.Add(function, CreateMethod(function));
 
-        // emit entry point first, in scripts this declares global variables as fields
         EmitMethod(methods[program.EntryPoint], program.EntryPoint);
         foreach (var (function, method) in methods)
-            if (function != program.EntryPoint) EmitMethod(method, function);
+            EmitMethod(method, function);
 
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
 
@@ -589,18 +597,18 @@ sealed class Emitter : IDisposable
         }
     }
 
-    public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedFields)
+    public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<Symbol, object> initializedSymbols)
     {
         try
         {
-            if (program.Diagnostics.Any()) return new(program.Diagnostics, ImmutableDictionary<GlobalVariableSymbol, string>.Empty);
+            if (program.Diagnostics.Any()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
             using var emitter = new Emitter(program, moduleName, references);
-            emitter.Emit(outputStream, symbolStream, initializedFields);
-            return new(emitter.diagnostics.ToImmutableArray(), emitter.globalFieldNames.ToImmutableDictionary());
+            emitter.Emit(outputStream, symbolStream, initializedSymbols);
+            return new(emitter.diagnostics.ToImmutableArray(), emitter.globalSymbolNames.ToImmutableDictionary());
         }
         catch (MissingReferencesException exception)
         {
-            return new (exception.Diagnostics, ImmutableDictionary<GlobalVariableSymbol, string>.Empty);
+            return new (exception.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
         }
     }
 }

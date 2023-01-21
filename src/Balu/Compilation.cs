@@ -52,7 +52,7 @@ public sealed class Compilation
     public ImmutableArray<Diagnostic> Diagnostics => Program.Diagnostics;
 
     public FunctionSymbol? MainFunction => GlobalScope.EntryPoint;
-    public ImmutableArray<Symbol> Symbols => GlobalScope.Symbols;
+    public ImmutableArray<Symbol> VisibleSymbols => GlobalScope.VisibleSymbols;
 
     Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
     {
@@ -62,21 +62,21 @@ public sealed class Compilation
     }
 
     public EvaluationResult Evaluate(string[] referencedAssemblies) =>
-        Evaluate(referencedAssemblies, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
-    public EvaluationResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+        Evaluate(referencedAssemblies, ImmutableDictionary<Symbol, object>.Empty);
+    public EvaluationResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols)
     {
         using var memoryStream = new MemoryStream();
-        var emitterResult = Emitter.Emit(Program, "BaluInterpreter", referencedAssemblies, memoryStream, null, initializedGlobalVariables);
+        var emitterResult = Emitter.Emit(Program, "BaluInterpreter", referencedAssemblies, memoryStream, null, initializedGlobalSymbols);
         if (emitterResult.Diagnostics.Any())
-            return new(emitterResult.Diagnostics, null, initializedGlobalVariables);
+            return new(emitterResult.Diagnostics, null, initializedGlobalSymbols);
 
         var rawAssembly = memoryStream.GetBuffer();
         var asm = Assembly.Load(rawAssembly);
         var result = asm.EntryPoint!.Invoke(null, null);
         var programType = asm.GetType("Program")!;
 
-        var globals = emitterResult.GlobalFieldNames
-                                   .Where(x => !x.Key.Name.IsSpecialName())
+        var globals = emitterResult.GlobalSymbolNames
+                                   .Where(x => x.Key is GlobalVariableSymbol && !x.Key.Name.IsSpecialName())
                                    .ToImmutableDictionary(
                                        x => x.Key, x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
 
@@ -105,7 +105,7 @@ public sealed class Compilation
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
         _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
-        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, ImmutableDictionary<GlobalVariableSymbol, object>.Empty).Diagnostics;
+        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, ImmutableDictionary<Symbol, object>.Empty).Diagnostics;
     }
 
     public void WriteSyntaxTrees(TextWriter writer)

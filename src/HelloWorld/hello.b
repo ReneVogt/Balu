@@ -1,1 +1,1 @@
-﻿printGreeting()
+﻿printGreeting(10)

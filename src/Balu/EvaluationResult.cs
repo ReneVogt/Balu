@@ -7,12 +7,12 @@ public sealed class EvaluationResult
 {
     public ImmutableArray<Diagnostic> Diagnostics { get; }
     public object? Value { get; }
-    public ImmutableDictionary<GlobalVariableSymbol, object> GlobalVariables { get; }
+    public ImmutableDictionary<Symbol, object> GlobalSymbols{ get; }
 
-    internal EvaluationResult(ImmutableArray<Diagnostic> diagnostics, object? value, ImmutableDictionary<GlobalVariableSymbol, object> globalVariables)
+    internal EvaluationResult(ImmutableArray<Diagnostic> diagnostics, object? value, ImmutableDictionary<Symbol, object> globalSymbols)
     {
         Diagnostics = diagnostics;
         Value = value;
-        GlobalVariables = globalVariables;
+        GlobalSymbols = globalSymbols;
     }
 }
