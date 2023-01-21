@@ -2,10 +2,10 @@
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using Balu.Binding;
 using Balu.Emit;
+using Balu.Execution;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
@@ -61,27 +61,10 @@ public sealed class Compilation
         IsScript = isScript;
     }
 
-    public EvaluationResult Evaluate(string[] referencedAssemblies) =>
+    public ExecutionResult Evaluate(string[] referencedAssemblies) =>
         Evaluate(referencedAssemblies, ImmutableDictionary<Symbol, object>.Empty);
-    public EvaluationResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols)
-    {
-        using var memoryStream = new MemoryStream();
-        var emitterResult = Emitter.Emit(Program, "BaluInterpreter", referencedAssemblies, memoryStream, null, initializedGlobalSymbols);
-        if (emitterResult.Diagnostics.Any())
-            return new(emitterResult.Diagnostics, null, initializedGlobalSymbols);
-
-        var rawAssembly = memoryStream.GetBuffer();
-        var asm = Assembly.Load(rawAssembly);
-        var result = asm.EntryPoint!.Invoke(null, null);
-        var programType = asm.GetType("Program")!;
-
-        var globals = emitterResult.GlobalSymbolNames
-                                   .Where(x => x.Key is GlobalVariableSymbol && !x.Key.Name.IsSpecialName())
-                                   .ToImmutableDictionary(
-                                       x => x.Key, x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
-
-        return new(ImmutableArray<Diagnostic>.Empty, result, globals);
-    }
+    public ExecutionResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols) =>
+        Executer.Execute(Program, referencedAssemblies, initializedGlobalSymbols);
 
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath)
     {

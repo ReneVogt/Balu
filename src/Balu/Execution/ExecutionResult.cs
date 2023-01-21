@@ -1,15 +1,15 @@
 ﻿using System.Collections.Immutable;
 using Balu.Symbols;
 
-namespace Balu;
+namespace Balu.Execution;
 
-public sealed class EvaluationResult
+public sealed class ExecutionResult
 {
     public ImmutableArray<Diagnostic> Diagnostics { get; }
     public object? Value { get; }
-    public ImmutableDictionary<Symbol, object> GlobalSymbols{ get; }
+    public ImmutableDictionary<Symbol, object> GlobalSymbols { get; }
 
-    internal EvaluationResult(ImmutableArray<Diagnostic> diagnostics, object? value, ImmutableDictionary<Symbol, object> globalSymbols)
+    internal ExecutionResult(ImmutableArray<Diagnostic> diagnostics, object? value, ImmutableDictionary<Symbol, object> globalSymbols)
     {
         Diagnostics = diagnostics;
         Value = value;
