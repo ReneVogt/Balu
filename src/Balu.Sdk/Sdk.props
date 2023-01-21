@@ -14,11 +14,6 @@
 		<ProduceReferenceAssembly>false</ProduceReferenceAssembly>
 		<BaluSymbolPath/>
 	</PropertyGroup>
-	<ItemGroup>
-		<BaluFiles Include="**/*.b"/>
-		<UpToDateCheckInput Include="@(BaluFiles)"/>
-	</ItemGroup>
-
 
 	<!--Register our custom task-->
 	<UsingTask TaskName="Balu.Sdk.BaluCompiler" AssemblyFile="$(CustomTasksAssembly)"/>
