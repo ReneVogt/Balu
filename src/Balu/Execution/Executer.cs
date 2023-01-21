@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Loader;
 using Balu.Binding;
 using Balu.Symbols;
 
@@ -17,16 +18,24 @@ static class Executer
         if (emitterResult.Diagnostics.Any())
             return new(emitterResult.Diagnostics, null, initializedGlobalSymbols);
 
-        var rawAssembly = memoryStream.GetBuffer();
-        var asm = Assembly.Load(rawAssembly);
-        var result = asm.EntryPoint!.Invoke(null, null);
-        var programType = asm.GetType("Program")!;
+        memoryStream.Seek(0, SeekOrigin.Begin);
+        var context = new AssemblyLoadContext(null, true);
+        try
+        {
+            var asm = context.LoadFromStream(memoryStream);
+            var result = asm.EntryPoint!.Invoke(null, null);
+            var programType = asm.GetType("Program")!;
 
-        var globals = emitterResult.GlobalSymbolNames
-                                   .Where(x => x.Key is GlobalVariableSymbol && !x.Key.Name.IsSpecialName())
-                                   .ToImmutableDictionary(
-                                       x => x.Key, x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
-
-        return new(ImmutableArray<Diagnostic>.Empty, result, globals);
+            var globals = emitterResult.GlobalSymbolNames
+                                       .Where(x => x.Key is GlobalVariableSymbol && !x.Key.Name.IsSpecialName())
+                                       .ToImmutableDictionary(
+                                           x => x.Key,
+                                           x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
+            return new(ImmutableArray<Diagnostic>.Empty, result, globals);
+        }
+        finally
+        {
+            context.Unload();
+        }
     }
 }
