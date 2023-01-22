@@ -16,4 +16,9 @@ public class BinderTests
     {
         code.AssertScriptEvaluation(expectedDiagnostics: "Unreachable code detected.", ignoreWarnings: false);
     }
+    [Fact]
+    public void Lowerer_InjectedReturnIsNotUnreachable()
+    {
+        "while true { return 0 } ".AssertScriptEvaluation(value: 0, ignoreWarnings: false);
+    }
 }

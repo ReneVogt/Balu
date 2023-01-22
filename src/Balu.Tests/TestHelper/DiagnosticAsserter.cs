@@ -14,17 +14,15 @@ static class DiagnosticAsserter
         if (expected.Length != annotatedText.Spans.Length)
             throw new ArgumentException("The number of expected diagnostics must match the number of marked spans.");
 
-        if (ignoreWarnings)
-            Assert.Equal(annotatedText.Spans.Length, actualDiagnostics.Count(d => d.Severity == DiagnosticSeverity.Error));
-        else
-            Assert.Equal(annotatedText.Spans.Length, actualDiagnostics.Length);
-
-        var orderedActualDiagnostics = actualDiagnostics.Where(d => !ignoreWarnings || d.Severity == DiagnosticSeverity.Error).OrderBy(diagnostic => diagnostic.Location.Text.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length).ToArray();
-        for (int i = 0; i < expected.Length; i++)
-        {
-            Assert.Equal(expected[i], orderedActualDiagnostics[i].Message);
-            Assert.Equal(annotatedText.Spans[i], orderedActualDiagnostics[i].Location.Span);
-        }
+        var relevantDiagnostics = ignoreWarnings ? actualDiagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToImmutableArray() : actualDiagnostics;
+        var orderedActualDiagnostics = relevantDiagnostics.Where(d => !ignoreWarnings || d.Severity == DiagnosticSeverity.Error)
+                                                          .OrderBy(diagnostic => diagnostic.Location.Text.FileName)
+                                                          .ThenBy(diagnostic => diagnostic.Location.Span.Start)
+                                                          .ThenByDescending(diagnostic => diagnostic.Location.Span.Length)
+                                                          .ToArray();
+        var expectedTuples = expected.Zip(annotatedText.Spans, (text, span) => (span, text));
+        var actualTuples = orderedActualDiagnostics.Select(diag => (span: diag.Location.Span, text: diag.Message));
+        Assert.Equal(expectedTuples, actualTuples);
     }
     internal static int AssertDiagnostics((string hintName, AnnotatedText annotated)[] inputs, ImmutableArray<Diagnostic> actualDiagnostics, string? expectedDiagnostics = null, bool ignoreWarnings = true)
     {

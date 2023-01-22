@@ -75,10 +75,10 @@ public sealed class SyntaxTree
         {
             var lexer = new Lexer(syntaxTree);
             using var enumerator = lexer.Lex().GetEnumerator();
-            while (enumerator.MoveNext() && enumerator.Current.Kind != SyntaxKind.EndOfFileToken)
+            while (enumerator.MoveNext() && enumerator.Current!.Kind != SyntaxKind.EndOfFileToken)
                 builder.Add(enumerator.Current);
 
-            root = new(syntaxTree, ImmutableArray<MemberSyntax>.Empty, enumerator.Current);
+            root = new(syntaxTree, ImmutableArray<MemberSyntax>.Empty, enumerator.Current!);
             diagnostics = lexer.Diagnostics.ToImmutableArray();
         }
 
