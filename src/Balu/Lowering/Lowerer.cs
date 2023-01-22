@@ -1,5 +1,4 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Balu.Binding;
@@ -190,11 +189,11 @@ sealed class Lowerer : BoundTreeRewriter
         if (reachableStatements.Count == statement.Statements.Length) return statement;
         var builder = statement.Statements.ToBuilder();
         var unreachableReported = false;
-        for (int i = builder.Count - 1; i >= 0; i--)
+        for (int i = 0; i < builder.Count; i++)
         {
             var current = builder[i];
             if (reachableStatements.Contains(current)) continue;
-            builder.RemoveAt(i);
+            builder.RemoveAt(i--);
             // these kinds are injected by the lowerer, so these are not the relevant nodes.
             if (current.Kind is BoundNodeKind.GotoStatement or BoundNodeKind.ConditionalGotoStatement or BoundNodeKind.LabelStatement) continue;
             if (unreachableReported) continue;
