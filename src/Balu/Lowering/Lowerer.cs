@@ -158,7 +158,7 @@ sealed class Lowerer : BoundTreeRewriter
         return Visit(result);
     }
 
-    static BoundBlockStatement Flatten(BoundStatement statement, FunctionSymbol? containingFunction)
+    static BoundBlockStatement Flatten(BoundStatement statement)
     {
         var resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
         Stack<BoundStatement> stack = new();
@@ -174,14 +174,24 @@ sealed class Lowerer : BoundTreeRewriter
                 resultBuilder.Add(current);
         }
 
-        if (containingFunction?.ReturnType == TypeSymbol.Void && (resultBuilder.Count == 0 || CanFallThrough(resultBuilder.Last())))
-                resultBuilder.Add(new BoundReturnStatement(statement.Syntax, null));
-        
         return new (statement.Syntax, resultBuilder.ToImmutable());
+    }
+    static BoundBlockStatement Cleanup(BoundBlockStatement block)
+    {
+        var usedLabels = new HashSet<BoundLabel>(block.Statements.Where(s => s.Kind == BoundNodeKind.GotoStatement)
+                                                              .Select(s => ((BoundGotoStatement)s).Label)
+                                                              .Concat(block.Statements.Where(s => s.Kind == BoundNodeKind.ConditionalGotoStatement)
+                                                                               .Select(s => ((BoundConditionalGotoStatement)s).Label)));
+        var builder = block.Statements.ToBuilder();
+        for (int i = 0; i < builder.Count; i++)
+        {
+            var current = builder[i];
+            if (current.Kind == BoundNodeKind.NopStatement ||
+                current.Kind == BoundNodeKind.LabelStatement && !usedLabels.Contains(((BoundLabelStatement)current).Label))
+                builder.RemoveAt(i--);
+        }
 
-        static bool CanFallThrough(BoundStatement lastStatement) => 
-            lastStatement.Kind != BoundNodeKind.ReturnStatement &&
-            lastStatement.Kind != BoundNodeKind.GotoStatement;
+        return Block(block.Syntax, builder.ToImmutable());
     }
     static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics)
     {
@@ -194,9 +204,12 @@ sealed class Lowerer : BoundTreeRewriter
             var current = builder[i];
             if (reachableStatements.Contains(current)) continue;
             builder.RemoveAt(i--);
+            if (unreachableReported) continue;
+
             // these kinds are injected by the lowerer, so these are not the relevant nodes.
             if (current.Kind is BoundNodeKind.GotoStatement or BoundNodeKind.ConditionalGotoStatement or BoundNodeKind.LabelStatement) continue;
-            if (unreachableReported) continue;
+            if (current.Kind is BoundNodeKind.ReturnStatement && current.Syntax.Kind != SyntaxKind.ReturnStatement) continue;
+
             unreachableReported = true;
             diagnostics.ReportUnreachableCode(current.Syntax.Location);
         }
@@ -205,10 +218,22 @@ sealed class Lowerer : BoundTreeRewriter
     }
     public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics)
     {
-        var flat = Flatten((BoundStatement)new Lowerer().Visit(statement), containingFunction);
-        var controlFlowGraph = ControlFlowGraph.Create(flat);
+        var flat = Flatten((BoundStatement)new Lowerer().Visit(statement));
+        var cleanedUp = Cleanup(flat);
+
+        var controlFlowGraph = ControlFlowGraph.Create(cleanedUp);
         if (containingFunction is not null && containingFunction.ReturnType != TypeSymbol.Void && !controlFlowGraph.AllPathsReturn())
             diagnostics.ReportNotAllPathsReturn(containingFunction);
-        return RemoveDeadCode(flat, controlFlowGraph, diagnostics);
+
+        cleanedUp = RemoveDeadCode(cleanedUp, controlFlowGraph, diagnostics);
+        if (containingFunction?.ReturnType != TypeSymbol.Void || cleanedUp.Statements.Length > 0 && !CanFallThrough(cleanedUp.Statements.Last()))
+            return cleanedUp;
+
+        return Block(cleanedUp.Syntax, cleanedUp.Statements.Add(new BoundReturnStatement(statement.Syntax, null)));
+
+        static bool CanFallThrough(BoundStatement lastStatement) =>
+            lastStatement.Kind != BoundNodeKind.ReturnStatement &&
+            lastStatement.Kind != BoundNodeKind.GotoStatement;
+
     }
 }
