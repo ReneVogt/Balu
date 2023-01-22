@@ -49,7 +49,7 @@ public partial class ExecutionTests
     {
         "function test() : int { if false [return 0] [}]".AssertScriptEvaluation(@"
             Unreachable code detected.
-            Not all code paths of function 'test' return a value of type 'int'.");
+            Not all code paths of function 'test' return a value of type 'int'.", ignoreWarnings: false);
     }
     [Fact]
     public void Script_Return_ReportsNotAllPathsReturnForEmptyFunction()
