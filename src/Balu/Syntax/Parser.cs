@@ -67,7 +67,7 @@ sealed class Parser
     SyntaxToken Peek(int offset)
     {
         int index = position + offset;
-        return index >= tokens.Count ? tokens[^1] : tokens[index];
+        return index >= tokens.Count ? tokens.Last() : tokens[index];
     }
     SyntaxToken Current => Peek(0);
     SyntaxToken NextToken()

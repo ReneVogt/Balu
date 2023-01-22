@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.Linq;
 
 namespace Balu.Text;
 
@@ -59,7 +60,7 @@ public sealed class SourceText
             position += endings;
             lineStart = position;
         }
-        if (builder.Count == 0 || builder[^1].LengthIncludingNewLine > builder[^1].Length)
+        if (builder.Count == 0 || builder.Last().LengthIncludingNewLine > builder.Last().Length)
             builder.Add(new(sourceText, lineStart, text.Length - lineStart, text.Length - lineStart));
         return builder.ToImmutable();
     }

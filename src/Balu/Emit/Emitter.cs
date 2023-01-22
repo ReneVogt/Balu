@@ -77,8 +77,8 @@ sealed class Emitter : IDisposable
         if (method.Body.Instructions.Any())
         {
             method.DebugInformation.Scope = new(method.Body.Instructions.First(), method.Body.Instructions.Last());
-            foreach (var (symbol, definition) in locals)
-                method.DebugInformation.Scope.Variables.Add(new(definition, symbol.Name));
+            foreach (var x in locals)
+                method.DebugInformation.Scope.Variables.Add(new(x.Value, x.Key.Name));
         }
     }
     void EmitStatement(ILProcessor processor, BoundStatement statement)
@@ -579,8 +579,8 @@ sealed class Emitter : IDisposable
             methods.Add(function, CreateMethod(function));
 
         EmitMethod(methods[program.EntryPoint], program.EntryPoint);
-        foreach (var (function, method) in methods)
-            EmitMethod(method, function);
+        foreach (var x in methods)
+            EmitMethod(x.Value, x.Key);
 
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
 

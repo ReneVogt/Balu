@@ -240,7 +240,7 @@ sealed class ControlFlowGraph
         foreach (var block in Blocks)
         {
             var id = blockIds[block];
-            var label = Quote(block.ToString().Replace(Environment.NewLine, "\\l", StringComparison.InvariantCulture));
+            var label = Quote(block.ToString().Replace(Environment.NewLine, "\\l"));
             writer.WriteLine($"    {id} [label = {label}, shape = box]");
         }
         foreach (var edge in Edges)
@@ -252,7 +252,7 @@ sealed class ControlFlowGraph
         }
         writer.WriteLine("}");
 
-        static string Quote(string s) => $"\"{s.Replace("\"", "\\\"", StringComparison.InvariantCulture)}\"";
+        static string Quote(string s) => $"\"{s.Replace("\"", "\\\"")}\"";
     }
 
     public static ControlFlowGraph Create(BoundBlockStatement statement)

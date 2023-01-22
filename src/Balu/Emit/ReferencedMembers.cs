@@ -53,17 +53,16 @@ sealed class ReferencedMembers : IDisposable
         var voidTypeDefinition = ResolveTypeDefinition("System.Void");
         var randomTypeDefinition = ResolveTypeDefinition("System.Random");
         var debuggableAttributeTypeDefinition = ResolveTypeDefinition("System.Diagnostics.DebuggableAttribute");
-        if (diagnostics.HasErrors()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
-        Debug.Assert(
-            objectTypeDefinition is not null &&
-            consoleTypeDefinition is not null &&
-            stringTypeDefinition is not null &&
-            convertTypeDefinition is not null &&
-            intTypeDefinition is not null &&
-            boolTypeDefinition is not null &&
-            voidTypeDefinition is not null &&
-            randomTypeDefinition is not null &&
-            debuggableAttributeTypeDefinition is not null);
+        if (diagnostics.HasErrors() ||
+            objectTypeDefinition is null ||
+            consoleTypeDefinition is null ||
+            stringTypeDefinition is null ||
+            convertTypeDefinition is null ||
+            intTypeDefinition is null ||
+            boolTypeDefinition is null ||
+            voidTypeDefinition is null ||
+            randomTypeDefinition is null ||
+            debuggableAttributeTypeDefinition is null) throw new MissingReferencesException(diagnostics.ToImmutableArray());
 
         var consoleWrite = ResolveMethodDefinition(consoleTypeDefinition, "Write", new[] { "System.Object" });
         var consoleWriteLine = ResolveMethodDefinition(consoleTypeDefinition, "WriteLine", new[] { "System.Object" });

@@ -215,7 +215,7 @@ sealed class BoundTreePrinter : BoundTreeVisitor
         var texts = sequencePointStatement.Location.Text.ToString(sequencePointStatement.Location.Span).Split('\n');
         var text = texts.First().Trim();
         var tooLong = text.Length > 10;
-        if (tooLong) text = text[..10];
+        if (tooLong) text = text.Substring(0, 10);
         if (tooLong || texts.Length > 1) text += "...";
 
         writer.WritePunctuation($"seq: {text}");
