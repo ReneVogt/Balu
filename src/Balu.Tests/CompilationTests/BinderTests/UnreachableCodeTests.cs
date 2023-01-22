@@ -16,9 +16,12 @@ public class BinderTests
     {
         code.AssertScriptEvaluation(expectedDiagnostics: "Unreachable code detected.", ignoreWarnings: false);
     }
-    [Fact]
-    public void Lowerer_InjectedReturnIsNotUnreachable()
+    [Theory]
+    [InlineData("while true { return 42 }", 42)]
+    [InlineData("function test() { while true { return \r\n } }", null)]
+    [InlineData("function test() : int { while true { return 12 } }", null)]
+    public void Lowerer_InjectedReturnIsNotUnreachable(string code, object result)
     {
-        "while true { return 0 } ".AssertScriptEvaluation(value: 0, ignoreWarnings: false);
+        code.AssertScriptEvaluation(value: result, ignoreWarnings: false);
     }
 }
