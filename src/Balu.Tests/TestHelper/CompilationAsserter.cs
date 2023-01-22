@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Balu.Diagnostics;
 using Balu.Symbols;
 using Balu.Text;
 using Xunit;
@@ -9,14 +10,14 @@ namespace Balu.Tests.TestHelper;
 
 static class CompilationAsserter
 {
-    internal static (Compilation compilation, ImmutableDictionary<Symbol, object> globals) AssertScriptEvaluation(this string code, string? diagnostics = null, ImmutableDictionary<Symbol, object>? initializedGlobalVariables = null, IDictionary<GlobalVariableSymbol, object>? expectedGlobalVariables = null, object? value = null, Compilation? previous = null)
+    internal static (Compilation compilation, ImmutableDictionary<Symbol, object> globals) AssertScriptEvaluation(this string code, string? diagnostics = null, ImmutableDictionary<Symbol, object>? initializedGlobalVariables = null, IDictionary<GlobalVariableSymbol, object>? expectedGlobalVariables = null, object? value = null, Compilation? previous = null, bool ignoreWarnings = true)
     {
         var annotatedText = AnnotatedText.Parse(code);
         var compilation = Compilation.CreateScript(previous, SyntaxTree.Parse(annotatedText.Text));
-        var result = compilation.Evaluate(ReferenceProvider.References, initializedGlobalVariables ?? ImmutableDictionary<Symbol, object>.Empty);
+        var result = compilation.Evaluate(ReferenceProvider.References, initializedGlobalVariables ?? ImmutableDictionary<Symbol, object>.Empty, ignoreWarnings);
 
-        var numberOfDiagnostics = DiagnosticAsserter.AssertDiagnostics(annotatedText, result.Diagnostics, diagnostics);
-        if (numberOfDiagnostics > 0) return (compilation, result.GlobalSymbols);
+        DiagnosticAsserter.AssertDiagnostics(annotatedText, result.Diagnostics, diagnostics, ignoreWarnings);
+        if (result.Diagnostics.HasErrors() || !ignoreWarnings && result.Diagnostics.Any()) return (compilation, result.GlobalSymbols);
             
         Assert.Equal(value, result.Value);
         if (expectedGlobalVariables is null) return (compilation, result.GlobalSymbols);

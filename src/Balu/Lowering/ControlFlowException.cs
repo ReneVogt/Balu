@@ -1,4 +1,4 @@
-﻿namespace Balu.Binding;
+﻿namespace Balu.Lowering;
 #pragma warning disable CA1032
 
 public sealed class ControlFlowException : BaluException

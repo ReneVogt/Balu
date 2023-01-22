@@ -12,11 +12,11 @@ namespace Balu.Execution;
 
 static class Executer
 {
-    public static ExecutionResult Execute(BoundProgram program, string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols)
+    public static ExecutionResult Execute(BoundProgram program, string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols, bool ignoreWarnings)
     {
         using var memoryStream = new MemoryStream();
         var emitterResult = Emitter.Emit(program, "BaluInterpreter", referencedAssemblies, memoryStream, null, initializedGlobalSymbols);
-        if (emitterResult.Diagnostics.HasErrors())
+        if (emitterResult.Diagnostics.HasErrors() || !ignoreWarnings && emitterResult.Diagnostics.Any())
             return new(emitterResult.Diagnostics, null, initializedGlobalSymbols);
 
         memoryStream.Seek(0, SeekOrigin.Begin);
@@ -32,7 +32,7 @@ static class Executer
                                        .ToImmutableDictionary(
                                            x => x.Key,
                                            x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
-            return new(ImmutableArray<Diagnostic>.Empty, result, globals);
+            return new(emitterResult.Diagnostics, result, globals);
         }
         finally
         {

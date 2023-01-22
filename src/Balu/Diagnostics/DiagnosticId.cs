@@ -36,6 +36,7 @@ public enum DiagnosticId
     InvalidMainSignature,
     OnlyOneFileCanHaveGlobalStatements,
     NoEntryPointDefined,
+    UnreachableCode,
 
     Emitter = 2000,
     InvalidAssemblyReference,

@@ -7,6 +7,7 @@ using Balu.Binding;
 using Balu.Diagnostics;
 using Balu.Emit;
 using Balu.Execution;
+using Balu.Lowering;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
@@ -62,10 +63,10 @@ public sealed class Compilation
         IsScript = isScript;
     }
 
-    public ExecutionResult Evaluate(string[] referencedAssemblies) =>
-        Evaluate(referencedAssemblies, ImmutableDictionary<Symbol, object>.Empty);
-    public ExecutionResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols) =>
-        Executer.Execute(Program, referencedAssemblies, initializedGlobalSymbols);
+    public ExecutionResult Evaluate(string[] referencedAssemblies, bool ignoreWarnings = true) =>
+        Evaluate(referencedAssemblies, ImmutableDictionary<Symbol, object>.Empty, ignoreWarnings);
+    public ExecutionResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols, bool ignoreWarnings = true) =>
+        Executer.Execute(Program, referencedAssemblies, initializedGlobalSymbols, ignoreWarnings);
 
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath)
     {
