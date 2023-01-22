@@ -12,7 +12,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Balu\Balu.csproj" />
+	  <ProjectReference Include="..\Balu\Balu.csproj" />
+	  <ProjectReference Include="..\Balu.Interpretation\Balu.Interpretation.csproj" />
   </ItemGroup>
 
 </Project>

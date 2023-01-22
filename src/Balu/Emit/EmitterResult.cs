@@ -4,7 +4,7 @@ using Balu.Symbols;
 
 namespace Balu.Emit;
 
-sealed class EmitterResult
+public sealed class EmitterResult
 {
     public ImmutableArray<Diagnostic> Diagnostics { get; }
     public ImmutableDictionary<Symbol, string> GlobalSymbolNames { get; }

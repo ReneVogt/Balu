@@ -48,7 +48,7 @@ sealed class Emitter : IDisposable
         bool isVisilbe = program.VisibleSymbols.Contains(function);
         var name = isVisilbe ? function.Name : $"<{function.Name}{globals.Count}>";
         var attributes = MethodAttributes.Static | MethodAttributes.Private;
-        if (name.IsSpecialName()) attributes |= MethodAttributes.SpecialName;
+        if (name.IsBaluSpecialName()) attributes |= MethodAttributes.SpecialName;
         var method = new MethodDefinition(name, attributes, MapType(function.ReturnType));
         foreach (var parameter in function.Parameters)
             method.Parameters.Add(new (parameter.Name, ParameterAttributes.None, MapType(parameter.Type)));
@@ -495,7 +495,7 @@ sealed class Emitter : IDisposable
         processor.Body.Method.DebugInformation.SequencePoints.Add(sequencePoint);
     }
 
-    void EmitFields(ImmutableDictionary<Symbol, object> initializedSymbols)
+    void EmitFields(ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         var staticConstructor = new MethodDefinition(
             ".cctor", 
@@ -512,7 +512,7 @@ sealed class Emitter : IDisposable
         foreach(var global in program.Symbols.OfType<GlobalVariableSymbol>())
         {
             EmitField(global);
-            if (!initializedSymbols.TryGetValue(global, out var value)) continue;
+            if (!initializedGlobalVariables.TryGetValue(global, out var value)) continue;
             bool box = true;
             switch (value)
             {
@@ -566,14 +566,14 @@ sealed class Emitter : IDisposable
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
-    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<Symbol, object> initializedSymbols)
+    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         if (diagnostics.HasErrors()) return;
 
         debug = symbolStream is not null;
         EmitDebuggableAttribute();
 
-        EmitFields(initializedSymbols);
+        EmitFields(initializedGlobalVariables);
 
         foreach (var function in program.Functions.Keys)
             methods.Add(function, CreateMethod(function));
@@ -598,13 +598,13 @@ sealed class Emitter : IDisposable
         }
     }
 
-    public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<Symbol, object> initializedSymbols)
+    public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         try
         {
             if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
             using var emitter = new Emitter(program, moduleName, references);
-            emitter.Emit(outputStream, symbolStream, initializedSymbols);
+            emitter.Emit(outputStream, symbolStream, initializedGlobalVariables);
             return new(emitter.diagnostics.ToImmutableArray(), emitter.globalSymbolNames.ToImmutableDictionary());
         }
         catch (MissingReferencesException exception)

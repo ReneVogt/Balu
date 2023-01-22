@@ -1,15 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Threading;
+﻿using System.Diagnostics;
 
 #pragma warning disable CA1031
 
-namespace Balu.Interactive;
+namespace Balu.Interpretation;
 
-internal static class ReferencedAssembliesFinder
+static class ReferencedAssembliesFinder
 {
     static List<string>? referencedAssemblies;
 
