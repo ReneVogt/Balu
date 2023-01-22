@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Balu.Binding;
 using Balu.Symbols;
 using Balu.Syntax;
 
-namespace Balu.Binding;
+namespace Balu.Lowering;
 
 sealed class ControlFlowGraph
 {
@@ -17,7 +18,7 @@ sealed class ControlFlowGraph
         public List<Edge> Incoming { get; } = new();
         public List<Edge> Outgoing { get; } = new();
 
-        public Block(){}
+        public Block() { }
         public Block(bool isStart)
         {
             IsStart = isStart;
@@ -104,11 +105,11 @@ sealed class ControlFlowGraph
     {
         readonly List<Edge> edges = new();
 
-        public ControlFlowGraph Build(List<Block> blocks) 
+        public ControlFlowGraph Build(List<Block> blocks)
         {
             Block start = new(true);
             Block end = new(false);
-            
+
             if (blocks.Count == 0)
                 Connect(start, end);
             else
@@ -158,7 +159,8 @@ sealed class ControlFlowGraph
 
             bool removed;
             do
-            { var toRemove = blocks.Where(block => block.Incoming.Count == 0).ToArray();
+            {
+                var toRemove = blocks.Where(block => block.Incoming.Count == 0).ToArray();
                 removed = toRemove.Length > 0;
 
                 foreach (var block in toRemove)
@@ -203,14 +205,14 @@ sealed class ControlFlowGraph
                 case BoundNodeKind.LiteralExpression:
                     return (bool)((BoundLiteralExpression)condition).Value;
                 case BoundNodeKind.UnaryExpression:
-                {
-                    var unary = (BoundUnaryExpression)condition;
-                    var value = EvaluateCondition(unary.Operand);
-                    if (value is null) return null;
-                    return unary.Operator.OperatorKind == BoundUnaryOperatorKind.LogicalNegation
-                    ? !value.Value
-                    : null;
-                }
+                    {
+                        var unary = (BoundUnaryExpression)condition;
+                        var value = EvaluateCondition(unary.Operand);
+                        if (value is null) return null;
+                        return unary.Operator.OperatorKind == BoundUnaryOperatorKind.LogicalNegation
+                        ? !value.Value
+                        : null;
+                    }
                 default: return null;
             }
         }
@@ -259,9 +261,8 @@ sealed class ControlFlowGraph
         return new GraphBuilder().Build(blocks);
     }
 
-    public static bool AllPathsReturn(BoundBlockStatement body) => Create(body)
-                                                                   .End.Incoming
-                                                                   .All(incoming =>
-                                                                            incoming.From.Statements.LastOrDefault()?.Kind ==
-                                                                            BoundNodeKind.ReturnStatement);
+    public bool AllPathsReturn() => End.Incoming
+                                       .All(incoming =>
+                                                incoming.From.Statements.LastOrDefault()?.Kind ==
+                                                BoundNodeKind.ReturnStatement);
 }

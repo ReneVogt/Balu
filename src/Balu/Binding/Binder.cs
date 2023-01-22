@@ -442,8 +442,8 @@ sealed class Binder : SyntaxTreeVisitor
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
     }
 
-    static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction) =>
-        Lowerer.Lower(statement, containingFunction);
+    static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics) =>
+        Lowerer.Lower(statement, containingFunction, diagnostics);
 
     public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
     {
@@ -531,8 +531,9 @@ sealed class Binder : SyntaxTreeVisitor
         if (isScript && statementBuilder.LastOrDefault()?.Kind != BoundNodeKind.ReturnStatement)
         {
             binder.scope.TryLookupSymbol(GlobalSymbolNames.Result, out var resultField);
-            statementBuilder.Add(Return(syntaxNode.LastToken,
-                                        Variable(syntaxNode.LastToken,
+            var syntax = statementBuilder.LastOrDefault()?.Syntax ?? syntaxNode;
+            statementBuilder.Add(Return(syntax,
+                                        Variable(syntax,
                                                  (GlobalVariableSymbol)resultField)));
         }
 
@@ -542,7 +543,7 @@ sealed class Binder : SyntaxTreeVisitor
     }
     public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
     {
-        var diagnostics = globalScope.Diagnostics;
+        var diagnostics = new DiagnosticBag(globalScope.Diagnostics);
         var parentScope = CreateParentScope(isScript, globalScope);
 
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
@@ -554,20 +555,18 @@ sealed class Binder : SyntaxTreeVisitor
             var functionBinder = new Binder(isScript, parentScope, function);
             functionBinder.Visit(function.Declaration!.Body);
             var body = (BoundStatement)functionBinder.boundNode!;
-            var refactoredBody = Refactor(body, function);
-            if (function.ReturnType != TypeSymbol.Void && !ControlFlowGraph.AllPathsReturn(refactoredBody))
-                functionBinder.diagnostics.ReportNotAllPathsReturn(function);
+            var refactoredBody = Refactor(body, function, diagnostics);
             functionBodyBuilder.Add(function, refactoredBody);
-            diagnostics = diagnostics.AddRange(functionBinder.diagnostics);
+            diagnostics.AddRange(functionBinder.diagnostics);
         }
 
         if (!functionBodyBuilder.ContainsKey(globalScope.EntryPoint))
         {
-            var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint);
+            var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint, diagnostics);
             functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
         }
 
-        return new(globalScope.EntryPoint, globalScope.AllSymbols, globalScope.VisibleSymbols, functionBodyBuilder.ToImmutable(), diagnostics);
+        return new(globalScope.EntryPoint, globalScope.AllSymbols, globalScope.VisibleSymbols, functionBodyBuilder.ToImmutable(), diagnostics.ToImmutableArray());
     }
     static BoundScope CreateParentScope(bool isScript, BoundGlobalScope? previous)
     {

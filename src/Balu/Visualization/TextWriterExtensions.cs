@@ -48,9 +48,9 @@ public static class TextWriterExtensions
             var startLine = sourceText.Lines[diagnostic.Location.StartLine];
             var endLine = sourceText.Lines[diagnostic.Location.EndLine];
             int column = diagnostic.Location.Span.Start - startLine.Start;
-            bool warning = diagnostic.Severity == DiagnosticSeverity.Error;
-            var color = warning ? ConsoleColor.Yellow : ConsoleColor.Red;
-            WriteColoredText(textWriter, $"{diagnostic.Location}: {(warning ? "error" : "warning")} {diagnostic.IdString}: {diagnostic.Message}", color);
+            bool warning = diagnostic.Severity != DiagnosticSeverity.Error;
+            var color = warning ? ConsoleColor.DarkYellow : ConsoleColor.Red;
+            WriteColoredText(textWriter, $"{diagnostic.Location}: {(warning ? "warning" : "error")} {diagnostic.IdString}: {diagnostic.Message}", color);
             textWriter.WriteLine();
             if (diagnostic.Location.Span.Length > 0)
             {

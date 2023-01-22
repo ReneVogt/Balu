@@ -47,7 +47,9 @@ public partial class ExecutionTests
     [Fact]
     public void Script_Return_ReportsNotAllPathsReturn()
     {
-        "function test() : int { if false return 0 [}]".AssertScriptEvaluation("Not all code paths of function 'test' return a value of type 'int'.");
+        "function test() : int { if false [return 0] [}]".AssertScriptEvaluation(@"
+            Unreachable code detected.
+            Not all code paths of function 'test' return a value of type 'int'.");
     }
     [Fact]
     public void Script_Return_ReportsNotAllPathsReturnForEmptyFunction()

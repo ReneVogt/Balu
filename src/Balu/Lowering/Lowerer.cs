@@ -1,9 +1,11 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Balu.Binding;
+using Balu.Diagnostics;
 using Balu.Symbols;
-
+using Balu.Syntax;
 using static Balu.Binding.BoundNodeFactory;
 
 namespace Balu.Lowering;
@@ -32,14 +34,14 @@ sealed class Lowerer : BoundTreeRewriter
          *                         break:
          */
 
-        var syntax = doWhileStatement.Syntax;
+        var syntax = (DoWhileStatementSyntax)doWhileStatement.Syntax;
         var startLabel = GenerateNextLabel();
         var result = Block(syntax,
-                           Label(syntax, startLabel),
+                           Label(syntax.DoKeyword, startLabel),
                            doWhileStatement.Body,
-                           Label(syntax, doWhileStatement.ContinueLabel),
-                           GotoTrue(syntax, startLabel, doWhileStatement.Condition),
-                           Label(syntax, doWhileStatement.BreakLabel));
+                           Label(syntax.DoKeyword, doWhileStatement.ContinueLabel),
+                           GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition),
+                           Label(syntax.LastToken, doWhileStatement.BreakLabel));
         return Visit(result);
     }
     protected override BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement)
@@ -67,7 +69,7 @@ sealed class Lowerer : BoundTreeRewriter
          *   }
          */
 
-        var syntax = forStatement.Syntax;
+        var syntax = (ForStatementSyntax)forStatement.Syntax;
 
 
         var upperVariableDeclaration = ConstantDeclaration(syntax, "<upperBound>", forStatement.UpperBound);
@@ -75,13 +77,13 @@ sealed class Lowerer : BoundTreeRewriter
                            VariableDeclaration(syntax, forStatement.Variable, forStatement.LowerBound),
                            upperVariableDeclaration,
                            While(syntax,
-                                 LessOrEqual(syntax,
-                                             Variable(syntax, forStatement.Variable),
-                                             Variable(syntax, upperVariableDeclaration.Variable)),
-                                 Block(syntax,
+                                 LessOrEqual(syntax.ToKeyword,
+                                             Variable(syntax.IdentifierToken, forStatement.Variable),
+                                             Variable(syntax.UpperBound, upperVariableDeclaration.Variable)),
+                                 Block(syntax.Body,
                                        forStatement.Body,
-                                       Label(syntax, forStatement.ContinueLabel),
-                                       Increment(syntax, Variable(syntax, forStatement.Variable))),
+                                       Label(syntax.ForKeyword, forStatement.ContinueLabel),
+                                       Increment(syntax.ToKeyword, Variable(syntax.IdentifierToken, forStatement.Variable))),
                                  forStatement.BreakLabel,
                                  new($"<lowcontinue{labelCount++}>"))
         );
@@ -149,11 +151,11 @@ sealed class Lowerer : BoundTreeRewriter
         var syntax = whileStatement.Syntax;
 
         var result = Block(syntax,
-                           Label(syntax, whileStatement.ContinueLabel),
-                           GotoFalse(syntax, whileStatement.BreakLabel, whileStatement.Condition),
+                           Label(syntax.GetChild(0), whileStatement.ContinueLabel),
+                           GotoFalse(syntax.GetChild(0), whileStatement.BreakLabel, whileStatement.Condition),
                            whileStatement.Body,
-                           Goto(syntax, whileStatement.ContinueLabel),
-                           Label(syntax, whileStatement.BreakLabel));
+                           Goto(syntax.GetChild(0), whileStatement.ContinueLabel),
+                           Label(syntax.LastToken, whileStatement.BreakLabel));
         return Visit(result);
     }
 
@@ -182,18 +184,32 @@ sealed class Lowerer : BoundTreeRewriter
             lastStatement.Kind != BoundNodeKind.ReturnStatement &&
             lastStatement.Kind != BoundNodeKind.GotoStatement;
     }
-    static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement)
+    static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics)
     {
-        var flow = ControlFlowGraph.Create(statement);
-        var reachableStatements = flow.Blocks.SelectMany(block => block.Statements).ToHashSet();
+        var reachableStatements = controlFlowGraph.Blocks.SelectMany(block => block.Statements).ToHashSet();
         if (reachableStatements.Count == statement.Statements.Length) return statement;
         var builder = statement.Statements.ToBuilder();
+        var unreachableReported = false;
         for (int i = builder.Count - 1; i >= 0; i--)
         {
-            if (!reachableStatements.Contains(builder[i]))
-                builder.RemoveAt(i);
+            var current = builder[i];
+            if (reachableStatements.Contains(current)) continue;
+            builder.RemoveAt(i);
+            // these kinds are injected by the lowerer, so these are not the relevant nodes.
+            if (current.Kind is BoundNodeKind.GotoStatement or BoundNodeKind.ConditionalGotoStatement or BoundNodeKind.LabelStatement) continue;
+            if (unreachableReported) continue;
+            unreachableReported = true;
+            diagnostics.ReportUnreachableCode(current.Syntax.Location);
         }
+
         return new (statement.Syntax, builder.ToImmutable());
     }
-    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction) => RemoveDeadCode(Flatten((BoundStatement)new Lowerer().Visit(statement), containingFunction));
+    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics)
+    {
+        var flat = Flatten((BoundStatement)new Lowerer().Visit(statement), containingFunction);
+        var controlFlowGraph = ControlFlowGraph.Create(flat);
+        if (containingFunction is not null && containingFunction.ReturnType != TypeSymbol.Void && !controlFlowGraph.AllPathsReturn())
+            diagnostics.ReportNotAllPathsReturn(containingFunction);
+        return RemoveDeadCode(flat, controlFlowGraph, diagnostics);
+    }
 }
