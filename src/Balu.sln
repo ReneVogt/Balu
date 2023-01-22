@@ -30,6 +30,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balu.Sdk", "Balu.Sdk\Balu.S
 		{581F1500-768C-4827-9EA1-8E1CA482203C} = {581F1500-768C-4827-9EA1-8E1CA482203C}
 	EndProjectSection
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Balu.Interpretation", "Balu.Interpretation\Balu.Interpretation.csproj", "{027C6E62-1A28-4DC8-BF79-C0676C6C15E6}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -64,6 +66,10 @@ Global
 		{AF0AF9DD-06D0-4DFB-ABDA-7DC9A8316802}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF0AF9DD-06D0-4DFB-ABDA-7DC9A8316802}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF0AF9DD-06D0-4DFB-ABDA-7DC9A8316802}.Release|Any CPU.Build.0 = Release|Any CPU
+		{027C6E62-1A28-4DC8-BF79-C0676C6C15E6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{027C6E62-1A28-4DC8-BF79-C0676C6C15E6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{027C6E62-1A28-4DC8-BF79-C0676C6C15E6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{027C6E62-1A28-4DC8-BF79-C0676C6C15E6}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
