@@ -6,7 +6,6 @@ using System.Threading;
 using Balu.Binding;
 using Balu.Diagnostics;
 using Balu.Emit;
-using Balu.Execution;
 using Balu.Lowering;
 using Balu.Symbols;
 using Balu.Syntax;
@@ -55,6 +54,7 @@ public sealed class Compilation
 
     public FunctionSymbol? MainFunction => GlobalScope.EntryPoint;
     public ImmutableArray<Symbol> VisibleSymbols => GlobalScope.VisibleSymbols;
+    public ImmutableArray<Symbol> AllSymbols => GlobalScope.AllSymbols;
 
     Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
     {
@@ -62,11 +62,6 @@ public sealed class Compilation
         SyntaxTrees = syntaxTrees.DefaultIfEmpty(SyntaxTree.Parse(string.Empty)).ToImmutableArray();
         IsScript = isScript;
     }
-
-    public ExecutionResult Evaluate(string[] referencedAssemblies, bool ignoreWarnings = true) =>
-        Evaluate(referencedAssemblies, ImmutableDictionary<Symbol, object>.Empty, ignoreWarnings);
-    public ExecutionResult Evaluate(string[] referencedAssemblies, ImmutableDictionary<Symbol, object> initializedGlobalSymbols, bool ignoreWarnings = true) =>
-        Executer.Execute(Program, referencedAssemblies, initializedGlobalSymbols, ignoreWarnings);
 
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath)
     {
@@ -90,7 +85,14 @@ public sealed class Compilation
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
         _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
-        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, ImmutableDictionary<Symbol, object>.Empty).Diagnostics;
+        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, ImmutableDictionary<GlobalVariableSymbol, object>.Empty).Diagnostics;
+    }
+    public EmitterResult Emit(string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    {
+        _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
+        _ = references ?? throw new ArgumentNullException(nameof(references));
+        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, initializedGlobalVariables);
     }
 
     public void WriteSyntaxTrees(TextWriter writer)

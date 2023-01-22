@@ -14,6 +14,6 @@ public class BinderTests
     [InlineData("var a = 0 if false [a = 1] else a = 2 a")]
     public void Lowerer_ReportsUnreachableCode(string code)
     {
-        code.AssertScriptEvaluation(diagnostics: "Unreachable code detected.", ignoreWarnings: false);
+        code.AssertScriptEvaluation(expectedDiagnostics: "Unreachable code detected.", ignoreWarnings: false);
     }
 }
