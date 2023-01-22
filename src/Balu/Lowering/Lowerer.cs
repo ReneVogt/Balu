@@ -174,7 +174,7 @@ sealed class Lowerer : BoundTreeRewriter
                 resultBuilder.Add(current);
         }
 
-        if (containingFunction?.ReturnType == TypeSymbol.Void && (resultBuilder.Count == 0 || CanFallThrough(resultBuilder[^1])))
+        if (containingFunction?.ReturnType == TypeSymbol.Void && (resultBuilder.Count == 0 || CanFallThrough(resultBuilder.Last())))
                 resultBuilder.Add(new BoundReturnStatement(statement.Syntax, null));
         
         return new (statement.Syntax, resultBuilder.ToImmutable());
@@ -185,7 +185,7 @@ sealed class Lowerer : BoundTreeRewriter
     }
     static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics)
     {
-        var reachableStatements = controlFlowGraph.Blocks.SelectMany(block => block.Statements).ToHashSet();
+        var reachableStatements = new HashSet<BoundStatement>(controlFlowGraph.Blocks.SelectMany(block => block.Statements));
         if (reachableStatements.Count == statement.Statements.Length) return statement;
         var builder = statement.Statements.ToBuilder();
         var unreachableReported = false;

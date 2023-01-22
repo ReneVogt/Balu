@@ -295,23 +295,23 @@ sealed class Binder : SyntaxTreeVisitor
     }
     protected override void VisitContinueStatement(ContinueStatementSyntax node)
     {
-        if (!loopStack.TryPeek(out var frame))
+        if (loopStack.Count == 0)
         {
             diagnostics.ReportInvalidBreakOrContinue(node.ContinueKeyword);
             SetErrorStatement(node);
         }
 
-        boundNode = Goto(node, frame.continueLabel);
+        boundNode = Goto(node, loopStack.Peek().continueLabel);
     }
     protected override void VisitBreakStatement(BreakStatementSyntax node)
     {
-        if (!loopStack.TryPeek(out var frame))
+        if (loopStack.Count == 0)
         {
             diagnostics.ReportInvalidBreakOrContinue(node.BreakKeyword);
             SetErrorStatement(node);
         }
 
-        boundNode = Goto(node, frame.breakLabel);
+        boundNode = Goto(node, loopStack.Peek().breakLabel);
     }
     protected override void VisitReturnStatement(ReturnStatementSyntax node)
     {
