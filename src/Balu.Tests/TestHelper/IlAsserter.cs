@@ -28,7 +28,7 @@ static class IlAsserter
         var method = programType.Methods.Single(method => method.Name == methodToAssert);
         var il = string.Join(Environment.NewLine,
                              method.Body.Instructions.Select(
-                                 instruction => $"{instruction.OpCode}{(instruction.Operand is null ? "" : $" {instruction.Operand}")}"));
+                                 instruction => $"IL{instruction.Offset:0000}: {instruction.OpCode}{(instruction.Operand is null ? "" : $" {instruction.Operand}")}"));
         var expected = string.Join(Environment.NewLine, expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
         Assert.Equal(expected, il);
     }

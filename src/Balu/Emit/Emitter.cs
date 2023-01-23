@@ -180,7 +180,12 @@ sealed class Emitter : IDisposable
             return;
         }
 
-        // TODO: implement short-circuit evaluation for logical operations
+        if (expression.Operator.OperatorKind is BoundBinaryOperatorKind.LogicalAnd or BoundBinaryOperatorKind.LogicalOr)
+        {
+            EmitLogicalBinaryExpression(processor, expression);
+            return;
+        }
+
         EmitExpression(processor, expression.Left);
         EmitExpression(processor, expression.Right);
 
@@ -334,6 +339,19 @@ sealed class Emitter : IDisposable
                 break;
 
         }
+    }
+    void EmitLogicalBinaryExpression(ILProcessor processor, BoundBinaryExpression expression)
+    {
+        EmitExpression(processor, expression.Left);
+        processor.Emit(OpCodes.Dup);
+        var label = new BoundLabel("logical");
+        gotosToFix.Add((processor.Body.Instructions.Count, label));
+        processor.Emit(expression.Operator.OperatorKind == BoundBinaryOperatorKind.LogicalAnd ? OpCodes.Brfalse : OpCodes.Brtrue,
+                           Instruction.Create(OpCodes.Nop));
+        processor.Emit(OpCodes.Pop);
+        EmitExpression(processor, expression.Right);
+        labels.Add(label, processor.Body.Instructions.Count);
+
     }
     static void EmitConstantExpression(ILProcessor processor, BoundExpression expression)
     {
