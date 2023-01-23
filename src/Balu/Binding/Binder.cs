@@ -222,7 +222,9 @@ sealed class Binder : SyntaxTreeVisitor
 
         if (expression.Kind != BoundNodeKind.ErrorExpression &&
                  expression.Kind != BoundNodeKind.AssignmentExpression &&
-                 expression.Kind != BoundNodeKind.CallExpression)
+                 expression.Kind != BoundNodeKind.CallExpression &&
+                 expression.Kind != BoundNodeKind.PrefixExpression &&
+                 expression.Kind != BoundNodeKind.PostfixExpression)
             diagnostics.ReportInvalidExpressionStatement(node.Location);
         boundNode = Expression(node, expression);
     }

@@ -68,7 +68,7 @@ sealed class DiagnosticBag : List<Diagnostic>
             ? $"'{functionName}' does not have a return type and cannot return a value of type '{actualType}'."
             : $"'{functionName}' needs to return a value of type '{returnType}', not '{actualType}'."));
     public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(DiagnosticId.NotAllPathsReturn, function.Declaration?.Body.ClosedBraceToken.Location ?? default, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
-    public void ReportInvalidExpressionStatement(TextLocation location) => Add(new(DiagnosticId.InvalidExpressionStatement, location, "Only assignment or call expressions can be used as a statement."));
+    public void ReportInvalidExpressionStatement(TextLocation location) => Add(new(DiagnosticId.InvalidExpressionStatement, location, "Only assignment, call increment or decrement expressions can be used as a statement."));
     public void ReportCannotMixMainAndGlobalStatements(TextLocation location) =>
         Add(new(DiagnosticId.CannotMixMainANdGlobalStatements, location, $"Global statements cannot be mixed with a '{GlobalSymbolNames.Main}' function."));
     public void ReportInvalidMainSignature(TextLocation location) =>
