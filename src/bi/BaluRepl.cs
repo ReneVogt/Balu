@@ -19,8 +19,8 @@ namespace Balu.Interactive;
 
 sealed class BaluRepl : Repl
 {
-    bool showSyntax, showVars, showProgram;
-    readonly Interpreter interpreter = new();
+    bool showVars;
+    readonly Interpreter interpreter = new() {Out = Console.Out, Error = Console.Error};
 
 
     public BaluRepl()
@@ -32,25 +32,9 @@ sealed class BaluRepl : Repl
 
     protected override void EvaluateSubmission(string text)
     {
-        Console.ForegroundColor = ConsoleColor.DarkYellow;
-        interpreter.AddCode(text);
-        if (showSyntax)
-        {
-            Console.Out.WriteColoredText("Syntax:", ConsoleColor.Yellow);
-            Console.Out.WriteLine();
-            interpreter.Compilation.WriteSyntaxTrees(Console.Out);
-        }
-        if (showProgram)
-        {
-            Console.Out.WriteColoredText("Program:", ConsoleColor.Yellow);
-            Console.Out.WriteLine();
-            interpreter.Compilation.WriteBoundGlobalTree(Console.Out);
-        }
-
         Console.ForegroundColor = ConsoleColor.White;
-        var diagnostics = interpreter.Execute();
+        var diagnostics = interpreter.Execute(text);
         Console.ResetColor();
-        Console.Out.WriteDiagnostics(diagnostics);
         if (diagnostics.HasErrors()) return;
         
         if (interpreter.Result is not null)
@@ -150,14 +134,14 @@ sealed class BaluRepl : Repl
     [MetaCommand("showSyntax", "Toggles display of the syntax tree.")]
     void ShowSyntax()
     {
-        showSyntax = !showSyntax;
-        Console.WriteLine(showSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
+        interpreter.WriteSyntax = !interpreter.WriteSyntax;
+        Console.WriteLine(interpreter.WriteSyntax ? "Showing syntax tree." : "Not showing syntax tree.");
     }
     [MetaCommand("showProgram", "Toggles display of the bound program.")]
     void ShowProgram()
     {
-        showProgram = !showProgram;
-        Console.WriteLine(showProgram ? "Showing program tree." : "Not showing program tree.");
+        interpreter.WriteProgram = !interpreter.WriteProgram;
+        Console.WriteLine(interpreter.WriteProgram ? "Showing program tree." : "Not showing program tree.");
     }
     [MetaCommand("showVars", "Toggles display of variables' content.")]
     void ShowVariables()

@@ -1,7 +1,7 @@
 ﻿using Balu.Tests.TestHelper;
 using Xunit;
 
-namespace Balu.Tests.CompilationTests.EmitterTests;
+namespace Balu.Tests.EmitterTests;
 
 public class EmitterTests
 {

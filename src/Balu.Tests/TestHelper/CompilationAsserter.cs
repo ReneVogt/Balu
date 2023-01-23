@@ -15,8 +15,7 @@ class CompilationAsserter
                                          bool ignoreWarnings = true)
     {
         var annotatedText = AnnotatedText.Parse(code);
-        Interpreter.AddCode(annotatedText.Text);
-        var actualDiagnostics = Interpreter.Execute(ignoreWarnings);
+        var actualDiagnostics = Interpreter.Execute(annotatedText.Text, ignoreWarnings);
 
         DiagnosticAsserter.AssertDiagnostics(annotatedText, actualDiagnostics, expectedDiagnostics, ignoreWarnings);
         if (actualDiagnostics.HasErrors() || !ignoreWarnings && actualDiagnostics.Any()) return;

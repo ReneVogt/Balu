@@ -1,7 +1,7 @@
 ﻿using Balu.Tests.TestHelper;
 using Xunit;
 
-namespace Balu.Tests.CompilationTests.BinderTests;
+namespace Balu.Tests.BinderTests;
 
 public class BinderTests
 {

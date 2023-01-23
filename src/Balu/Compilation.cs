@@ -58,6 +58,8 @@ public sealed class Compilation
 
     Compilation(bool isScript, Compilation? previous, params SyntaxTree[] syntaxTrees)
     {
+        if (previous?.Diagnostics.HasErrors() == true)
+            throw new ArgumentException("A compilation can only be continued if it does not contain any errors.", nameof(previous));
         this.previous = previous;
         SyntaxTrees = syntaxTrees.DefaultIfEmpty(SyntaxTree.Parse(string.Empty)).ToImmutableArray();
         IsScript = isScript;

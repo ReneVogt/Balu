@@ -14,8 +14,7 @@ static class StaticCompilationAsserter{
     {
         var annotatedText = AnnotatedText.Parse(code);
         var interpreter = new Interpreter();
-        interpreter.AddCode(annotatedText.Text);
-        var actualDiagnostics = interpreter.Execute(ignoreWarnings);
+        var actualDiagnostics = interpreter.Execute(annotatedText.Text, ignoreWarnings);
 
         DiagnosticAsserter.AssertDiagnostics(annotatedText, actualDiagnostics, expectedDiagnostics, ignoreWarnings);
         if (actualDiagnostics.HasErrors() || !ignoreWarnings && actualDiagnostics.Any()) return;
