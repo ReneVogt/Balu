@@ -5,7 +5,7 @@ namespace Balu.Binding;
 
 sealed partial class BoundPrefixExpression : BoundExpression
 {
-    public override BoundNodeKind Kind => BoundNodeKind.PostfixExpression;
+    public override BoundNodeKind Kind => BoundNodeKind.PrefixExpression;
     public override TypeSymbol Type => Operator.Type;
     public override bool HasSideEffects => true;
 

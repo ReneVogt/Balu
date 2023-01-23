@@ -64,4 +64,65 @@ public partial class ParserTests
         e.AssertToken(SyntaxKind.MinusMinusToken);
         e.AssertToken(SyntaxKind.EndOfFileToken);
     }
+    [Fact]
+    public void Parser_PostfixDecrementExpressionInBinary_CorrectExpressionStatementSyntax()
+    {
+        var tree = SyntaxTree.Parse("a = b-- c");
+        using var e = new SyntaxTreeAsserter(tree.Root);
+        e.AssertNode(SyntaxKind.CompilationUnit);
+        e.AssertNode(SyntaxKind.GlobalStatement);
+        e.AssertNode(SyntaxKind.ExpressionStatement);
+        e.AssertNode(SyntaxKind.AssignmentExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "a");
+        e.AssertToken(SyntaxKind.EqualsToken);
+        e.AssertNode(SyntaxKind.PostfixExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "b");
+        e.AssertToken(SyntaxKind.MinusMinusToken);
+        e.AssertNode(SyntaxKind.GlobalStatement);
+        e.AssertNode(SyntaxKind.ExpressionStatement);
+        e.AssertNode(SyntaxKind.NameExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "c");
+        e.AssertToken(SyntaxKind.EndOfFileToken);
+    }
+    [Fact]
+    public void Parser_PostfixDecrementExpressionInBinaryFollowedByNameExpression_CorrectExpressionStatementSyntax()
+    {
+        var tree = SyntaxTree.Parse("var a = b + c-- d");
+        using var e = new SyntaxTreeAsserter(tree.Root);
+        e.AssertNode(SyntaxKind.CompilationUnit);
+        e.AssertNode(SyntaxKind.GlobalStatement);
+        e.AssertNode(SyntaxKind.VariableDeclarationStatement);
+        e.AssertToken(SyntaxKind.VarKeyword);
+        e.AssertToken(SyntaxKind.IdentifierToken, "a");
+        e.AssertToken(SyntaxKind.EqualsToken);
+        e.AssertNode(SyntaxKind.BinaryExpression);
+        e.AssertNode(SyntaxKind.NameExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "b");
+        e.AssertToken(SyntaxKind.PlusToken);
+        e.AssertNode(SyntaxKind.PostfixExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "c");
+        e.AssertToken(SyntaxKind.MinusMinusToken);
+        e.AssertNode(SyntaxKind.GlobalStatement);
+        e.AssertNode(SyntaxKind.ExpressionStatement);
+        e.AssertNode(SyntaxKind.NameExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "d");
+        e.AssertToken(SyntaxKind.EndOfFileToken);
+    }
+    [Fact]
+    public void Parser_PostfixIncrementExpressionInLogicalBinaryExpression_CorrectExpressionStatementSyntax()
+    {
+        var tree = SyntaxTree.Parse("a++ > b");
+        using var e = new SyntaxTreeAsserter(tree.Root);
+        e.AssertNode(SyntaxKind.CompilationUnit);
+        e.AssertNode(SyntaxKind.GlobalStatement);
+        e.AssertNode(SyntaxKind.ExpressionStatement);
+        e.AssertNode(SyntaxKind.BinaryExpression);
+        e.AssertNode(SyntaxKind.PostfixExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "a");
+        e.AssertToken(SyntaxKind.PlusPlusToken);
+        e.AssertToken(SyntaxKind.GreaterToken);
+        e.AssertNode(SyntaxKind.NameExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "b");
+        e.AssertToken(SyntaxKind.EndOfFileToken);
+    }
 }

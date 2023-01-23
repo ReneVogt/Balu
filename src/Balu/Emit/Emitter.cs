@@ -147,6 +147,12 @@ sealed class Emitter : IDisposable
             case BoundNodeKind.ConversionExpression:
                 EmitConversionExpression(processor, (BoundConversionExpression)expression);
                 break;
+            case BoundNodeKind.PrefixExpression:
+                EmitPrefixExpression(processor, (BoundPrefixExpression)expression);
+                break;
+            case BoundNodeKind.PostfixExpression:
+                EmitPostfixExpression(processor, (BoundPostfixExpression)expression);
+                break;
             default:
                 throw new EmitterException($"Invalid expression kind '{expression.Kind}'.");
         }
@@ -364,43 +370,50 @@ sealed class Emitter : IDisposable
         else
             throw new EmitterException($"Unexpected literal expression type '{expression.Type}'.");
     }
-    void EmitVariableExpression(ILProcessor processor, BoundVariableExpression expression)
+    void EmitVariableExpression(ILProcessor processor, BoundVariableExpression expression) => EmitLoadVarialble(processor, expression.Variable);
+    void EmitLoadVarialble(ILProcessor processor, VariableSymbol variable)
     {
-        switch (expression.Variable.Kind)
+        switch (variable.Kind)
         {
             case SymbolKind.Parameter:
-                processor.Emit(OpCodes.Ldarg, ((ParameterSymbol)expression.Variable).Ordinal);
+                processor.Emit(OpCodes.Ldarg, ((ParameterSymbol)variable).Ordinal);
                 break;
             case SymbolKind.LocalVariable:
-                var variableDefinition = locals[(LocalVariableSymbol)expression.Variable];
+                var variableDefinition = locals[(LocalVariableSymbol)variable];
                 processor.Emit(OpCodes.Ldloc, variableDefinition);
                 break;
             case SymbolKind.GlobalVariable:
-                var fieldDefinition = globals[(GlobalVariableSymbol)expression.Variable];
+                var fieldDefinition = globals[(GlobalVariableSymbol)variable];
                 processor.Emit(OpCodes.Ldsfld, fieldDefinition);
                 break;
             default:
-                throw new EmitterException($"Unexpected symbol kind '{expression.Variable.Kind}' in variable expression.");
+                throw new EmitterException($"Unexpected symbol kind '{variable.Kind}' when loading a variable.");
         }
+
+    }
+    void EmitWriteVariable(ILProcessor processor, VariableSymbol variable)
+    {
+        switch (variable.Kind)
+        {
+            case SymbolKind.Parameter:
+                processor.Emit(OpCodes.Starg, ((ParameterSymbol)variable).Ordinal);
+                break;
+            case SymbolKind.GlobalVariable:
+                processor.Emit(OpCodes.Stsfld, globals[(GlobalVariableSymbol)variable]);
+                break;
+            case SymbolKind.LocalVariable:
+                processor.Emit(OpCodes.Stloc, locals[(LocalVariableSymbol)variable]);
+                break;
+            default:
+                throw new EmitterException($"Unexpected symbol kind '{variable.Kind}' when storing a variable..");
+        }
+
     }
     void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression)
     {
         EmitExpression(processor, expression.Expression);
         processor.Emit(OpCodes.Dup);
-        switch (expression.Symbol.Kind)
-        {
-            case SymbolKind.Parameter:
-                processor.Emit(OpCodes.Starg, ((ParameterSymbol)expression.Symbol).Ordinal);
-                break;
-            case SymbolKind.GlobalVariable:
-                processor.Emit(OpCodes.Stsfld, globals[(GlobalVariableSymbol)expression.Symbol]);
-                break;
-            case SymbolKind.LocalVariable:
-                processor.Emit(OpCodes.Stloc, locals[(LocalVariableSymbol)expression.Symbol]);
-                break;
-            default:
-                throw new EmitterException($"Unexpected symbol kind '{expression.Symbol.Kind}' in assignment expression.");
-        }
+        EmitWriteVariable(processor, expression.Symbol);
     }
     void EmitCallExpression(ILProcessor processor, BoundCallExpression expression)
     {
@@ -436,6 +449,22 @@ sealed class Emitter : IDisposable
             processor.Emit(OpCodes.Call, referencedMembers.ConvertToString);
         else 
             throw new EmitterException($"Unexpected conversion from '{expression.Expression.Type}' to '{expression.Type}'.");
+    }
+    void EmitPrefixExpression(ILProcessor processor, BoundPrefixExpression expression)
+    {
+        EmitLoadVarialble(processor, expression.Variable);
+        processor.Emit(OpCodes.Ldc_I4_1);
+        processor.Emit(expression.Operator.OperatorKind == BoundBinaryOperatorKind.Addition ? OpCodes.Add : OpCodes.Sub);
+        processor.Emit(OpCodes.Dup);
+        EmitWriteVariable(processor, expression.Variable);
+    }
+    void EmitPostfixExpression(ILProcessor processor, BoundPostfixExpression expression)
+    {
+        EmitLoadVarialble(processor, expression.Variable);
+        processor.Emit(OpCodes.Dup);
+        processor.Emit(OpCodes.Ldc_I4_1);
+        processor.Emit(expression.Operator.OperatorKind == BoundBinaryOperatorKind.Addition ? OpCodes.Add : OpCodes.Sub);
+        EmitWriteVariable(processor, expression.Variable);
     }
     void EmitVariableDeclarationStatement(ILProcessor processor, BoundVariableDeclarationStatement statement)
     {
