@@ -57,6 +57,7 @@ public static class TextWriterExtensions
                 textWriter.Write("    ");
                 textWriter.Write(sourceText.ToString(startLine.Start, column));
                 textWriter.WriteColoredText(sourceText.ToString(diagnostic.Location.Span.Start, startLine.End-diagnostic.Location.Span.Start), color);
+                textWriter.WriteLine();
                 for (int i = diagnostic.Location.StartLine + 1; i < diagnostic.Location.EndLine; i++)
                 {
                     textWriter.Write("    ");
