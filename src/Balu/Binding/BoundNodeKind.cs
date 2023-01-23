@@ -10,6 +10,8 @@ enum BoundNodeKind
     CallExpression,
     ConversionExpression,
     ErrorExpression,
+    PostfixExpression,
+    PrefixExpression,
 
     BlockStatement,
     ExpressionStatement,

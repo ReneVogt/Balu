@@ -57,4 +57,7 @@ static class BoundNodeFactory
     public static BoundVariableExpression Variable(SyntaxNode syntax, VariableSymbol variable) => new(syntax, variable);
     public static BoundWhileStatement While(SyntaxNode syntax, BoundExpression condition, BoundStatement body, BoundLabel breakLabel,
                                             BoundLabel continueLabel) => new(syntax, condition, body, breakLabel, continueLabel);
+
+    public static BoundPrefixExpression Prefix(SyntaxNode syntax, BoundBinaryOperator op, VariableSymbol variable) => new(syntax, op, variable);
+    public static BoundPostfixExpression Postfix(SyntaxNode syntax, VariableSymbol variable, BoundBinaryOperator op) => new(syntax, variable, op);
 }
