@@ -272,6 +272,12 @@ abstract class Repl
         return state;
     }
 
+    protected void AddToHistory(string text)
+    {
+        history.Add(text);
+        historyIndex = 0;
+    }
+
     [MetaCommand("clearHistory", "Clears the input history.")]
     protected void ClearHistory() => history.Clear();
 
@@ -512,14 +518,11 @@ abstract class Repl
             {
                 var text = EditSubmission();
                 if (string.IsNullOrWhiteSpace(text)) continue;
+                AddToHistory(text);
                 if (text.StartsWith('#'))
                     EvaluateMetaCommand(text);
                 else
-                {
-                    history.Add(text);
-                    historyIndex = 0;
                     EvaluateSubmission(text);
-                }
             }
             catch (Exception exception)
             {

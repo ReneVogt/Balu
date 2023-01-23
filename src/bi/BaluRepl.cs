@@ -94,7 +94,7 @@ sealed class BaluRepl : Repl
         if (files.Length == 0) return;
         loadingSubmission = true;
         Console.Out.WritePunctuation($"Loading {files.Length} submissions...{Environment.NewLine}");
-        foreach (var text in files.Select(File.ReadAllText)) EvaluateSubmission(text);
+        foreach (var text in files.Select(File.ReadAllText)) { AddToHistory(text); EvaluateSubmission(text);}
         loadingSubmission = false;
     }
     void SaveSubmission(string text)
