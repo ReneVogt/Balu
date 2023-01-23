@@ -119,8 +119,10 @@ sealed class Lexer
         {
             ('\0', _) => SyntaxKind.EndOfFileToken,
             ('+', '=') => SyntaxKind.PlusEqualsToken,
+            ('+', '+') => SyntaxKind.PlusPlusToken,
             ('+', _) => SyntaxKind.PlusToken,
             ('-', '=') => SyntaxKind.MinusEqualsToken,
+            ('-', '-') => SyntaxKind.MinusMinusToken,
             ('-', _) => SyntaxKind.MinusToken,
             ('*', '=') => SyntaxKind.StarEqualsToken,
             ('*', _) => SyntaxKind.StarToken,

@@ -10,9 +10,9 @@ public partial class ExecutionTests
     {
         const string text = "42 * 17 function test() { [2*12] do {[17*12] }while false} do {[1+1]} while false";
         const string diagnostics = @"
-            Only assignment or call expressions can be used as a statement.
-            Only assignment or call expressions can be used as a statement.
-            Only assignment or call expressions can be used as a statement.
+            Only assignment, call increment or decrement expressions can be used as a statement.
+            Only assignment, call increment or decrement expressions can be used as a statement.
+            Only assignment, call increment or decrement expressions can be used as a statement.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }
