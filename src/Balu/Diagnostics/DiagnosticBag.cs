@@ -30,6 +30,10 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(DiagnosticId.UnaryOperatorTypeMismtach, operatorToken.Location, $"Unary operator '{operatorToken.Text}' cannot be applied to type '{type.Name}'."));
     public void ReportBinaryOperatorTypeMismatch(SyntaxToken operatorToken, TypeSymbol left, TypeSymbol right) => Add(
         new(DiagnosticId.BinaryOperatorTypeMismatch, operatorToken.Location, $"Binary operator '{operatorToken.Text}' cannot be applied to types '{left.Name}' and '{right.Name}'."));
+    public void ReportPostfixExpressionTypeMismatch(PostfixExpressionSyntax syntax, TypeSymbol variableType) => Add(
+        new(DiagnosticId.PostfixExpressionTypeMismatch, syntax.Location, $"Postfix operator '{syntax.OperatorToken.Text}' cannot be applied to type '{variableType.Name}'."));
+    public void ReportPrefixExpressionTypeMismatch(PrefixExpressionSyntax syntax, TypeSymbol variableType) => Add(
+        new(DiagnosticId.PrefixExpressionTypeMismatch, syntax.Location, $"Prefix operator '{syntax.OperatorToken.Text}' cannot be applied to type '{variableType.Name}'."));
     public void ReportUndefinedName(SyntaxToken identifierToken) => Add(new(DiagnosticId.UndefinedName, identifierToken.Location, $"Undefined name '{identifierToken.Text}'."));
     public void ReportCannotConvert(TextLocation location, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(DiagnosticId.CannotConvert, location, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'."));
     public void ReportCannotConvertImplicit(TextLocation location, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(DiagnosticId.CannotConvertImplicit, location, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'. An explicit conversion exists, are you missing a cast?"));

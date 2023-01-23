@@ -141,6 +141,75 @@ sealed class Binder : SyntaxTreeVisitor
 
         boundNode = Assignment(node, variable, Binary(node, Variable(node.IdentifierToken, variable), op, right));
     }
+    protected override void VisitPostfixExpression(PostfixExpressionSyntax node)
+    {
+        var name = node.IdentifierToken.Text;
+        if (!scope.TryLookupSymbol(name, out var symbol))
+        {
+            diagnostics.ReportUndefinedVariable(node.IdentifierToken);
+            SetErrorExpression(node.IdentifierToken);
+            return;
+        }
+        if (symbol.Kind != SymbolKind.GlobalVariable && symbol.Kind != SymbolKind.LocalVariable && symbol.Kind != SymbolKind.Parameter)
+        {
+            diagnostics.ReportSymbolNoVariable(node.IdentifierToken, symbol.Kind);
+            SetErrorExpression(node);
+            return;
+        }
+
+        var variable = (VariableSymbol)symbol;
+        if (variable.ReadOnly)
+        {
+            diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
+            SetErrorExpression(node.IdentifierToken);
+            return;
+        }
+
+        var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, variable.Type, TypeSymbol.Integer);
+        if (op is null)
+        {
+            diagnostics.ReportPostfixExpressionTypeMismatch(node, variable.Type);
+            SetErrorExpression(node);
+            return;
+        }
+
+        boundNode = Postfix(node, variable, op);
+    }
+    protected override void VisitPrefixExpression(PrefixExpressionSyntax node)
+    {
+        var name = node.IdentifierToken.Text;
+        if (!scope.TryLookupSymbol(name, out var symbol))
+        {
+            diagnostics.ReportUndefinedVariable(node.IdentifierToken);
+            SetErrorExpression(node.IdentifierToken);
+            return;
+        }
+        if (symbol.Kind != SymbolKind.GlobalVariable && symbol.Kind != SymbolKind.LocalVariable && symbol.Kind != SymbolKind.Parameter)
+        {
+            diagnostics.ReportSymbolNoVariable(node.IdentifierToken, symbol.Kind);
+            SetErrorExpression(node);
+            return;
+        }
+
+        var variable = (VariableSymbol)symbol;
+        if (variable.ReadOnly)
+        {
+            diagnostics.ReportVariableIsReadOnly(node.IdentifierToken);
+            SetErrorExpression(node.IdentifierToken);
+            return;
+        }
+
+        var op = BoundBinaryOperator.Bind(node.OperatorToken.Kind, variable.Type, TypeSymbol.Integer);
+        if (op is null)
+        {
+            diagnostics.ReportPrefixExpressionTypeMismatch(node, variable.Type);
+            SetErrorExpression(node);
+            return;
+        }
+
+        boundNode = Prefix(node, op, variable);
+
+    }
     protected override void VisitCallExpression(CallExpressionSyntax node)
     {
         if (node.Arguments.Count == 1 && LookupType(node.Identifier.Text) is { } castType)

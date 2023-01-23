@@ -12,6 +12,8 @@ public enum DiagnosticId
     Binder = 1000,
     UnaryOperatorTypeMismtach,
     BinaryOperatorTypeMismatch,
+    PrefixExpressionTypeMismatch,
+    PostfixExpressionTypeMismatch,
     UndefinedName,
     CannotConvert,
     CannotConvertImplicit,
