@@ -23,8 +23,8 @@ public partial class EmitterTests
             IL0004: ldc.i4.1
             IL0005: sub
             IL0006: stloc.0
-            IL0008: stloc.1
-            IL0009: ret
+            IL0007: stloc.1
+            IL0008: ret
 ";
 
         code.AssertIl("test", IL);
@@ -45,10 +45,10 @@ public partial class EmitterTests
             IL0002: ldloc.0
             IL0003: dup
             IL0004: ldc.i4.1
-            IL0004: add
-            IL0005: stloc.0
-            IL0006: pop
-            IL0007: ret
+            IL0005: add
+            IL0006: stloc.0
+            IL0007: pop
+            IL0008: ret
 ";
 
         code.AssertIl("test", IL);
