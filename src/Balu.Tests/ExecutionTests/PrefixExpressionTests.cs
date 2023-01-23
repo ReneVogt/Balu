@@ -16,5 +16,9 @@ public partial class ExecutionTests
     [Theory]
     [InlineData("var a = 12 var b = ++a a+b", 26)]
     [InlineData("var a = 12 --a", 11)]
+    [InlineData("var a = 12 var b = 2 var c = a + ++b", 15)]
+    [InlineData("var a = 12 var b = 2 var c = a + b++", 14)]
+    [InlineData("var a = 12 var b = 2 var c = a + --b", 13)]
+    [InlineData("var a = 12 var b = 2 var c = a + b--", 14)]
     public void Script_PrefixExpression_CorrectResult(string code, object result) => code.AssertScriptEvaluation(value: result);
 }
