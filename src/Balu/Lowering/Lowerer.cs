@@ -176,18 +176,45 @@ sealed class Lowerer : BoundTreeRewriter
 
         return new (statement.Syntax, resultBuilder.ToImmutable());
     }
-    static BoundBlockStatement Cleanup(BoundBlockStatement block)
+    static BoundBlockStatement RemoveDebris(BoundBlockStatement block)
     {
-        var usedLabels = new HashSet<BoundLabel>(block.Statements.Where(s => s.Kind == BoundNodeKind.GotoStatement)
-                                                              .Select(s => ((BoundGotoStatement)s).Label)
-                                                              .Concat(block.Statements.Where(s => s.Kind == BoundNodeKind.ConditionalGotoStatement)
-                                                                               .Select(s => ((BoundConditionalGotoStatement)s).Label)));
         var builder = block.Statements.ToBuilder();
+
+        // remove nops
+        for (int i = 0; i < builder.Count; i++)
+        {
+            if (builder[i].Kind == BoundNodeKind.NopStatement)
+                builder.RemoveAt(i);
+        }
+
+        // collapse redundant gotos
+        for (int i = 0; i < builder.Count-1; i++)
+        {
+            var next = builder[i + 1];
+            if (next.Kind != BoundNodeKind.LabelStatement) continue;
+            var label = ((BoundLabelStatement)next).Label;
+
+            var current = builder[i];
+#pragma warning disable CA1508
+            if ((current.Kind != BoundNodeKind.GotoStatement || ((BoundGotoStatement)current).Label != label) &&
+                (current.Kind != BoundNodeKind.ConditionalGotoStatement|| ((BoundConditionalGotoStatement)current).Label != label)) continue;
+#pragma warning restore CA1508
+
+            builder.RemoveAt(i + 1);
+            builder.RemoveAt(i);
+            i -= 2;
+        }
+
+
+        // remove unused lables
+        var usedLabels = new HashSet<BoundLabel>(builder.Where(s => s.Kind == BoundNodeKind.GotoStatement)
+                                                        .Select(s => ((BoundGotoStatement)s).Label)
+                                                        .Concat(builder.Where(s => s.Kind == BoundNodeKind.ConditionalGotoStatement)
+                                                                       .Select(s => ((BoundConditionalGotoStatement)s).Label)));
         for (int i = 0; i < builder.Count; i++)
         {
             var current = builder[i];
-            if (current.Kind == BoundNodeKind.NopStatement ||
-                current.Kind == BoundNodeKind.LabelStatement && !usedLabels.Contains(((BoundLabelStatement)current).Label))
+            if (current.Kind == BoundNodeKind.LabelStatement && !usedLabels.Contains(((BoundLabelStatement)current).Label))
                 builder.RemoveAt(i--);
         }
 
@@ -195,45 +222,59 @@ sealed class Lowerer : BoundTreeRewriter
     }
     static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics)
     {
-        var reachableStatements = new HashSet<BoundStatement>(controlFlowGraph.Blocks.SelectMany(block => block.Statements));
-        if (reachableStatements.Count == statement.Statements.Length) return statement;
+        var unreachableStatements = new HashSet<BoundStatement>(
+            controlFlowGraph.DeadBlocks.SelectMany(deadBlock => deadBlock.Statements.Where(IsNotInjected)));
+        if (unreachableStatements.Count == 0) return statement;
         var builder = statement.Statements.ToBuilder();
-        var unreachableReported = false;
         for (int i = 0; i < builder.Count; i++)
         {
             var current = builder[i];
-            if (reachableStatements.Contains(current)) continue;
-            builder.RemoveAt(i--);
-            if (unreachableReported) continue;
+            if (unreachableStatements.Contains(current))
+                builder.RemoveAt(i--);
+        }
 
-            // these kinds are injected by the lowerer, so these are not the relevant nodes.
-            if (current.Kind is BoundNodeKind.GotoStatement or BoundNodeKind.ConditionalGotoStatement or BoundNodeKind.LabelStatement) continue;
-            if (current.Kind is BoundNodeKind.ReturnStatement && current.Syntax.Kind != SyntaxKind.ReturnStatement) continue;
-
-            unreachableReported = true;
-            diagnostics.ReportUnreachableCode(current.Syntax.Location);
+        var list = unreachableStatements.ToList();
+        while (list.Count > 0)
+        {
+            var consecutive = unreachableStatements.Where(s => s.Syntax.FullSpan.OverlapsWithOrTouches(list[0].Syntax.FullSpan)).ToList();
+            foreach (var s in consecutive) list.Remove(s);
+            var start = consecutive.Min(s => s.Syntax.Span.Start);
+            var end = consecutive.Max(s => s.Syntax.Span.End);
+            diagnostics.ReportUnreachableCode(new(consecutive[0].Syntax.SyntaxTree.Text, new(start, end - start)));
         }
 
         return new (statement.Syntax, builder.ToImmutable());
+
+        static bool IsNotInjected(BoundStatement s) => 
+            s.Kind != BoundNodeKind.GotoStatement && 
+            s.Kind != BoundNodeKind.ConditionalGotoStatement && 
+            s.Kind != BoundNodeKind.LabelStatement &&
+            (s.Kind != BoundNodeKind.ReturnStatement || s.Syntax.Kind == SyntaxKind.ReturnStatement) &&
+            (s.Kind != BoundNodeKind.SequencePointStatement || IsNotInjected(((BoundSequencePointStatement)s).Statement));
     }
-    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics)
+    static BoundBlockStatement AddMissingReturn(BoundBlockStatement block, FunctionSymbol? containingFunction)
     {
-        var flat = Flatten((BoundStatement)new Lowerer().Visit(statement));
-        var cleanedUp = Cleanup(flat);
+        if (containingFunction?.ReturnType != TypeSymbol.Void || block.Statements.Length > 0 && !CanFallThrough(block.Statements.Last()))
+            return block;
 
-        var controlFlowGraph = ControlFlowGraph.Create(cleanedUp);
-        if (containingFunction is not null && containingFunction.ReturnType != TypeSymbol.Void && !controlFlowGraph.AllPathsReturn())
-            diagnostics.ReportNotAllPathsReturn(containingFunction);
-
-        cleanedUp = RemoveDeadCode(cleanedUp, controlFlowGraph, diagnostics);
-        if (containingFunction?.ReturnType != TypeSymbol.Void || cleanedUp.Statements.Length > 0 && !CanFallThrough(cleanedUp.Statements.Last()))
-            return cleanedUp;
-
-        return Block(cleanedUp.Syntax, cleanedUp.Statements.Add(new BoundReturnStatement(statement.Syntax, null)));
+        return Block(block.Syntax, block.Statements.Add(new BoundReturnStatement(block.Syntax, null)));
 
         static bool CanFallThrough(BoundStatement lastStatement) =>
             lastStatement.Kind != BoundNodeKind.ReturnStatement &&
             lastStatement.Kind != BoundNodeKind.GotoStatement;
+    }
+    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics)
+    {
+        var lowered = (BoundStatement)new Lowerer().Visit(statement);
+        var resultingBlock = Flatten(lowered);
 
+        var controlFlowGraph = ControlFlowGraph.Create(resultingBlock);
+        if (containingFunction is not null && containingFunction.ReturnType != TypeSymbol.Void && !controlFlowGraph.AllPathsReturn())
+            diagnostics.ReportNotAllPathsReturn(containingFunction);
+
+        resultingBlock = RemoveDeadCode(resultingBlock, controlFlowGraph, diagnostics);
+        resultingBlock = RemoveDebris(resultingBlock);
+        resultingBlock = AddMissingReturn(resultingBlock, containingFunction);
+        return resultingBlock;
     }
 }

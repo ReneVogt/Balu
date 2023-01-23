@@ -12,6 +12,16 @@ public class BinderTests
     [InlineData("var a = 0 if false [a = 1] a")]
     [InlineData("var a = 0 if true a = 1 else [a = 2] a")]
     [InlineData("var a = 0 if false [a = 1] else a = 2 a")]
+    [InlineData("for i = 1 to 10 { continue [println(\"unreachable\") \r\n println(\"more unreachable\")] }")]
+    [InlineData(@"
+        function test()
+        {
+            if false
+            {
+                [println(""false"")]
+            }
+            println(""true"")
+        }")]
     public void Lowerer_ReportsUnreachableCode(string code)
     {
         code.AssertScriptEvaluation(expectedDiagnostics: "Unreachable code detected.", ignoreWarnings: false);

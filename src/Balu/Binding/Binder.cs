@@ -548,8 +548,7 @@ sealed class Binder : SyntaxTreeVisitor
 
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         if (previous is not null) functionBodyBuilder.AddRange(previous.Functions.Where(x => x.Key != previous.EntryPoint));
-
-
+        
         foreach (var function in globalScope.VisibleSymbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null && !functionBodyBuilder.ContainsKey(function)))
         {
             var functionBinder = new Binder(isScript, parentScope, function);

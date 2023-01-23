@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using Balu.Binding;
@@ -158,9 +159,11 @@ sealed class ControlFlowGraph
             }
 
             bool removed;
+            var deadBlockBuilder = ImmutableArray.CreateBuilder<Block>();
             do
             {
                 var toRemove = blocks.Where(block => block.Incoming.Count == 0).ToArray();
+                deadBlockBuilder.AddRange(toRemove);
                 removed = toRemove.Length > 0;
 
                 foreach (var block in toRemove)
@@ -183,7 +186,7 @@ sealed class ControlFlowGraph
             blocks.Insert(0, start);
             blocks.Add(end);
 
-            return new(start, end, blocks, edges);
+            return new(start, end, blocks, edges, deadBlockBuilder.ToImmutable());
         }
 
         void Connect(Block from, Block to, BoundExpression? condition = null)
@@ -220,15 +223,17 @@ sealed class ControlFlowGraph
 
     public Block Start { get; }
     public Block End { get; }
-    public List<Block> Blocks { get; }
-    public List<Edge> Edges { get; }
+    public ImmutableArray<Block> Blocks { get; }
+    public ImmutableArray<Edge> Edges { get; }
+    public ImmutableArray<Block> DeadBlocks { get; }
 
-    ControlFlowGraph(Block start, Block end, List<Block> blocks, List<Edge> edges)
+    ControlFlowGraph(Block start, Block end, List<Block> blocks, List<Edge> edges, ImmutableArray<Block> deadBlocks)
     {
         Start = start;
         End = end;
-        Blocks = blocks;
-        Edges = edges;
+        Blocks = blocks.ToImmutableArray();
+        Edges = edges.ToImmutableArray();
+        DeadBlocks = deadBlocks;
     }
 
     public void WriteTo(TextWriter writer)
