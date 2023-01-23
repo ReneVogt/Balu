@@ -8,9 +8,10 @@ public partial class ExecutionTests
     [Fact]
     public void Script_PrefixExpression_ReportsUndefinedName() => " ++[abc]".AssertScriptEvaluation("Undefined variable 'abc'.");
     [Theory]
-    [InlineData("{ let abc = 12 ++[abc] }", "Variable 'abc' is readonly and cannot be assigned to.")]
-    [InlineData("{ var abc = true --abc", "Prefix operator '--' cannot be applied to type 'bool'.")]
-    [InlineData("{ var abc = \"\" ++abc", "Prefix operator '++' cannot be applied to type 'string'.")]
+    [InlineData("{ let abc = 12 [++abc] }", "Variable 'abc' is readonly and cannot be assigned to.")]
+    [InlineData("{ var abc = true [--abc]", "Prefix operator '--' cannot be applied to type 'bool'.")]
+    [InlineData("{ var abc = \"\" [++abc]", "Prefix operator '++' cannot be applied to type 'string'.")]
+    [InlineData("function test(){} [--test]", "Prefix operator '++' cannot be applied to type 'string'.")]
     public void Script_PrefixExpression_ReportsDiagnostic(string code, string? diagnostics) => code.AssertScriptEvaluation(diagnostics);
 
     [Theory]

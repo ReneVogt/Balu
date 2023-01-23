@@ -44,7 +44,10 @@ sealed class BoundBinaryOperator
         [(SyntaxKind.PipeEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.PipeToken, BoundBinaryOperatorKind.BitwiseOr, TypeSymbol.Integer),
         [(SyntaxKind.PipeEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.PipePipeToken, BoundBinaryOperatorKind.LogicalOr, TypeSymbol.Boolean),
         [(SyntaxKind.CircumflexEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.CircumflexToken, BoundBinaryOperatorKind.BitwiseXor, TypeSymbol.Integer),
-        [(SyntaxKind.CircumflexEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.CircumflexToken, BoundBinaryOperatorKind.BitwiseXor, TypeSymbol.Boolean)
+        [(SyntaxKind.CircumflexEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.CircumflexToken, BoundBinaryOperatorKind.BitwiseXor, TypeSymbol.Boolean),
+        
+        [(SyntaxKind.PlusPlusToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.PlusToken, BoundBinaryOperatorKind.Addition, TypeSymbol.Integer),
+        [(SyntaxKind.MinusMinusToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.MinusToken, BoundBinaryOperatorKind.Substraction, TypeSymbol.Integer)
     };
 
     public SyntaxKind SyntaxKind { get; }
