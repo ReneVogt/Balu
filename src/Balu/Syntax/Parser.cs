@@ -239,11 +239,39 @@ sealed class Parser
         return new(syntaxTree, keyword, identifier, equals, lowerBound, toKeyword, upperBound, body);
     }
 
-    ExpressionSyntax ParseExpression() => ParseAssignmentExpression();
-    ExpressionSyntax ParseAssignmentExpression() => Current.Kind != SyntaxKind.IdentifierToken || !Peek(1).Kind.IsAssingmentToken()
-                                                        ? ParseBinaryExpression()
-                                                        : new AssignmentExpressionSyntax(syntaxTree, NextToken(), NextToken(),
-                                                                                         ParseAssignmentExpression());
+    ExpressionSyntax ParseExpression()
+    {
+        if (Current.Kind is SyntaxKind.MinusMinusToken or SyntaxKind.PlusPlusToken)
+            return ParsePrefixExpression();
+        if (Current.Kind == SyntaxKind.IdentifierToken)
+        {
+            var next = Peek(1).Kind;
+            if (next.IsAssingmentToken())
+                return ParseAssignmentExpression();
+            if (next is SyntaxKind.MinusMinusToken or SyntaxKind.PlusPlusToken)
+                return ParsePostfixExpression();
+        }
+
+        return ParseBinaryExpression();
+    }
+    ExpressionSyntax ParseAssignmentExpression() => new AssignmentExpressionSyntax(syntaxTree, NextToken(), NextToken(),
+                                                                                         ParseExpression());
+    ExpressionSyntax ParsePrefixExpression()
+    {
+        var operatorToken = Current.Kind == SyntaxKind.MinusMinusToken
+                                ? MatchToken(SyntaxKind.MinusMinusToken)
+                                : MatchToken(SyntaxKind.PlusPlusToken);
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        return new PrefixExpressionSyntax(syntaxTree, operatorToken, identifier);
+    }
+    ExpressionSyntax ParsePostfixExpression()
+    {
+        var identifier = MatchToken(SyntaxKind.IdentifierToken);
+        var operatorToken = Current.Kind == SyntaxKind.MinusMinusToken
+                                ? MatchToken(SyntaxKind.MinusMinusToken)
+                                : MatchToken(SyntaxKind.PlusPlusToken);
+        return new PostfixExpressionSyntax(syntaxTree, identifier, operatorToken);
+    }
     ExpressionSyntax ParseBinaryExpression(int parentprecedence = 0)
     {
         var unaryOperatorPrecedence = Current.Kind.UnaryOperatorPrecedence();
@@ -269,6 +297,8 @@ sealed class Parser
             SyntaxKind.TrueKeyword or
                 SyntaxKind.FalseKeyword => ParseBooleanExpression(),
             SyntaxKind.IdentifierToken => ParseIdentifier(),
+            SyntaxKind.PlusPlusToken or 
+                SyntaxKind.MinusMinusToken => ParsePrefixExpression(),
             _ => ParseNameExpression()
         };
     LiteralExpressionSyntax ParseNumberExpression()
