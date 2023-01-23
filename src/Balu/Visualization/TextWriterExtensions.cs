@@ -56,8 +56,22 @@ public static class TextWriterExtensions
             {
                 textWriter.Write("    ");
                 textWriter.Write(sourceText.ToString(startLine.Start, column));
-                WriteColoredText(textWriter, sourceText.ToString(diagnostic.Location.Span), color);
-                textWriter.WriteLine(sourceText.ToString(diagnostic.Location.Span.End, Math.Max(0, endLine.End - diagnostic.Location.Span.End)));
+                textWriter.WriteColoredText(sourceText.ToString(diagnostic.Location.Span.Start, startLine.End-diagnostic.Location.Span.Start), color);
+                for (int i = diagnostic.Location.StartLine + 1; i < diagnostic.Location.EndLine; i++)
+                {
+                    textWriter.Write("    ");
+                    textWriter.WriteColoredText(sourceText.ToString(sourceText.Lines[i].Start, sourceText.Lines[i].Length), color);
+                    textWriter.WriteLine();
+                }
+
+                //                WriteColoredText(textWriter, sourceText.ToString(diagnostic.Location.Span), color);
+                if (diagnostic.Location.EndLine > diagnostic.Location.StartLine)
+                {
+                    textWriter.Write("    ");
+                    textWriter.WriteColoredText(sourceText.ToString(endLine.Start, diagnostic.Location.Span.End - endLine.Start), color);
+                    textWriter.WriteLine(sourceText.ToString(diagnostic.Location.Span.End, Math.Max(0, endLine.End - diagnostic.Location.Span.End)));
+                }
+                textWriter.WriteLine();
             }
         }
         // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
