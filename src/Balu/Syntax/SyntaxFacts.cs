@@ -62,8 +62,10 @@ public static class SyntaxFacts
     {
         SyntaxKind.PlusToken or
             SyntaxKind.MinusToken or
-            SyntaxKind.BangToken or 
+            SyntaxKind.BangToken or
             SyntaxKind.TildeToken => 100,
+        SyntaxKind.PlusPlusToken or
+            SyntaxKind.MinusMinusToken => int.MaxValue,
         _ => 0
     };
     public static int BinaryOperatorPrecedence(this SyntaxKind kind) => kind switch
@@ -106,6 +108,8 @@ public static class SyntaxFacts
         SyntaxKind.AmpersandEqualsToken => "&=",
         SyntaxKind.PipeEqualsToken => "|=",
         SyntaxKind.CircumflexEqualsToken => "^=",
+        SyntaxKind.PlusPlusToken => "++",
+        SyntaxKind.MinusMinusToken => "--",
         SyntaxKind.BangToken => "!",
         SyntaxKind.AmpersandToken => "&",
         SyntaxKind.AmpersandAmpersandToken => "&&",
@@ -139,7 +143,7 @@ public static class SyntaxFacts
     };
 
     public static IEnumerable<SyntaxKind> GetUnaryOperators() => from kind in Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>()
-                                                                 where kind.UnaryOperatorPrecedence() > 0
+                                                                 where kind != SyntaxKind.PlusPlusToken && kind != SyntaxKind.MinusMinusToken && kind.UnaryOperatorPrecedence() > 0
                                                                  select kind;
     public static IEnumerable<SyntaxKind> GetBinaryOperators() => from kind in Enum.GetValues(typeof(SyntaxKind)).Cast<SyntaxKind>()
                                                                   where kind.BinaryOperatorPrecedence() > 0

@@ -36,6 +36,9 @@ public enum SyntaxKind
     PipeEqualsToken,
     CircumflexEqualsToken,
 
+    PlusPlusToken,
+    MinusMinusToken,
+
     BangToken,
     AmpersandToken,
     AmpersandAmpersandToken,
@@ -89,6 +92,8 @@ public enum SyntaxKind
     ParenthesizedExpression,
     AssignmentExpression,
     CallExpression,
+    PrefixExpression,
+    PostfixExpression,
     #endregion
     #region Statements
     BlockStatement,
