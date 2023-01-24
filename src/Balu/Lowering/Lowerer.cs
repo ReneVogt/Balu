@@ -37,6 +37,7 @@ sealed class Lowerer : BoundTreeRewriter
         var startLabel = GenerateNextLabel();
         var result = Block(syntax,
                            Label(syntax.DoKeyword, startLabel),
+                           SequencePoint(Nop(syntax.DoKeyword), syntax.DoKeyword.Location),
                            doWhileStatement.Body,
                            Label(syntax.DoKeyword, doWhileStatement.ContinueLabel),
                            SequencePoint(GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition), syntax.Condition.Location),
