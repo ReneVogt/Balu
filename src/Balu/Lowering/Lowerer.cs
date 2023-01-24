@@ -190,15 +190,15 @@ sealed class Lowerer : BoundTreeRewriter
         // collapse redundant gotos
         for (int i = 0; i < builder.Count-1; i++)
         {
-            var next = builder[i + 1];
+            var next = builder[i + 1].UnwrapSequencePoint();
             if (next.Kind != BoundNodeKind.LabelStatement) continue;
             var label = ((BoundLabelStatement)next).Label;
 
-            var current = builder[i];
-#pragma warning disable CA1508
+            var current = builder[i].UnwrapSequencePoint();
+            if (current.Kind == BoundNodeKind.SequencePointStatement)
+                current = ((BoundSequencePointStatement)current).Statement;
             if ((current.Kind != BoundNodeKind.GotoStatement || ((BoundGotoStatement)current).Label != label) &&
                 (current.Kind != BoundNodeKind.ConditionalGotoStatement|| ((BoundConditionalGotoStatement)current).Label != label)) continue;
-#pragma warning restore CA1508
 
             builder.RemoveAt(i + 1);
             builder.RemoveAt(i);
@@ -207,13 +207,15 @@ sealed class Lowerer : BoundTreeRewriter
 
 
         // remove unused lables
-        var usedLabels = new HashSet<BoundLabel>(builder.Where(s => s.Kind == BoundNodeKind.GotoStatement)
+        var usedLabels = new HashSet<BoundLabel>(builder.Select(s => s.UnwrapSequencePoint())
+                                                        .Where(s => s.Kind == BoundNodeKind.GotoStatement)
                                                         .Select(s => ((BoundGotoStatement)s).Label)
-                                                        .Concat(builder.Where(s => s.Kind == BoundNodeKind.ConditionalGotoStatement)
+                                                        .Concat(builder.Select(s => s.UnwrapSequencePoint())
+                                                                       .Where(s => s.Kind == BoundNodeKind.ConditionalGotoStatement)
                                                                        .Select(s => ((BoundConditionalGotoStatement)s).Label)));
         for (int i = 0; i < builder.Count; i++)
         {
-            var current = builder[i];
+            var current = builder[i].UnwrapSequencePoint();
             if (current.Kind == BoundNodeKind.LabelStatement && !usedLabels.Contains(((BoundLabelStatement)current).Label))
                 builder.RemoveAt(i--);
         }
@@ -254,7 +256,7 @@ sealed class Lowerer : BoundTreeRewriter
     }
     static BoundBlockStatement AddMissingReturn(BoundBlockStatement block, FunctionSymbol? containingFunction)
     {
-        if (containingFunction?.ReturnType != TypeSymbol.Void || block.Statements.Length > 0 && !CanFallThrough(block.Statements.Last()))
+        if (containingFunction?.ReturnType != TypeSymbol.Void || block.Statements.Length > 0 && !CanFallThrough(block.Statements.Last().UnwrapSequencePoint()))
             return block;
 
         return Block(block.Syntax, block.Statements.Add(new BoundReturnStatement(block.Syntax, null)));
