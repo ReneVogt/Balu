@@ -527,8 +527,8 @@ sealed class Emitter : IDisposable
 
         if (!documents.TryGetValue(statement.Location.Text, out var document))
         {
-            var uri = new Uri(statement.Location.FileName).ToString();
-            document = new(uri);
+            var uriString = Uri.TryCreate(statement.Location.FileName, UriKind.RelativeOrAbsolute, out var uri) ? uri.ToString() : string.Empty;
+            document = new(uriString);
             documents[statement.Location.Text] = document;
         }
 

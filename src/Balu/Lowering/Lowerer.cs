@@ -39,7 +39,7 @@ sealed class Lowerer : BoundTreeRewriter
                            Label(syntax.DoKeyword, startLabel),
                            doWhileStatement.Body,
                            Label(syntax.DoKeyword, doWhileStatement.ContinueLabel),
-                           GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition),
+                           SequencePoint(GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition), syntax.Condition.Location),
                            Label(syntax.LastToken, doWhileStatement.BreakLabel));
         return Visit(result);
     }
