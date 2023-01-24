@@ -38,6 +38,7 @@ public static class SyntaxFacts
                                                                       or SyntaxKind.MinusEqualsToken or SyntaxKind.StarEqualsToken
                                                                       or SyntaxKind.SlashEqualsToken or SyntaxKind.AmpersandEqualsToken
                                                                       or SyntaxKind.PipeEqualsToken or SyntaxKind.CircumflexEqualsToken;
+    public static bool IsPreOrPostfixToken(this SyntaxKind kind) => kind is SyntaxKind.MinusMinusToken or SyntaxKind.PlusPlusToken;
 
     public static SyntaxKind KeywordKind(this string literal) => literal switch
     {

@@ -64,4 +64,22 @@ public partial class ParserTests
         e.AssertToken(SyntaxKind.IdentifierToken, "b");
         e.AssertToken(SyntaxKind.EndOfFileToken);
     }
+    [Fact]
+    public void Parser_PrefixDecrementExpressionInLogicalBinaryExpression_CorrectExpressionStatementSyntax()
+    {
+        var tree = SyntaxTree.Parse("--a > b");
+        using var e = new SyntaxTreeAsserter(tree.Root);
+        e.AssertNode(SyntaxKind.CompilationUnit);
+        e.AssertNode(SyntaxKind.GlobalStatement);
+        e.AssertNode(SyntaxKind.ExpressionStatement);
+        e.AssertNode(SyntaxKind.BinaryExpression);
+        e.AssertNode(SyntaxKind.PrefixExpression);
+        e.AssertToken(SyntaxKind.MinusMinusToken);
+        e.AssertToken(SyntaxKind.IdentifierToken, "a");
+        e.AssertToken(SyntaxKind.GreaterToken);
+        e.AssertNode(SyntaxKind.NameExpression);
+        e.AssertToken(SyntaxKind.IdentifierToken, "b");
+        e.AssertToken(SyntaxKind.EndOfFileToken);
+    }
+
 }

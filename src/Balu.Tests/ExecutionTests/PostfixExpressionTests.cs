@@ -11,7 +11,7 @@ public partial class ExecutionTests
     [InlineData("{ let abc = 12 [abc]++ }", "Variable 'abc' is readonly and cannot be assigned to.")]
     [InlineData("{ var abc = true [abc--]}", "Postfix operator '--' cannot be applied to type 'bool'.")]
     [InlineData("{ var abc = \"\" [abc++]}", "Postfix operator '++' cannot be applied to type 'string'.")]
-    [InlineData("function test(){} [test]++", "Unexpected symbol kind 'FunctionSymbol', expected 'test' to be a variable or argument.")]
+    [InlineData("function test(){} [test]++", "Unexpected symbol kind 'Function', expected 'test' to be a variable or argument.")]
     public void Script_PostfixExpression_ReportsDiagnostic(string code, string? diagnostics) => code.AssertScriptEvaluation(diagnostics);
 
     [Theory]
