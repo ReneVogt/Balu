@@ -32,8 +32,6 @@ public sealed class Interpreter
     {
         var compilation = Compilation.CreateScript(Compilation, SyntaxTree.Parse(SourceText.From(code, "BaluInterpreter.b")));
         var referencedAssemblies = ReferencedAssembliesFinder.GetReferences();
-        using var memoryStream = new MemoryStream();
-        var emitterResult = compilation.Emit("BaluInterpreter", referencedAssemblies, memoryStream, null, GlobalVariables);
 
         if (Out is not null)
         {
@@ -51,6 +49,9 @@ public sealed class Interpreter
                 compilation.WriteBoundGlobalTree(Console.Out);
             }
         }
+
+        using var memoryStream = new MemoryStream();
+        var emitterResult = compilation.Emit("BaluInterpreter", referencedAssemblies, memoryStream, null, GlobalVariables);
         Error?.WriteDiagnostics(emitterResult.Diagnostics);
 
         if (emitterResult.Diagnostics.HasErrors() || !ignoreWarnings && emitterResult.Diagnostics.Any())
