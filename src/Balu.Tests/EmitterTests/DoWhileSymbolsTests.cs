@@ -10,10 +10,10 @@ public partial class EmitterTests
     {
         const string code = @"
             function test() {
-                [do]
-                {
+                do
+                [{]
                     [println("""")]
-                } while [true]
+                } [while true]
             }
             return
 ";

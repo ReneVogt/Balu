@@ -16,6 +16,7 @@ public abstract class SyntaxNode
     public virtual TextSpan Span => span.Value;
     public virtual TextSpan FullSpan => fullSpan.Value;
     public abstract int ChildrenCount { get; }
+    public SyntaxToken FirstToken => GetFirstToken();
     public SyntaxToken LastToken => GetLastToken();
     public TextLocation Location => new (SyntaxTree.Text, Span);
 
@@ -51,7 +52,8 @@ public abstract class SyntaxNode
 
     public abstract SyntaxNode GetChild(int index);
 
-    SyntaxToken GetLastToken() => this as SyntaxToken ?? GetChild(ChildrenCount-1).GetLastToken();
+    SyntaxToken GetLastToken() => this as SyntaxToken ?? GetChild(ChildrenCount - 1).GetLastToken();
+    SyntaxToken GetFirstToken() => this as SyntaxToken ?? GetChild(0).GetFirstToken();
 
     public override string ToString() => $"{Kind}{Span}";
 }
