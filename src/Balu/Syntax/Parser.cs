@@ -241,17 +241,8 @@ sealed class Parser
 
     ExpressionSyntax ParseExpression()
     {
-        if (Current.Kind is SyntaxKind.MinusMinusToken or SyntaxKind.PlusPlusToken)
-            return ParsePrefixExpression();
-        if (Current.Kind == SyntaxKind.IdentifierToken)
-        {
-            var next = Peek(1).Kind;
-            if (next.IsAssingmentToken())
-                return ParseAssignmentExpression();
-            if (next is SyntaxKind.MinusMinusToken or SyntaxKind.PlusPlusToken)
-                return ParsePostfixExpression();
-        }
-
+        if (Current.Kind == SyntaxKind.IdentifierToken &&Peek(1).Kind.IsAssingmentToken()) 
+            return ParseAssignmentExpression();
         return ParseBinaryExpression();
     }
     ExpressionSyntax ParseAssignmentExpression() => new AssignmentExpressionSyntax(syntaxTree, NextToken(), NextToken(),
@@ -326,8 +317,15 @@ sealed class Parser
     }
     ExpressionSyntax ParseIdentifier()
     {
-        if (Current.Kind == SyntaxKind.IdentifierToken && Peek(1).Kind == SyntaxKind.OpenParenthesisToken)
-            return ParseCallExpression();
+        if (Current.Kind == SyntaxKind.IdentifierToken)
+        {
+            var  next = Peek(1).Kind;
+            if (next == SyntaxKind.OpenParenthesisToken)
+                return ParseCallExpression();
+            if (next.IsPreOrPostfixToken())
+                return ParsePostfixExpression();
+        }
+
         return ParseNameExpression();
     }
     CallExpressionSyntax ParseCallExpression()
