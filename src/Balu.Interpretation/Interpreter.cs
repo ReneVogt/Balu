@@ -23,7 +23,7 @@ public sealed class Interpreter
     public bool WriteProgram { get; set; }
 
     public ImmutableArray<Diagnostic> Emit(string path, string? symbolPath = null) => Compilation.Emit(
-        "BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), path ?? throw new ArgumentNullException(nameof(path)), symbolPath);
+        "BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), path ?? throw new ArgumentNullException(nameof(path)), symbolPath, GlobalVariables);
     public void Reset()
     {
         Compilation = Compilation.CreateScript(null, SyntaxTree.Parse(string.Empty));
