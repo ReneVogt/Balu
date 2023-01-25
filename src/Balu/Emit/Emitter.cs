@@ -29,6 +29,7 @@ sealed class Emitter : IDisposable
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
     readonly Dictionary<SourceText, Document> documents = new();
     readonly Dictionary<Symbol, string> globalSymbolNames = new();
+    readonly BoundLabel exitLabel = new("<exit>");
 
     bool debug;
 
@@ -60,14 +61,31 @@ sealed class Emitter : IDisposable
     void EmitMethod(MethodDefinition method, FunctionSymbol function)
     {
         var processor = method.Body.GetILProcessor();
-        
+
         locals.Clear();
         gotosToFix.Clear();
         labels.Clear();
 
         var body = program.Functions[function];
+
+        var entrySyntax = function.Declaration?.Body.OpenBraceToken ?? body.Syntax.FirstToken;
+        var entryLocation = function.Declaration?.Body.OpenBraceToken!.Location ?? new TextLocation(body.Syntax.SyntaxTree.Text, new(0, 0));
+
+        if (debug)
+            EmitSequencePointStatement(processor, new (entrySyntax, new BoundNopStatement(entrySyntax), entryLocation));
+
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
+
+        var exitLocation = function.Declaration?.Body.ClosedBraceToken.Location ?? new TextLocation(body.Syntax.SyntaxTree.Text, new(body.Syntax.SyntaxTree.Text.Length, 0));
+        if (debug)
+        {
+            labels.Add(exitLabel, processor.Body.Instructions.Count);
+            var index = processor.Body.Instructions.Count;
+            processor.Emit(OpCodes.Ret);
+            var instruction = processor.Body.Instructions[index];
+            AddSequencePoint(processor, instruction, exitLocation);
+        }
 
         foreach ((int instrcutionIndex, BoundLabel? label) in gotosToFix)
             processor.Body.Instructions[instrcutionIndex].Operand = processor.Body.Instructions[labels[label]];
@@ -506,7 +524,13 @@ sealed class Emitter : IDisposable
     {
         if (statement.Expression is not null)
             EmitExpression(processor, statement.Expression);
-        processor.Emit(OpCodes.Ret);
+        if (!debug)
+            processor.Emit(OpCodes.Ret);
+        else
+        {
+            gotosToFix.Add((processor.Body.Instructions.Count, exitLabel));
+            processor.Emit(OpCodes.Br, Instruction.Create(OpCodes.Nop));
+        }
     }
     static void EmitNopStatement(ILProcessor processor)
     {
@@ -524,22 +548,26 @@ sealed class Emitter : IDisposable
         var index = processor.Body.Instructions.Count;
         EmitStatement(processor, statement.Statement);
         var instruction = processor.Body.Instructions[index];
-
-        if (!documents.TryGetValue(statement.Location.Text, out var document))
+        AddSequencePoint(processor, instruction, statement.Location);
+    }
+    void AddSequencePoint(ILProcessor processor, Instruction instruction, TextLocation location)
+    {
+        if (!documents.TryGetValue(location.Text, out var document))
         {
-            var uriString = Uri.TryCreate(statement.Location.FileName, UriKind.RelativeOrAbsolute, out var uri) ? uri.ToString() : string.Empty;
+            var uriString = Uri.TryCreate(location.FileName, UriKind.RelativeOrAbsolute, out var uri) ? uri.ToString() : string.Empty;
             document = new(uriString);
-            documents[statement.Location.Text] = document;
+            documents[location.Text] = document;
         }
 
         var sequencePoint = new SequencePoint(instruction, document)
         {
-            StartLine = statement.Location.StartLine + 1,
-            StartColumn = statement.Location.StartCharacter + 1,
-            EndLine = statement.Location.EndLine + 1,
-            EndColumn = statement.Location.EndCharacter + 1
+            StartLine = location.StartLine + 1,
+            StartColumn = location.StartCharacter + 1,
+            EndLine = location.EndLine + 1,
+            EndColumn = location.EndCharacter + 1
         };
         processor.Body.Method.DebugInformation.SequencePoints.Add(sequencePoint);
+
     }
 
     void EmitFields(ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)

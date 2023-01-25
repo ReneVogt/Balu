@@ -60,12 +60,12 @@ sealed class ControlFlowGraph
             statements.Clear();
             foreach (var statement in blockStatement.Statements)
             {
-                switch (statement.Kind)
+                var unwrapped = statement.UnwrapSequencePoint();
+                switch (unwrapped.Kind)
                 {
                     case BoundNodeKind.VariableDeclarationStatement:
                     case BoundNodeKind.ExpressionStatement:
                     case BoundNodeKind.NopStatement:
-                    case BoundNodeKind.SequencePointStatement:
                         statements.Add(statement);
                         break;
                     case BoundNodeKind.LabelStatement:
@@ -128,24 +128,24 @@ sealed class ControlFlowGraph
                 for (int statementIndex = 0; statementIndex < block.Statements.Count; statementIndex++)
                 {
                     var statement = block.Statements[statementIndex];
+                    var unwrapped = statement.UnwrapSequencePoint();
                     var isLast = statementIndex == block.Statements.Count - 1;
-                    switch (statement.Kind)
+                    switch (unwrapped.Kind)
                     {
                         case BoundNodeKind.VariableDeclarationStatement:
                         case BoundNodeKind.ExpressionStatement:
                         case BoundNodeKind.LabelStatement:
                         case BoundNodeKind.NopStatement:
-                        case BoundNodeKind.SequencePointStatement:
                             if (isLast) Connect(block, nextBlock);
                             break;
                         case BoundNodeKind.ReturnStatement:
                             Connect(block, end);
                             break;
                         case BoundNodeKind.GotoStatement:
-                            Connect(block, blockFromLabel[((BoundGotoStatement)statement).Label]);
+                            Connect(block, blockFromLabel[((BoundGotoStatement)unwrapped).Label]);
                             break;
                         case BoundNodeKind.ConditionalGotoStatement:
-                            var cgs = (BoundConditionalGotoStatement)statement;
+                            var cgs = (BoundConditionalGotoStatement)unwrapped;
                             var negated = new BoundUnaryExpression(cgs.Condition.Syntax, BoundUnaryOperator.Bind(SyntaxKind.BangToken, TypeSymbol.Boolean)!, cgs.Condition);
                             var jumpCondition = cgs.JumpIfTrue ? cgs.Condition : negated;
                             var nextCondition = cgs.JumpIfTrue ? negated : cgs.Condition;
@@ -268,6 +268,6 @@ sealed class ControlFlowGraph
 
     public bool AllPathsReturn() => End.Incoming
                                        .All(incoming =>
-                                                incoming.From.Statements.LastOrDefault()?.Kind ==
+                                                incoming.From.Statements.LastOrDefault()?.UnwrapSequencePoint().Kind ==
                                                 BoundNodeKind.ReturnStatement);
 }

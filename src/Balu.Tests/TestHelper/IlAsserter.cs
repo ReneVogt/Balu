@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Balu.Syntax;
 using System.IO;
 using System.Linq;
@@ -32,16 +31,12 @@ static class IlAsserter
         var (_, symbols) = ExecuteEmitter(tree, methodToAssert, script, true);
         Assert.Equal(expectedSymbols, symbols);
     }
-    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, IEnumerable<int> offsets, bool script = false)
+    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, bool script = false)
     {
         var expected = string.Join(Environment.NewLine,
                                    expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
         var annotated = AnnotatedText.Parse(code);
         var tree = SyntaxTree.Parse(SourceText.From(annotated.Text, "IlAsserter.b"));
-        var ofs = offsets.ToArray();
-        if (ofs.Length != annotated.Spans.Length)
-            throw new Exception("The number of spans must match the number of offsets.");
-
         var expectedSymbols = string.Join(Environment.NewLine,
                                           annotated.Spans.OrderBy(span => span.Start)
                                                    .ThenByDescending(span => span.Length)
@@ -78,7 +73,7 @@ static class IlAsserter
             var il = string.Join(Environment.NewLine,
                                  method.Body.Instructions.Select(
                                      instruction =>
-                                         $"IL{instruction.Offset:0000}: {instruction.OpCode}{(instruction.Operand is null ? "" : $" {instruction.Operand}")}"));
+                                         $"IL{instruction.Offset:X04}: {instruction.OpCode}{(instruction.Operand is null ? "" : $" {instruction.Operand}")}"));
             var symbols = string.Join(Environment.NewLine,
                                       method.DebugInformation.SequencePoints
                                             .OrderBy(sp => sp.StartLine)

@@ -1,4 +1,5 @@
-﻿var a = 0
-do
-	a++
-while(a < 10)
+﻿
+println("anfang")
+printGreeting(10)
+println("ende")
+

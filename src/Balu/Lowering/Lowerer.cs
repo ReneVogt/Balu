@@ -43,7 +43,7 @@ sealed class Lowerer : BoundTreeRewriter
                            Label(syntax.DoKeyword, doWhileStatement.ContinueLabel),
                            SequencePoint(GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition),
                                          new(syntax.SyntaxTree.Text,
-                                             new(syntax.WhileKeyword.Span.Start, syntax.Condition.Span.End - syntax.WhileKeyword.Span.Start))),
+                                             syntax.WhileKeyword.Span with { Length = syntax.Condition.Span.End - syntax.WhileKeyword.Span.Start })),
                            Label(syntax.LastToken, doWhileStatement.BreakLabel));
         return Visit(result);
     }
@@ -161,7 +161,7 @@ sealed class Lowerer : BoundTreeRewriter
                            Label(syntax.LastToken, whileStatement.BreakLabel));
         return Visit(result);
     }
-
+    protected override BoundNode VisitBoundReturnStatement(BoundReturnStatement node) => SequencePoint(node, node.Syntax.Location);
     static BoundBlockStatement Flatten(BoundStatement statement)
     {
         var resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
