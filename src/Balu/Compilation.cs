@@ -77,7 +77,7 @@ public sealed class Compilation
         try
         {
             using var outputStream = File.Create(outputPath);
-            return Emit(moduleName, references, outputStream, symbolStream);
+            return Emit(moduleName, references, outputStream, symbolStream, initializedGlobalVariables).Diagnostics;
         }
         finally
         {
