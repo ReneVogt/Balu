@@ -46,7 +46,7 @@ sealed class Emitter : IDisposable
 
     MethodDefinition CreateMethod(FunctionSymbol function)
     {
-        bool isVisilbe = program.VisibleSymbols.Contains(function);
+        bool isVisilbe = function == program.EntryPoint || program.VisibleSymbols.Contains(function);
         var name = isVisilbe ? function.Name : $"<{function.Name}{globals.Count}>";
         var attributes = MethodAttributes.Static | MethodAttributes.Private;
         if (name.IsBaluSpecialName()) attributes |= MethodAttributes.SpecialName;
@@ -68,23 +68,36 @@ sealed class Emitter : IDisposable
 
         var body = program.Functions[function];
 
-        var entrySyntax = function.Declaration?.Body.OpenBraceToken ?? body.Syntax.FirstToken;
-        var entryLocation = function.Declaration?.Body.OpenBraceToken!.Location ?? new TextLocation(body.Syntax.SyntaxTree.Text, new(0, 0));
-
         if (debug)
-            EmitSequencePointStatement(processor, new (entrySyntax, new BoundNopStatement(entrySyntax), entryLocation));
+        {
+            if (function.Declaration is { Body.OpenBraceToken: var openBrace})
+                EmitSequencePointStatement(processor, new(openBrace, new BoundNopStatement(openBrace), openBrace.Location));
+            else if (body.Syntax.SyntaxTree.Text.Length > 0)
+            {
+                var firstToken = body.Syntax.SyntaxTree.Root.FirstToken;
+                EmitSequencePointStatement(
+                    processor, new(firstToken, new BoundNopStatement(firstToken), new(firstToken.SyntaxTree.Text, new(0, 1))));
+            }
+        }
 
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
 
-        var exitLocation = function.Declaration?.Body.ClosedBraceToken.Location ?? new TextLocation(body.Syntax.SyntaxTree.Text, new(body.Syntax.SyntaxTree.Text.Length, 0));
         if (debug)
         {
             labels.Add(exitLabel, processor.Body.Instructions.Count);
             var index = processor.Body.Instructions.Count;
             processor.Emit(OpCodes.Ret);
             var instruction = processor.Body.Instructions[index];
-            AddSequencePoint(processor, instruction, exitLocation);
+            if (function.Declaration is { Body.ClosedBraceToken.Location : var closedBraceLocation })
+                AddSequencePoint(processor, instruction, closedBraceLocation);
+            else if (body.Syntax.SyntaxTree.Text.Length > 0)
+            {
+                var endLocation = body.Syntax.LastToken.Location;
+                var start = Math.Max(0, Math.Min(endLocation.Span.End, endLocation.Text.Length - 1));
+                var exitLocation = endLocation with { Span = new(start, 1) };
+                AddSequencePoint(processor, instruction, exitLocation);
+            }
         }
 
         foreach ((int instrcutionIndex, BoundLabel? label) in gotosToFix)
@@ -654,7 +667,7 @@ sealed class Emitter : IDisposable
             methods.Add(function, CreateMethod(function));
 
         EmitMethod(methods[program.EntryPoint], program.EntryPoint);
-        foreach (var x in methods)
+        foreach (var x in methods.Where(x => x.Key != program.EntryPoint))
             EmitMethod(x.Value, x.Key);
 
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];

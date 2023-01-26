@@ -5,6 +5,7 @@ using Balu.Binding;
 using Balu.Diagnostics;
 using Balu.Symbols;
 using Balu.Syntax;
+using Balu.Text;
 using static Balu.Binding.BoundNodeFactory;
 
 namespace Balu.Lowering;
@@ -35,10 +36,8 @@ sealed class Lowerer : BoundTreeRewriter
 
         var syntax = (DoWhileStatementSyntax)doWhileStatement.Syntax;
         var startLabel = GenerateNextLabel();
-        var entryPointSyntax = syntax.Body.Kind == SyntaxKind.BlockStatement ? ((BlockStatementSyntax)syntax.Body).OpenBraceToken : syntax.DoKeyword;
         var result = Block(syntax,
                            Label(syntax.DoKeyword, startLabel),
-                           SequencePoint(Nop(entryPointSyntax), entryPointSyntax.Location),
                            doWhileStatement.Body,
                            Label(syntax.DoKeyword, doWhileStatement.ContinueLabel),
                            SequencePoint(GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition),
@@ -96,7 +95,9 @@ sealed class Lowerer : BoundTreeRewriter
     {
         BoundStatement result;
 
-        var syntax = ifStatement.Syntax;
+        var syntax = (IfStatementSyntax)ifStatement.Syntax;
+        var iflocation = new TextLocation(syntax.SyntaxTree.Text,
+                                          syntax.IfKeyword.Span with { Length = syntax.Condition.Span.End - syntax.IfKeyword.Span.Start });
 
         if (ifStatement.ElseStatement is null)
         {
@@ -107,7 +108,7 @@ sealed class Lowerer : BoundTreeRewriter
              */
             var endLabel = GenerateNextLabel();
             result = Block(syntax,
-                           GotoFalse(syntax, endLabel, ifStatement.Condition),
+                           SequencePoint(GotoFalse(syntax.IfKeyword, endLabel, ifStatement.Condition), iflocation),
                            ifStatement.ThenStatement,
                            Label(syntax, endLabel));
 
@@ -126,7 +127,7 @@ sealed class Lowerer : BoundTreeRewriter
             var elseLabel = GenerateNextLabel();
             var endLabel = GenerateNextLabel();
             result = Block(syntax,
-                           GotoFalse(syntax, elseLabel, ifStatement.Condition),
+                           SequencePoint(GotoFalse(syntax, elseLabel, ifStatement.Condition), iflocation),
                            ifStatement.ThenStatement,
                            Goto(syntax, endLabel),
                            Label(syntax, elseLabel),
@@ -161,7 +162,9 @@ sealed class Lowerer : BoundTreeRewriter
                            Label(syntax.LastToken, whileStatement.BreakLabel));
         return Visit(result);
     }
-    protected override BoundNode VisitBoundReturnStatement(BoundReturnStatement node) => SequencePoint(node, node.Syntax.Location);
+    protected override BoundNode VisitBoundReturnStatement(BoundReturnStatement node) => 
+        // Add sequence points only for real return statements that were not injected.
+        node.Syntax.Kind == SyntaxKind.ReturnStatement ? SequencePoint(node, node.Syntax.Location) : node;
     static BoundBlockStatement Flatten(BoundStatement statement)
     {
         var resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
@@ -171,9 +174,16 @@ sealed class Lowerer : BoundTreeRewriter
         while (stack.Count > 0)
         {
             var current = stack.Pop();
-            if (current is BoundBlockStatement { Statements: var statements })
+            if (current is BoundBlockStatement { Statements: var statements , Syntax: var syntax})
+            {
+                BlockStatementSyntax? blockSyntax = syntax.Kind == SyntaxKind.BlockStatement && current != statement ? (BlockStatementSyntax)syntax : null;
+                if (blockSyntax is { })
+                    stack.Push(SequencePoint(Nop(blockSyntax.ClosedBraceToken), blockSyntax.ClosedBraceToken.Location));
                 foreach (var s in statements.Reverse())
                     stack.Push(s);
+                if (blockSyntax is { })
+                    stack.Push(SequencePoint(Nop(blockSyntax.OpenBraceToken), blockSyntax.OpenBraceToken.Location));
+            }
             else
                 resultBuilder.Add(current);
         }
@@ -255,6 +265,7 @@ sealed class Lowerer : BoundTreeRewriter
             s.Kind != BoundNodeKind.GotoStatement && 
             s.Kind != BoundNodeKind.ConditionalGotoStatement && 
             s.Kind != BoundNodeKind.LabelStatement &&
+            s.Kind != BoundNodeKind.NopStatement && 
             (s.Kind != BoundNodeKind.ReturnStatement || s.Syntax.Kind == SyntaxKind.ReturnStatement) &&
             (s.Kind != BoundNodeKind.SequencePointStatement || IsNotInjected(((BoundSequencePointStatement)s).Statement));
     }

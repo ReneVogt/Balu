@@ -13,7 +13,7 @@ public partial class EmitterTests
                 do
                 [{]
                     [println("""")]
-                } [while true]
+                [}] [while true]
             [}]
             return
 ";
@@ -24,7 +24,7 @@ public partial class EmitterTests
     {
         const string code = @"
             function test() [{]
-                [do]
+                do
                   [println("""")]
                 [while 2 > 0]
             [}]

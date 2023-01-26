@@ -11,11 +11,11 @@ public partial class EmitterTests
         const string code = @"
             function test(i:int) [{]
                 [var a = i]
-                if [i > 5] [return]
+                [if i > 5] [return]
                 [a = 2*i]
                 [return]
             [}]
-            [return]
+            return
 ";
         const string il = @"
             IL0000: nop
@@ -74,11 +74,11 @@ public partial class EmitterTests
         const string code = @"
             function test(i:int) : int [{]
                 [var a = i]
-                if [i > 5] [return a]
+                [if i > 5] [return a]
                 [a = 2*i]
                 [return a]
             [}]
-            [return]
+            return
 ";
         const string il = @"
             IL0000: nop

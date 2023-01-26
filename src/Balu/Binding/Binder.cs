@@ -405,7 +405,7 @@ sealed class Binder : SyntaxTreeVisitor
         
         if (expression is null)
         {
-            if (returnType != TypeSymbol.Void && returnType != TypeSymbol.Any)
+            if (returnType != TypeSymbol.Void)
             {
                 diagnostics.ReportReturnMissingValue(node.Location, returnType, functionName);
                 expression = new BoundErrorExpression(node);
