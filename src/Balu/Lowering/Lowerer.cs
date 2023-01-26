@@ -16,6 +16,11 @@ sealed class Lowerer : BoundTreeRewriter
 
     BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
+    protected override BoundNode VisitBoundGotoStatement(BoundGotoStatement node)
+    {
+        if (node.Syntax.Kind != SyntaxKind.BreakStatement && node.Syntax.Kind != SyntaxKind.ContinueStatement) return node;
+        return SequencePoint(node, node.Syntax.Location);
+    }
     protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
     {
         if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;

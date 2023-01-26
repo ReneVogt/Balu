@@ -73,7 +73,7 @@ static class IlAsserter
             var il = string.Join(Environment.NewLine,
                                  method.Body.Instructions.Select(
                                      instruction =>
-                                         $"IL{instruction.Offset:X04}: {instruction.OpCode}{(instruction.Operand is null ? "" : $" {instruction.Operand}")}"));
+                                         $"IL{instruction.Offset:X04}: {instruction.OpCode}{(string.IsNullOrWhiteSpace(instruction.Operand?.ToString()) ? "" : $" {instruction.Operand}")}"));
             var symbols = string.Join(Environment.NewLine,
                                       method.DebugInformation.SequencePoints
                                             .OrderBy(sp => sp.StartLine)
