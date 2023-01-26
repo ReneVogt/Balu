@@ -159,9 +159,24 @@ sealed class Lowerer : BoundTreeRewriter
 
         var syntax = whileStatement.Syntax;
 
+        BoundStatement condition = GotoFalse(syntax.GetChild(0), whileStatement.BreakLabel, whileStatement.Condition);
+        if (syntax.Kind == SyntaxKind.WhileStatement)
+        {
+            var whileSyntax = (WhileStatementSyntax)syntax;
+            condition = SequencePoint(
+                condition,
+                whileSyntax.WhileKeyword.Location with
+                {
+                    Span = whileSyntax.WhileKeyword.Span with
+                    {
+                        Length = whileSyntax.Condition.LastToken.Span.End - whileSyntax.WhileKeyword.Span.Start
+                    }
+                });
+        }
+
         var result = Block(syntax,
                            Label(syntax.GetChild(0), whileStatement.ContinueLabel),
-                           GotoFalse(syntax.GetChild(0), whileStatement.BreakLabel, whileStatement.Condition),
+                           condition,
                            whileStatement.Body,
                            Goto(syntax.GetChild(0), whileStatement.ContinueLabel),
                            Label(syntax.LastToken, whileStatement.BreakLabel));

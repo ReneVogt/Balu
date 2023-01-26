@@ -6,16 +6,19 @@ using Balu.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Xunit;
+using Xunit.Abstractions;
+
 namespace Balu.Tests.TestHelper;
 
 static class IlAsserter
 {
-    public static void AssertIl(this string code, string methodToAssert, string expectedIL, bool script = false, bool debug = false)
+    public static void AssertIl(this string code, string methodToAssert, string expectedIL, bool script = false, bool debug = false, ITestOutputHelper? output = null)
     {
         var expected = string.Join(Environment.NewLine,
                                    expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
         var tree = SyntaxTree.Parse(SourceText.From(code, "IlAsserter.b"));
         var (il, _) = ExecuteEmitter(tree, methodToAssert, script, debug);
+        output?.WriteLine(il);
         Assert.Equal(expected, il);
     }
     public static void AssertSymbols(this string code, string methodToAssert, bool script = false)
@@ -31,7 +34,7 @@ static class IlAsserter
         var (_, symbols) = ExecuteEmitter(tree, methodToAssert, script, true);
         Assert.Equal(expectedSymbols, symbols);
     }
-    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, bool script = false)
+    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, bool script = false, ITestOutputHelper? output = null)
     {
         var expected = string.Join(Environment.NewLine,
                                    expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
@@ -43,6 +46,7 @@ static class IlAsserter
                                                    .Select(span => ToSymbolString(new TextLocation(tree.Text, span))));
 
         var (il, symbols) = ExecuteEmitter(tree, methodToAssert, script, true);
+        output?.WriteLine(il);
         Assert.Equal(expected, il);
         Assert.Equal(expectedSymbols, symbols);
 
