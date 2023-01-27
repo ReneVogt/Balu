@@ -14,4 +14,7 @@ public readonly record struct TextLocation(SourceText Text, TextSpan Span)
         var line = Text.GetLineIndex(Span.Start);
         return $"{Text.FileName}({line + 1},{Span.Start - Text.Lines[line].Start + 1})";
     }
+
+    public static TextLocation operator +(TextLocation left, TextLocation right) => Add(left, right);
+    public static TextLocation Add(TextLocation left, TextLocation right) => left with { Span = left.Span + right.Span };
 }
