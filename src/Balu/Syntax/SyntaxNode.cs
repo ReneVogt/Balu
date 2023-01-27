@@ -28,14 +28,14 @@ public abstract class SyntaxNode
             if (ChildrenCount == 0) return default;
             var first = GetChild(0);
             var last = GetChild(ChildrenCount - 1);
-            return first.Span with { Length = last.Span.End - first.Span.Start };
+            return first.Span + last.Span;
         });
         fullSpan = new(() =>
         {
             if (ChildrenCount == 0) return default;
             var first = GetChild(0);
             var last = GetChild(ChildrenCount - 1);
-            return first.FullSpan with { Length = last.FullSpan.End - first.FullSpan.Start };
+            return first.FullSpan + last.FullSpan;
         });
     }
 
