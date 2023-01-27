@@ -25,5 +25,7 @@ enum BoundNodeKind
     LabelStatement,
     ReturnStatement,
     NopStatement,
-    SequencePointStatement
+    SequencePointStatement,
+    BeginScopeStatement,
+    EndScopeStatement
 }

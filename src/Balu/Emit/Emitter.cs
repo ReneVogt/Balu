@@ -23,7 +23,6 @@ sealed class Emitter : IDisposable
     readonly ReferencedMembers referencedMembers;
 
     readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
-    readonly Dictionary<LocalVariableSymbol, VariableDefinition> locals = new();
     readonly Dictionary<GlobalVariableSymbol, FieldDefinition> globals = new();
     readonly Dictionary<BoundLabel, int> labels = new();
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
@@ -31,6 +30,8 @@ sealed class Emitter : IDisposable
     readonly Dictionary<Symbol, string> globalSymbolNames = new();
     readonly BoundLabel exitLabel = new("<exit>");
 
+
+    LocalVariableScope? locals;
     bool debug;
 
     Emitter(BoundProgram program, string moduleName, string[] references)
@@ -43,6 +44,27 @@ sealed class Emitter : IDisposable
     public void Dispose() => referencedMembers.Dispose();
 
     TypeReference MapType(TypeSymbol typeSymbol) => referencedMembers.TypeMap.TryGetValue(typeSymbol, out var reference) ? reference : throw new EmitterException($"Invalid type symbol '{typeSymbol}'");
+
+    void BeginScope(int index)
+    {
+        locals = new(locals, index);
+    }
+    ScopeDebugInformation? EndScope(ILProcessor processor)
+    {
+        ScopeDebugInformation? scope = null;
+        if (locals?.StartIndex < processor.Body.Instructions.Count)
+        {
+            scope = new (processor.Body.Instructions[locals!.StartIndex], processor.Body.Instructions.Last());
+            foreach (var subScope in locals.Scopes)
+                scope.Scopes.Add(subScope);
+            foreach (var variable in locals.Locals.Keys.Where(variable => !variable.Name.IsBaluSpecialName()))
+                scope.Variables.Add(new(locals.Locals[variable], variable.Name));
+        }
+
+        locals = locals?.Parent;
+        if (scope is not null) locals?.Scopes.Add(scope);
+        return scope;
+    }
 
     MethodDefinition CreateMethod(FunctionSymbol function)
     {
@@ -62,9 +84,9 @@ sealed class Emitter : IDisposable
     {
         var processor = method.Body.GetILProcessor();
 
-        locals.Clear();
         gotosToFix.Clear();
         labels.Clear();
+        BeginScope(processor.Body.Instructions.Count);
 
         var body = program.Functions[function];
 
@@ -105,12 +127,8 @@ sealed class Emitter : IDisposable
         
         method.Body.OptimizeMacros();
 
-        if (method.Body.Instructions.Any())
-        {
-            method.DebugInformation.Scope = new(method.Body.Instructions.First(), method.Body.Instructions.Last());
-            foreach (var x in locals)
-                method.DebugInformation.Scope.Variables.Add(new(x.Value, x.Key.Name));
-        }
+        if (debug)
+            method.DebugInformation.Scope = EndScope(processor);
     }
     void EmitStatement(ILProcessor processor, BoundStatement statement)
     {
@@ -139,6 +157,12 @@ sealed class Emitter : IDisposable
                 break;
             case BoundNodeKind.SequencePointStatement:
                 EmitSequencePointStatement(processor, (BoundSequencePointStatement)statement);
+                break;
+            case BoundNodeKind.BeginScopeStatement:
+                BeginScope(processor.Body.Instructions.Count);
+                break;
+            case BoundNodeKind.EndScopeStatement:
+                EndScope(processor);
                 break;
             default:
                 throw new EmitterException($"Invalid statement kind '{statement.Kind}'.");
@@ -410,7 +434,7 @@ sealed class Emitter : IDisposable
                 processor.Emit(OpCodes.Ldarg, ((ParameterSymbol)variable).Ordinal);
                 break;
             case SymbolKind.LocalVariable:
-                var variableDefinition = locals[(LocalVariableSymbol)variable];
+                var variableDefinition = locals![(LocalVariableSymbol)variable];
                 processor.Emit(OpCodes.Ldloc, variableDefinition);
                 break;
             case SymbolKind.GlobalVariable:
@@ -433,7 +457,7 @@ sealed class Emitter : IDisposable
                 processor.Emit(OpCodes.Stsfld, globals[(GlobalVariableSymbol)variable]);
                 break;
             case SymbolKind.LocalVariable:
-                processor.Emit(OpCodes.Stloc, locals[(LocalVariableSymbol)variable]);
+                processor.Emit(OpCodes.Stloc, locals![(LocalVariableSymbol)variable]);
                 break;
             default:
                 throw new EmitterException($"Unexpected symbol kind '{variable.Kind}' when storing a variable..");
@@ -504,7 +528,7 @@ sealed class Emitter : IDisposable
         {
             case SymbolKind.LocalVariable:
                 var variableDefinition = new VariableDefinition(MapType(statement.Variable.Type));
-                locals.Add((LocalVariableSymbol)statement.Variable, variableDefinition);
+                locals!.Locals.Add((LocalVariableSymbol)statement.Variable, variableDefinition);
                 processor.Body.Variables.Add(variableDefinition);
                 processor.Emit(OpCodes.Stloc, variableDefinition);
                 break;
