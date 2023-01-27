@@ -177,7 +177,16 @@ sealed class BoundTreePrinter : BoundTreeVisitor
         writer.WritePunctuation(op.GetText()!);
         WriteNestedExpression(unaryExpression.Operand, op.UnaryOperatorPrecedence());
     }
-
+    protected override void VisitBoundPostfixExpression(BoundPostfixExpression node)
+    {
+        writer.WriteIdentifier(node.Variable.Name);
+        writer.WritePunctuation(node.Operator.SyntaxKind.GetText()!);
+    }
+    protected override void VisitBoundPrefixExpression(BoundPrefixExpression node)
+    {
+        writer.WritePunctuation(node.Operator.SyntaxKind.GetText()!);
+        writer.WriteIdentifier(node.Variable.Name);
+    }
     protected override void VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
         writer.WriteKeyword(variableDeclarationStatement.Variable.ReadOnly ? SyntaxKind.LetKeyword.GetText() : SyntaxKind.VarKeyword.GetText()!);

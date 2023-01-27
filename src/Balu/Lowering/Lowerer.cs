@@ -12,9 +12,16 @@ namespace Balu.Lowering;
 sealed class Lowerer : BoundTreeRewriter
 {
     int labelCount;
+    BoundSequencePointStatement? currentSequencePointStatement;
+    
 
     BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
+    protected override BoundNode VisitBoundGotoStatement(BoundGotoStatement node)
+    {
+        if (node.Syntax.Kind != SyntaxKind.BreakStatement && node.Syntax.Kind != SyntaxKind.ContinueStatement) return node;
+        return SequencePoint(node, node.Syntax.Location);
+    }
     protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
     {
         if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;
@@ -39,14 +46,15 @@ sealed class Lowerer : BoundTreeRewriter
                            Label(syntax.DoKeyword, startLabel),
                            doWhileStatement.Body,
                            Label(syntax.DoKeyword, doWhileStatement.ContinueLabel),
-                           GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition),
+                           SequencePoint(GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition),
+                                         syntax.WhileKeyword.Location + syntax.Condition.Location),
                            Label(syntax.LastToken, doWhileStatement.BreakLabel));
         return Visit(result);
     }
     protected override BoundNode VisitBoundExpressionStatement(BoundExpressionStatement expressionStatement)
     {
         var rewritten = (BoundStatement)base.VisitBoundExpressionStatement(expressionStatement);
-        return SequencePoint(rewritten, rewritten.Syntax.Location);
+        return currentSequencePointStatement?.Statement != expressionStatement ? SequencePoint(rewritten, rewritten.Syntax.Location) : rewritten;
     }
     protected override BoundNode VisitBoundForStatement(BoundForStatement forStatement)
     {
@@ -56,35 +64,39 @@ sealed class Lowerer : BoundTreeRewriter
          *     <body>
          *
          * Target statement:
-         *   {
-         *     var <var> = <lower>
-         *     var <tmp> = <upper>
-         *     while <var> <= <tmp>
-         *     {
-         *       <body>
-         *       continue:
-         *       <var> = <var> + 1
-         *     }
-         *   }
+         *
+         *  var <var> = <lower>
+         *  var <tmp> = <upper>
+         *  <start>:
+         *  gotofalse <var> <= <tmp> -> <break>
+         *  <body>
+         *  <continue>:
+         *  <var>++
+         *  goto <start>
+         *  <break>:
          */
 
         var syntax = (ForStatementSyntax)forStatement.Syntax;
 
+        var startLabel = new BoundLabel("<start>");
+        var lowerVariableDeclaration =VariableDeclaration(syntax.LowerBound, forStatement.Variable, forStatement.LowerBound);
+        var upperVariableDeclaration = ConstantDeclaration(syntax.UpperBound, "<upperBound>", forStatement.UpperBound);
+        var checkStatement = GotoFalse(syntax.ToKeyword, forStatement.BreakLabel, 
+                                       LessOrEqual(syntax.ToKeyword, 
+                                                   Variable(syntax.IdentifierToken, forStatement.Variable),
+                                                   Variable(syntax.UpperBound, upperVariableDeclaration.Variable)));
+        var increment = Increment(syntax.ToKeyword, Variable(syntax.IdentifierToken, forStatement.Variable));
 
-        var upperVariableDeclaration = ConstantDeclaration(syntax, "<upperBound>", forStatement.UpperBound);
         var result = Block(syntax,
-                           VariableDeclaration(syntax, forStatement.Variable, forStatement.LowerBound),
-                           upperVariableDeclaration,
-                           While(syntax,
-                                 LessOrEqual(syntax.ToKeyword,
-                                             Variable(syntax.IdentifierToken, forStatement.Variable),
-                                             Variable(syntax.UpperBound, upperVariableDeclaration.Variable)),
-                                 Block(syntax.Body,
-                                       forStatement.Body,
-                                       Label(syntax.ForKeyword, forStatement.ContinueLabel),
-                                       Increment(syntax.ToKeyword, Variable(syntax.IdentifierToken, forStatement.Variable))),
-                                 forStatement.BreakLabel,
-                                 new($"<lowcontinue{labelCount++}>"))
+                           SequencePoint(lowerVariableDeclaration, syntax.IdentifierToken.Location + syntax.EqualsToken.Location + syntax.LowerBound.Location),
+                           SequencePoint(upperVariableDeclaration, syntax.ToKeyword.Location + syntax.UpperBound.Location),
+                           Label(syntax.ToKeyword, startLabel),
+                           SequencePoint(checkStatement, syntax.UpperBound.Location),
+                           forStatement.Body,
+                           Label(syntax.ToKeyword, forStatement.ContinueLabel),
+                           SequencePoint(increment, syntax.ToKeyword.Location),
+                           Goto(syntax.ToKeyword, startLabel),
+                           Label(syntax.LastToken, forStatement.BreakLabel)
         );
         return Visit(result);
     }
@@ -92,7 +104,8 @@ sealed class Lowerer : BoundTreeRewriter
     {
         BoundStatement result;
 
-        var syntax = ifStatement.Syntax;
+        var syntax = (IfStatementSyntax)ifStatement.Syntax;
+        var iflocation = syntax.IfKeyword.Location + syntax.Condition.Location;
 
         if (ifStatement.ElseStatement is null)
         {
@@ -103,7 +116,7 @@ sealed class Lowerer : BoundTreeRewriter
              */
             var endLabel = GenerateNextLabel();
             result = Block(syntax,
-                           GotoFalse(syntax, endLabel, ifStatement.Condition),
+                           SequencePoint(GotoFalse(syntax.IfKeyword, endLabel, ifStatement.Condition), iflocation),
                            ifStatement.ThenStatement,
                            Label(syntax, endLabel));
 
@@ -122,7 +135,7 @@ sealed class Lowerer : BoundTreeRewriter
             var elseLabel = GenerateNextLabel();
             var endLabel = GenerateNextLabel();
             result = Block(syntax,
-                           GotoFalse(syntax, elseLabel, ifStatement.Condition),
+                           SequencePoint(GotoFalse(syntax, elseLabel, ifStatement.Condition), iflocation),
                            ifStatement.ThenStatement,
                            Goto(syntax, endLabel),
                            Label(syntax, elseLabel),
@@ -135,7 +148,7 @@ sealed class Lowerer : BoundTreeRewriter
     protected override BoundNode VisitBoundVariableDeclarationStatement(BoundVariableDeclarationStatement variableDeclarationStatement)
     {
         var rewritten = (BoundStatement)base.VisitBoundVariableDeclarationStatement(variableDeclarationStatement);
-        return SequencePoint(rewritten, rewritten.Syntax.Location);
+        return currentSequencePointStatement?.Statement != variableDeclarationStatement ? SequencePoint(rewritten, rewritten.Syntax.Location) : rewritten;
     }
     protected override BoundNode VisitBoundWhileStatement(BoundWhileStatement whileStatement)
     {
@@ -147,15 +160,27 @@ sealed class Lowerer : BoundTreeRewriter
          *                         end:
          */
 
-        var syntax = whileStatement.Syntax;
-
+        var syntax = (WhileStatementSyntax)whileStatement.Syntax;
+        var debugLocation = syntax.WhileKeyword.Location + syntax.Condition.Location;
+        BoundStatement condition = SequencePoint(GotoFalse(syntax.GetChild(0), whileStatement.BreakLabel, whileStatement.Condition), debugLocation);
         var result = Block(syntax,
                            Label(syntax.GetChild(0), whileStatement.ContinueLabel),
-                           GotoFalse(syntax.GetChild(0), whileStatement.BreakLabel, whileStatement.Condition),
+                           condition,
                            whileStatement.Body,
                            Goto(syntax.GetChild(0), whileStatement.ContinueLabel),
                            Label(syntax.LastToken, whileStatement.BreakLabel));
         return Visit(result);
+    }
+    protected override BoundNode VisitBoundReturnStatement(BoundReturnStatement node) => 
+        // Add sequence points only for real return statements that were not injected.
+        node.Syntax.Kind == SyntaxKind.ReturnStatement ? SequencePoint(node, node.Syntax.Location) : node;
+    protected override BoundNode VisitBoundSequencePointStatement(BoundSequencePointStatement node)
+    {
+        var seq = currentSequencePointStatement;
+        currentSequencePointStatement = node;
+        var result = base.VisitBoundSequencePointStatement(node);
+        currentSequencePointStatement = seq;
+        return result;
     }
 
     static BoundBlockStatement Flatten(BoundStatement statement)
@@ -167,9 +192,16 @@ sealed class Lowerer : BoundTreeRewriter
         while (stack.Count > 0)
         {
             var current = stack.Pop();
-            if (current is BoundBlockStatement { Statements: var statements })
+            if (current is BoundBlockStatement { Statements: var statements , Syntax: var syntax})
+            {
+                BlockStatementSyntax? blockSyntax = syntax.Kind == SyntaxKind.BlockStatement && current != statement ? (BlockStatementSyntax)syntax : null;
+                if (blockSyntax is { })
+                    stack.Push(SequencePoint(Nop(blockSyntax.ClosedBraceToken), blockSyntax.ClosedBraceToken.Location));
                 foreach (var s in statements.Reverse())
                     stack.Push(s);
+                if (blockSyntax is { })
+                    stack.Push(SequencePoint(Nop(blockSyntax.OpenBraceToken), blockSyntax.OpenBraceToken.Location));
+            }
             else
                 resultBuilder.Add(current);
         }
@@ -190,15 +222,15 @@ sealed class Lowerer : BoundTreeRewriter
         // collapse redundant gotos
         for (int i = 0; i < builder.Count-1; i++)
         {
-            var next = builder[i + 1];
+            var next = builder[i + 1].UnwrapSequencePoint();
             if (next.Kind != BoundNodeKind.LabelStatement) continue;
             var label = ((BoundLabelStatement)next).Label;
 
-            var current = builder[i];
-#pragma warning disable CA1508
+            var current = builder[i].UnwrapSequencePoint();
+            if (current.Kind == BoundNodeKind.SequencePointStatement)
+                current = ((BoundSequencePointStatement)current).Statement;
             if ((current.Kind != BoundNodeKind.GotoStatement || ((BoundGotoStatement)current).Label != label) &&
                 (current.Kind != BoundNodeKind.ConditionalGotoStatement|| ((BoundConditionalGotoStatement)current).Label != label)) continue;
-#pragma warning restore CA1508
 
             builder.RemoveAt(i + 1);
             builder.RemoveAt(i);
@@ -207,13 +239,15 @@ sealed class Lowerer : BoundTreeRewriter
 
 
         // remove unused lables
-        var usedLabels = new HashSet<BoundLabel>(builder.Where(s => s.Kind == BoundNodeKind.GotoStatement)
+        var usedLabels = new HashSet<BoundLabel>(builder.Select(s => s.UnwrapSequencePoint())
+                                                        .Where(s => s.Kind == BoundNodeKind.GotoStatement)
                                                         .Select(s => ((BoundGotoStatement)s).Label)
-                                                        .Concat(builder.Where(s => s.Kind == BoundNodeKind.ConditionalGotoStatement)
+                                                        .Concat(builder.Select(s => s.UnwrapSequencePoint())
+                                                                       .Where(s => s.Kind == BoundNodeKind.ConditionalGotoStatement)
                                                                        .Select(s => ((BoundConditionalGotoStatement)s).Label)));
         for (int i = 0; i < builder.Count; i++)
         {
-            var current = builder[i];
+            var current = builder[i].UnwrapSequencePoint();
             if (current.Kind == BoundNodeKind.LabelStatement && !usedLabels.Contains(((BoundLabelStatement)current).Label))
                 builder.RemoveAt(i--);
         }
@@ -249,12 +283,13 @@ sealed class Lowerer : BoundTreeRewriter
             s.Kind != BoundNodeKind.GotoStatement && 
             s.Kind != BoundNodeKind.ConditionalGotoStatement && 
             s.Kind != BoundNodeKind.LabelStatement &&
+            s.Kind != BoundNodeKind.NopStatement && 
             (s.Kind != BoundNodeKind.ReturnStatement || s.Syntax.Kind == SyntaxKind.ReturnStatement) &&
             (s.Kind != BoundNodeKind.SequencePointStatement || IsNotInjected(((BoundSequencePointStatement)s).Statement));
     }
     static BoundBlockStatement AddMissingReturn(BoundBlockStatement block, FunctionSymbol? containingFunction)
     {
-        if (containingFunction?.ReturnType != TypeSymbol.Void || block.Statements.Length > 0 && !CanFallThrough(block.Statements.Last()))
+        if (containingFunction?.ReturnType != TypeSymbol.Void || block.Statements.Length > 0 && !CanFallThrough(block.Statements.Last().UnwrapSequencePoint()))
             return block;
 
         return Block(block.Syntax, block.Statements.Add(new BoundReturnStatement(block.Syntax, null)));

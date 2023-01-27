@@ -1,0 +1,139 @@
+﻿using Balu.Tests.TestHelper;
+using Xunit;
+
+namespace Balu.Tests.EmitterTests;
+
+public partial class EmitterTests
+{
+ 
+    [Fact]
+    public void Emitter_While_BlockBodyDebug()
+    {
+        const string code = @"
+            function test(i:int) [{]
+                [while i> 0]
+                [{]
+                    [if i > 3]
+                        [break]
+                    [if i > 5]
+                        [continue]
+                    [i = 1]
+                [}]
+            [}]
+            return
+";
+        const string il = @"
+            IL0000: nop
+            IL0001: ldarg.0
+            IL0002: ldc.i4.0
+            IL0003: cgt
+            IL0005: brfalse.s IL_0022: br.s IL_0024
+            IL0007: nop
+            IL0008: ldarg.0
+            IL0009: ldc.i4.3
+            IL000A: cgt
+            IL000C: brfalse.s IL_0010: ldarg.0
+            IL000E: br.s IL_0022: br.s IL_0024
+            IL0010: ldarg.0
+            IL0011: ldc.i4.5
+            IL0012: cgt
+            IL0014: brfalse.s IL_0018: ldc.i4.1
+            IL0016: br.s IL_0001: ldarg.0
+            IL0018: ldc.i4.1
+            IL0019: dup
+            IL001A: starg i
+            IL001E: pop
+            IL001F: nop
+            IL0020: br.s IL_0001: ldarg.0
+            IL0022: br.s IL_0024: ret
+            IL0024: ret
+";
+        code.AssertIlAndSymbols("test", il);
+    }
+    [Fact]
+    public void Emitter_While_BlockBodyRelease()
+    {
+        const string code = @"
+            function test(i:int) {
+                while i>0
+                {
+                    if i > 3
+                        break
+                    if i > 5
+                        continue
+                    i = 1
+                }
+            }
+            return
+";
+        const string il = @"
+            IL0000: ldarg.0
+            IL0001: ldc.i4.0
+            IL0002: cgt
+            IL0004: brfalse.s IL_001f: ret
+            IL0006: ldarg.0
+            IL0007: ldc.i4.3
+            IL0008: cgt
+            IL000A: brfalse.s IL_000e: ldarg.0
+            IL000C: br.s IL_001f: ret
+            IL000E: ldarg.0
+            IL000F: ldc.i4.5
+            IL0010: cgt
+            IL0012: brfalse.s IL_0016: ldc.i4.1
+            IL0014: br.s IL_0000: ldarg.0
+            IL0016: ldc.i4.1
+            IL0017: dup
+            IL0018: starg i
+            IL001C: pop
+            IL001D: br.s IL_0000: ldarg.0
+            IL001F: ret
+";
+        code.AssertIl("test", il);
+    }
+    [Fact]
+    public void Emitter_While_SingleStatementBodyDebug()
+    {
+        const string code = @"
+            function test(i:int) [{]
+                [while i>0]
+                  [println("""")]                
+            [}]
+            return
+";
+        const string il = @"
+            IL0000: nop
+            IL0001: ldarg.0
+            IL0002: ldc.i4.0
+            IL0003: cgt
+            IL0005: brfalse.s IL_0013: br.s IL_0015
+            IL0007: ldstr
+            IL000C: call System.Void System.Console::WriteLine(System.Object)
+            IL0011: br.s IL_0001: ldarg.0
+            IL0013: br.s IL_0015: ret
+            IL0015: ret
+";
+        code.AssertIlAndSymbols("test", il);
+    }
+    [Fact]
+    public void Emitter_While_SingleStatementBodyRelease()
+    {
+        const string code = @"
+            function test(i:int) {
+                while i>0
+                  println("""")
+            }
+            return
+";
+        const string il = @"
+            IL0000: ldarg.0
+            IL0001: ldc.i4.0
+            IL0002: cgt
+            IL0004: brfalse.s IL_0012: ret
+            IL0006: ldstr
+            IL000B: call System.Void System.Console::WriteLine(System.Object)
+            IL0010: br.s IL_0000: ldarg.0
+            IL0012: ret
+";
+        code.AssertIl("test", il);
+    }
+}

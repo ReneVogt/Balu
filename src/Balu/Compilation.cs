@@ -65,7 +65,9 @@ public sealed class Compilation
         IsScript = isScript;
     }
 
-    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath)
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath) =>
+        Emit(moduleName, references, outputPath, symbolPath, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
@@ -75,7 +77,7 @@ public sealed class Compilation
         try
         {
             using var outputStream = File.Create(outputPath);
-            return Emit(moduleName, references, outputStream, symbolStream);
+            return Emit(moduleName, references, outputStream, symbolStream, initializedGlobalVariables).Diagnostics;
         }
         finally
         {

@@ -48,7 +48,7 @@ sealed class Program
         {
             if (sourcePaths.Count == 0)
             {
-                LogError("Error: need at least one source file.");
+                LogError("need at least one source file.");
                 return 1;
             }
 
@@ -91,6 +91,7 @@ sealed class Program
     static void LogError(string message)
     {
         if (quiet) return;
+        Console.Error.WriteColoredText("error: ", ConsoleColor.Red);
         Console.Error.WriteColoredText(message, ConsoleColor.Red);
         Console.Error.WriteLine();
     }

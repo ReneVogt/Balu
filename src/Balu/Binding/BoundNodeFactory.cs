@@ -45,6 +45,8 @@ static class BoundNodeFactory
     public static BoundReturnStatement Return(SyntaxNode syntax, BoundExpression? expression = null) => new(syntax, expression);
     public static BoundSequencePointStatement SequencePoint(BoundStatement statement, TextLocation location) =>
         new (statement.Syntax, statement, location);
+    public static BoundStatement UnwrapSequencePoint(this BoundStatement statement) =>
+        statement.Kind == BoundNodeKind.SequencePointStatement ? ((BoundSequencePointStatement)statement).Statement : statement;
     public static BoundUnaryExpression Unary(SyntaxNode syntax, BoundUnaryOperator op, BoundExpression operand) => new(syntax, op, operand);
     public static BoundVariableDeclarationStatement VariableDeclaration(SyntaxNode syntax, VariableSymbol symbol, BoundExpression initializer) => new (syntax, symbol, initializer);
     public static BoundVariableDeclarationStatement VariableDeclaration(SyntaxNode syntax, string name, BoundExpression initializer) => VariableDeclaration(syntax, name, initializer, isReadOnly: false);

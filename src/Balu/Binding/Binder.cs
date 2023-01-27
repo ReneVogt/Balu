@@ -405,7 +405,7 @@ sealed class Binder : SyntaxTreeVisitor
         
         if (expression is null)
         {
-            if (returnType != TypeSymbol.Void && returnType != TypeSymbol.Any)
+            if (returnType != TypeSymbol.Void)
             {
                 diagnostics.ReportReturnMissingValue(node.Location, returnType, functionName);
                 expression = new BoundErrorExpression(node);
@@ -620,7 +620,7 @@ sealed class Binder : SyntaxTreeVisitor
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         if (previous is not null) functionBodyBuilder.AddRange(previous.Functions.Where(x => x.Key != previous.EntryPoint));
         
-        foreach (var function in globalScope.VisibleSymbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null && !functionBodyBuilder.ContainsKey(function)))
+        foreach (var function in globalScope.VisibleSymbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null && !functionBodyBuilder.ContainsKey(function) && function != previous?.EntryPoint))
         {
             var functionBinder = new Binder(isScript, parentScope, function);
             functionBinder.Visit(function.Declaration!.Body);

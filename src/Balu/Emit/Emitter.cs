@@ -29,6 +29,7 @@ sealed class Emitter : IDisposable
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
     readonly Dictionary<SourceText, Document> documents = new();
     readonly Dictionary<Symbol, string> globalSymbolNames = new();
+    readonly BoundLabel exitLabel = new("<exit>");
 
     bool debug;
 
@@ -45,7 +46,7 @@ sealed class Emitter : IDisposable
 
     MethodDefinition CreateMethod(FunctionSymbol function)
     {
-        bool isVisilbe = program.VisibleSymbols.Contains(function);
+        bool isVisilbe = function == program.EntryPoint || program.VisibleSymbols.Contains(function);
         var name = isVisilbe ? function.Name : $"<{function.Name}{globals.Count}>";
         var attributes = MethodAttributes.Static | MethodAttributes.Private;
         if (name.IsBaluSpecialName()) attributes |= MethodAttributes.SpecialName;
@@ -60,14 +61,44 @@ sealed class Emitter : IDisposable
     void EmitMethod(MethodDefinition method, FunctionSymbol function)
     {
         var processor = method.Body.GetILProcessor();
-        
+
         locals.Clear();
         gotosToFix.Clear();
         labels.Clear();
 
         var body = program.Functions[function];
+
+        if (debug)
+        {
+            if (function.Declaration is { Body.OpenBraceToken: var openBrace})
+                EmitSequencePointStatement(processor, new(openBrace, new BoundNopStatement(openBrace), openBrace.Location));
+            else if (body.Syntax.SyntaxTree.Text.Length > 0)
+            {
+                var firstToken = body.Syntax.SyntaxTree.Root.FirstToken;
+                EmitSequencePointStatement(
+                    processor, new(firstToken, new BoundNopStatement(firstToken), new(firstToken.SyntaxTree.Text, new(0, 1))));
+            }
+        }
+
         foreach (var statement in body.Statements)
             EmitStatement(processor, statement);
+
+        if (debug)
+        {
+            labels.Add(exitLabel, processor.Body.Instructions.Count);
+            var index = processor.Body.Instructions.Count;
+            processor.Emit(OpCodes.Ret);
+            var instruction = processor.Body.Instructions[index];
+            if (function.Declaration is { Body.ClosedBraceToken.Location : var closedBraceLocation })
+                AddSequencePoint(processor, instruction, closedBraceLocation);
+            else if (body.Syntax.SyntaxTree.Text.Length > 0)
+            {
+                var endLocation = body.Syntax.LastToken.Location;
+                var start = Math.Max(0, Math.Min(endLocation.Span.End, endLocation.Text.Length - 1));
+                var exitLocation = endLocation with { Span = new(start, 1) };
+                AddSequencePoint(processor, instruction, exitLocation);
+            }
+        }
 
         foreach ((int instrcutionIndex, BoundLabel? label) in gotosToFix)
             processor.Body.Instructions[instrcutionIndex].Operand = processor.Body.Instructions[labels[label]];
@@ -506,7 +537,13 @@ sealed class Emitter : IDisposable
     {
         if (statement.Expression is not null)
             EmitExpression(processor, statement.Expression);
-        processor.Emit(OpCodes.Ret);
+        if (!debug)
+            processor.Emit(OpCodes.Ret);
+        else
+        {
+            gotosToFix.Add((processor.Body.Instructions.Count, exitLabel));
+            processor.Emit(OpCodes.Br, Instruction.Create(OpCodes.Nop));
+        }
     }
     static void EmitNopStatement(ILProcessor processor)
     {
@@ -524,22 +561,26 @@ sealed class Emitter : IDisposable
         var index = processor.Body.Instructions.Count;
         EmitStatement(processor, statement.Statement);
         var instruction = processor.Body.Instructions[index];
-
-        if (!documents.TryGetValue(statement.Location.Text, out var document))
+        AddSequencePoint(processor, instruction, statement.Location);
+    }
+    void AddSequencePoint(ILProcessor processor, Instruction instruction, TextLocation location)
+    {
+        if (!documents.TryGetValue(location.Text, out var document))
         {
-            var uri = new Uri(statement.Location.FileName).ToString();
-            document = new(uri);
-            documents[statement.Location.Text] = document;
+            var uriString = Uri.TryCreate(location.FileName, UriKind.RelativeOrAbsolute, out var uri) ? uri.ToString() : string.Empty;
+            document = new(uriString);
+            documents[location.Text] = document;
         }
 
         var sequencePoint = new SequencePoint(instruction, document)
         {
-            StartLine = statement.Location.StartLine + 1,
-            StartColumn = statement.Location.StartCharacter + 1,
-            EndLine = statement.Location.EndLine + 1,
-            EndColumn = statement.Location.EndCharacter + 1
+            StartLine = location.StartLine + 1,
+            StartColumn = location.StartCharacter + 1,
+            EndLine = location.EndLine + 1,
+            EndColumn = location.EndCharacter + 1
         };
         processor.Body.Method.DebugInformation.SequencePoints.Add(sequencePoint);
+
     }
 
     void EmitFields(ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
@@ -626,7 +667,7 @@ sealed class Emitter : IDisposable
             methods.Add(function, CreateMethod(function));
 
         EmitMethod(methods[program.EntryPoint], program.EntryPoint);
-        foreach (var x in methods)
+        foreach (var x in methods.Where(x => x.Key != program.EntryPoint))
             EmitMethod(x.Value, x.Key);
 
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
