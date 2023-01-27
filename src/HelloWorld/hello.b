@@ -1,11 +1,14 @@
 var result = 0
-for i = 1 to 10
+function test()
 {
-    if i/2*2 == i continue
-    for j = 11 to 15
-    {
-        if j == 13 || j == 14 continue
-        result = result + i + j
-    }
+	var i = 0
+	do
+	{
+		var x = i
+		{
+		var x = ""}
+		i++
+	} while i<5
 }
-println(string(result))
+
+test()
