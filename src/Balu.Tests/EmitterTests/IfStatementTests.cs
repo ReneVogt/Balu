@@ -6,6 +6,38 @@ namespace Balu.Tests.EmitterTests;
 public partial class EmitterTests
 {
     [Fact]
+    public void Emitter_IfStatement_NoElseSymbolsBlock()
+    {
+        const string code = @"
+        function test(i:int) [{]
+            [var a = 0]
+            [if i < 10]
+            [{]
+                [a = 10]
+            [}]
+        [}]
+        test(12)
+";
+        const string il = @"
+            IL0000: nop
+            IL0001: ldc.i4.0
+            IL0002: stloc.0
+            IL0003: ldarg.0
+            IL0004: ldc.i4.s 10
+            IL0006: clt
+            IL0008: brfalse.s IL_0011: br.s IL_0013
+            IL000A: nop
+            IL000B: ldc.i4.s 10
+            IL000D: dup
+            IL000E: stloc.0
+            IL000F: pop
+            IL0010: nop
+            IL0011: br.s IL_0013: ret
+            IL0013: ret
+";
+        code.AssertIlAndSymbols("test", il);
+    }
+    [Fact]
     public void Emitter_IfStatement_SymbolsBlock()
     {
         const string code = @"

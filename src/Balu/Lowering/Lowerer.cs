@@ -90,16 +90,17 @@ sealed class Lowerer : BoundTreeRewriter
         var builder = ImmutableArray.CreateBuilder<BoundStatement>();
         builder.Add(SequencePoint(lowerVariableDeclaration, syntax.IdentifierToken.Location + syntax.EqualsToken.Location + syntax.LowerBound.Location));
         builder.Add(SequencePoint(upperVariableDeclaration, syntax.ToKeyword.Location + syntax.UpperBound.Location));
+        builder.Add(Goto(syntax.ToKeyword, startLabel));
+        builder.Add(Label(syntax.ToKeyword, forStatement.ContinueLabel));
+        builder.Add(SequencePoint(increment, syntax.ToKeyword.Location));
         builder.Add(Label(syntax.ToKeyword, startLabel));
         builder.Add(SequencePoint(checkStatement, syntax.UpperBound.Location));
 
+        builder.Add(new BoundBeginScopeStatement(forStatement.Body.Syntax));
         AddLoopBody(builder, forStatement.Body);
-
-        builder.Add(Label(syntax.ToKeyword, forStatement.ContinueLabel));
-        builder.Add(SequencePoint(increment, syntax.ToKeyword.Location));
-        builder.Add(Goto(syntax.ToKeyword, startLabel));
+        builder.Add(Goto(syntax.ToKeyword, forStatement.ContinueLabel));
         builder.Add(Label(syntax.LastToken, forStatement.BreakLabel));
-
+        builder.Add(new BoundEndScopeStatement(forStatement.Body.Syntax));
         return Visit(Block(syntax, builder.ToImmutable()));
     }
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
@@ -121,7 +122,6 @@ sealed class Lowerer : BoundTreeRewriter
                            SequencePoint(GotoFalse(syntax.IfKeyword, endLabel, ifStatement.Condition), iflocation),
                            ifStatement.ThenStatement,
                            Label(syntax, endLabel));
-
         }
         else
         {
@@ -199,18 +199,12 @@ sealed class Lowerer : BoundTreeRewriter
         var openBraceToken = block.Syntax.Kind == SyntaxKind.BlockStatement ? ((BlockStatementSyntax)block.Syntax).OpenBraceToken : null;
         var closedBraceToken = block.Syntax.Kind == SyntaxKind.BlockStatement ? ((BlockStatementSyntax)block.Syntax).ClosedBraceToken : null;
         if (openBraceToken is not null)
-        {
-            builder.Add(new BoundBeginScopeStatement(openBraceToken));
             builder.Add(SequencePoint(Nop(openBraceToken), openBraceToken.Location));
-        }
 
         builder.AddRange(block.Statements);
 
         if (closedBraceToken is not null)
-        {
             builder.Add(SequencePoint(Nop(closedBraceToken), closedBraceToken.Location));
-            builder.Add(new BoundEndScopeStatement(closedBraceToken));
-        }
     }
 
     static BoundBlockStatement Flatten(BoundStatement statement)
@@ -266,8 +260,6 @@ sealed class Lowerer : BoundTreeRewriter
             var label = ((BoundLabelStatement)next).Label;
 
             var current = builder[i].UnwrapSequencePoint();
-            if (current.Kind == BoundNodeKind.SequencePointStatement)
-                current = ((BoundSequencePointStatement)current).Statement;
             if ((current.Kind != BoundNodeKind.GotoStatement || ((BoundGotoStatement)current).Label != label) &&
                 (current.Kind != BoundNodeKind.ConditionalGotoStatement|| ((BoundConditionalGotoStatement)current).Label != label)) continue;
 

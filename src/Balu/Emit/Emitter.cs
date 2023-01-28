@@ -47,23 +47,31 @@ sealed class Emitter : IDisposable
 
     void BeginScope(int index)
     {
-        locals = new(locals, index);
+        locals = new(locals, index, isBlock: true);
     }
     ScopeDebugInformation? EndScope(ILProcessor processor)
     {
-        ScopeDebugInformation? scope = null;
-        if (locals?.StartIndex < processor.Body.Instructions.Count)
-        {
-            scope = new (processor.Body.Instructions[locals!.StartIndex], processor.Body.Instructions.Last());
-            foreach (var subScope in locals.Scopes)
-                scope.Scopes.Add(subScope);
-            foreach (var variable in locals.Locals.Keys.Where(variable => !variable.Name.IsBaluSpecialName()))
-                scope.Variables.Add(new(locals.Locals[variable], variable.Name));
-        }
+        while (locals?.IsBlock == false)
+            Collapse();
+        return Collapse();
 
-        locals = locals?.Parent;
-        if (scope is not null) locals?.Scopes.Add(scope);
-        return scope;
+
+        ScopeDebugInformation? Collapse()
+        {
+            ScopeDebugInformation? scope = null;
+            if (locals?.StartIndex < processor.Body.Instructions.Count)
+            {
+                scope = new(processor.Body.Instructions[locals!.StartIndex], processor.Body.Instructions.Last());
+                foreach (var subScope in locals.Scopes)
+                    scope.Scopes.Add(subScope);
+                foreach (var variable in locals.Locals.Keys.Where(variable => !variable.Name.IsBaluSpecialName()))
+                    scope.Variables.Add(new(locals.Locals[variable], variable.Name));
+            }
+
+            locals = locals?.Parent;
+            if (scope is not null) locals?.Scopes.Add(scope);
+            return scope;
+        }
     }
 
     MethodDefinition CreateMethod(FunctionSymbol function)
@@ -108,9 +116,8 @@ sealed class Emitter : IDisposable
         if (debug)
         {
             labels.Add(exitLabel, processor.Body.Instructions.Count);
-            var index = processor.Body.Instructions.Count;
             processor.Emit(OpCodes.Ret);
-            var instruction = processor.Body.Instructions[index];
+            var instruction = processor.Body.Instructions.Last();
             if (function.Declaration is { Body.ClosedBraceToken.Location : var closedBraceLocation })
                 AddSequencePoint(processor, instruction, closedBraceLocation);
             else if (body.Syntax.SyntaxTree.Text.Length > 0)
@@ -527,6 +534,7 @@ sealed class Emitter : IDisposable
         switch (statement.Variable.Kind)
         {
             case SymbolKind.LocalVariable:
+                locals = new LocalVariableScope(locals, processor.Body.Instructions.Count);
                 var variableDefinition = new VariableDefinition(MapType(statement.Variable.Type));
                 locals!.Locals.Add((LocalVariableSymbol)statement.Variable, variableDefinition);
                 processor.Body.Variables.Add(variableDefinition);
