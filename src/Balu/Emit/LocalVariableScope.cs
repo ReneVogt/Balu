@@ -7,6 +7,7 @@ namespace Balu.Emit;
 sealed class LocalVariableScope
 {
     public LocalVariableScope? Parent { get; }
+    public bool IsBlock { get; }
     public Dictionary<LocalVariableSymbol, VariableDefinition> Locals { get; } = new();
     public List<ScopeDebugInformation> Scopes { get; } = new();
     public int StartIndex { get; }
@@ -15,9 +16,10 @@ sealed class LocalVariableScope
                                                                         : Parent?[variable] ??
                                                                           throw new KeyNotFoundException(
                                                                               $"Local variable '{variable.Name}' not found in scopes.");
-    public LocalVariableScope(LocalVariableScope? parent, int startIndex)
+    public LocalVariableScope(LocalVariableScope? parent, int startIndex, bool isBlock = false)
     {
         Parent = parent;
         StartIndex = startIndex;
+        IsBlock = isBlock;
     }
 }
