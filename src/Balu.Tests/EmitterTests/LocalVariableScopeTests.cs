@@ -91,9 +91,11 @@ public partial class EmitterTests
                <END 002B>
                <BEGIN 002E>
                ende
-                <BEGIN 0035>
-                schluss
-                <END 0039>
+                <BEGIN 0034>
+                 <BEGIN 0035>
+                 schluss
+                 <END 0035>
+                <END 0035>
                <END 0039>
               <END 0039>
              <END 0039>
