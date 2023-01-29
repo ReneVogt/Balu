@@ -1,8 +1,16 @@
 var result = 0
-function test()
+function test1()
 {
 	if (result < 0)
-		{}
+	{}
+}
+function test2()
+{
+	if (result < 0)
+	{}
+	return
 }
 
-test()
+test1()
+test2()
+

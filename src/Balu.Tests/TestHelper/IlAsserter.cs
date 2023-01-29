@@ -1,4 +1,6 @@
 ﻿using System;
+using System.CodeDom.Compiler;
+using System.Collections.Generic;
 using Balu.Syntax;
 using System.IO;
 using System.Linq;
@@ -17,11 +19,10 @@ static class IlAsserter
         var expected = string.Join(Environment.NewLine,
                                    expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
         var tree = SyntaxTree.Parse(SourceText.From(code, "IlAsserter.b"));
-        var (il, _) = ExecuteEmitter(tree, methodToAssert, script, debug);
-        output?.WriteLine(il);
+        var (il, _, _) = ExecuteEmitter(tree, methodToAssert, script, debug, output);
         Assert.Equal(expected, il);
     }
-    public static void AssertSymbols(this string code, string methodToAssert, bool script = false)
+    public static void AssertSymbols(this string code, string methodToAssert, IEnumerable<int> sequencePointOffsets, string? scopes = null, bool script = false)
     {
         var annotated = AnnotatedText.Parse(code);
         var tree = SyntaxTree.Parse(SourceText.From(annotated.Text, "IlAsserter.b"));
@@ -29,12 +30,13 @@ static class IlAsserter
         var expectedSymbols = string.Join(Environment.NewLine,
                                         annotated.Spans.OrderBy(span => span.Start)
                                                  .ThenByDescending(span => span.Length)
-                                                 .Select(span => ToSymbolString(new TextLocation(tree.Text, span))));
+                                                 .Zip(sequencePointOffsets, (span, offset) => ToSymbolString(offset, new (tree.Text, span))));
         
-        var (_, symbols) = ExecuteEmitter(tree, methodToAssert, script, true);
+        var (_, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, null);
         Assert.Equal(expectedSymbols, symbols);
+        if (scopes is not null) Assert.Equal(scopes, actualScopes);
     }
-    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, bool script = false, ITestOutputHelper? output = null)
+    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, IEnumerable<int> sequencePointOffsets, string? scopes = null, bool script = false, ITestOutputHelper? output = null)
     {
         var expected = string.Join(Environment.NewLine,
                                    expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
@@ -43,15 +45,15 @@ static class IlAsserter
         var expectedSymbols = string.Join(Environment.NewLine,
                                           annotated.Spans.OrderBy(span => span.Start)
                                                    .ThenByDescending(span => span.Length)
-                                                   .Select(span => ToSymbolString(new TextLocation(tree.Text, span))));
+                                                   .Zip(sequencePointOffsets,
+                                                    (span, offset) => ToSymbolString(offset, new (tree.Text, span))));
 
-        var (il, symbols) = ExecuteEmitter(tree, methodToAssert, script, true);
-        output?.WriteLine(il);
+        var (il, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, output);
         Assert.Equal(expected, il);
         Assert.Equal(expectedSymbols, symbols);
-
+        if (scopes is not null) Assert.Equal(scopes, actualScopes);
     }
-    static (string il, string symbols) ExecuteEmitter(SyntaxTree syntaxTree, string methodToAssert, bool script, bool debug)
+    static (string il, string symbols, string locals) ExecuteEmitter(SyntaxTree syntaxTree, string methodToAssert, bool script, bool debug, ITestOutputHelper? output)
     {
         var compilation = script
                               ? Compilation.CreateScript(null, syntaxTree)
@@ -78,26 +80,49 @@ static class IlAsserter
                                  method.Body.Instructions.Select(
                                      instruction =>
                                          $"IL{instruction.Offset:X04}: {instruction.OpCode}{(string.IsNullOrWhiteSpace(instruction.Operand?.ToString()) ? "" : $" {instruction.Operand}")}"));
+            var orderedSequencePoints = method.DebugInformation.SequencePoints
+                                              .OrderBy(sp => sp.StartLine)
+                                              .ThenBy(sp => sp.StartColumn)
+                                              .ThenByDescending(sp => sp.EndLine)
+                                              .ThenByDescending(sp => sp.EndColumn)
+                                              .ToArray();
             var symbols = string.Join(Environment.NewLine,
-                                      method.DebugInformation.SequencePoints
-                                            .OrderBy(sp => sp.StartLine)
-                                            .ThenBy(sp => sp.StartColumn)
-                                            .ThenByDescending(sp => sp.EndLine)
-                                            .ThenByDescending(sp => sp.EndColumn)
-                                            .Select(ToSymbolString));
-            return (il, symbols);
+                                      orderedSequencePoints.Select(ToSymbolString));
+            var scopeWriter = new IndentedTextWriter(new StringWriter(), " ");
+            BuildScopes(scopeWriter, method.DebugInformation.Scope);
+            var locals = scopeWriter.InnerWriter.ToString()!;
+            output?.WriteLine("IL:");
+            output?.WriteLine(il);
+            output?.WriteLine("Sequence points:");
+            output?.WriteLine(symbols);
+            output?.WriteLine("Locals:");
+            output?.WriteLine(locals);
+            return (il, symbols, locals);
         }
         finally
         {
             outputStream.Dispose();
             symbolStream?.Dispose();
         }
+
+        static void BuildScopes(IndentedTextWriter writer, ScopeDebugInformation? scope)
+        {
+            if (scope is null) return;
+            writer.WriteLine($"[BEGIN {scope.Start.Offset:X04}]");
+            foreach(var variable in scope.Variables.OrderBy(v => v.Name))
+                writer.WriteLine(variable.Name);
+            writer.Indent++;
+            foreach (var subScope in scope.Scopes)
+                BuildScopes(writer, subScope);
+            writer.Indent--;
+            writer.WriteLine($"[END [{scope.End.Offset:X04}]");
+        }
     }
 
     static string ToSymbolString(SequencePoint sequencePoint) =>
-        ToSymbolString(sequencePoint.StartLine, sequencePoint.StartColumn, sequencePoint.EndLine, sequencePoint.EndColumn);
-    static string ToSymbolString(TextLocation location) =>
-        ToSymbolString(location.StartLine + 1, location.StartCharacter + 1, location.EndLine + 1, location.EndCharacter + 1);
-    static string ToSymbolString(int startLine, int startColumn, int endLine, int endColumn) =>
-        $"({startLine}, {startColumn}) - ({endLine}, {endColumn})";
+        ToSymbolString(sequencePoint.Offset, sequencePoint.StartLine, sequencePoint.StartColumn, sequencePoint.EndLine, sequencePoint.EndColumn);
+    static string ToSymbolString(int offset, TextLocation location) =>
+        ToSymbolString(offset, location.StartLine + 1, location.StartCharacter + 1, location.EndLine + 1, location.EndCharacter + 1);
+    static string ToSymbolString(int offset, int startLine, int startColumn, int endLine, int endColumn) =>
+        $"{offset:X04}: ({startLine}, {startColumn}) - ({endLine}, {endColumn})";
 }

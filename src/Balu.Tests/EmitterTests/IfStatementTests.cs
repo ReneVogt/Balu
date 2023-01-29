@@ -6,6 +6,57 @@ namespace Balu.Tests.EmitterTests;
 public partial class EmitterTests
 {
     [Fact]
+    public void Emitter_IfStatement_SimpleCorrectSequencePoints()
+    {
+        const string code = @"
+        function back(){}
+        function test(i:int) [{]
+            [if i < 10]            
+                [back()]           
+        [}]
+        test(12)
+";
+        var sequencePointOffsets = new[] { 0, 1, 8, 15 };
+
+        const string il = @"
+            IL0000: nop
+            IL0001: ldarg.0
+            IL0002: ldc.i4.s 10
+            IL0004: clt
+            IL0006: brfalse.s IL_000d: br.s IL_000f
+            IL0008: call System.Void Program::back()
+            IL000D: br.s IL_000f: ret
+            IL000F: ret
+";
+        code.AssertIlAndSymbols("test", il, sequencePointOffsets: sequencePointOffsets);
+    }
+    [Fact]
+    public void Emitter_IfStatement_SimpleWithReturnCorrectSequencePoints()
+    {
+        const string code = @"
+        function back(){}
+        function test(i:int) [{]
+            [if i < 10]            
+                [back()]
+            [return]
+        [}]
+        test(12)
+";
+        const string il = @"
+IL0000: nop
+            IL0001: ldarg.0
+            IL0002: ldc.i4.s 10
+            IL0004: clt
+            IL0006: brfalse.s IL_000d: br.s IL_000f
+            IL0008: call System.Void Program::back()
+            IL000D: br.s IL_000f: ret
+            IL000F: ret
+";
+        var sequencePointOffsets = new[] { 0, 1, 8, 13, 15 };
+        code.AssertIlAndSymbols("test", il, sequencePointOffsets: sequencePointOffsets);
+    }
+
+    [Fact]
     public void Emitter_IfStatement_NoElseSymbolsBlock()
     {
         const string code = @"
@@ -35,7 +86,8 @@ public partial class EmitterTests
             IL0011: br.s IL_0013: ret
             IL0013: ret
 ";
-        code.AssertIlAndSymbols("test", il);
+        var offsets = new[] { 0, 1, 3, 0xA, 0xB, 0x10, 0x13 };
+        code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
     public void Emitter_IfStatement_SymbolsBlock()
@@ -78,7 +130,8 @@ public partial class EmitterTests
             IL0019: br.s IL_001b: ret
             IL001B: ret
 ";
-        code.AssertIlAndSymbols("test", il);
+        var offsets = new[] { 0, 1, 3, 0xA, 0xB, 0x10, 0x13, 0x14, 0x18, 0x1B };
+        code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
     public void Emitter_IfStatement_SymbolsNoBlock()
@@ -113,7 +166,8 @@ public partial class EmitterTests
             IL0015: br.s IL_0017: ret
             IL0017: ret
 ";
-        code.AssertIlAndSymbols("test", il);
+        var offsets = new[] { 0, 1, 3, 0xA, 0x11, 0x17 };
+        code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
 
 }

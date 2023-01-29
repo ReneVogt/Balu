@@ -46,7 +46,8 @@ public partial class EmitterTests
             IL0020: br.s IL_0022: ret
             IL0022: ret
 ";
-        code.AssertIlAndSymbols("test", il);
+        var offsets = new[] { 0, 1, 2, 8, 0x0A, 0x10, 0x12, 0x19, 0x1A, 0x22 };
+        code.AssertIlAndSymbols("test", il, offsets);
     }
     [Fact]
     public void Emitter_DoWhile_BlockBodyRelease()
@@ -109,7 +110,8 @@ public partial class EmitterTests
                 IL0011: br.s IL_0013: ret
                 IL0013: ret
 ";
-        code.AssertIlAndSymbols("test", il);
+        var offsets = new[] { 0, 1, 0x0B, 0x13 };
+        code.AssertIlAndSymbols("test", il, offsets);
     }
     [Fact]
     public void Emitter_DoWhile_SingleStatementBodyRelease()

@@ -1,4 +1,5 @@
 ﻿using Balu.Tests.TestHelper;
+using System;
 using Xunit;
 
 namespace Balu.Tests.EmitterTests;
@@ -14,7 +15,7 @@ public partial class EmitterTests
             IL0005: br.s IL_0007: ret
             IL0007: ret
 ";
-        code.AssertIlAndSymbols("<eval>", il, script: true);
+        code.AssertIlAndSymbols("<eval>", il, Array.Empty<int>(), script: true);
     }
     [Fact]
     public void Emitter_GlobalScope_EmptyScriptRelease()
@@ -56,7 +57,8 @@ public partial class EmitterTests
             IL0035: br.s IL_0037: ret
             IL0037: ret
 ";
-        code.AssertIlAndSymbols("main", il);
+        var offsets = new[] { 0, 1, 7, 0x15, 0x1F, 0x21, 0x37 };
+        code.AssertIlAndSymbols("main", il, offsets, output: output);
     }
     [Fact]
     public void Emitter_GlobalScope_ReleaseNoScript()
@@ -125,7 +127,8 @@ public partial class EmitterTests
             IL004F: br.s IL_0051: ret
             IL0051: ret
 ";
-        code.AssertIlAndSymbols("<eval>", il, script: true);
+        var offsets = new[] { 0, 1, 7, 0x20, 0x2A, 0x36, 0x51 };
+        code.AssertIlAndSymbols("<eval>", il, offsets, script: true, output: output);
     }
     [Fact]
     public void Emitter_GlobalScope_ReleaseScript()
