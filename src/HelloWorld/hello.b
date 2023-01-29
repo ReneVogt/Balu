@@ -13,5 +13,11 @@ function test(argument:int)
     if (ende)
         var schluss = false
 }
+function test2(i:int)
+{
+    if (i<0)
+        i++
+}
 test(2)
+test2(2)
 

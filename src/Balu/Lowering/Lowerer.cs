@@ -96,11 +96,11 @@ sealed class Lowerer : BoundTreeRewriter
         builder.Add(Label(syntax.ToKeyword, startLabel));
         builder.Add(SequencePoint(checkStatement, syntax.UpperBound.Location));
 
-        builder.Add(new BoundBeginScopeStatement(forStatement.Body.Syntax));
+        builder.Add(BeginScope(forStatement.Body.Syntax));
         AddLoopBody(builder, forStatement.Body);
         builder.Add(Goto(syntax.ToKeyword, forStatement.ContinueLabel));
         builder.Add(Label(syntax.LastToken, forStatement.BreakLabel));
-        builder.Add(new BoundEndScopeStatement(forStatement.Body.Syntax));
+        builder.Add(EndScope(forStatement.Body.Syntax));
         return Visit(Block(syntax, builder.ToImmutable()));
     }
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
@@ -118,10 +118,13 @@ sealed class Lowerer : BoundTreeRewriter
              *                          end:
              */
             var endLabel = GenerateNextLabel();
-            result = Block(syntax,
-                           SequencePoint(GotoFalse(syntax.IfKeyword, endLabel, ifStatement.Condition), iflocation),
-                           ifStatement.ThenStatement,
-                           Label(syntax, endLabel));
+            var builder = ImmutableArray.CreateBuilder<BoundStatement>();
+            builder .Add(SequencePoint(GotoFalse(syntax.IfKeyword, endLabel, ifStatement.Condition), iflocation));
+            builder.Add(BeginScope(syntax.ThenStatement));
+            AddLoopBody(builder, ifStatement.ThenStatement);
+            builder.Add(EndScope(syntax.ThenStatement));
+            builder.Add(Label(syntax, endLabel));
+            result = Block(syntax, builder.ToImmutable());
         }
         else
         {
@@ -136,13 +139,19 @@ sealed class Lowerer : BoundTreeRewriter
 
             var elseLabel = GenerateNextLabel();
             var endLabel = GenerateNextLabel();
-            result = Block(syntax,
-                           SequencePoint(GotoFalse(syntax, elseLabel, ifStatement.Condition), iflocation),
-                           ifStatement.ThenStatement,
-                           Goto(syntax, endLabel),
-                           Label(syntax, elseLabel),
-                           ifStatement.ElseStatement,
-                           Label(syntax, endLabel));
+
+            var builder = ImmutableArray.CreateBuilder<BoundStatement>();
+            builder.Add(SequencePoint(GotoFalse(syntax, elseLabel, ifStatement.Condition), iflocation));
+            builder.Add(BeginScope(syntax.ThenStatement));
+            AddLoopBody(builder, ifStatement.ThenStatement);
+            builder.Add(EndScope(syntax.ThenStatement));
+            builder.Add(Goto(syntax, endLabel));
+            builder.Add(Label(syntax, elseLabel));
+            builder.Add(BeginScope(syntax.ElseClause!.Statement));
+            AddLoopBody(builder, ifStatement.ElseStatement);
+            builder.Add(EndScope(syntax.ElseClause!.Statement));
+            builder.Add(Label(syntax, endLabel));
+            result = Block(syntax, builder.ToImmutable());
         }
 
         return Visit(result);
@@ -222,7 +231,7 @@ sealed class Lowerer : BoundTreeRewriter
 
                 if (blockSyntax is { })
                 {
-                    stack.Push(new BoundEndScopeStatement(statement.Syntax));
+                    stack.Push(EndScope(statement.Syntax));
                     stack.Push(SequencePoint(Nop(blockSyntax.ClosedBraceToken), blockSyntax.ClosedBraceToken.Location));
                 }
 
@@ -232,7 +241,7 @@ sealed class Lowerer : BoundTreeRewriter
                 if (blockSyntax is { })
                 {
                     stack.Push(SequencePoint(Nop(blockSyntax.OpenBraceToken), blockSyntax.OpenBraceToken.Location));
-                    stack.Push(new BoundBeginScopeStatement(statement.Syntax));
+                    stack.Push(BeginScope(statement.Syntax));
                 }
             }
             else
