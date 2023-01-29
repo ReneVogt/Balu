@@ -1,16 +1,17 @@
-var result = 0
-function test1()
+function test(argument:int)
 {
-	if (result < 0)
-	{}
+    for loopVariable = 1 to 10
+    {
+        var x = 1
+        if loopVariable>argument
+        {
+            var y = x
+        }
+        var z = 2 * x
+    }
+    var ende = true
+    if (ende)
+        var schluss = false
 }
-function test2()
-{
-	if (result < 0)
-	{}
-	return
-}
-
-test1()
-test2()
+test(2)
 

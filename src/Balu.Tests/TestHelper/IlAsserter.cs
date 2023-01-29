@@ -34,7 +34,7 @@ static class IlAsserter
         
         var (_, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, null);
         Assert.Equal(expectedSymbols, symbols);
-        if (scopes is not null) Assert.Equal(scopes, actualScopes);
+        if (scopes is not null) Assert.Equal(AnnotatedText.Parse(scopes).Text, actualScopes);
     }
     public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, IEnumerable<int> sequencePointOffsets, string? scopes = null, bool script = false, ITestOutputHelper? output = null)
     {
@@ -51,7 +51,7 @@ static class IlAsserter
         var (il, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, output);
         Assert.Equal(expected, il);
         Assert.Equal(expectedSymbols, symbols);
-        if (scopes is not null) Assert.Equal(scopes, actualScopes);
+        if (scopes is not null) Assert.Equal(AnnotatedText.Parse(scopes).Text.TrimEnd(), actualScopes);
     }
     static (string il, string symbols, string locals) ExecuteEmitter(SyntaxTree syntaxTree, string methodToAssert, bool script, bool debug, ITestOutputHelper? output)
     {
@@ -90,7 +90,7 @@ static class IlAsserter
                                       orderedSequencePoints.Select(ToSymbolString));
             var scopeWriter = new IndentedTextWriter(new StringWriter(), " ");
             BuildScopes(scopeWriter, method.DebugInformation.Scope);
-            var locals = scopeWriter.InnerWriter.ToString()!;
+            var locals = scopeWriter.InnerWriter.ToString()!.TrimEnd();
             output?.WriteLine("IL:");
             output?.WriteLine(il);
             output?.WriteLine("Sequence points:");
@@ -108,14 +108,14 @@ static class IlAsserter
         static void BuildScopes(IndentedTextWriter writer, ScopeDebugInformation? scope)
         {
             if (scope is null) return;
-            writer.WriteLine($"[BEGIN {scope.Start.Offset:X04}]");
+            writer.WriteLine($"<BEGIN {scope.Start.Offset:X04}>");
             foreach(var variable in scope.Variables.OrderBy(v => v.Name))
                 writer.WriteLine(variable.Name);
             writer.Indent++;
             foreach (var subScope in scope.Scopes)
                 BuildScopes(writer, subScope);
             writer.Indent--;
-            writer.WriteLine($"[END [{scope.End.Offset:X04}]");
+            writer.WriteLine($"<END {scope.End.Offset:X04}>");
         }
     }
 
