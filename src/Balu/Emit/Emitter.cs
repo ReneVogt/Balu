@@ -534,7 +534,7 @@ sealed class Emitter : IDisposable
         switch (statement.Variable.Kind)
         {
             case SymbolKind.LocalVariable:
-                locals = new LocalVariableScope(locals, processor.Body.Instructions.Count);
+                locals = new (locals, processor.Body.Instructions.Count);
                 var variableDefinition = new VariableDefinition(MapType(statement.Variable.Type));
                 locals!.Locals.Add((LocalVariableSymbol)statement.Variable, variableDefinition);
                 processor.Body.Variables.Add(variableDefinition);
