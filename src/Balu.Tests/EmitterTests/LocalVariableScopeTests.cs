@@ -6,6 +6,39 @@ namespace Balu.Tests.EmitterTests;
 public partial class EmitterTests
 {
     [Fact]
+    public void Emitter_LocalScopes_SimpleFunction()
+    {
+        const string code = @"
+        function test()
+        [{]
+            [var i=1]
+            [i = 0]
+        [}]
+        test()                          
+";
+        const string il = @"
+            IL0000: nop
+            IL0001: ldc.i4.1
+            IL0002: stloc.0
+            IL0003: ldc.i4.0
+            IL0004: dup
+            IL0005: stloc.0
+            IL0006: pop
+            IL0007: br.s IL_0009: ret
+            IL0009: ret
+";
+        const string scopes = @"
+            <BEGIN 0000>
+             <BEGIN 0002>
+             i
+             <END 0009>
+            <END 0009>
+";
+        var offsets = new[] { 0, 1, 3, 9};
+
+        code.AssertIlAndSymbols("test", il, offsets, scopes, output: output);
+    }
+    [Fact]
     public void Emitter_LocalScopes_CorrectScopes()
     {
         const string code = @"
@@ -94,8 +127,8 @@ public partial class EmitterTests
                 <BEGIN 0034>
                  <BEGIN 0035>
                  schluss
-                 <END 0035>
-                <END 0035>
+                 <END 0037>
+                <END 0037>
                <END 0039>
               <END 0039>
              <END 0039>
