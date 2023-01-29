@@ -45,32 +45,35 @@ sealed class Emitter : IDisposable
 
     TypeReference MapType(TypeSymbol typeSymbol) => referencedMembers.TypeMap.TryGetValue(typeSymbol, out var reference) ? reference : throw new EmitterException($"Invalid type symbol '{typeSymbol}'");
 
-    void BeginScope(int index)
+    void BeginScope(int index, bool block)
     {
-        locals = new(locals, index, isBlock: true);
+        locals = new(locals, index, isBlock: block);
+        locals.Parent?.Scopes.Add(locals);
     }
     ScopeDebugInformation? EndScope(ILProcessor processor)
     {
         while (locals?.IsBlock == false)
-            Collapse();
-        return Collapse();
-
-
-        ScopeDebugInformation? Collapse()
         {
-            ScopeDebugInformation? scope = null;
-            if (locals?.StartIndex < processor.Body.Instructions.Count)
-            {
-                scope = new(processor.Body.Instructions[locals!.StartIndex], processor.Body.Instructions.Last());
-                foreach (var subScope in locals.Scopes)
-                    scope.Scopes.Add(subScope);
-                foreach (var variable in locals.Locals.Keys.Where(variable => !variable.Name.IsBaluSpecialName()))
-                    scope.Variables.Add(new(locals.Locals[variable], variable.Name));
-            }
+            locals.EndIndex = processor.Body.Instructions.Count;
+            locals = locals.Parent;
+        }
 
-            locals = locals?.Parent;
-            if (scope is not null) locals?.Scopes.Add(scope);
-            return scope;
+        locals!.EndIndex = processor.Body.Instructions.Count;
+        var current = locals;
+        locals = locals.Parent;
+        return locals is null ? PackScopes(current) : null;
+
+        ScopeDebugInformation? PackScopes(LocalVariableScope scope)
+        {
+            if (scope.StartIndex == scope.EndIndex) return null;
+            var startInstruction = processor.Body.Instructions[scope.StartIndex];
+            var endInstruction = processor.Body.Instructions[Math.Min(scope.EndIndex, processor.Body.Instructions.Count - 1)];
+            var debugScope = new ScopeDebugInformation(startInstruction, endInstruction);
+            foreach(var variable in scope.Locals.Keys.Where(variable => !variable.Name.IsBaluSpecialName()))
+                debugScope.Variables.Add(new(scope.Locals[variable], variable.Name));
+            foreach (var subscope in scope.Scopes.Select(PackScopes).Where(subscope => subscope is not null))
+                debugScope.Scopes.Add(subscope);
+            return debugScope;
         }
     }
 
@@ -94,7 +97,7 @@ sealed class Emitter : IDisposable
 
         gotosToFix.Clear();
         labels.Clear();
-        BeginScope(processor.Body.Instructions.Count);
+        BeginScope(processor.Body.Instructions.Count, block: true);
 
         var body = program.Functions[function];
 
@@ -116,8 +119,9 @@ sealed class Emitter : IDisposable
         if (debug)
         {
             labels.Add(exitLabel, processor.Body.Instructions.Count);
-            processor.Emit(OpCodes.Ret);
+            processor.Emit(OpCodes.Nop); // to make the scope complete
             var instruction = processor.Body.Instructions.Last();
+            processor.Emit(OpCodes.Ret);
             if (function.Declaration is { Body.ClosedBraceToken.Location : var closedBraceLocation })
                 AddSequencePoint(processor, instruction, closedBraceLocation);
             else if (body.Syntax.SyntaxTree.Text.Length > 0)
@@ -166,7 +170,7 @@ sealed class Emitter : IDisposable
                 EmitSequencePointStatement(processor, (BoundSequencePointStatement)statement);
                 break;
             case BoundNodeKind.BeginScopeStatement:
-                BeginScope(processor.Body.Instructions.Count);
+                BeginScope(processor.Body.Instructions.Count, block: true);
                 break;
             case BoundNodeKind.EndScopeStatement:
                 EndScope(processor);
@@ -534,7 +538,7 @@ sealed class Emitter : IDisposable
         switch (statement.Variable.Kind)
         {
             case SymbolKind.LocalVariable:
-                locals = new (locals, processor.Body.Instructions.Count);
+                BeginScope(processor.Body.Instructions.Count, block: false);
                 var variableDefinition = new VariableDefinition(MapType(statement.Variable.Type));
                 locals!.Locals.Add((LocalVariableSymbol)statement.Variable, variableDefinition);
                 processor.Body.Variables.Add(variableDefinition);

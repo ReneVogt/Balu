@@ -44,7 +44,9 @@ sealed class Lowerer : BoundTreeRewriter
         var builder = ImmutableArray.CreateBuilder<BoundStatement>();
         var startLabel = GenerateNextLabel();
         builder.Add(Label(syntax.DoKeyword, startLabel));
-        AddLoopBody(builder, doWhileStatement.Body);
+        builder.Add(BeginScope(syntax.Body));
+        InsertBlockStatement(builder, doWhileStatement.Body);
+        builder.Add(EndScope(syntax.Body));
         builder.Add(Label(syntax.DoKeyword, doWhileStatement.ContinueLabel));
         builder.Add(SequencePoint(GotoTrue(syntax.Condition, startLabel, doWhileStatement.Condition),
                                          syntax.WhileKeyword.Location + syntax.Condition.Location));
@@ -88,6 +90,7 @@ sealed class Lowerer : BoundTreeRewriter
         var increment = Increment(syntax.ToKeyword, Variable(syntax.IdentifierToken, forStatement.Variable));
 
         var builder = ImmutableArray.CreateBuilder<BoundStatement>();
+        builder.Add(BeginScope(syntax));
         builder.Add(SequencePoint(lowerVariableDeclaration, syntax.IdentifierToken.Location + syntax.EqualsToken.Location + syntax.LowerBound.Location));
         builder.Add(SequencePoint(upperVariableDeclaration, syntax.ToKeyword.Location + syntax.UpperBound.Location));
         builder.Add(Goto(syntax.ToKeyword, startLabel));
@@ -97,10 +100,11 @@ sealed class Lowerer : BoundTreeRewriter
         builder.Add(SequencePoint(checkStatement, syntax.UpperBound.Location));
 
         builder.Add(BeginScope(forStatement.Body.Syntax));
-        AddLoopBody(builder, forStatement.Body);
-        builder.Add(Goto(syntax.ToKeyword, forStatement.ContinueLabel));
-        builder.Add(Label(syntax.LastToken, forStatement.BreakLabel));
+        InsertBlockStatement(builder, forStatement.Body);
         builder.Add(EndScope(forStatement.Body.Syntax));
+        builder.Add(Goto(syntax.ToKeyword, forStatement.ContinueLabel));
+        builder.Add(EndScope(syntax));
+        builder.Add(Label(syntax.LastToken, forStatement.BreakLabel));
         return Visit(Block(syntax, builder.ToImmutable()));
     }
     protected override BoundNode VisitBoundIfStatement(BoundIfStatement ifStatement)
@@ -121,7 +125,7 @@ sealed class Lowerer : BoundTreeRewriter
             var builder = ImmutableArray.CreateBuilder<BoundStatement>();
             builder .Add(SequencePoint(GotoFalse(syntax.IfKeyword, endLabel, ifStatement.Condition), iflocation));
             builder.Add(BeginScope(syntax.ThenStatement));
-            AddLoopBody(builder, ifStatement.ThenStatement);
+            InsertBlockStatement(builder, ifStatement.ThenStatement);
             builder.Add(EndScope(syntax.ThenStatement));
             builder.Add(Label(syntax, endLabel));
             result = Block(syntax, builder.ToImmutable());
@@ -143,12 +147,12 @@ sealed class Lowerer : BoundTreeRewriter
             var builder = ImmutableArray.CreateBuilder<BoundStatement>();
             builder.Add(SequencePoint(GotoFalse(syntax, elseLabel, ifStatement.Condition), iflocation));
             builder.Add(BeginScope(syntax.ThenStatement));
-            AddLoopBody(builder, ifStatement.ThenStatement);
+            InsertBlockStatement(builder, ifStatement.ThenStatement);
             builder.Add(EndScope(syntax.ThenStatement));
             builder.Add(Goto(syntax, endLabel));
             builder.Add(Label(syntax, elseLabel));
             builder.Add(BeginScope(syntax.ElseClause!.Statement));
-            AddLoopBody(builder, ifStatement.ElseStatement);
+            InsertBlockStatement(builder, ifStatement.ElseStatement);
             builder.Add(EndScope(syntax.ElseClause!.Statement));
             builder.Add(Label(syntax, endLabel));
             result = Block(syntax, builder.ToImmutable());
@@ -179,8 +183,10 @@ sealed class Lowerer : BoundTreeRewriter
 
         builder.Add(Label(syntax.GetChild(0), whileStatement.ContinueLabel));
         builder.Add(condition);
-        AddLoopBody(builder, whileStatement.Body);
+        builder.Add(BeginScope(syntax.Body));
+        InsertBlockStatement(builder, whileStatement.Body);
         builder.Add(Goto(syntax.LastToken, whileStatement.ContinueLabel));
+        builder.Add(EndScope(syntax.Body));
         builder.Add(Label(syntax.LastToken, whileStatement.BreakLabel));
 
         return Visit(Block(syntax, builder.ToImmutable()));
@@ -197,7 +203,7 @@ sealed class Lowerer : BoundTreeRewriter
         return result;
     }
 
-    static void AddLoopBody(ImmutableArray<BoundStatement>.Builder builder, BoundStatement body)
+    static void InsertBlockStatement(ImmutableArray<BoundStatement>.Builder builder, BoundStatement body)
     {
         if (body.Kind != BoundNodeKind.BlockStatement)
         {
