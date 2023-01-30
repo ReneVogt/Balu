@@ -10,6 +10,7 @@ namespace Balu.Visualization;
 
 sealed class BoundTreePrinter : BoundTreeVisitor
 {
+    int scopeCount;
     const string TABSTRING = "  ";
     readonly IndentedTextWriter writer;
 
@@ -230,6 +231,16 @@ sealed class BoundTreePrinter : BoundTreeVisitor
         writer.WritePunctuation($"seq: {text}");
         writer.WriteLine();
         base.VisitBoundSequencePointStatement(sequencePointStatement);
+    }
+    protected override void VisitBoundBeginScopeStatement(BoundBeginScopeStatement node)
+    {
+        writer.WritePunctuation($"start scope {scopeCount++}");
+        base.VisitBoundBeginScopeStatement(node);
+    }
+    protected override void VisitBoundEndScopeStatement(BoundEndScopeStatement node)
+    {
+        writer.WritePunctuation($"end scope {--scopeCount}");
+        base.VisitBoundEndScopeStatement(node);
     }
 
     void WriteNestedStatement(BoundStatement statement)
