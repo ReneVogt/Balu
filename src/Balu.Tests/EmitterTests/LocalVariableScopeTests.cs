@@ -24,18 +24,17 @@ public partial class EmitterTests
             IL0004: dup
             IL0005: stloc.0
             IL0006: pop
-            IL0007: br.s IL_0009: nop
-            IL0009: nop
-            IL000A: ret
+            IL0007: nop
+            IL0008: ret
 ";
         const string scopes = @"
             <BEGIN 0000>
              <BEGIN 0002>
              i
-             <END 000A>
-            <END 000A>
+             <END 0008>
+            <END 0008>
 ";
-        var offsets = new[] { 0, 1, 3, 9};
+        var offsets = new[] { 0, 1, 3, 7};
 
         code.AssertIlAndSymbols("test", il, offsets, scopes, output: output);
     }
@@ -99,12 +98,11 @@ public partial class EmitterTests
             IL002D: ldc.i4.1
             IL002E: stloc.s V_5
             IL0030: ldloc.s V_5
-            IL0032: brfalse.s IL_0037: br.s IL_0039
+            IL0032: brfalse.s IL_0037: nop
             IL0034: ldc.i4.0
             IL0035: stloc.s V_6
-            IL0037: br.s IL_0039: nop
-            IL0039: nop
-            IL003A: ret
+            IL0037: nop
+            IL0038: ret
 ";
         const string scopes = @"
             <BEGIN 0000>
@@ -135,10 +133,10 @@ public partial class EmitterTests
                schluss
                <END 0037>
               <END 0037>
-             <END 003A>
-            <END 003A>
+             <END 0038>
+            <END 0038>
 ";
-        var offsets = new[] { 0, 1, 3, 8, 0xE, 0x18, 0x19, 0x1B, 0x21, 0x22, 0x24, 0x25, 0x2A, 0x2D, 0x30, 0x34, 0x39 };
+        var offsets = new[] { 0, 1, 3, 8, 0xE, 0x18, 0x19, 0x1B, 0x21, 0x22, 0x24, 0x25, 0x2A, 0x2D, 0x30, 0x34, 0x37 };
 
         code.AssertIlAndSymbols("test", il, offsets, scopes, output: output);
 

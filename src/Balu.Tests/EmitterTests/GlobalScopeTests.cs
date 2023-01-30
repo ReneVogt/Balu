@@ -12,9 +12,8 @@ public partial class EmitterTests
         const string code = "";
         const string il = @"
             IL0000: ldsfld System.Object Program::<result>
-            IL0005: br.s IL_0007: nop
-            IL0007: nop
-            IL0008: ret
+            IL0005: nop
+            IL0006: ret
 ";
         code.AssertIlAndSymbols("<eval>", il, Array.Empty<int>(), script: true);
     }
@@ -50,16 +49,15 @@ public partial class EmitterTests
             IL001A: ldc.i4.2
             IL001B: cgt
             IL001D: brfalse.s IL_0021: ldsfld System.Int32 Program::a
-            IL001F: br.s IL_0037: nop
+            IL001F: br.s IL_0035: nop
             IL0021: ldsfld System.Int32 Program::a
             IL0026: box System.Int32
             IL002B: call System.String System.Convert::ToString(System.Object)
             IL0030: call System.Void System.Console::WriteLine(System.Object)
-            IL0035: br.s IL_0037: nop
-            IL0037: nop
-            IL0038: ret
+            IL0035: nop
+            IL0036: ret
 ";
-        var offsets = new[] { 0, 1, 7, 0x15, 0x1F, 0x21, 0x37 };
+        var offsets = new[] { 0, 1, 7, 0x15, 0x1F, 0x21, 0x35 };
         code.AssertIlAndSymbols("main", il, offsets, output: output);
     }
     [Fact]
@@ -120,17 +118,16 @@ public partial class EmitterTests
             IL0028: brfalse.s IL_0036: ldsfld System.Int32 Program::a
             IL002A: ldsfld System.Int32 Program::a
             IL002F: box System.Int32
-            IL0034: br.s IL_0051: nop
+            IL0034: br.s IL_004f: nop
             IL0036: ldsfld System.Int32 Program::a
             IL003B: box System.Int32
             IL0040: call System.String System.Convert::ToString(System.Object)
             IL0045: call System.Void System.Console::WriteLine(System.Object)
             IL004A: ldsfld System.Object Program::<result>
-            IL004F: br.s IL_0051: nop
-            IL0051: nop
-            IL0052: ret
+            IL004F: nop
+            IL0050: ret
 ";
-        var offsets = new[] { 0, 1, 7, 0x20, 0x2A, 0x36, 0x51 };
+        var offsets = new[] { 0, 1, 7, 0x20, 0x2A, 0x36, 0x4F };
         code.AssertIlAndSymbols("<eval>", il, offsets, script: true, output: output);
     }
     [Fact]

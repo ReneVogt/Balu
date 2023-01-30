@@ -39,13 +39,13 @@ public partial class EmitterTests
             IL0011: cgt
             IL0013: ldc.i4.0
             IL0014: ceq
-            IL0016: brfalse.s IL_0030: br.s IL_0032
+            IL0016: brfalse.s IL_0030: nop
             IL0018: nop
             IL0019: ldloc.0
             IL001A: ldc.i4.3
             IL001B: cgt
             IL001D: brfalse.s IL_0021: ldloc.0
-            IL001F: br.s IL_0030: br.s IL_0032
+            IL001F: br.s IL_0030: nop
             IL0021: ldloc.0
             IL0022: ldc.i4.5
             IL0023: cgt
@@ -57,11 +57,10 @@ public partial class EmitterTests
             IL002C: pop
             IL002D: nop
             IL002E: br.s IL_0008: ldloc.0
-            IL0030: br.s IL_0032: nop
-            IL0032: nop
-            IL0033: ret
+            IL0030: nop
+            IL0031: ret
 ";
-        var offsets = new[] { 0,1,3,8,0xE, 0x18, 0x19, 0x1F, 0x21, 0x27, 0x29, 0x2D, 0x32 };
+        var offsets = new[] { 0,1,3,8,0xE, 0x18, 0x19, 0x1F, 0x21, 0x27, 0x29, 0x2D, 0x30 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
@@ -145,15 +144,14 @@ public partial class EmitterTests
             IL0011: cgt
             IL0013: ldc.i4.0
             IL0014: ceq
-            IL0016: brfalse.s IL_0024: br.s IL_0026
+            IL0016: brfalse.s IL_0024: nop
             IL0018: ldstr
             IL001D: call System.Void System.Console::WriteLine(System.Object)
             IL0022: br.s IL_0008: ldloc.0
-            IL0024: br.s IL_0026: nop
-            IL0026: nop
-            IL0027: ret
+            IL0024: nop
+            IL0025: ret
 ";
-        var offsets = new[] { 0, 1, 3, 8, 0xE, 0x18, 0x26 };
+        var offsets = new[] { 0, 1, 3, 8, 0xE, 0x18, 0x24 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]

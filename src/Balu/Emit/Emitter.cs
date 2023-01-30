@@ -113,11 +113,23 @@ sealed class Emitter : IDisposable
             }
         }
 
-        foreach (var statement in body.Statements)
+        var injectedReturnStatement = debug && body.Statements.LastOrDefault() is
+                                          { Kind: BoundNodeKind.ReturnStatement, Syntax.Kind: not SyntaxKind.ReturnStatement } injected
+                                          ? (BoundReturnStatement)injected
+                                          : null;
+        // remove injected return in debug mode, we emit another at the method end
+        var statements = injectedReturnStatement is { }
+                             ? body.Statements.Take(body.Statements.Length - 1)
+                             : body.Statements;
+
+                
+        foreach (var statement in statements)
             EmitStatement(processor, statement);
 
         if (debug)
         {
+            if (injectedReturnStatement is { Expression: { } expression  })
+                EmitExpression(processor, expression);
             labels.Add(exitLabel, processor.Body.Instructions.Count);
             processor.Emit(OpCodes.Nop); // to make the scope complete
             var instruction = processor.Body.Instructions.Last();
