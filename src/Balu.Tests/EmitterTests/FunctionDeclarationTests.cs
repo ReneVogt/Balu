@@ -25,15 +25,16 @@ public partial class EmitterTests
             IL0004: ldc.i4.5
             IL0005: cgt
             IL0007: brfalse.s IL_000b: ldc.i4.2
-            IL0009: br.s IL_0013: ret
+            IL0009: br.s IL_0013: nop
             IL000B: ldc.i4.2
             IL000C: ldarg.0
             IL000D: mul
             IL000E: dup
             IL000F: stloc.0
             IL0010: pop
-            IL0011: br.s IL_0013: ret
-            IL0013: ret
+            IL0011: br.s IL_0013: nop
+            IL0013: nop
+            IL0014: ret
 ";
         var offsets = new[] { 0, 1, 3, 9, 0x0b, 0x11, 0x13 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
@@ -90,7 +91,7 @@ public partial class EmitterTests
             IL0005: cgt
             IL0007: brfalse.s IL_000c: ldc.i4.2
             IL0009: ldloc.0
-            IL000A: br.s IL_0015: ret
+            IL000A: br.s IL_0015: nop
             IL000C: ldc.i4.2
             IL000D: ldarg.0
             IL000E: mul
@@ -98,8 +99,9 @@ public partial class EmitterTests
             IL0010: stloc.0
             IL0011: pop
             IL0012: ldloc.0
-            IL0013: br.s IL_0015: ret
-            IL0015: ret
+            IL0013: br.s IL_0015: nop
+            IL0015: nop
+            IL0016: ret
 ";
         var offsets = new[] { 0, 1, 3, 9, 0xC, 0x12, 0x15 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);

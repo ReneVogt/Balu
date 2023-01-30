@@ -25,8 +25,9 @@ public partial class EmitterTests
             IL0004: clt
             IL0006: brfalse.s IL_000d: br.s IL_000f
             IL0008: call System.Void Program::back()
-            IL000D: br.s IL_000f: ret
-            IL000F: ret
+            IL000D: br.s IL_000f: nop
+            IL000F: nop
+            IL0010: ret
 ";
         code.AssertIlAndSymbols("test", il, sequencePointOffsets: sequencePointOffsets);
     }
@@ -49,8 +50,9 @@ IL0000: nop
             IL0004: clt
             IL0006: brfalse.s IL_000d: br.s IL_000f
             IL0008: call System.Void Program::back()
-            IL000D: br.s IL_000f: ret
-            IL000F: ret
+            IL000D: br.s IL_000f: nop
+            IL000F: nop
+            IL0010: ret
 ";
         var sequencePointOffsets = new[] { 0, 1, 8, 13, 15 };
         code.AssertIlAndSymbols("test", il, sequencePointOffsets: sequencePointOffsets);
@@ -83,8 +85,9 @@ IL0000: nop
             IL000E: stloc.0
             IL000F: pop
             IL0010: nop
-            IL0011: br.s IL_0013: ret
-            IL0013: ret
+            IL0011: br.s IL_0013: nop
+            IL0013: nop
+            IL0014: ret
 ";
         var offsets = new[] { 0, 1, 3, 0xA, 0xB, 0x10, 0x13 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
@@ -127,8 +130,9 @@ IL0000: nop
             IL0016: stloc.0
             IL0017: pop
             IL0018: nop
-            IL0019: br.s IL_001b: ret
-            IL001B: ret
+            IL0019: br.s IL_001b: nop
+            IL001B: nop
+            IL001C: ret
 ";
         var offsets = new[] { 0, 1, 3, 0xA, 0xB, 0x10, 0x13, 0x14, 0x18, 0x1B };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
@@ -163,8 +167,9 @@ IL0000: nop
             IL0012: dup
             IL0013: stloc.0
             IL0014: pop
-            IL0015: br.s IL_0017: ret
-            IL0017: ret
+            IL0015: br.s IL_0017: nop
+            IL0017: nop
+            IL0018: ret
 ";
         var offsets = new[] { 0, 1, 3, 0xA, 0x11, 0x17 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
