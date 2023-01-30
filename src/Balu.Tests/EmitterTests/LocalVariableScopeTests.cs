@@ -24,15 +24,16 @@ public partial class EmitterTests
             IL0004: dup
             IL0005: stloc.0
             IL0006: pop
-            IL0007: br.s IL_0009: ret
-            IL0009: ret
+            IL0007: br.s IL_0009: nop
+            IL0009: nop
+            IL000A: ret
 ";
         const string scopes = @"
             <BEGIN 0000>
              <BEGIN 0002>
              i
-             <END 0009>
-            <END 0009>
+             <END 000A>
+            <END 000A>
 ";
         var offsets = new[] { 0, 1, 3, 9};
 
@@ -101,38 +102,41 @@ public partial class EmitterTests
             IL0032: brfalse.s IL_0037: br.s IL_0039
             IL0034: ldc.i4.0
             IL0035: stloc.s V_6
-            IL0037: br.s IL_0039: ret
-            IL0039: ret
+            IL0037: br.s IL_0039: nop
+            IL0039: nop
+            IL003A: ret
 ";
         const string scopes = @"
             <BEGIN 0000>
-             <BEGIN 0002>
-             loopVariable
-              <BEGIN 0005>
-               <BEGIN 0018>
-                <BEGIN 001A>
-                x
-                 <BEGIN 0021>
-                  <BEGIN 0023>
-                  y
+             <BEGIN 0001>
+              <BEGIN 0002>
+              loopVariable
+               <BEGIN 0005>
+                <BEGIN 0018>
+                 <BEGIN 001A>
+                 x
+                  <BEGIN 0021>
+                   <BEGIN 0023>
+                   y
+                   <END 0025>
                   <END 0025>
-                 <END 0025>
-                 <BEGIN 0028>
-                 z
+                  <BEGIN 0028>
+                  z
+                  <END 002B>
                  <END 002B>
                 <END 002B>
-               <END 002B>
-               <BEGIN 002E>
-               ende
-                <BEGIN 0034>
-                 <BEGIN 0035>
-                 schluss
-                 <END 0037>
-                <END 0037>
-               <END 0039>
-              <END 0039>
-             <END 0039>
-            <END 0039>
+               <END 002D>
+              <END 002D>
+             <END 002D>
+             <BEGIN 002E>
+             ende
+              <BEGIN 0034>
+               <BEGIN 0035>
+               schluss
+               <END 0037>
+              <END 0037>
+             <END 003A>
+            <END 003A>
 ";
         var offsets = new[] { 0, 1, 3, 8, 0xE, 0x18, 0x19, 0x1B, 0x21, 0x22, 0x24, 0x25, 0x2A, 0x2D, 0x30, 0x34, 0x39 };
 

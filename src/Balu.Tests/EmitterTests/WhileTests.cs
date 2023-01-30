@@ -45,8 +45,9 @@ public partial class EmitterTests
             IL001E: pop
             IL001F: nop
             IL0020: br.s IL_0001: ldarg.0
-            IL0022: br.s IL_0024: ret
-            IL0024: ret
+            IL0022: br.s IL_0024: nop
+            IL0024: nop
+            IL0025: ret
 ";
         var offsets = new[] { 0, 1, 7, 8, 0xE, 0x10, 0x16, 0x18, 0x1F, 0x24 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
@@ -110,8 +111,9 @@ public partial class EmitterTests
             IL0007: ldstr
             IL000C: call System.Void System.Console::WriteLine(System.Object)
             IL0011: br.s IL_0001: ldarg.0
-            IL0013: br.s IL_0015: ret
-            IL0015: ret
+            IL0013: br.s IL_0015: nop
+            IL0015: nop
+            IL0016: ret
 ";
         var offsets = new[] { 0, 1, 7, 0x15 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
