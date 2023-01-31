@@ -6,6 +6,80 @@ namespace Balu.Tests.EmitterTests;
 public partial class EmitterTests
 {
     [Fact]
+    public void Emitter_For_EmptyBlockBodyDebug()
+    {
+        const string code = @"
+            function test() [{]
+                for [i = 1] [[to] [10]]
+                [{]
+                [}]
+            [}]
+            return
+";
+        const string il = @"
+            IL0000: nop
+            IL0001: ldc.i4.1
+            IL0002: stloc.0
+            IL0003: ldc.i4.s 10
+            IL0005: stloc.1
+            IL0006: br.s IL_000e: ldloc.0
+            IL0008: ldloc.0
+            IL0009: ldc.i4.1
+            IL000A: add
+            IL000B: dup
+            IL000C: stloc.0
+            IL000D: pop
+            IL000E: ldloc.0
+            IL000F: ldc.i4.s 10
+            IL0011: cgt
+            IL0013: ldc.i4.0
+            IL0014: ceq
+            IL0016: brfalse.s IL_001c: nop
+            IL0018: nop
+            IL0019: nop
+            IL001A: br.s IL_0008: ldloc.0
+            IL001C: nop
+            IL001D: ret
+";
+        var offsets = new[] { 0, 1, 3, 8, 0xE, 0x18, 0x19, 0x1C };
+        code.AssertIlAndSymbols("test", il, offsets, output: output);
+    }
+    [Fact]
+    public void Emitter_For_EmptyBlockBodyRelease()
+    {
+        const string code = @"
+            function test() {
+                for i = 1 to 10
+                {
+                }
+            }
+            return
+";
+        const string il = @"
+            IL0000: ldc.i4.1
+            IL0001: stloc.0
+            IL0002: ldc.i4.s 10
+            IL0004: stloc.1
+            IL0005: br.s IL_000d: ldloc.0
+            IL0007: ldloc.0
+            IL0008: ldc.i4.1
+            IL0009: add
+            IL000A: dup
+            IL000B: stloc.0
+            IL000C: pop
+            IL000D: ldloc.0
+            IL000E: ldc.i4.s 10
+            IL0010: cgt
+            IL0012: ldc.i4.0
+            IL0013: ceq
+            IL0015: brfalse.s IL_0019: ret
+            IL0017: br.s IL_0007: ldloc.0
+            IL0019: ret
+";
+        code.AssertIl("test", il, output: output);
+    }
+
+    [Fact]
     public void Emitter_For_BlockBodyDebug()
     {
         const string code = @"
@@ -116,6 +190,7 @@ public partial class EmitterTests
 ";
         code.AssertIl("test", il, output: output);
     }
+
     [Fact]
     public void Emitter_For_SingleStatementBodyDebug()
     {

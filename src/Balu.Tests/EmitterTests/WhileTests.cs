@@ -5,7 +5,54 @@ namespace Balu.Tests.EmitterTests;
 
 public partial class EmitterTests
 {
- 
+    [Fact]
+    public void Emitter_While_EmptyBlockBodyDebug()
+    {
+        const string code = @"
+            function test(i:int) [{]
+                [while i> 0]
+                [{]
+                [}]
+            [}]
+            return
+";
+        const string il = @"
+            IL0000: nop
+            IL0001: ldarg.0
+            IL0002: ldc.i4.0
+            IL0003: cgt
+            IL0005: brfalse.s IL_000b: nop
+            IL0007: nop
+            IL0008: nop
+            IL0009: br.s IL_0001: ldarg.0
+            IL000B: nop
+            IL000C: ret
+";
+        var offsets = new[] { 0, 1, 7, 8, 0xB};
+        code.AssertIlAndSymbols("test", il, offsets, output: output);
+    }
+    [Fact]
+    public void Emitter_While_EmptyBlockBodyRelease()
+    {
+        const string code = @"
+            function test(i:int) {
+                while i>0
+                {
+                }
+            }
+            return
+";
+        const string il = @"
+            IL0000: ldarg.0
+            IL0001: ldc.i4.0
+            IL0002: cgt
+            IL0004: brfalse.s IL_0008: ret
+            IL0006: br.s IL_0000: ldarg.0
+            IL0008: ret
+";
+        code.AssertIl("test", il, output: output);
+    }
+
     [Fact]
     public void Emitter_While_BlockBodyDebug()
     {
@@ -91,6 +138,7 @@ public partial class EmitterTests
 ";
         code.AssertIl("test", il);
     }
+
     [Fact]
     public void Emitter_While_SingleStatementBodyDebug()
     {

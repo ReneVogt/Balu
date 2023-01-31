@@ -196,11 +196,11 @@ sealed class Lowerer : BoundTreeRewriter
         node.Syntax.Kind == SyntaxKind.ReturnStatement ? SequencePoint(node, node.Syntax.Location) : node;
     protected override BoundNode VisitBoundSequencePointStatement(BoundSequencePointStatement node)
     {
-        var seq = currentSequencePointStatement;
-        currentSequencePointStatement = node;
-        var result = base.VisitBoundSequencePointStatement(node);
+        if (node.Statement.Kind == BoundNodeKind.NopStatement) return node;
+        var seq = currentSequencePointStatement; currentSequencePointStatement = node;
+        var result = (BoundSequencePointStatement)base.VisitBoundSequencePointStatement(node);
         currentSequencePointStatement = seq;
-        return result;
+        return result.Statement.Kind == BoundNodeKind.NopStatement ? result.Statement : result;
     }
 
     static void InsertBlockStatement(ImmutableArray<BoundStatement>.Builder builder, BoundStatement body)
@@ -256,6 +256,45 @@ sealed class Lowerer : BoundTreeRewriter
 
         return new (statement.Syntax, resultBuilder.ToImmutable());
     }
+    static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics)
+    {
+        var unreachableStatements = new HashSet<BoundStatement>(
+            controlFlowGraph.DeadBlocks.SelectMany(deadBlock => deadBlock.Statements.Where(CanBeRemoved)));
+        if (unreachableStatements.Count == 0) return statement;
+        var builder = statement.Statements.ToBuilder();
+        for (int i = 0; i < builder.Count; i++)
+        {
+            var current = builder[i];
+            if (unreachableStatements.Contains(current))
+                builder.RemoveAt(i--);
+        }
+
+        var list = unreachableStatements.Where(ShoudBeReported).ToList();
+        while (list.Count > 0)
+        {
+            var consecutive = list.Where(s => s.Syntax.FullSpan.OverlapsWithOrTouches(list[0].Syntax.FullSpan)).ToList();
+            foreach (var s in consecutive) list.Remove(s);
+            var start = consecutive.Min(s => s.Syntax.Span.Start);
+            var end = consecutive.Max(s => s.Syntax.Span.End);
+            diagnostics.ReportUnreachableCode(new(consecutive[0].Syntax.SyntaxTree.Text, new(start, end - start)));
+        }
+
+        return new(statement.Syntax, builder.ToImmutable());
+
+        static bool CanBeRemoved(BoundStatement s) =>
+            s.Kind != BoundNodeKind.BeginScopeStatement &&
+            s.Kind != BoundNodeKind.EndScopeStatement &&
+            (s.Kind != BoundNodeKind.ReturnStatement || s.Syntax.Kind == SyntaxKind.ReturnStatement);
+        static bool ShoudBeReported(BoundStatement s)
+        {
+            var unwrapped = s.UnwrapSequencePoint();
+            return unwrapped.Kind != BoundNodeKind.NopStatement &&
+                   unwrapped.Kind != BoundNodeKind.LabelStatement &&
+                   unwrapped.Kind != BoundNodeKind.GotoStatement &&
+                   unwrapped.Kind != BoundNodeKind.ConditionalGotoStatement &&
+                   (unwrapped.Kind != BoundNodeKind.ReturnStatement || unwrapped.Syntax.Kind == SyntaxKind.ReturnStatement);
+        }
+    }
     static BoundBlockStatement RemoveDebris(BoundBlockStatement block)
     {
         var builder = block.Statements.ToBuilder();
@@ -264,25 +303,33 @@ sealed class Lowerer : BoundTreeRewriter
         for (int i = 0; i < builder.Count; i++)
         {
             if (builder[i].Kind == BoundNodeKind.NopStatement)
-                builder.RemoveAt(i);
+                builder.RemoveAt(i--);
         }
 
-        // collapse redundant gotos
-        for (int i = 0; i < builder.Count-1; i++)
+        // remove redundant gotos
+        for (int gotoIndex = 0; gotoIndex < builder.Count-1; gotoIndex++)
         {
-            var next = builder[i + 1].UnwrapSequencePoint();
-            if (next.Kind != BoundNodeKind.LabelStatement) continue;
-            var label = ((BoundLabelStatement)next).Label;
+            var current = builder[gotoIndex].UnwrapSequencePoint();
+            if (current.Kind != BoundNodeKind.GotoStatement) continue;
+            var label = ((BoundGotoStatement)current).Label;
 
-            var current = builder[i].UnwrapSequencePoint();
-            if ((current.Kind != BoundNodeKind.GotoStatement || ((BoundGotoStatement)current).Label != label) &&
-                (current.Kind != BoundNodeKind.ConditionalGotoStatement|| ((BoundConditionalGotoStatement)current).Label != label)) continue;
+            for (int labelIndex = gotoIndex + 1; labelIndex < builder.Count; labelIndex++)
+            {
+                var next = builder[labelIndex].UnwrapSequencePoint();
+                if (next.Kind == BoundNodeKind.LabelStatement && ((BoundLabelStatement)next).Label == label)
+                {
+                    builder.RemoveAt(gotoIndex);
+                    gotoIndex--;
+                    break;
+                }
 
-            builder.RemoveAt(i + 1);
-            builder.RemoveAt(i);
-            i -= 2;
+                bool noNeedToJumpOver =
+                    next.Kind is BoundNodeKind.LabelStatement or BoundNodeKind.BeginScopeStatement or BoundNodeKind.EndScopeStatement ||
+                    next.Kind == BoundNodeKind.NopStatement && builder[labelIndex].Kind != BoundNodeKind.SequencePointStatement;
+
+                if (!noNeedToJumpOver) break;
+            }
         }
-
 
         // remove unused lables
         var usedLabels = new HashSet<BoundLabel>(builder.Select(s => s.UnwrapSequencePoint())
@@ -299,41 +346,6 @@ sealed class Lowerer : BoundTreeRewriter
         }
 
         return Block(block.Syntax, builder.ToImmutable());
-    }
-    static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics)
-    {
-        var unreachableStatements = new HashSet<BoundStatement>(
-            controlFlowGraph.DeadBlocks.SelectMany(deadBlock => deadBlock.Statements.Where(IsNotInjected)));
-        if (unreachableStatements.Count == 0) return statement;
-        var builder = statement.Statements.ToBuilder();
-        for (int i = 0; i < builder.Count; i++)
-        {
-            var current = builder[i];
-            if (unreachableStatements.Contains(current))
-                builder.RemoveAt(i--);
-        }
-
-        var list = unreachableStatements.ToList();
-        while (list.Count > 0)
-        {
-            var consecutive = unreachableStatements.Where(s => s.Syntax.FullSpan.OverlapsWithOrTouches(list[0].Syntax.FullSpan)).ToList();
-            foreach (var s in consecutive) list.Remove(s);
-            var start = consecutive.Min(s => s.Syntax.Span.Start);
-            var end = consecutive.Max(s => s.Syntax.Span.End);
-            diagnostics.ReportUnreachableCode(new(consecutive[0].Syntax.SyntaxTree.Text, new(start, end - start)));
-        }
-
-        return new (statement.Syntax, builder.ToImmutable());
-
-        static bool IsNotInjected(BoundStatement s) => 
-            s.Kind != BoundNodeKind.GotoStatement && 
-            s.Kind != BoundNodeKind.ConditionalGotoStatement && 
-            s.Kind != BoundNodeKind.LabelStatement &&
-            s.Kind != BoundNodeKind.NopStatement && 
-            s.Kind != BoundNodeKind.BeginScopeStatement &&
-            s.Kind != BoundNodeKind.EndScopeStatement &&
-            (s.Kind != BoundNodeKind.ReturnStatement || s.Syntax.Kind == SyntaxKind.ReturnStatement) &&
-            (s.Kind != BoundNodeKind.SequencePointStatement || IsNotInjected(((BoundSequencePointStatement)s).Statement));
     }
     static BoundBlockStatement AddMissingReturn(BoundBlockStatement block, FunctionSymbol? containingFunction)
     {

@@ -6,6 +6,111 @@ namespace Balu.Tests.EmitterTests;
 public partial class EmitterTests
 {
     [Fact]
+    public void Emitter_IfStatement_EmptyThenBodyDebug()
+    {
+        const string code = @"
+        function back(){}
+        function test(i:int) [{]
+            [if i < 10]            
+            [{]
+            [}]
+        [}]
+        test(12)
+";
+        var sequencePointOffsets = new[] { 0, 1, 8, 9, 0xA };
+
+        const string il = @"
+            IL0000: nop
+            IL0001: ldarg.0
+            IL0002: ldc.i4.s 10
+            IL0004: clt
+            IL0006: brfalse.s IL_000a: nop
+            IL0008: nop
+            IL0009: nop
+            IL000A: nop
+            IL000B: ret
+";
+        code.AssertIlAndSymbols("test", il, sequencePointOffsets: sequencePointOffsets, output: output);
+    }
+    [Fact]
+    public void Emitter_IfStatement_EmptyBlockBodyRelease()
+    {
+        const string code = @"
+            function test(i:int) {
+                if i<10
+                {
+                }
+            }
+            return
+";
+        const string il = @"
+            IL0000: ldarg.0
+            IL0001: ldc.i4.s 10
+            IL0003: clt
+            IL0005: brfalse.s IL_0007: ret
+            IL0007: ret
+";
+        code.AssertIl("test", il, output: output);
+    }
+    [Fact]
+    public void Emitter_IfStatement_EmptyBodiesDebug()
+    {
+        const string code = @"
+        function back(){}
+        function test(i:int) [{]
+            [if i < 10]            
+            [{]
+            [}]
+            else    
+            [{]
+            [}]            
+        [}]
+        test(12)
+";
+        var sequencePointOffsets = new[] { 0, 1, 8, 9, 0x0C, 0x0D, 0x0E };
+
+        const string il = @"
+            IL0000: nop
+            IL0001: ldarg.0
+            IL0002: ldc.i4.s 10
+            IL0004: clt
+            IL0006: brfalse.s IL_000c: nop
+            IL0008: nop
+            IL0009: nop
+            IL000A: br.s IL_000e: nop
+            IL000C: nop
+            IL000D: nop
+            IL000E: nop
+            IL000F: ret
+";
+        code.AssertIlAndSymbols("test", il, sequencePointOffsets: sequencePointOffsets, output: output);
+    }
+    [Fact]
+    public void Emitter_IfStatement_EmptyBodiesRelease()
+    {
+        const string code = @"
+            function test(i:int) {
+                if i<10
+                {
+                }
+                else
+                {
+                }
+            }
+            return
+";
+        const string il = @"
+            IL0000: ldarg.0
+            IL0001: ldc.i4.s 10
+            IL0003: clt
+            IL0005: brfalse.s IL_0009: ret
+            IL0007: br.s IL_0009: ret
+            IL0009: ret
+";
+        code.AssertIl("test", il, output: output);
+    }
+
+    [Fact]
     public void Emitter_IfStatement_SimpleCorrectSequencePoints()
     {
         const string code = @"
