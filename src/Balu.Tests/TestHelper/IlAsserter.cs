@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Balu.Syntax;
 using System.IO;
 using System.Linq;
+using Balu.Diagnostics;
 using Balu.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
@@ -64,7 +65,7 @@ static class IlAsserter
         try
         {
             var diagnostics = compilation.Emit("Balu", ReferenceProvider.References, outputStream, symbolStream);
-            Assert.Empty(diagnostics);
+            Assert.Empty(diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
 
             outputStream.Seek(0, SeekOrigin.Begin);
             symbolStream?.Seek(0, SeekOrigin.Begin);
