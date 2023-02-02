@@ -429,6 +429,9 @@ sealed class Binder : SyntaxTreeVisitor
                            : new LocalVariableSymbol(name, isReadonly, type, constant);
         if (!identifier.IsMissing && !scope.TryDeclareSymbol(variable))
             diagnostics.ReportSymbolAlreadyDeclared(identifier);
+        else
+            if (scope.Parent?.TryLookupSymbol(variable.Name, out var hidden) == true)
+                diagnostics.ReportSymbolHidesSymbol(variable, hidden, identifier.Location);
         return variable;
     }
     TypeSymbol? BindTypeClause(TypeClauseSyntax? syntax)
@@ -504,13 +507,16 @@ sealed class Binder : SyntaxTreeVisitor
                 diagnostics.ReportParameterAlreadyDeclared(parameter.Identifier);
 
             var type = BindTypeClause(parameter.TypeClause) ?? TypeSymbol.Error;
-            parameters.Add(new(name, type, ordinal));
+            var parameterSymbol = new ParameterSymbol(name, type, ordinal);
+            parameters.Add(parameterSymbol);
         }
 
         var returnType = declaration.TypeClause is null ? TypeSymbol.Void : BindTypeClause(declaration.TypeClause) ?? TypeSymbol.Error;
         var function = new FunctionSymbol(declaration.Identifier.Text, parameters.ToImmutable(), returnType, declaration);
         if (!scope.TryDeclareSymbol(function))
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
+        else if (scope.Parent?.TryLookupSymbol(function.Name, out var hidden) == true)
+            diagnostics.ReportSymbolHidesSymbol(function, hidden, declaration.Identifier.Location);
     }
 
     static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics) =>
@@ -535,6 +541,20 @@ sealed class Binder : SyntaxTreeVisitor
         {
             binder.Visit(globalStatement);
             statementBuilder.Add((BoundStatement)binder.boundNode!);
+        }
+
+        //
+        // Check function declarations for parameters hiding global symbols
+        //
+        foreach (var functionSymbol in binder.scope.GetDeclaredSymbols()
+                                             .Where(symbol => symbol.Kind is SymbolKind.Function)
+                                             .Cast<FunctionSymbol>()
+                                             .Where(function => function.Declaration is not null))
+        {
+            foreach (var parameterSymbol in functionSymbol.Parameters)
+                if (binder.scope.TryLookupSymbol(parameterSymbol.Name, out var hidden))
+                    binder.diagnostics.ReportSymbolHidesSymbol(parameterSymbol, hidden,
+                                                               functionSymbol.Declaration!.Parameters[parameterSymbol.Ordinal].Identifier.Location);
         }
 
         // The newly created symbols in the current global scope.

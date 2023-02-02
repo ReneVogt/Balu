@@ -18,6 +18,7 @@ public enum DiagnosticId
     CannotConvert,
     CannotConvertImplicit,
     SymbolAlreadyDeclared,
+    SymbolHidesSymbol,
     VariableIsReadOnly,
     WrongNumberOfArguments,
     ExpressionMustHaveValue,

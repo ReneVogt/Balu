@@ -38,6 +38,26 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportCannotConvert(TextLocation location, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(DiagnosticId.CannotConvert, location, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'."));
     public void ReportCannotConvertImplicit(TextLocation location, TypeSymbol sourceType, TypeSymbol targetType) => Add(new(DiagnosticId.CannotConvertImplicit, location, $"Cannot convert '{sourceType.Name}' to '{targetType.Name}'. An explicit conversion exists, are you missing a cast?"));
     public void ReportSymbolAlreadyDeclared(SyntaxToken identifierToken) => Add(new(DiagnosticId.SymbolAlreadyDeclared, identifierToken.Location, $"Symbol '{identifierToken.Text}' is already declared."));
+    public void ReportSymbolHidesSymbol(Symbol hiding, Symbol hidden, TextLocation location)
+    {
+        var hidingKind = hiding.Kind switch
+        {
+            SymbolKind.LocalVariable => "Local variable ",
+            SymbolKind.Parameter => "Parameter ",
+            SymbolKind.Function => "Function ",
+            SymbolKind.GlobalVariable => "Global variable ",
+            _ => string.Empty
+        };
+        var hiddenKind = hidden.Kind switch
+        {
+            SymbolKind.LocalVariable => "outer scope variable ",
+            SymbolKind.Parameter => "parameter ",
+            SymbolKind.Function => "existing function ",
+            SymbolKind.GlobalVariable => "global variable ",
+            _ => string.Empty
+        };
+        Add(new(DiagnosticId.SymbolHidesSymbol, location, $"{hidingKind}'{hiding.Name}' hides {hiddenKind}'{hidden.Name}'.", severity: DiagnosticSeverity.Warning));
+    }
     public void ReportVariableIsReadOnly(SyntaxToken identifierToken) => Add(new(DiagnosticId.VariableIsReadOnly, identifierToken.Location, $"Variable '{identifierToken.Text}' is readonly and cannot be assigned to."));
     public void ReportWrongNumberOfArguments(CallExpressionSyntax syntax, FunctionSymbol function)
     {
