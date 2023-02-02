@@ -3,7 +3,7 @@ using Xunit;
 
 namespace Balu.Tests.BinderTests;
 
-public class BinderTests
+public sealed partial class BinderTests
 {
     [Theory]
     [InlineData("while true print(string(1)) [print(string(2))]")]
