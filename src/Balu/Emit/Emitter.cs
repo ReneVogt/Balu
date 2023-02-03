@@ -193,9 +193,23 @@ sealed class Emitter : IDisposable
     }
     void EmitExpressionStatement(ILProcessor processor, BoundExpressionStatement statement)
     {
-        EmitExpression(processor, statement.Expression);
-        if (statement.Expression.Type != TypeSymbol.Void)
-            processor.Emit(OpCodes.Pop);
+        switch (statement.Expression.Kind)
+        {
+            case BoundNodeKind.AssignmentExpression:
+                EmitAssignmentExpression(processor, (BoundAssignmentExpression)statement.Expression, asStatement: true);
+                break;
+            case BoundNodeKind.PostfixExpression:
+                EmitPostfixExpression(processor, (BoundPostfixExpression)statement.Expression, asStatement: true);
+                break;
+            case BoundNodeKind.PrefixExpression:
+                EmitPrefixExpression(processor, (BoundPrefixExpression)statement.Expression, asStatement: true);
+                break;
+            default:
+                EmitExpression(processor, statement.Expression);
+                if (statement.Expression.Type != TypeSymbol.Void)
+                    processor.Emit(OpCodes.Pop);
+                break;
+        }
     }
     void EmitExpression(ILProcessor processor, BoundExpression expression)
     {
@@ -487,10 +501,10 @@ sealed class Emitter : IDisposable
         }
 
     }
-    void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression)
+    void EmitAssignmentExpression(ILProcessor processor, BoundAssignmentExpression expression, bool asStatement = false)
     {
         EmitExpression(processor, expression.Expression);
-        processor.Emit(OpCodes.Dup);
+        if (!asStatement) processor.Emit(OpCodes.Dup);
         EmitWriteVariable(processor, expression.Symbol);
     }
     void EmitCallExpression(ILProcessor processor, BoundCallExpression expression)
@@ -528,18 +542,18 @@ sealed class Emitter : IDisposable
         else 
             throw new EmitterException($"Unexpected conversion from '{expression.Expression.Type}' to '{expression.Type}'.");
     }
-    void EmitPrefixExpression(ILProcessor processor, BoundPrefixExpression expression)
+    void EmitPrefixExpression(ILProcessor processor, BoundPrefixExpression expression, bool asStatement = false)
     {
         EmitLoadVarialble(processor, expression.Variable);
         processor.Emit(OpCodes.Ldc_I4_1);
         processor.Emit(expression.Operator.OperatorKind == BoundBinaryOperatorKind.Addition ? OpCodes.Add : OpCodes.Sub);
-        processor.Emit(OpCodes.Dup);
+        if (!asStatement) processor.Emit(OpCodes.Dup);
         EmitWriteVariable(processor, expression.Variable);
     }
-    void EmitPostfixExpression(ILProcessor processor, BoundPostfixExpression expression)
+    void EmitPostfixExpression(ILProcessor processor, BoundPostfixExpression expression, bool asStatement = false)
     {
         EmitLoadVarialble(processor, expression.Variable);
-        processor.Emit(OpCodes.Dup);
+        if (!asStatement) processor.Emit(OpCodes.Dup);
         processor.Emit(OpCodes.Ldc_I4_1);
         processor.Emit(expression.Operator.OperatorKind == BoundBinaryOperatorKind.Addition ? OpCodes.Add : OpCodes.Sub);
         EmitWriteVariable(processor, expression.Variable);

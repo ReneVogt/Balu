@@ -12,6 +12,8 @@ static class BoundNodeFactory
     public static BoundBinaryExpression Binary(SyntaxNode syntax, BoundExpression left, BoundBinaryOperator op, BoundExpression right) => new(syntax, left, op, right);
     public static BoundBinaryExpression Add(SyntaxNode syntax, BoundExpression left, BoundExpression right)
         => Binary(syntax, left, BoundBinaryOperator.BinaryPlus, right);
+    public static BoundBinaryExpression Subtract(SyntaxNode syntax, BoundExpression left, BoundExpression right)
+        => Binary(syntax, left, BoundBinaryOperator.BinaryMinus, right);
     public static BoundBinaryExpression LessOrEqual(SyntaxNode syntax, BoundExpression left, BoundExpression right)
         => Binary(syntax, left, BoundBinaryOperator.LessOrEquals, right);
     public static BoundBlockStatement Block(SyntaxNode syntax, params BoundStatement[] statements) => new(syntax, statements.ToImmutableArray());
