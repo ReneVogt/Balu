@@ -1,4 +1,5 @@
-﻿using Balu.Tests.TestHelper;
+﻿using Balu.Symbols;
+using Balu.Tests.TestHelper;
 using System;
 using Xunit;
 
@@ -25,7 +26,7 @@ public partial class EmitterTests
             IL0000: ldsfld System.Object Program::<result>
             IL0005: ret
 ";
-        code.AssertIl("<eval>", il, script: true);
+        code.AssertIl(GlobalSymbolNames.Eval, il, script: true);
     }
     [Fact]
     public void Emitter_GlobalScope_DebugNoScript()
@@ -123,7 +124,7 @@ public partial class EmitterTests
             IL004E: ret
 ";
         var offsets = new[] { 0, 1, 7, 0x1E, 0x28, 0x34, 0x4D };
-        code.AssertIlAndSymbols("<eval>", il, offsets, script: true, output: output);
+        code.AssertIlAndSymbols(GlobalSymbolNames.Eval, il, offsets, script: true, output: output);
     }
     [Fact]
     public void Emitter_GlobalScope_ReleaseScript()
@@ -158,7 +159,7 @@ public partial class EmitterTests
             IL0046: ldsfld System.Object Program::<result>
             IL004B: ret
 ";
-        code.AssertIl("<eval>", il, script: true, output: output);
+        code.AssertIl(GlobalSymbolNames.Eval, il, script: true, output: output);
     }
 
 }
