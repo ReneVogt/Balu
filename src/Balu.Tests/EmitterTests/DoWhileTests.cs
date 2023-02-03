@@ -74,26 +74,24 @@ public partial class EmitterTests
             IL0003: ldc.i4.3
             IL0004: cgt
             IL0006: brfalse.s IL_000a: ldarg.0
-            IL0008: br.s IL_0020: nop
+            IL0008: br.s IL_001e: nop
             IL000A: ldarg.0
             IL000B: ldc.i4.5
             IL000C: cgt
             IL000E: brfalse.s IL_0012: ldc.i4.1
-            IL0010: br.s IL_001a: ldarg.0
+            IL0010: br.s IL_0018: ldarg.0
             IL0012: ldc.i4.1
-            IL0013: dup
-            IL0014: starg i
-            IL0018: pop
-            IL0019: nop
-            IL001A: ldarg.0
-            IL001B: ldc.i4.0
-            IL001C: cgt
-            IL001E: brtrue.s IL_0001: nop
-            IL0020: nop
-            IL0021: ret
+            IL0013: starg i
+            IL0017: nop
+            IL0018: ldarg.0
+            IL0019: ldc.i4.0
+            IL001A: cgt
+            IL001C: brtrue.s IL_0001: nop
+            IL001E: nop
+            IL001F: ret
 ";
-        var offsets = new[] { 0, 1, 2, 8, 0x0A, 0x10, 0x12, 0x19, 0x1A, 0x20 };
-        code.AssertIlAndSymbols("test", il, offsets);
+        var offsets = new[] { 0, 1, 2, 8, 0x0A, 0x10, 0x12, 0x17, 0x18, 0x1E };
+        code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
     public void Emitter_DoWhile_BlockBodyRelease()
@@ -116,23 +114,21 @@ public partial class EmitterTests
             IL0001: ldc.i4.3
             IL0002: cgt
             IL0004: brfalse.s IL_0008: ldarg.0
-            IL0006: br.s IL_001d: ret
+            IL0006: br.s IL_001b: ret
             IL0008: ldarg.0
             IL0009: ldc.i4.5
             IL000A: cgt
             IL000C: brfalse.s IL_0010: ldc.i4.1
-            IL000E: br.s IL_0017: ldarg.0
+            IL000E: br.s IL_0015: ldarg.0
             IL0010: ldc.i4.1
-            IL0011: dup
-            IL0012: starg i
-            IL0016: pop
-            IL0017: ldarg.0
-            IL0018: ldc.i4.0
-            IL0019: cgt
-            IL001B: brtrue.s IL_0000: ldarg.0
-            IL001D: ret
+            IL0011: starg i
+            IL0015: ldarg.0
+            IL0016: ldc.i4.0
+            IL0017: cgt
+            IL0019: brtrue.s IL_0000: ldarg.0
+            IL001B: ret
 ";
-        code.AssertIl("test", il);
+        code.AssertIl("test", il, output: output);
     }
 
     [Fact]

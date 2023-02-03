@@ -69,6 +69,7 @@ sealed class BoundBinaryOperator
     }
 
     public static BoundBinaryOperator BinaryPlus { get; } = Bind(SyntaxKind.PlusToken, TypeSymbol.Integer, TypeSymbol.Integer)!;
+    public static BoundBinaryOperator BinaryMinus { get; } = Bind(SyntaxKind.MinusToken, TypeSymbol.Integer, TypeSymbol.Integer)!;
     public static BoundBinaryOperator LessOrEquals { get; } = Bind(SyntaxKind.LessOrEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)!;
 
     public static BoundBinaryOperator? Bind(SyntaxKind syntaxKind, TypeSymbol leftType, TypeSymbol rightType) =>

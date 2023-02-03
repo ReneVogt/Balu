@@ -1,9 +1,8 @@
-test(4)
-var a = 12
-function random(i:int, a:int){
-  println(a)
-  var i = 0
-}
+function main()
 {
- var a = ""
- }
+	for i=1 to 5
+	{
+		var x = i
+		println(string(x))
+	}
+}

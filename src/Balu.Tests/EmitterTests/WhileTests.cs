@@ -74,28 +74,26 @@ public partial class EmitterTests
             IL0001: ldarg.0
             IL0002: ldc.i4.0
             IL0003: cgt
-            IL0005: brfalse.s IL_0022: nop
+            IL0005: brfalse.s IL_0020: nop
             IL0007: nop
             IL0008: ldarg.0
             IL0009: ldc.i4.3
             IL000A: cgt
             IL000C: brfalse.s IL_0010: ldarg.0
-            IL000E: br.s IL_0022: nop
+            IL000E: br.s IL_0020: nop
             IL0010: ldarg.0
             IL0011: ldc.i4.5
             IL0012: cgt
             IL0014: brfalse.s IL_0018: ldc.i4.1
             IL0016: br.s IL_0001: ldarg.0
             IL0018: ldc.i4.1
-            IL0019: dup
-            IL001A: starg i
-            IL001E: pop
-            IL001F: nop
-            IL0020: br.s IL_0001: ldarg.0
-            IL0022: nop
-            IL0023: ret
+            IL0019: starg i
+            IL001D: nop
+            IL001E: br.s IL_0001: ldarg.0
+            IL0020: nop
+            IL0021: ret
 ";
-        var offsets = new[] { 0, 1, 7, 8, 0xE, 0x10, 0x16, 0x18, 0x1F, 0x22 };
+        var offsets = new[] { 0, 1, 7, 8, 0xE, 0x10, 0x16, 0x18, 0x1D, 0x20 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
@@ -118,25 +116,23 @@ public partial class EmitterTests
             IL0000: ldarg.0
             IL0001: ldc.i4.0
             IL0002: cgt
-            IL0004: brfalse.s IL_001f: ret
+            IL0004: brfalse.s IL_001d: ret
             IL0006: ldarg.0
             IL0007: ldc.i4.3
             IL0008: cgt
             IL000A: brfalse.s IL_000e: ldarg.0
-            IL000C: br.s IL_001f: ret
+            IL000C: br.s IL_001d: ret
             IL000E: ldarg.0
             IL000F: ldc.i4.5
             IL0010: cgt
             IL0012: brfalse.s IL_0016: ldc.i4.1
             IL0014: br.s IL_0000: ldarg.0
             IL0016: ldc.i4.1
-            IL0017: dup
-            IL0018: starg i
-            IL001C: pop
-            IL001D: br.s IL_0000: ldarg.0
-            IL001F: ret
+            IL0017: starg i
+            IL001B: br.s IL_0000: ldarg.0
+            IL001D: ret
 ";
-        code.AssertIl("test", il);
+        code.AssertIl("test", il, output: output);
     }
 
     [Fact]
