@@ -1,0 +1,15 @@
+<VSTemplate Version="3.0.0" xmlns="http://schemas.microsoft.com/developer/vstemplate/2005" Type="Item">
+  <TemplateData>
+    <DefaultName>code.b</DefaultName>
+    <Name>Balu code file</Name>
+    <Description>A Balu code file.</Description>
+    <ProjectType>CSharp</ProjectType>
+	<Category>Code</Category>	
+    <SortOrder>5</SortOrder>
+    <Icon>Balu.ico</Icon>
+  </TemplateData>
+  <TemplateContent>
+    <References />
+    <ProjectItem SubType="Code" TargetFileName="$fileinputname$.b" ReplaceParameters="true">code.b</ProjectItem>
+  </TemplateContent>
+</VSTemplate>
