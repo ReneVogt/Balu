@@ -4,13 +4,14 @@ using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text.RegularExpressions;
+#pragma warning disable IDE0079
 #pragma warning disable CA1310
 
 namespace Balu.Syntax;
 
 public static class SyntaxFacts
 {
-    static readonly (string escaped, string unescaped)[] escapingCharacters = { ("r", "\r"), ("n", "\n"), ("t", "\t"), ("v", "\v"), ("\\", "\\"), ("\"", "\"") };
+    static readonly (string escaped, string unescaped)[] escapingCharacters = [("r", "\r"), ("n", "\n"), ("t", "\t"), ("v", "\v"), ("\\", "\\"), ("\"", "\"")];
     static readonly Regex escapingRegex;
     public static ImmutableDictionary<string, string> EscapedToUnescapedCharacter { get; }
     public static ImmutableDictionary<string, string> UnescapedToEscapedCharacter { get; }

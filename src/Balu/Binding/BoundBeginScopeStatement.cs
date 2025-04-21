@@ -2,12 +2,7 @@
 
 namespace Balu.Binding;
 
-sealed partial class BoundBeginScopeStatement : BoundStatement
+sealed partial class BoundBeginScopeStatement(SyntaxNode syntax) : BoundStatement(syntax)
 {
     public override BoundNodeKind Kind => BoundNodeKind.BeginScopeStatement;
-
-    public BoundBeginScopeStatement(SyntaxNode syntax)
-        : base(syntax)
-    {
-    }
 }

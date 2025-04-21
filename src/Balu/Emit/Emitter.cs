@@ -18,16 +18,16 @@ namespace Balu.Emit;
 sealed class Emitter : IDisposable
 {
     readonly BoundProgram program;
-    readonly DiagnosticBag diagnostics = new();
+    readonly DiagnosticBag diagnostics = [];
 
     readonly ReferencedMembers referencedMembers;
 
-    readonly Dictionary<FunctionSymbol, MethodDefinition> methods = new();
-    readonly Dictionary<GlobalVariableSymbol, FieldDefinition> globals = new();
-    readonly Dictionary<BoundLabel, int> labels = new();
-    readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = new();
-    readonly Dictionary<SourceText, Document> documents = new();
-    readonly Dictionary<Symbol, string> globalSymbolNames = new();
+    readonly Dictionary<FunctionSymbol, MethodDefinition> methods = [];
+    readonly Dictionary<GlobalVariableSymbol, FieldDefinition> globals = [];
+    readonly Dictionary<BoundLabel, int> labels = [];
+    readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = [];
+    readonly Dictionary<SourceText, Document> documents = [];
+    readonly Dictionary<Symbol, string> globalSymbolNames = [];
     readonly BoundLabel exitLabel = new("<exit>");
 
 

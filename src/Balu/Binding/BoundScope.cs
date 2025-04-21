@@ -3,15 +3,11 @@ using System.Collections.Immutable;
 using Balu.Symbols;
 
 namespace Balu.Binding;
-sealed class BoundScope
+sealed class BoundScope(BoundScope? parent)
 {
     Dictionary<string, Symbol>? symbols;
 
-    public BoundScope? Parent { get; }
-    public BoundScope(BoundScope? parent)
-    {
-        Parent = parent;
-    }
+    public BoundScope? Parent { get; } = parent;
 
     public bool TryLookupSymbol(string name, out Symbol symbol)
     {
@@ -20,7 +16,7 @@ sealed class BoundScope
     }
     public bool TryDeclareSymbol(Symbol symbol)
     {
-        symbols ??= new();
+        symbols ??= [];
         if (symbols.ContainsKey(symbol.Name)) return false;
         symbols.Add(symbol.Name, symbol);
         return true;

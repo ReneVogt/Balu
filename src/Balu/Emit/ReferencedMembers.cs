@@ -12,8 +12,28 @@ namespace Balu.Emit;
 
 sealed class ReferencedMembers : IDisposable
 {
-    readonly DiagnosticBag diagnostics = new();
-    readonly List<AssemblyDefinition> referencedAssemblies = new();
+    static class ReferencedMethodParameters
+    {
+        static readonly string[] SingleObject = ["System.Object"];
+        static readonly string[] Empty = [];
+
+        public static readonly string[] ConsoleWrite = SingleObject ;
+        public static readonly string[] ConsoleWriteLine = SingleObject;
+        public static readonly string[] ConsoleReadLine = Empty;
+        public static readonly string[] StringConcat2 = ["System.String", "System.String"];
+        public static readonly string[] StringConcat3 = ["System.String", "System.String", "System.String"];
+        public static readonly string[] StringConcat4 = ["System.String", "System.String", "System.String", "System.String"];
+        public static readonly string[] StringConcatArray = ["System.String[]"];
+        public static readonly string[] ConvertToBool = SingleObject;
+        public static readonly string[] ConvertToInt = SingleObject;
+        public static readonly string[] ConvertToString = SingleObject;
+        public static readonly string[] ObjectEquals = ["System.Object", "System.Object"];
+        public static readonly string[] RandomCtor = Empty;
+        public static readonly string[] RandomNext = ["System.Int32"];
+        public static readonly string[] DebuggableCtor = ["System.Boolean", "System.Boolean"];
+    }
+    readonly DiagnosticBag diagnostics = [];
+    readonly List<AssemblyDefinition> referencedAssemblies = [];
 
     public  MethodReference DebuggableAttributeCtor { get; }
 
@@ -64,20 +84,20 @@ sealed class ReferencedMembers : IDisposable
             randomTypeDefinition is null ||
             debuggableAttributeTypeDefinition is null) throw new MissingReferencesException(diagnostics.ToImmutableArray());
 
-        var consoleWrite = ResolveMethodDefinition(consoleTypeDefinition, "Write", new[] { "System.Object" });
-        var consoleWriteLine = ResolveMethodDefinition(consoleTypeDefinition, "WriteLine", new[] { "System.Object" });
-        var consoleReadLine = ResolveMethodDefinition(consoleTypeDefinition, "ReadLine", Array.Empty<string>());
-        var stringConcat2 = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String", "System.String" });
-        var stringConcat3 = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String", "System.String", "System.String" });
-        var stringConcat4 = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String", "System.String", "System.String", "System.String" });
-        var stringConcatArray = ResolveMethodDefinition(stringTypeDefinition, "Concat", new[] { "System.String[]" });
-        var convertToBool = ResolveMethodDefinition(convertTypeDefinition, "ToBoolean", new[] { "System.Object" });
-        var convertToInt = ResolveMethodDefinition(convertTypeDefinition, "ToInt32", new[] { "System.Object" });
-        var convertToString = ResolveMethodDefinition(convertTypeDefinition, "ToString", new[] { "System.Object" });
-        var objectEquals = ResolveMethodDefinition(objectTypeDefinition, "Equals", new[] { "System.Object", "System.Object" });
-        var randomCtor = ResolveMethodDefinition(randomTypeDefinition, ".ctor", Array.Empty<string>());
-        var randomNext = ResolveMethodDefinition(randomTypeDefinition, "Next", new[] { "System.Int32" });
-        var debuggableCtor = ResolveMethodDefinition(debuggableAttributeTypeDefinition, ".ctor", new[] { "System.Boolean", "System.Boolean" });
+        var consoleWrite = ResolveMethodDefinition(consoleTypeDefinition, "Write", ReferencedMethodParameters.ConsoleWrite);
+        var consoleWriteLine = ResolveMethodDefinition(consoleTypeDefinition, "WriteLine", ReferencedMethodParameters.ConsoleWriteLine);
+        var consoleReadLine = ResolveMethodDefinition(consoleTypeDefinition, "ReadLine", ReferencedMethodParameters.ConsoleReadLine);
+        var stringConcat2 = ResolveMethodDefinition(stringTypeDefinition, "Concat", ReferencedMethodParameters.StringConcat2);
+        var stringConcat3 = ResolveMethodDefinition(stringTypeDefinition, "Concat", ReferencedMethodParameters.StringConcat3);
+        var stringConcat4 = ResolveMethodDefinition(stringTypeDefinition, "Concat", ReferencedMethodParameters.StringConcat4);
+        var stringConcatArray = ResolveMethodDefinition(stringTypeDefinition, "Concat", ReferencedMethodParameters.StringConcatArray);
+        var convertToBool = ResolveMethodDefinition(convertTypeDefinition, "ToBoolean", ReferencedMethodParameters.ConvertToBool);
+        var convertToInt = ResolveMethodDefinition(convertTypeDefinition, "ToInt32", ReferencedMethodParameters.ConvertToInt);
+        var convertToString = ResolveMethodDefinition(convertTypeDefinition, "ToString", ReferencedMethodParameters.ConvertToString);
+        var objectEquals = ResolveMethodDefinition(objectTypeDefinition, "Equals", ReferencedMethodParameters.ObjectEquals);
+        var randomCtor = ResolveMethodDefinition(randomTypeDefinition, ".ctor", ReferencedMethodParameters.RandomCtor);
+        var randomNext = ResolveMethodDefinition(randomTypeDefinition, "Next", ReferencedMethodParameters.RandomNext);
+        var debuggableCtor = ResolveMethodDefinition(debuggableAttributeTypeDefinition, ".ctor", ReferencedMethodParameters.DebuggableCtor);
         if (diagnostics.HasErrors()) throw new MissingReferencesException(diagnostics.ToImmutableArray());
         Debug.Assert(
             consoleWrite is not null &&

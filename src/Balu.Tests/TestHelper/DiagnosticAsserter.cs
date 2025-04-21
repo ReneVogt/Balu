@@ -16,7 +16,7 @@ static class DiagnosticAsserter
 
         var relevantDiagnostics = ignoreWarnings ? actualDiagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToImmutableArray() : actualDiagnostics;
         var orderedActualDiagnostics = relevantDiagnostics.Where(d => !ignoreWarnings || d.Severity == DiagnosticSeverity.Error)
-                                                          .OrderBy(diagnostic => diagnostic.Location.Text.FileName)
+                                                          .OrderBy(diagnostic => diagnostic.Location.Text?.FileName)
                                                           .ThenBy(diagnostic => diagnostic.Location.Span.Start)
                                                           .ThenByDescending(diagnostic => diagnostic.Location.Span.Length)
                                                           .ToArray();

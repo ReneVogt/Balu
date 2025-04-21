@@ -3,17 +3,11 @@ using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed partial class BoundConversionExpression : BoundExpression
+sealed partial class BoundConversionExpression(SyntaxNode syntax, TypeSymbol type, BoundExpression expression) : BoundExpression(syntax)
 {
-    public override TypeSymbol Type { get; }
-    public BoundExpression Expression { get; }
+    public override TypeSymbol Type { get; } = type;
+    public BoundExpression Expression { get; } = expression;
     public override BoundNodeKind Kind => BoundNodeKind.ConversionExpression;
-
-    public BoundConversionExpression(SyntaxNode syntax, TypeSymbol type, BoundExpression expression) : base(syntax)
-    {
-        Type = type;
-        Expression = expression;
-    }
 
     public override string ToString() => $"{Type}({Expression})";
 }

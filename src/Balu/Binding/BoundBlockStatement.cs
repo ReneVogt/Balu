@@ -3,15 +3,9 @@ using Balu.Syntax;
 
 namespace Balu.Binding;
 
-sealed partial class BoundBlockStatement : BoundStatement
+sealed partial class BoundBlockStatement(SyntaxNode syntax, ImmutableArray<BoundStatement> statements) : BoundStatement(syntax)
 {
     public override BoundNodeKind Kind => BoundNodeKind.BlockStatement;
 
-    public ImmutableArray<BoundStatement> Statements { get; }
-
-    public BoundBlockStatement(SyntaxNode syntax, ImmutableArray<BoundStatement> statements) : base(syntax)
-    {
-        Statements = statements;
-    }
-
+    public ImmutableArray<BoundStatement> Statements { get; } = statements;
 }

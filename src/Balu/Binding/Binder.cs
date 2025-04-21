@@ -12,7 +12,7 @@ namespace Balu.Binding;
 
 sealed class Binder : SyntaxTreeVisitor
 {
-    readonly DiagnosticBag diagnostics = new();
+    readonly DiagnosticBag diagnostics = [];
     readonly FunctionSymbol? containingFunction;
     readonly Stack<(BoundLabel breakLabel, BoundLabel continueLabel)> loopStack = new ();
     readonly bool isScript;
