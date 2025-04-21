@@ -4,13 +4,8 @@ using Balu.Symbols;
 
 namespace Balu.Emit;
 
-public sealed class EmitterResult
+public sealed class EmitterResult(ImmutableArray<Diagnostic> diagnostics, ImmutableDictionary<Symbol, string> globalSymbolNames)
 {
-    public ImmutableArray<Diagnostic> Diagnostics { get; }
-    public ImmutableDictionary<Symbol, string> GlobalSymbolNames { get; }
-    public EmitterResult(ImmutableArray<Diagnostic> diagnostics, ImmutableDictionary<Symbol, string> globalSymbolNames)
-    {
-        Diagnostics = diagnostics;
-        GlobalSymbolNames = globalSymbolNames;
-    }
+    public ImmutableArray<Diagnostic> Diagnostics { get; } = diagnostics;
+    public ImmutableDictionary<Symbol, string> GlobalSymbolNames { get; } = globalSymbolNames;
 }

@@ -16,28 +16,16 @@ namespace Balu.Interactive;
 abstract class Repl
 {
     [AttributeUsage(AttributeTargets.Method, Inherited = false)]
-    protected sealed class MetaCommandAttribute : Attribute
+    protected sealed class MetaCommandAttribute(string name, string description) : Attribute
     {
-        public string Name { get; }
-        public string Description { get; }
-        public MetaCommandAttribute(string name, string description)
-        {
-            Name = name;
-            Description = description;
-        }
+        public string Name { get; } = name;
+        public string Description { get; } = description;
     }
-    sealed class MetaCommand
+    sealed class MetaCommand(string name, string description, MethodInfo method)
     {
-        public string Name { get; }
-        public string Description { get; }
-        public MethodInfo Method { get; }
-
-        public MetaCommand(string name, string description, MethodInfo method)
-        {
-            Name = name;
-            Method = method;
-            Description = description;
-        }
+        public string Name { get; } = name;
+        public string Description { get; } = description;
+        public MethodInfo Method { get; } = method;
     }
     sealed class Document : ObservableCollection<string>
     {
@@ -137,7 +125,7 @@ abstract class Repl
     }
 
     readonly ImmutableDictionary<string, MetaCommand> metaCommands;
-    readonly List<string> history = new();
+    readonly List<string> history = [];
 
     int historyIndex;
     bool editDone;

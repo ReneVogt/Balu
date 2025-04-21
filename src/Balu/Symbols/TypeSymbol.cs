@@ -1,4 +1,5 @@
-﻿#pragma warning disable CA1720
+﻿#pragma warning disable IDE0079
+#pragma warning disable CA1720
 namespace Balu.Symbols;
 
 public sealed class TypeSymbol : Symbol

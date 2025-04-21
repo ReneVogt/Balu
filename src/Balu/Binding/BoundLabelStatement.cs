@@ -2,17 +2,11 @@
 
 namespace Balu.Binding;
 
-sealed partial class BoundLabelStatement : BoundStatement
+sealed partial class BoundLabelStatement(SyntaxNode syntax, BoundLabel label) : BoundStatement(syntax)
 {
-    public BoundLabel Label { get; }
+    public BoundLabel Label { get; } = label;
 
     public override BoundNodeKind Kind => BoundNodeKind.LabelStatement;
-
-    public BoundLabelStatement(SyntaxNode syntax, BoundLabel label)
-        : base(syntax)
-    {
-        Label = label;
-    }
 
     public override string ToString() => Label.ToString();
 }

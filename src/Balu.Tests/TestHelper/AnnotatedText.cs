@@ -24,7 +24,7 @@ sealed class AnnotatedText
         var unindented = Unindent(text);
         int position = 0;
         Stack<int> startStack = new();
-        List<TextSpan> spans = new();
+        List<TextSpan> spans = [];
         StringBuilder resultBuilder = new();
 
         foreach (char c in unindented)

@@ -2,14 +2,8 @@
 
 namespace Balu.Authoring;
 
-public sealed class ClassifiedSpan
+public sealed class ClassifiedSpan(TextSpan span, Classification classification)
 {
-    public TextSpan Span { get; }
-    public Classification Classification { get; }
-
-    public ClassifiedSpan(TextSpan span, Classification classification)
-    {
-        Span = span;
-        Classification = classification;
-    }
+    public TextSpan Span { get; } = span;
+    public Classification Classification { get; } = classification;
 }

@@ -9,8 +9,8 @@ namespace Balu.Syntax;
 
 sealed class Parser
 {
-    readonly DiagnosticBag diagnostics = new();
-    readonly List<SyntaxToken> tokens = new();
+    readonly DiagnosticBag diagnostics = [];
+    readonly List<SyntaxToken> tokens = [];
     readonly SourceText sourceText;
     readonly SyntaxTree syntaxTree;
 
@@ -32,7 +32,7 @@ sealed class Parser
                 badTokens.Add(token);
             else
             {
-                if (!badTokens.Any())
+                if (badTokens.Count == 0)
                     tokens.Add(token);
                 else
                 {
@@ -245,9 +245,9 @@ sealed class Parser
             return ParseAssignmentExpression();
         return ParseBinaryExpression();
     }
-    ExpressionSyntax ParseAssignmentExpression() => new AssignmentExpressionSyntax(syntaxTree, NextToken(), NextToken(),
+    AssignmentExpressionSyntax ParseAssignmentExpression() => new(syntaxTree, NextToken(), NextToken(),
                                                                                          ParseExpression());
-    ExpressionSyntax ParsePrefixExpression()
+    PrefixExpressionSyntax ParsePrefixExpression()
     {
         var operatorToken = Current.Kind == SyntaxKind.MinusMinusToken
                                 ? MatchToken(SyntaxKind.MinusMinusToken)
@@ -255,7 +255,7 @@ sealed class Parser
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
         return new PrefixExpressionSyntax(syntaxTree, operatorToken, identifier);
     }
-    ExpressionSyntax ParsePostfixExpression()
+    PostfixExpressionSyntax ParsePostfixExpression()
     {
         var identifier = MatchToken(SyntaxKind.IdentifierToken);
         var operatorToken = Current.Kind == SyntaxKind.MinusMinusToken

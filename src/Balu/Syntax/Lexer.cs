@@ -10,7 +10,7 @@ sealed class Lexer
 {
     readonly SyntaxTree syntaxTree;
     readonly SourceText sourceText;
-    readonly DiagnosticBag diagnostics = new();
+    readonly DiagnosticBag diagnostics = [];
     readonly ImmutableArray<SyntaxTrivia>.Builder triviaBuilder = ImmutableArray.CreateBuilder<SyntaxTrivia>();
 
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;

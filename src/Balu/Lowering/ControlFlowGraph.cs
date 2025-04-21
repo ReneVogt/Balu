@@ -15,9 +15,9 @@ sealed class ControlFlowGraph
     {
         public bool IsStart { get; }
         public bool IsEnd { get; }
-        public List<BoundStatement> Statements { get; } = new();
-        public List<Edge> Incoming { get; } = new();
-        public List<Edge> Outgoing { get; } = new();
+        public List<BoundStatement> Statements { get; } = [];
+        public List<Edge> Incoming { get; } = [];
+        public List<Edge> Outgoing { get; } = [];
 
         public Block() { }
         public Block(bool isStart)
@@ -34,25 +34,19 @@ sealed class ControlFlowGraph
         }
     }
 
-    public sealed class Edge
+    public sealed class Edge(ControlFlowGraph.Block from, ControlFlowGraph.Block to, BoundExpression? condition)
     {
-        public Block From { get; }
-        public Block To { get; }
-        public BoundExpression? Condition { get; }
-        public Edge(Block from, Block to, BoundExpression? condition)
-        {
-            From = from;
-            To = to;
-            Condition = condition;
-        }
+        public Block From { get; } = from;
+        public Block To { get; } = to;
+        public BoundExpression? Condition { get; } = condition;
 
         public override string ToString() => Condition?.ToString() ?? string.Empty;
     }
 
     sealed class BlockBuilder
     {
-        readonly List<BoundStatement> statements = new();
-        readonly List<Block> blocks = new();
+        readonly List<BoundStatement> statements = [];
+        readonly List<Block> blocks = [];
 
         public List<Block> Build(BoundBlockStatement blockStatement)
         {
@@ -106,7 +100,7 @@ sealed class ControlFlowGraph
 
     sealed class GraphBuilder
     {
-        readonly List<Edge> edges = new();
+        readonly List<Edge> edges = [];
 
         public ControlFlowGraph Build(List<Block> blocks)
         {

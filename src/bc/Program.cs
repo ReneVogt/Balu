@@ -15,11 +15,11 @@ sealed class Program
     static bool quiet;
     public static int Main(string[] args)
     {
-        List<string> references = new();
+        List<string> references = [];
         string outputPath = string.Empty;
         string symbolPath = string.Empty;
         string moduleName = string.Empty;
-        List<string> sourcePaths = new();
+        List<string> sourcePaths = [];
         bool helpRequested = false;
 
         var options = new OptionSet

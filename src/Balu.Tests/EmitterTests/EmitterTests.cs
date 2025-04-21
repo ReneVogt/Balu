@@ -2,11 +2,7 @@
 
 namespace Balu.Tests.EmitterTests;
 
-public partial class EmitterTests
+public partial class EmitterTests(ITestOutputHelper? output)
 {
-    readonly ITestOutputHelper? output;
-    public EmitterTests(ITestOutputHelper? output)
-    {
-        this.output = output;
-    }
+    readonly ITestOutputHelper? output = output;
 }
