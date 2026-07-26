@@ -39,6 +39,8 @@ public sealed class Interpreter : IDisposable
     {
         submissionCount = 0;
         Compilation = Compilation.CreateScript(null, SyntaxTree.Parse(string.Empty));
+        Result = null;
+        GlobalVariables = [];
     }
     public ImmutableArray<Diagnostic> Execute(string code, bool ignoreWarnings = true)
     {
@@ -70,28 +72,32 @@ public sealed class Interpreter : IDisposable
         if (emitterResult.Diagnostics.HasErrors() || !ignoreWarnings && emitterResult.Diagnostics.Any())
             return emitterResult.Diagnostics;
 
-        submissionCount = submissionNumber;
-        Compilation = compilation;
-
         memoryStream.Seek(0, SeekOrigin.Begin);
         var context = new AssemblyLoadContext(null, true);
+        object? result;
+        ImmutableDictionary<GlobalVariableSymbol, object> globalVariables;
         try
         {
             var asm = context.LoadFromStream(memoryStream);
-            Result = asm.EntryPoint!.Invoke(null, null);
+            result = asm.EntryPoint!.Invoke(null, null);
             var programType = asm.GetType("Program")!;
 
-            GlobalVariables = emitterResult.GlobalSymbolNames
-                                       .Where(x => x.Key is GlobalVariableSymbol && !x.Key.Name.IsBaluSpecialName())
-                                       .ToImmutableDictionary(
-                                           x => (GlobalVariableSymbol)x.Key,
-                                           x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
-            return emitterResult.Diagnostics;
+            globalVariables = emitterResult.GlobalSymbolNames
+                                           .Where(x => x.Key is GlobalVariableSymbol && !x.Key.Name.IsBaluSpecialName())
+                                           .ToImmutableDictionary(
+                                               x => (GlobalVariableSymbol)x.Key,
+                                               x => programType.GetField(x.Value, BindingFlags.Static | BindingFlags.NonPublic)!.GetValue(null)!);
         }
         finally
         {
             context.Unload();
         }
+
+        submissionCount = submissionNumber;
+        Compilation = compilation;
+        Result = result;
+        GlobalVariables = globalVariables;
+        return emitterResult.Diagnostics;
     }
 
 }

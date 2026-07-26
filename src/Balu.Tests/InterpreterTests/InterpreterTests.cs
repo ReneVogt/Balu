@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using Balu.Diagnostics;
@@ -110,6 +111,48 @@ public sealed class InterpreterTests
         asserter.AssertScriptEvaluation("function a() { var x = [y] }", expectedDiagnostics: "Undefined name 'y'.");
         asserter.AssertScriptEvaluation("function c() : int { return 42 }");
         asserter.AssertScriptEvaluation("c()", value: 42);
+    }
+
+    [Fact]
+    public void Interpreter_RuntimeFailure_RollsBackSubmission()
+    {
+        using var interpreter = new Interpreter(ReferenceProvider.References);
+        Assert.False(interpreter.Execute("var value = 42 value").HasErrors());
+        var compilation = interpreter.Compilation;
+        var globalVariables = interpreter.GlobalVariables;
+
+        var exception = Assert.Throws<TargetInvocationException>(
+            () => interpreter.Execute("value = 0 var divisor = 0 value / divisor"));
+
+        Assert.IsType<System.DivideByZeroException>(exception.InnerException);
+        Assert.Same(compilation, interpreter.Compilation);
+        Assert.Same(globalVariables, interpreter.GlobalVariables);
+        Assert.Equal(42, interpreter.Result);
+        var globalVariable = Assert.Single(interpreter.GlobalVariables);
+        Assert.Equal("value", globalVariable.Key.Name);
+        Assert.Equal(42, globalVariable.Value);
+        Assert.DoesNotContain(interpreter.AllSymbols, symbol => symbol.Name == "divisor");
+
+        Assert.False(interpreter.Execute("value").HasErrors());
+        Assert.Equal("BaluInterpreter/submission-0002.b", Assert.Single(interpreter.Compilation.SyntaxTrees).Text.FileName);
+        Assert.Equal(42, interpreter.Result);
+    }
+
+    [Fact]
+    public void Interpreter_Reset_ClearsResultAndGlobalVariables()
+    {
+        using var interpreter = new Interpreter(ReferenceProvider.References);
+        Assert.False(interpreter.Execute("var value = 42 value").HasErrors());
+
+        interpreter.Reset();
+
+        Assert.Null(interpreter.Result);
+        Assert.Empty(interpreter.GlobalVariables);
+        Assert.DoesNotContain(interpreter.AllSymbols, symbol => symbol.Name == "value");
+        var diagnostics = interpreter.Execute("value");
+        Assert.Contains(diagnostics, diagnostic => diagnostic.Id == DiagnosticId.UndefinedName);
+        Assert.Null(interpreter.Result);
+        Assert.Empty(interpreter.GlobalVariables);
     }
 
     [Fact]
