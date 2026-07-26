@@ -14,7 +14,7 @@ static class DiagnosticAsserter
         if (expected.Length != annotatedText.Spans.Length)
             throw new ArgumentException("The number of expected diagnostics must match the number of marked spans.");
 
-        var relevantDiagnostics = ignoreWarnings ? actualDiagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error).ToImmutableArray() : actualDiagnostics;
+        var relevantDiagnostics = ignoreWarnings ? [.. actualDiagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error)] : actualDiagnostics;
         var orderedActualDiagnostics = relevantDiagnostics.Where(d => !ignoreWarnings || d.Severity == DiagnosticSeverity.Error)
                                                           .OrderBy(diagnostic => diagnostic.Location.Text?.FileName)
                                                           .ThenBy(diagnostic => diagnostic.Location.Span.Start)

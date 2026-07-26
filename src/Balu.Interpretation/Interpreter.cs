@@ -15,7 +15,7 @@ public sealed class Interpreter
     public object? Result { get; private set; }
     public ImmutableArray<Symbol> VisibleSymbols => Compilation.VisibleSymbols;
     public ImmutableArray<Symbol> AllSymbols => Compilation.AllSymbols;
-    public ImmutableDictionary<GlobalVariableSymbol, object> GlobalVariables { get; private set; } = ImmutableDictionary<GlobalVariableSymbol, object>.Empty;
+    public ImmutableDictionary<GlobalVariableSymbol, object> GlobalVariables { get; private set; } = [];
 
     public TextWriter? Out { get; set; }
     public TextWriter? Error { get; set; }

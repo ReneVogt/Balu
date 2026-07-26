@@ -23,19 +23,19 @@ static class ReferencedAssembliesFinder
             };
             using var process = Process.Start(startInfo)!;
             var output = process.StandardOutput.ReadToEnd();
-            var net9version = output.Split('\n')
-                                    .Where(line => line.StartsWith("Microsoft.NETCore.App 9.0.", StringComparison.InvariantCulture))
-                                    .Select(line => int.TryParse(line.Split(' ')[1][4..], out var version) ? version : -1)
+            var dotnetVersion = output.Split('\n')
+                                    .Where(line => line.StartsWith("Microsoft.NETCore.App 10.0.", StringComparison.InvariantCulture))
+                                    .Select(line => int.TryParse(line.Split(' ')[1][5..], out var version) ? version : -1)
                                     .DefaultIfEmpty(-1)
                                     .Max();
-            if (net9version < 0) return [];
+            if (dotnetVersion < 0) return [];
 
             // C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.4\ref\net9.0
             var path = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), 
                 "dotnet", "packs", "Microsoft.NETCore.App.Ref",
-                $"9.0.{net9version}",
-                "ref", "net9.0");
+                $"10.0.{dotnetVersion}",
+                "ref", "net10.0");
             var refs = new List<string>
             {
                 Path.Combine(path, "System.Runtime.dll"),

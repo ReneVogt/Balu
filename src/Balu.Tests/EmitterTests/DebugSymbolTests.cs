@@ -103,7 +103,7 @@ public partial class EmitterTests
             var symbolPath = Path.ChangeExtension(outputPath, ".pdb");
             const string source = "println(\"Ren\u00E9\")";
             var encoding = new UTF8Encoding(encoderShouldEmitUTF8Identifier: true);
-            File.WriteAllBytes(sourcePath, encoding.GetPreamble().Concat(encoding.GetBytes(source)).ToArray());
+            File.WriteAllBytes(sourcePath, [.. encoding.GetPreamble(), .. encoding.GetBytes(source)]);
 
             var compilation = Compilation.Create(SyntaxTree.Load(sourcePath));
             var diagnostics = compilation.Emit("DebugSymbols", ReferenceProvider.References, outputPath, symbolPath);

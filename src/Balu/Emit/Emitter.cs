@@ -663,7 +663,7 @@ sealed class Emitter : IDisposable
         static Document CreateDocument(string documentName, SourceText sourceText) => new(documentName)
         {
             HashAlgorithm = DocumentHashAlgorithm.SHA256,
-            Hash = sourceText.Checksum.ToArray()
+            Hash = [.. sourceText.Checksum]
         };
     }
 

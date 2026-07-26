@@ -64,7 +64,7 @@ sealed class Program
             var compilation = Compilation.Create(syntaxTrees);
             LogInfo(
                 $"Emitting assembly '{outputPath}'{(string.IsNullOrWhiteSpace(symbolPath) ? string.Empty : $" and symbol file '{symbolPath}'")}.");
-            var diagnostics = compilation.Emit(moduleName, references.ToArray(), outputPath, symbolPath);
+            var diagnostics = compilation.Emit(moduleName, [.. references], outputPath, symbolPath);
             LogDiagnostics(diagnostics);
             LogInfo("Done.");
             return diagnostics.HasErrors() ? 1 : 0;

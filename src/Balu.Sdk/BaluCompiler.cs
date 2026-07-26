@@ -1,5 +1,4 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
@@ -14,10 +13,10 @@ public sealed class BaluCompiler : ToolTask
     public string BcPath { get; set; } = string.Empty;
 
     [Required]
-    public ITaskItem[] SourceFiles { get; set; } = Array.Empty<ITaskItem>();
+    public ITaskItem[] SourceFiles { get; set; } = [];
 
     [Required]
-    public ITaskItem[] ReferencedAssemblies { get; set; } = Array.Empty<ITaskItem>();
+    public ITaskItem[] ReferencedAssemblies { get; set; } = [];
 
     [Required]
     public string OutputPath { get; set; } = string.Empty;

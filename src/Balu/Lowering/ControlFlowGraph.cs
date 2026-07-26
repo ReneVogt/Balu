@@ -81,7 +81,7 @@ sealed class ControlFlowGraph
 
             EndBlock();
 
-            return blocks.ToList();
+            return [.. blocks];
         }
 
         void StartBlock()
