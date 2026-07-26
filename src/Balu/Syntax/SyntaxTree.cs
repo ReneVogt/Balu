@@ -3,7 +3,6 @@ using Balu.Text;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.IO;
 using System.Linq;
 using System.Threading;
 
@@ -55,12 +54,7 @@ public sealed class SyntaxTree
         }
     }
 
-    public static SyntaxTree Load(string fileName)
-    {
-        var text = File.ReadAllText(fileName);
-        var sourceText = SourceText.From(text, fileName);
-        return Parse(sourceText);
-    }
+    public static SyntaxTree Load(string fileName) => Parse(SourceText.Load(fileName));
 
     public static SyntaxTree Parse(string input) => Parse(SourceText.From(input));
     public static SyntaxTree Parse(SourceText text) => new(text, Parse);

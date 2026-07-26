@@ -629,8 +629,11 @@ sealed class Emitter : IDisposable
     {
         if (!documents.TryGetValue(location.Text, out var document))
         {
-            var uriString = Uri.TryCreate(location.FileName, UriKind.RelativeOrAbsolute, out var uri) ? uri.ToString() : string.Empty;
-            document = new(uriString);
+            document = new(location.FileName)
+            {
+                HashAlgorithm = DocumentHashAlgorithm.SHA256,
+                Hash = location.Text.Checksum.ToArray()
+            };
             documents[location.Text] = document;
         }
 

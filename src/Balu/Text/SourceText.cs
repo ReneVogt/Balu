@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Immutable;
+using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace Balu.Text;
 
@@ -10,13 +13,15 @@ public sealed class SourceText
 
     public string FileName { get; }
     public ImmutableArray<TextLine> Lines { get; }
+    internal ImmutableArray<byte> Checksum { get; }
     public char this[int index] => text[index];
     public int Length => text.Length;
 
-    SourceText(string text, string fileName)
+    SourceText(string text, string fileName, ImmutableArray<byte> checksum)
     {
         this.text = text;
         FileName = fileName;
+        Checksum = checksum;
         Lines = ParseLines(this, text);
     }
 
@@ -65,6 +70,29 @@ public sealed class SourceText
         return builder.ToImmutable();
     }
 
-    public static SourceText From(string text, string fileName = "") => new(text ?? throw new ArgumentNullException(nameof(text)),
-                                                                            fileName ?? throw new ArgumentNullException(nameof(fileName)));
+    internal static SourceText Load(string fileName)
+    {
+        using var stream = File.OpenRead(fileName ?? throw new ArgumentNullException(nameof(fileName)));
+        var checksum = ComputeChecksum(stream);
+        stream.Position = 0;
+        using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        return new(reader.ReadToEnd(), fileName, checksum);
+    }
+    public static SourceText From(string text, string fileName = "")
+    {
+        _ = text ?? throw new ArgumentNullException(nameof(text));
+        _ = fileName ?? throw new ArgumentNullException(nameof(fileName));
+        return new(text, fileName, ComputeChecksum(Encoding.UTF8.GetBytes(text)));
+    }
+
+    static ImmutableArray<byte> ComputeChecksum(Stream stream)
+    {
+        using var algorithm = SHA256.Create();
+        return ImmutableArray.CreateRange(algorithm.ComputeHash(stream));
+    }
+    static ImmutableArray<byte> ComputeChecksum(byte[] bytes)
+    {
+        using var algorithm = SHA256.Create();
+        return ImmutableArray.CreateRange(algorithm.ComputeHash(bytes));
+    }
 }
