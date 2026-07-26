@@ -27,6 +27,7 @@ sealed class Emitter : IDisposable
     readonly Dictionary<BoundLabel, int> labels = [];
     readonly List<(int instrcutionIndex, BoundLabel label)> gotosToFix = [];
     readonly Dictionary<SourceText, Document> documents = [];
+    readonly Dictionary<string, (ImmutableArray<byte> checksum, Document document)> documentsByName = new(StringComparer.Ordinal);
     readonly Dictionary<Symbol, string> globalSymbolNames = [];
     readonly BoundLabel exitLabel = new("<exit>");
 
@@ -627,14 +628,27 @@ sealed class Emitter : IDisposable
     }
     void AddSequencePoint(ILProcessor processor, Instruction instruction, TextLocation location)
     {
-        if (!documents.TryGetValue(location.Text, out var document))
+        var sourceText = location.Text!;
+        if (!documents.TryGetValue(sourceText, out var document))
         {
-            document = new(location.FileName)
+            var documentName = sourceText.FileName;
+            if (string.IsNullOrWhiteSpace(documentName))
             {
-                HashAlgorithm = DocumentHashAlgorithm.SHA256,
-                Hash = location.Text.Checksum.ToArray()
-            };
-            documents[location.Text] = document;
+                diagnostics.ReportSourceDocumentNameMissing(location);
+                document = CreateDocument(documentName, sourceText);
+            }
+            else if (documentsByName.TryGetValue(documentName, out var existing))
+            {
+                document = existing.document;
+                if (!sourceText.Checksum.SequenceEqual(existing.checksum))
+                    diagnostics.ReportSourceDocumentNameCollision(location, documentName);
+            }
+            else
+            {
+                document = CreateDocument(documentName, sourceText);
+                documentsByName.Add(documentName, (sourceText.Checksum, document));
+            }
+            documents[sourceText] = document;
         }
 
         var sequencePoint = new SequencePoint(instruction, document)
@@ -646,6 +660,11 @@ sealed class Emitter : IDisposable
         };
         processor.Body.Method.DebugInformation.SequencePoints.Add(sequencePoint);
 
+        static Document CreateDocument(string documentName, SourceText sourceText) => new(documentName)
+        {
+            HashAlgorithm = DocumentHashAlgorithm.SHA256,
+            Hash = sourceText.Checksum.ToArray()
+        };
     }
 
     void EmitFields(ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
@@ -734,6 +753,8 @@ sealed class Emitter : IDisposable
         EmitMethod(methods[program.EntryPoint], program.EntryPoint);
         foreach (var x in methods.Where(x => x.Key != program.EntryPoint))
             EmitMethod(x.Value, x.Key);
+
+        if (diagnostics.HasErrors()) return;
 
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
 
