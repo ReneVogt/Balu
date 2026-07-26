@@ -45,5 +45,7 @@ public enum DiagnosticId
     InvalidAssemblyReference,
     RequiredTypeNotFound,
     RequiredTypeAmbiguous,
-    RequiredMethodNotFound
+    RequiredMethodNotFound,
+    SourceDocumentNameMissing,
+    SourceDocumentNameCollision
 }

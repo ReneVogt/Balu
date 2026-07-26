@@ -5,6 +5,7 @@ using System.Text;
 using Balu.Diagnostics;
 using Balu.Syntax;
 using Balu.Tests.TestHelper;
+using Balu.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Xunit;
@@ -13,6 +14,84 @@ namespace Balu.Tests.EmitterTests;
 
 public partial class EmitterTests
 {
+    [Fact]
+    public void Emitter_DebugSymbols_RequireDocumentName()
+    {
+        var compilation = Compilation.Create(SyntaxTree.Parse("function main() {}"));
+        using var outputStream = new MemoryStream();
+        using var symbolStream = new MemoryStream();
+
+        var diagnostics = compilation.Emit("DebugSymbols", ReferenceProvider.References, outputStream, symbolStream);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(DiagnosticId.SourceDocumentNameMissing, diagnostic.Id);
+        Assert.Equal("Cannot emit debug symbols for a source document without a name.", diagnostic.Message);
+        Assert.Equal(0, outputStream.Length);
+        Assert.Equal(0, symbolStream.Length);
+    }
+
+    [Fact]
+    public void Emitter_DebugSymbols_RejectDocumentNameCollision()
+    {
+        var helper = SyntaxTree.Parse(SourceText.From("function helper() {}", "shared.b"));
+        var main = SyntaxTree.Parse(SourceText.From("function main() { helper() }", "shared.b"));
+        var compilation = Compilation.Create(helper, main);
+        using var outputStream = new MemoryStream();
+        using var symbolStream = new MemoryStream();
+
+        var diagnostics = compilation.Emit("DebugSymbols", ReferenceProvider.References, outputStream, symbolStream);
+
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(DiagnosticId.SourceDocumentNameCollision, diagnostic.Id);
+        Assert.Equal("Cannot emit debug symbols because document name 'shared.b' identifies different source texts.", diagnostic.Message);
+        Assert.Equal(0, outputStream.Length);
+        Assert.Equal(0, symbolStream.Length);
+    }
+
+    [Fact]
+    public void Emitter_DebugSymbols_DescribeMultipleInMemoryDocuments()
+    {
+        const string helpersSource = "function first() {} function second() {}";
+        const string mainSource = "function main() { first() second() }";
+        var helpers = SyntaxTree.Parse(SourceText.From(helpersSource, "helpers.b"));
+        var main = SyntaxTree.Parse(SourceText.From(mainSource, "main.b"));
+        var compilation = Compilation.Create(helpers, main);
+        using var outputStream = new MemoryStream();
+        using var symbolStream = new MemoryStream();
+
+        var diagnostics = compilation.Emit("DebugSymbols", ReferenceProvider.References, outputStream, symbolStream);
+
+        Assert.Empty(diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        outputStream.Position = 0;
+        symbolStream.Position = 0;
+        using var assembly = AssemblyDefinition.ReadAssembly(
+            outputStream,
+            new ReaderParameters { ReadSymbols = true, SymbolReaderProvider = new PortablePdbReaderProvider(), SymbolStream = symbolStream });
+        var documents = assembly.MainModule.Types
+                                .SelectMany(type => type.Methods)
+                                .SelectMany(method => method.DebugInformation.SequencePoints)
+                                .Select(sequencePoint => sequencePoint.Document)
+                                .Distinct()
+                                .OrderBy(document => document.Url)
+                                .ToArray();
+        Assert.Equal(new[] { "helpers.b", "main.b" }, documents.Select(document => document.Url));
+        using var algorithm = SHA256.Create();
+        Assert.Equal(algorithm.ComputeHash(Encoding.UTF8.GetBytes(helpersSource)), documents[0].Hash);
+        Assert.Equal(algorithm.ComputeHash(Encoding.UTF8.GetBytes(mainSource)), documents[1].Hash);
+    }
+
+    [Fact]
+    public void Emitter_WithoutDebugSymbols_AllowsMissingDocumentName()
+    {
+        var compilation = Compilation.Create(SyntaxTree.Parse("function main() {}"));
+        using var outputStream = new MemoryStream();
+
+        var diagnostics = compilation.Emit("NoDebugSymbols", ReferenceProvider.References, outputStream, null);
+
+        Assert.Empty(diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        Assert.True(outputStream.Length > 0);
+    }
+
     [Fact]
     public void Emitter_DebugSymbols_AreDiscoverableAndDescribeSourceFile()
     {
