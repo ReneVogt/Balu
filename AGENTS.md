@@ -47,12 +47,28 @@ Do not manually edit generated files under `bin`, `obj`, or generated output unl
 
 From the repository root:
 
-- Build solution: `dotnet build src/Balu.sln`
+- Build solution, including the VSIX project: use Visual Studio MSBuild as described below.
 - Run tests: `dotnet test src/Balu.Tests/Balu.Tests.csproj`
 - Run compiler CLI: `dotnet run --project src/bc -- <source-files> [options]`
 - Run REPL: `dotnet run --project src/bi`
 - Build SDK package: `dotnet build src/Balu.Sdk/Balu.Sdk.csproj`
 - Build example project: `dotnet build src/HelloWorld/helloworld.csproj`
+
+### Visual Studio / VSIX Builds
+
+`src/Balu.VSIX/Balu.VSIX.csproj` is a classic, non-SDK-style .NET Framework project. Do not build it, or the full solution containing it, with `dotnet build`. The .NET SDK uses Core MSBuild, which does not correctly resolve this project's Visual Studio SDK compile references and reports missing types such as `AsyncPackage` even when the SDK is installed.
+
+Use the Full Framework MSBuild installed with Visual Studio. From PowerShell, locate it with `vswhere` and build the solution as follows:
+
+```powershell
+$msbuild = & "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" `
+    -latest -products * -requires Microsoft.Component.MSBuild `
+    -find "MSBuild\**\Bin\MSBuild.exe"
+
+& $msbuild "src\Balu.sln" /restore /p:Configuration=Release
+```
+
+To build only the extension, replace the solution path with `src\Balu.VSIX\Balu.VSIX.csproj`. `dotnet build` remains appropriate for the other SDK-style projects.
 
 The CLI supports options such as `/r`, `/o`, `/s`, `/m`, `/q`, and `/help`.
 
