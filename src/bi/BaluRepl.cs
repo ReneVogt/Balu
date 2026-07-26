@@ -17,7 +17,12 @@ namespace Balu.Interactive;
 sealed class BaluRepl : Repl
 {
     bool showVars;
-    readonly Interpreter interpreter = new() {Out = Console.Out, Error = Console.Error};
+    readonly Interpreter interpreter = new(
+    [
+        Path.Combine(AppContext.BaseDirectory, "reference-assemblies", "System.Runtime.dll"),
+        Path.Combine(AppContext.BaseDirectory, "reference-assemblies", "System.Runtime.Extensions.dll"),
+        Path.Combine(AppContext.BaseDirectory, "reference-assemblies", "System.Console.dll")
+    ]) {Out = Console.Out, Error = Console.Error};
 
 
     public BaluRepl()

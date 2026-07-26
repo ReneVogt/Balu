@@ -8,7 +8,7 @@ namespace Balu.Tests.TestHelper;
 
 class CompilationAsserter
 {
-    public Interpreter Interpreter { get; } = new();
+    public Interpreter Interpreter { get; } = new(ReferenceProvider.References);
 
     internal void AssertScriptEvaluation(string code, string? expectedDiagnostics = null,
                                          IDictionary<GlobalVariableSymbol, object>? expectedGlobalVariables = null, object? value = null,

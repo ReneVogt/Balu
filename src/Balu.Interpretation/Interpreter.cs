@@ -12,6 +12,13 @@ namespace Balu.Interpretation;
 public sealed class Interpreter
 {
     int submissionCount;
+    readonly string[] referencedAssemblies;
+
+    public Interpreter(string[] referencedAssemblies)
+    {
+        ArgumentNullException.ThrowIfNull(referencedAssemblies);
+        this.referencedAssemblies = [.. referencedAssemblies];
+    }
 
     public Compilation Compilation { get; private set; } = Compilation.CreateScript(null, SyntaxTree.Parse(string.Empty));
     public object? Result { get; private set; }
@@ -25,7 +32,7 @@ public sealed class Interpreter
     public bool WriteProgram { get; set; }
 
     public ImmutableArray<Diagnostic> Emit(string path, string? symbolPath = null) => Compilation.Emit(
-        "BaluInterpreter", ReferencedAssembliesFinder.GetReferences(), path ?? throw new ArgumentNullException(nameof(path)), symbolPath, GlobalVariables);
+        "BaluInterpreter", referencedAssemblies, path ?? throw new ArgumentNullException(nameof(path)), symbolPath, GlobalVariables);
     public void Reset()
     {
         submissionCount = 0;
@@ -36,7 +43,6 @@ public sealed class Interpreter
         var submissionNumber = submissionCount + 1;
         var documentName = $"BaluInterpreter/submission-{submissionNumber:0000}.b";
         var compilation = Compilation.CreateScript(Compilation, SyntaxTree.Parse(SourceText.From(code, documentName)));
-        var referencedAssemblies = ReferencedAssembliesFinder.GetReferences();
 
         if (Out is not null)
         {

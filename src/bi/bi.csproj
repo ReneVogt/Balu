@@ -16,4 +16,31 @@
 	  <ProjectReference Include="..\Balu.Interpretation\Balu.Interpretation.csproj" />
   </ItemGroup>
 
+	<Target Name="CollectInterpreterReferenceAssemblies" DependsOnTargets="ResolveReferences">
+		<ItemGroup>
+			<_InterpreterReferenceAssembly Include="@(ReferencePath)" Condition="'%(Filename)' == 'System.Runtime' OR '%(Filename)' == 'System.Runtime.Extensions' OR '%(Filename)' == 'System.Console'" />
+		</ItemGroup>
+	</Target>
+
+	<Target Name="CopyInterpreterReferenceAssemblies"
+			AfterTargets="CopyFilesToOutputDirectory"
+			DependsOnTargets="CollectInterpreterReferenceAssemblies">
+		<MakeDir Directories="$(TargetDir)reference-assemblies" />
+		<Copy SourceFiles="@(_InterpreterReferenceAssembly)" DestinationFolder="$(TargetDir)reference-assemblies" SkipUnchangedFiles="true">
+			<Output TaskParameter="CopiedFiles" ItemName="FileWrites" />
+		</Copy>
+	</Target>
+
+	<Target Name="PublishInterpreterReferenceAssemblies"
+			BeforeTargets="ComputeResolvedFilesToPublishList"
+			DependsOnTargets="CollectInterpreterReferenceAssemblies">
+		<ItemGroup>
+			<ResolvedFileToPublish Include="@(_InterpreterReferenceAssembly)">
+				<RelativePath>reference-assemblies/%(Filename)%(Extension)</RelativePath>
+				<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+				<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+			</ResolvedFileToPublish>
+		</ItemGroup>
+	</Target>
+
 </Project>
