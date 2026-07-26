@@ -26,4 +26,17 @@
 		<ProjectReference Include="..\Balu\Balu.csproj" />
 	</ItemGroup>
 
+	<Target Name="CopyReferenceAssembliesForEmitterTests" AfterTargets="CopyFilesToOutputDirectory">
+		<ItemGroup>
+			<_EmitterTestReference Include="@(ReferencePath)" Condition="
+				'%(Filename)' == 'System.Runtime' OR
+				'%(Filename)' == 'System.Runtime.Extensions' OR
+				'%(Filename)' == 'System.Console'" />
+		</ItemGroup>
+		<MakeDir Directories="$(TargetDir)reference-assemblies" />
+		<Copy SourceFiles="@(_EmitterTestReference)" DestinationFolder="$(TargetDir)reference-assemblies" SkipUnchangedFiles="true">
+			<Output TaskParameter="CopiedFiles" ItemName="FileWrites" />
+		</Copy>
+	</Target>
+
 </Project>

@@ -1,12 +1,16 @@
-﻿namespace Balu.Tests.TestHelper;
+﻿using System;
+using System.IO;
+
+namespace Balu.Tests.TestHelper;
 
 static class ReferenceProvider
 {
-    // HACK: find a way to get this for tests
+    static readonly string referenceDirectory = Path.Combine(AppContext.BaseDirectory, "reference-assemblies");
+
     public static string[] References { get; } =
     [
-        @"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.4\ref\net9.0\System.Runtime.dll",
-        @"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.4\ref\net9.0\System.Runtime.Extensions.dll",
-        @"C:\Program Files\dotnet\packs\Microsoft.NETCore.App.Ref\9.0.4\ref\net9.0\System.Console.dll"
+        Path.Combine(referenceDirectory, "System.Runtime.dll"),
+        Path.Combine(referenceDirectory, "System.Runtime.Extensions.dll"),
+        Path.Combine(referenceDirectory, "System.Console.dll")
     ];
 }
