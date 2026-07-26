@@ -14,9 +14,21 @@ namespace Balu.Tests.InterpreterTests;
 public sealed class InterpreterTests
 {
     [Fact]
+    public void Interpreter_CopiesReferences()
+    {
+        var references = ReferenceProvider.References.ToArray();
+        var interpreter = new Interpreter(references);
+        references[0] = null!;
+
+        var diagnostics = interpreter.Execute("1");
+
+        Assert.False(diagnostics.HasErrors());
+    }
+
+    [Fact]
     public void Interpreter_SubmissionNames_AdvanceOnlyForAcceptedCompilationsAndReset()
     {
-        var interpreter = new Interpreter();
+        var interpreter = new Interpreter(ReferenceProvider.References);
 
         var invalidDiagnostics = interpreter.Execute("function invalid() { missing() }");
         var validDiagnostics = interpreter.Execute("function valid() {}");
@@ -57,7 +69,7 @@ public sealed class InterpreterTests
     {
         const string firstSource = "function first() { println(\"first\") }";
         const string secondSource = "function second() { first() }";
-        var interpreter = new Interpreter();
+        var interpreter = new Interpreter(ReferenceProvider.References);
         Assert.False(interpreter.Execute(firstSource).HasErrors());
         Assert.False(interpreter.Execute(secondSource).HasErrors());
         var directory = Directory.CreateTempSubdirectory("BaluInterpreter-");
