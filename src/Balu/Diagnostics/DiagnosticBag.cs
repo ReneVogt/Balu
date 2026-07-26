@@ -120,4 +120,6 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(DiagnosticId.SourceDocumentNameMissing, location, "Cannot emit debug symbols for a source document without a name."));
     public void ReportSourceDocumentNameCollision(TextLocation location, string documentName) =>
         Add(new(DiagnosticId.SourceDocumentNameCollision, location, $"Cannot emit debug symbols because document name '{documentName}' identifies different source texts."));
+    public void ReportEmitPathCollision(string pathKind, string path, string conflictingPathKind, string conflictingPath) =>
+        Add(new(DiagnosticId.EmitPathCollision, default, $"The {pathKind} path '{path}' conflicts with the {conflictingPathKind} path '{conflictingPath}'."));
 }
