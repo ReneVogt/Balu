@@ -35,12 +35,12 @@ sealed class Emitter : IDisposable
     LocalVariableScope? locals;
     bool debug;
 
-    Emitter(BoundProgram program, string moduleName, string[] references)
+    Emitter(BoundProgram program, string moduleName, EmitReferenceSet references)
     {
         this.program = program;
 
         diagnostics.AddRange(program.Diagnostics);
-        referencedMembers = new(moduleName, references);
+        referencedMembers = references.CreateReferencedMembers(moduleName);
     }
     public void Dispose() => referencedMembers.Dispose();
 
@@ -773,6 +773,13 @@ sealed class Emitter : IDisposable
     }
 
     public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    {
+        if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
+        using var referenceSet = new EmitReferenceSet(references);
+        return Emit(program, moduleName, referenceSet, outputStream, symbolStream, initializedGlobalVariables);
+    }
+
+    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         try
         {

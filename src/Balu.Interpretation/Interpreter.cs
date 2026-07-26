@@ -2,6 +2,7 @@
 using System.Reflection;
 using System.Runtime.Loader;
 using Balu.Diagnostics;
+using Balu.Emit;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Text;
@@ -9,15 +10,15 @@ using Balu.Visualization;
 
 namespace Balu.Interpretation;
 
-public sealed class Interpreter
+public sealed class Interpreter : IDisposable
 {
     int submissionCount;
-    readonly string[] referencedAssemblies;
+    readonly EmitReferenceSet references;
 
     public Interpreter(string[] referencedAssemblies)
     {
         ArgumentNullException.ThrowIfNull(referencedAssemblies);
-        this.referencedAssemblies = [.. referencedAssemblies];
+        references = new(referencedAssemblies);
     }
 
     public Compilation Compilation { get; private set; } = Compilation.CreateScript(null, SyntaxTree.Parse(string.Empty));
@@ -31,8 +32,9 @@ public sealed class Interpreter
     public bool WriteSyntax { get; set; }
     public bool WriteProgram { get; set; }
 
-    public ImmutableArray<Diagnostic> Emit(string path, string? symbolPath = null) => Compilation.Emit(
-        "BaluInterpreter", referencedAssemblies, path ?? throw new ArgumentNullException(nameof(path)), symbolPath, GlobalVariables);
+    public ImmutableArray<Diagnostic> Emit(string path, string? symbolPath = null) => Compilation.EmitWithReferenceSet(
+        "BaluInterpreter", references, path ?? throw new ArgumentNullException(nameof(path)), symbolPath, GlobalVariables);
+    public void Dispose() => references.Dispose();
     public void Reset()
     {
         submissionCount = 0;
@@ -62,7 +64,7 @@ public sealed class Interpreter
         }
 
         using var memoryStream = new MemoryStream();
-        var emitterResult = compilation.Emit("BaluInterpreter", referencedAssemblies, memoryStream, null, GlobalVariables);
+        var emitterResult = compilation.EmitWithReferenceSet("BaluInterpreter", references, memoryStream, null, GlobalVariables);
         Error?.WriteDiagnostics(emitterResult.Diagnostics);
 
         if (emitterResult.Diagnostics.HasErrors() || !ignoreWarnings && emitterResult.Diagnostics.Any())

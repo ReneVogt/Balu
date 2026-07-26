@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using Balu.Diagnostics;
 using Balu.Interpretation;
@@ -6,9 +7,11 @@ using Balu.Symbols;
 using Xunit;
 namespace Balu.Tests.TestHelper;
 
-class CompilationAsserter
+class CompilationAsserter : IDisposable
 {
     public Interpreter Interpreter { get; } = new(ReferenceProvider.References);
+
+    public void Dispose() => Interpreter.Dispose();
 
     internal void AssertScriptEvaluation(string code, string? expectedDiagnostics = null,
                                          IDictionary<GlobalVariableSymbol, object>? expectedGlobalVariables = null, object? value = null,
