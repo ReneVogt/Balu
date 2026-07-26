@@ -81,6 +81,15 @@ public sealed class EmitReferenceSet : IDisposable
         }
     }
 
+    internal ImmutableArray<Diagnostic> GetDiagnostics()
+    {
+        lock (gate)
+        {
+            if (isDisposed) throw new ObjectDisposedException(nameof(EmitReferenceSet));
+            return diagnostics;
+        }
+    }
+
     public void Dispose()
     {
         lock (gate)

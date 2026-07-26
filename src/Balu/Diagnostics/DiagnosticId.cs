@@ -47,5 +47,6 @@ public enum DiagnosticId
     RequiredTypeAmbiguous,
     RequiredMethodNotFound,
     SourceDocumentNameMissing,
-    SourceDocumentNameCollision
+    SourceDocumentNameCollision,
+    EmitPathCollision
 }
