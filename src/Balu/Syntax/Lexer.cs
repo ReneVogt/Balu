@@ -79,7 +79,6 @@ sealed class Lexer
             }
 
             triviaBuilder.Add(new(syntaxTree, kind, text, new(start, position - start)));
-            // ReSharper disable once LoopVariableIsNeverChangedInsideLoop
         } while (leading || !text.Contains("\n"));
     }
     void ReadToken()

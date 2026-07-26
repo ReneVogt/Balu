@@ -9,7 +9,6 @@ namespace Balu.Visualization;
 
 public static class TextWriterExtensions
 {
-    // ReSharper disable once TailRecursiveCall
     public static bool IsConsole(this TextWriter textWriter) => textWriter is IndentedTextWriter iw
                                                                     ? IsConsole(iw.InnerWriter)
                                                                     : textWriter == Console.Out
@@ -39,9 +38,6 @@ public static class TextWriterExtensions
         _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
         var diags = (diagnostics ?? throw new ArgumentNullException(nameof(diagnostics))).ToArray();
 
-        
-
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text != null).OrderBy(diagnostic => diagnostic.Location.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length))
         {
             var sourceText = diagnostic.Location.Text;
@@ -65,7 +61,6 @@ public static class TextWriterExtensions
                     textWriter.WriteLine();
                 }
 
-                //                WriteColoredText(textWriter, sourceText.ToString(diagnostic.Location.Span), color);
                 if (diagnostic.Location.EndLine > diagnostic.Location.StartLine)
                 {
                     textWriter.Write("    ");
@@ -75,7 +70,6 @@ public static class TextWriterExtensions
                 textWriter.WriteLine();
             }
         }
-        // ReSharper disable once ConditionIsAlwaysTrueOrFalseAccordingToNullableAPIContract
         foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text is null))
         {
             WriteColoredText(textWriter, $"[{diagnostic.IdString}]: {diagnostic.Message}",

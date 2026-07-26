@@ -9,10 +9,7 @@ using Balu.Interpretation;
 using Balu.Symbols;
 using Balu.Syntax;
 using Balu.Visualization;
-// ReSharper disable UnusedMember.Local
-#pragma warning disable IDE0051
 
-#pragma warning disable IDE0040
 #pragma warning disable CA1303
 
 namespace Balu.Interactive;
