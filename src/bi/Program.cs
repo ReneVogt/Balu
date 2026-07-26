@@ -1,3 +1,4 @@
 ﻿using Balu.Interactive;
 
-new BaluRepl().Run();
+using var repl = new BaluRepl();
+repl.Run();

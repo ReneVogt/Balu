@@ -17,7 +17,7 @@ public sealed class InterpreterTests
     public void Interpreter_CopiesReferences()
     {
         var references = ReferenceProvider.References.ToArray();
-        var interpreter = new Interpreter(references);
+        using var interpreter = new Interpreter(references);
         references[0] = null!;
 
         var diagnostics = interpreter.Execute("1");
@@ -28,7 +28,7 @@ public sealed class InterpreterTests
     [Fact]
     public void Interpreter_SubmissionNames_AdvanceOnlyForAcceptedCompilationsAndReset()
     {
-        var interpreter = new Interpreter(ReferenceProvider.References);
+        using var interpreter = new Interpreter(ReferenceProvider.References);
 
         var invalidDiagnostics = interpreter.Execute("function invalid() { missing() }");
         var validDiagnostics = interpreter.Execute("function valid() {}");
@@ -69,7 +69,7 @@ public sealed class InterpreterTests
     {
         const string firstSource = "function first() { println(\"first\") }";
         const string secondSource = "function second() { first() }";
-        var interpreter = new Interpreter(ReferenceProvider.References);
+        using var interpreter = new Interpreter(ReferenceProvider.References);
         Assert.False(interpreter.Execute(firstSource).HasErrors());
         Assert.False(interpreter.Execute(secondSource).HasErrors());
         var directory = Directory.CreateTempSubdirectory("BaluInterpreter-");
@@ -106,10 +106,36 @@ public sealed class InterpreterTests
     [Fact]
     public void Interpreter_UsesOnlyErrorFreeCompilations()
     {
-        var asserter = new CompilationAsserter();
+        using var asserter = new CompilationAsserter();
         asserter.AssertScriptEvaluation("function a() { var x = [y] }", expectedDiagnostics: "Undefined name 'y'.");
         asserter.AssertScriptEvaluation("function c() : int { return 42 }");
         asserter.AssertScriptEvaluation("c()", value: 42);
+    }
+
+    [Fact]
+    public void Interpreter_ReusesReferenceSnapshot()
+    {
+        var directory = Directory.CreateTempSubdirectory("BaluInterpreterReferences-");
+        try
+        {
+            var references = ReferenceProvider.References.Select(reference =>
+            {
+                var copy = Path.Combine(directory.FullName, Path.GetFileName(reference));
+                File.Copy(reference, copy);
+                return copy;
+            }).ToArray();
+            using var interpreter = new Interpreter(references);
+
+            Assert.False(interpreter.Execute("1").HasErrors());
+            foreach (var reference in references)
+                File.Delete(reference);
+
+            Assert.False(interpreter.Execute("2").HasErrors());
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
     }
 
 }

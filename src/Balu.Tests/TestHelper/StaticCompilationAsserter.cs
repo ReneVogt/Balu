@@ -13,7 +13,7 @@ static class StaticCompilationAsserter{
     internal static void AssertScriptEvaluation(this string code, string? expectedDiagnostics = null, object? value = null, bool ignoreWarnings = true)
     {
         var annotatedText = AnnotatedText.Parse(code);
-        var interpreter = new Interpreter(ReferenceProvider.References);
+        using var interpreter = new Interpreter(ReferenceProvider.References);
         var actualDiagnostics = interpreter.Execute(annotatedText.Text, ignoreWarnings);
 
         DiagnosticAsserter.AssertDiagnostics(annotatedText, actualDiagnostics, expectedDiagnostics, ignoreWarnings);

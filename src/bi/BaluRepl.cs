@@ -14,7 +14,7 @@ using Balu.Visualization;
 
 namespace Balu.Interactive;
 
-sealed class BaluRepl : Repl
+sealed class BaluRepl : Repl, IDisposable
 {
     bool showVars;
     readonly Interpreter interpreter = new(
@@ -27,8 +27,17 @@ sealed class BaluRepl : Repl
 
     public BaluRepl()
     {
-        LoadSubmissions();
+        try
+        {
+            LoadSubmissions();
+        }
+        catch
+        {
+            interpreter.Dispose();
+            throw;
+        }
     }
+    public void Dispose() => interpreter.Dispose();
 
     protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine, StringComparison.InvariantCultureIgnoreCase) || !SyntaxTree.Parse(text).IsLastTokenMissing;
 
