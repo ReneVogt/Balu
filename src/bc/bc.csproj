@@ -18,4 +18,12 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Balu\Balu.csproj" />
 	</ItemGroup>
+
+	<Target Name="GetBaluCompilerPackageFiles"
+			DependsOnTargets="Build;ComputeFilesToPublish"
+			Returns="@(_BaluCompilerPackageFile)">
+		<ItemGroup>
+			<_BaluCompilerPackageFile Include="@(ResolvedFileToPublish->'%(FullPath)')" TargetPath="%(ResolvedFileToPublish.RelativePath)" />
+		</ItemGroup>
+	</Target>
 </Project>
