@@ -42,14 +42,17 @@ public class SourceTextTests
         {
             ("", new (int start, int length, int incl)[] { (0, 0, 0) }),
             ("\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 0) }),
+            ("\r", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 0) }),
             ("\r\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 0) }),
             ("\n\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 1), (2, 0, 0) }),
+            ("\r\r", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 1), (2, 0, 0) }),
             ("\n\r\n", new (int start, int length, int incl)[] { (0, 0, 1), (1, 0, 2), (3, 0, 0) }),
             ("\r\n\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 1), (3, 0, 0) }),
             ("\r\n\r\n", new (int start, int length, int incl)[] { (0, 0, 2), (2, 0, 2), (4, 0, 0) }),
             ("line1a\r1b\nline2\r\nline3_\n\nline5__\r\n\r\nline7___", new (int start, int length, int incl)[]
                 {
-                    (0, 9, 10),
+                    (0, 6, 7),
+                    (7, 2, 3),
                     (10, 5, 7),
                     (17, 6, 7),
                     (24, 0, 1),
@@ -75,14 +78,17 @@ public class SourceTextTests
         {
             ("", new[] { 0 }),
             ("\n", new[] { 0, 1 }),
+            ("\r", new[] { 0, 1 }),
             ("\r\n", new[] { 0, 0, 1 }),
 
             ("\n\n", new[] { 0, 1, 2 }),
+            ("\r\r", new[] { 0, 1, 2 }),
             ("\r\n\n", new[] { 0, 0, 1, 2 }),
             ("\n\r\n", new[] { 0, 1, 1, 2 }),
             ("\r\n\r\n", new[] { 0, 0, 1, 1, 2 }),
 
             ("a\na\n", new[] { 0, 0, 1, 1, 2 }),
+            ("a\ra\r", new[] { 0, 0, 1, 1, 2 }),
             ("a\na\r\n", new[] { 0, 0, 1, 1, 1, 2 }),
             ("a\r\na\n", new[] { 0, 0, 0, 1, 1, 2 }),
             ("a\r\na\r\n", new[] { 0, 0, 0, 1, 1, 1, 2 }),

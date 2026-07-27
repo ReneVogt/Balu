@@ -81,6 +81,31 @@ public partial class EmitterTests
     }
 
     [Fact]
+    public void Emitter_DebugSymbols_RecognizeLoneCarriageReturnAsLineEnding()
+    {
+        const string source = "function main() {\r    println(\"a\")\r}";
+        var compilation = Compilation.Create(SyntaxTree.Parse(SourceText.From(source, "lone-cr.b")));
+        using var outputStream = new MemoryStream();
+        using var symbolStream = new MemoryStream();
+
+        var diagnostics = compilation.Emit("LoneCrDebugSymbols", ReferenceProvider.References, outputStream, symbolStream);
+
+        Assert.Empty(diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
+        outputStream.Position = 0;
+        symbolStream.Position = 0;
+        using var assembly = AssemblyDefinition.ReadAssembly(
+            outputStream,
+            new ReaderParameters { ReadSymbols = true, SymbolReaderProvider = new PortablePdbReaderProvider(), SymbolStream = symbolStream });
+        var sequencePoints = assembly.MainModule.Types
+                                     .SelectMany(type => type.Methods)
+                                     .SelectMany(method => method.DebugInformation.SequencePoints)
+                                     .ToArray();
+
+        Assert.Contains(sequencePoints, sequencePoint => sequencePoint.StartLine == 2);
+        Assert.All(sequencePoints, sequencePoint => Assert.InRange(sequencePoint.StartLine, 1, 3));
+    }
+
+    [Fact]
     public void Emitter_WithoutDebugSymbols_AllowsMissingDocumentName()
     {
         var compilation = Compilation.Create(SyntaxTree.Parse("function main() {}"));

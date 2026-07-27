@@ -39,11 +39,11 @@ sealed class Lexer
             var tokenValue = value;
             var tokenLength = position - tokenStart;
             var tokenText = text;
-            
+
             ReadTrivia(false);
             var trailingTrivia = triviaBuilder.ToImmutable();
 
-            yield return new(syntaxTree, tokenKind, new(tokenStart, tokenKind == SyntaxKind.EndOfFileToken ? 0 :  tokenLength), tokenText, tokenValue, leadingTrivia, trailingTrivia);
+            yield return new(syntaxTree, tokenKind, new(tokenStart, tokenKind == SyntaxKind.EndOfFileToken ? 0 : tokenLength), tokenText, tokenValue, leadingTrivia, trailingTrivia);
 
             kind = tokenKind;
 
@@ -66,7 +66,7 @@ sealed class Lexer
                     ReadWhiteSpaces();
                     break;
                 case SyntaxKind.LineBreakTrivia:
-                     ReadLineBreak();
+                    ReadLineBreak();
                     break;
                 case SyntaxKind.SingleLineCommentTrivia:
                     ReadSingleLineComment();
@@ -79,12 +79,12 @@ sealed class Lexer
             }
 
             triviaBuilder.Add(new(syntaxTree, kind, text, new(start, position - start)));
-        } while (leading || !text.Contains("\n"));
+        } while (leading || sourceText.GetLineIndex(start) == sourceText.GetLineIndex(position));
     }
     void ReadToken()
     {
         start = position;
-        value = null; 
+        value = null;
         kind = CurrentKind();
         text = string.Empty;
 
@@ -99,15 +99,17 @@ sealed class Lexer
         else
         {
             text = kind.GetText() ?? Current.ToString();
-            if (Current != '\0') position += text.Length;
+            if (!IsAtEnd) position += text.Length;
         }
     }
     SyntaxKind CurrentKind()
     {
-        if (Current == '\0') 
+        if (IsAtEnd)
             return SyntaxKind.EndOfFileToken;
+        if (sourceText.GetLineBreakWidth(position) > 0)
+            return SyntaxKind.LineBreakTrivia;
         if (char.IsWhiteSpace(Current))
-            return Current is '\r' or '\n' ? SyntaxKind.LineBreakTrivia : SyntaxKind.WhiteSpaceTrivia;
+            return SyntaxKind.WhiteSpaceTrivia;
         if (char.IsDigit(Current))
             return SyntaxKind.NumberToken;
         if (char.IsLetter(Current) || Current == '_')
@@ -116,7 +118,6 @@ sealed class Lexer
 
         return (Current, Peek(1)) switch
         {
-            ('\0', _) => SyntaxKind.EndOfFileToken,
             ('+', '=') => SyntaxKind.PlusEqualsToken,
             ('+', '+') => SyntaxKind.PlusPlusToken,
             ('+', _) => SyntaxKind.PlusToken,
@@ -155,13 +156,14 @@ sealed class Lexer
             _ => SyntaxKind.BadToken
         };
     }
-    
+
     char Peek(int offset)
     {
         var index = position + offset;
         return index >= sourceText.Length ? '\0' : sourceText[index];
     }
     char Current => Peek(0);
+    bool IsAtEnd => position >= sourceText.Length;
     void Next()
     {
         if (position < sourceText.Length) position++;
@@ -180,31 +182,13 @@ sealed class Lexer
     void ReadWhiteSpaces()
     {
         kind = SyntaxKind.WhiteSpaceTrivia;
-        var done = false;
-        while (!done)
-        {
-            switch (Current)
-            {
-                case '\0':
-                case '\r':
-                case '\n':
-                    done = true;
-                    break;
-                default:
-                    if (!char.IsWhiteSpace(Current))
-                        done = true;
-                    else Next();
-                    break;
-            }
-        }
+        while (!IsAtEnd && sourceText.GetLineBreakWidth(position) == 0 && char.IsWhiteSpace(Current)) Next();
         text = sourceText.ToString(start, position - start);
     }
     void ReadLineBreak()
     {
         kind = SyntaxKind.LineBreakTrivia;
-        if (Current == '\r' && Peek(1) == '\n')
-            position++;
-        position++;
+        position += sourceText.GetLineBreakWidth(position);
         text = sourceText.ToString(start, position - start);
     }
     void ReadIdentifierOrKeywordToken()
@@ -222,20 +206,27 @@ sealed class Lexer
     }
     void ReadString()
     {
-        position++; 
+        position++;
         var valueBuilder = new StringBuilder();
-        while (Current != '"')
+        while (!IsAtEnd && Current != '"')
         {
+            if (sourceText.GetLineBreakWidth(position) > 0)
+            {
+                diagnostics.ReportUnterminatedString(new(sourceText, new(start, position - start)));
+                text = sourceText.ToString(start, position - start);
+                kind = SyntaxKind.StringToken;
+                return;
+            }
+
             switch (Current)
             {
-                case '\0':
-                case '\r':
-                case '\n':
-                    diagnostics.ReportUnterminatedString(new (sourceText, new(start, position - start)));
-                    text = sourceText.ToString(start, position - start);
-                    kind = SyntaxKind.StringToken;
-                    return;
                 case '\\':
+                    if (position + 1 >= sourceText.Length)
+                    {
+                        diagnostics.ReportInvalidEscapeSequence(new(sourceText, new(position, 1)), "\\");
+                        break;
+                    }
+
                     char next = Peek(1);
                     if (SyntaxFacts.EscapedToUnescapedCharacter.TryGetValue(next.ToString(), out var unescaped))
                     {
@@ -243,7 +234,7 @@ sealed class Lexer
                         Next();
                     }
                     else
-                        diagnostics.ReportInvalidEscapeSequence(new(sourceText, new(position+1, 1)), next.ToString());
+                        diagnostics.ReportInvalidEscapeSequence(new(sourceText, new(position + 1, 1)), next.ToString());
                     break;
                 default:
                     valueBuilder.Append(Current);
@@ -252,6 +243,15 @@ sealed class Lexer
 
             Next();
         }
+
+        if (IsAtEnd)
+        {
+            diagnostics.ReportUnterminatedString(new(sourceText, new(start, position - start)));
+            text = sourceText.ToString(start, position - start);
+            kind = SyntaxKind.StringToken;
+            return;
+        }
+
         Next(); // skip closing "
         text = sourceText.ToString(start, position - start);
         kind = SyntaxKind.StringToken;
@@ -261,27 +261,21 @@ sealed class Lexer
     {
         value = null;
         kind = SyntaxKind.SingleLineCommentTrivia;
-        while (Current != '\0' && Current != '\n') Next();
-        if (Current != '\0') Next();
+        while (!IsAtEnd && sourceText.GetLineBreakWidth(position) == 0) Next();
+        position += sourceText.GetLineBreakWidth(position);
         text = sourceText.ToString(start, position - start);
     }
     void ReadMultiLineComment()
     {
         kind = SyntaxKind.MultiLineCommentTrivia;
         value = null;
-        char c1, c2;
-        position++;
-        do
-        {
-            Next();
-            c1 = Current;
-            c2 = Peek(1);
-        } while (c2 != '\0' && (c1 != '*' || c2 != '/'));
+        position += 2;
+        while (!IsAtEnd && (Current != '*' || Peek(1) != '/')) Next();
 
-        if (c2 == '\0')
-            diagnostics.ReportUnterminatedMultiLineComment(new(sourceText, new (start, 2)));
-        Next();
-        Next();
+        if (IsAtEnd)
+            diagnostics.ReportUnterminatedMultiLineComment(new(sourceText, new(start, 2)));
+        else
+            position += 2;
         text = sourceText.ToString(start, position - start);
     }
     void ReadBadToken()

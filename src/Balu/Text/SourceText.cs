@@ -22,7 +22,7 @@ public sealed class SourceText
         this.text = text;
         FileName = fileName;
         Checksum = checksum;
-        Lines = ParseLines(this, text);
+        Lines = ParseLines(this);
     }
 
     public int GetLineIndex(int position)
@@ -48,13 +48,24 @@ public sealed class SourceText
     public string ToString(int start, int length) => text.Substring(start, length);
     public string ToString(TextSpan span) => ToString(span.Start, span.Length);
 
-    static ImmutableArray<TextLine> ParseLines(SourceText sourceText, string text)
+    internal int GetLineBreakWidth(int position)
+    {
+        if (position < 0 || position >= Length)
+            return 0;
+
+        if (text[position] == '\r')
+            return position + 1 < Length && text[position + 1] == '\n' ? 2 : 1;
+
+        return text[position] == '\n' ? 1 : 0;
+    }
+
+    static ImmutableArray<TextLine> ParseLines(SourceText sourceText)
     {
         int lineStart = 0, position = 0;
         var builder = ImmutableArray.CreateBuilder<TextLine>();
-        while(position < text.Length)
+        while (position < sourceText.Length)
         {
-            int endings = text[position] == '\n' ? 1 : text[position] == '\r' && position + 1 < text.Length && text[position+1] == '\n' ? 2 : 0;
+            var endings = sourceText.GetLineBreakWidth(position);
             if (endings == 0)
             {
                 position++;
@@ -66,7 +77,7 @@ public sealed class SourceText
             lineStart = position;
         }
         if (builder.Count == 0 || builder.Last().LengthIncludingNewLine > builder.Last().Length)
-            builder.Add(new(sourceText, lineStart, text.Length - lineStart, text.Length - lineStart));
+            builder.Add(new(sourceText, lineStart, sourceText.Length - lineStart, sourceText.Length - lineStart));
         return builder.ToImmutable();
     }
 
