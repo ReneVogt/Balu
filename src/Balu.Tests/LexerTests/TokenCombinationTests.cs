@@ -1,4 +1,5 @@
 using Balu.Syntax;
+using Balu.Text;
 using System;
 using System.Linq;
 using Xunit;
@@ -23,6 +24,35 @@ public partial class LexerTests
     public void Lexer_Lexes_EmptyInput()
     {
         Assert.Empty(SyntaxTree.ParseTokens(string.Empty));
+    }
+    [Fact]
+    public void Lexer_Lexes_PastEmbeddedNullCharacter()
+    {
+        const string text = "a\0b";
+
+        var tokens = SyntaxTree.ParseTokens(text, out var diagnostics);
+
+        Assert.Collection(tokens,
+                          token =>
+                          {
+                              Assert.Equal(SyntaxKind.IdentifierToken, token.Kind);
+                              Assert.Equal("a", token.Text);
+                          },
+                          token =>
+                          {
+                              Assert.Equal(SyntaxKind.BadToken, token.Kind);
+                              Assert.Equal("\0", token.Text);
+                          },
+                          token =>
+                          {
+                              Assert.Equal(SyntaxKind.IdentifierToken, token.Kind);
+                              Assert.Equal("b", token.Text);
+                          });
+        var diagnostic = Assert.Single(diagnostics);
+        Assert.Equal(new TextSpan(1, 1), diagnostic.Location.Span);
+
+        var tree = SyntaxTree.Parse(text);
+        Assert.Equal(text.Length, tree.Root.EndOfFileToken.Span.Start);
     }
     [Theory]
     [MemberData(nameof(ProvideSingleTokens))]
