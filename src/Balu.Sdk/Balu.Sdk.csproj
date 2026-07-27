@@ -21,20 +21,21 @@
 		<NoWarn>NU5100,NU5128</NoWarn>
 		<GenerateDependencyFile>true</GenerateDependencyFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+		<BaluCompilerProject>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)..\bc\bc.csproj))</BaluCompilerProject>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.Build.Utilities.Core" Version="17.4.0" PrivateAssets="all" ExcludeAssets="Runtime" />
 	</ItemGroup>
 	<ItemGroup>
-		<!-- bc is a build tool, so it participates in the build without being referenced by the netstandard task assembly. -->
-		<ProjectReference Include="..\bc\bc.csproj"
+		<!-- Keep bc in the restore graph; the package target builds it explicitly to work inside and outside Visual Studio. -->
+		<ProjectReference Include="$(BaluCompilerProject)"
 					  ReferenceOutputAssembly="false"
+					  BuildReference="false"
+					  Private="false"
 					  PrivateAssets="all"
 					  SkipGetTargetFrameworkProperties="true"
-					  GlobalPropertiesToRemove="TargetFramework"
-					  Targets="GetBaluCompilerPackageFiles"
-					  OutputItemType="_BaluCompilerPackageFile" />
+					  GlobalPropertiesToRemove="TargetFramework" />
 	</ItemGroup>
 	<ItemGroup>
 		<!-- these lines pack the build props/targets files to the `build` folder in the generated package.
@@ -45,6 +46,13 @@
 	</ItemGroup>
 
 	<Target Name="CollectPackageBuildOutput" DependsOnTargets="ResolveReferences">
+		<MSBuild Projects="$(BaluCompilerProject)"
+				 Targets="GetBaluCompilerPackageFiles"
+				 BuildInParallel="$(BuildInParallel)"
+				 Properties="Configuration=$(Configuration);Platform=$(Platform)"
+				 RemoveProperties="TargetFramework">
+			<Output TaskParameter="TargetOutputs" ItemName="_BaluCompilerPackageFile" />
+		</MSBuild>
 		<ItemGroup>
 			<!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
 			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
