@@ -139,6 +139,26 @@ public sealed class InterpreterTests
     }
 
     [Fact]
+    public void Interpreter_InputAtEndOfStream_ReturnsEmptyString()
+    {
+        var originalIn = System.Console.In;
+        try
+        {
+            System.Console.SetIn(new StringReader(string.Empty));
+            using var interpreter = new Interpreter(ReferenceProvider.References);
+
+            Assert.False(interpreter.Execute("var value = input()").HasErrors());
+            Assert.Equal(string.Empty, Assert.Single(interpreter.GlobalVariables).Value);
+            Assert.False(interpreter.Execute("value").HasErrors());
+            Assert.Equal(string.Empty, interpreter.Result);
+        }
+        finally
+        {
+            System.Console.SetIn(originalIn);
+        }
+    }
+
+    [Fact]
     public void Interpreter_Reset_ClearsResultAndGlobalVariables()
     {
         using var interpreter = new Interpreter(ReferenceProvider.References);
