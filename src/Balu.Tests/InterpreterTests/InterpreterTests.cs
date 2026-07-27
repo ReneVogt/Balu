@@ -113,6 +113,18 @@ public sealed class InterpreterTests
         asserter.AssertScriptEvaluation("c()", value: 42);
     }
 
+    [Theory]
+    [InlineData("42", 42)]
+    [InlineData("true", true)]
+    [InlineData("\"text\"", "text")]
+    public void Interpreter_PersistsAnyGlobalsAcrossSubmissions(string literal, object expected)
+    {
+        using var asserter = new CompilationAsserter();
+
+        asserter.AssertScriptEvaluation($"var value: any = {literal}");
+        asserter.AssertScriptEvaluation("value", value: expected);
+    }
+
     [Fact]
     public void Interpreter_RuntimeFailure_RollsBackSubmission()
     {

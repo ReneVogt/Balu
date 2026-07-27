@@ -688,28 +688,31 @@ sealed class Emitter : IDisposable
         {
             EmitField(global);
             if (!initializedGlobalVariables.TryGetValue(global, out var value)) continue;
-            bool box = true;
+            TypeReference? boxingType;
             switch (value)
             {
                 case false:
                     processor.Emit(OpCodes.Ldc_I4_0);
+                    boxingType = MapType(TypeSymbol.Boolean);
                     break;
                 case true:
                     processor.Emit(OpCodes.Ldc_I4_1);
+                    boxingType = MapType(TypeSymbol.Boolean);
                     break;
                 case int i:
                     processor.Emit(OpCodes.Ldc_I4, i);
+                    boxingType = MapType(TypeSymbol.Integer);
                     break;
                 case string s:
                     processor.Emit(OpCodes.Ldstr, s);
-                    box = false;
+                    boxingType = null;
                     break;
                 default:
                     throw new EmitterException($"Invalid value type '{value.GetType().Name}' in global variables.");
             }
 
-            if (box && global.Type == TypeSymbol.Any)
-                processor.Emit(OpCodes.Box);
+            if (boxingType is not null && global.Type == TypeSymbol.Any)
+                processor.Emit(OpCodes.Box, boxingType);
             processor.Emit(OpCodes.Stsfld, globals[global]);
         }
 
