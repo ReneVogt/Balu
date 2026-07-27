@@ -521,7 +521,10 @@ sealed class Emitter : IDisposable
         else if (expression.Function == BuiltInFunctions.PrintLine)
             processor.Emit(OpCodes.Call, referencedMembers.ConsoleWriteLine);
         else if (expression.Function == BuiltInFunctions.Input)
+        {
             processor.Emit(OpCodes.Call, referencedMembers.ConsoleReadLine);
+            processor.Emit(OpCodes.Call, referencedMembers.ConvertToString);
+        }
         else if (expression.Function == BuiltInFunctions.Random)
             processor.Emit(OpCodes.Callvirt, referencedMembers.RandomNext);
         else
