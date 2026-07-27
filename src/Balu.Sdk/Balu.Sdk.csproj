@@ -21,7 +21,7 @@
 		<NoWarn>NU5100,NU5128</NoWarn>
 		<GenerateDependencyFile>true</GenerateDependencyFile>
 		<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
-		<BaluCompilerProject>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)..\bc\bc.csproj))</BaluCompilerProject>
+		<BaluCompilerProject>$([MSBuild]::NormalizePath($(MSBuildThisFileDirectory)../bc/bc.csproj))</BaluCompilerProject>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -41,28 +41,28 @@
 		<!-- these lines pack the build props/targets files to the `build` folder in the generated package.
  		by convention, the .NET SDK will look for build\<Package Id>.props and build\<Package Id>.targets
  		for automatic inclusion in the build. -->
-		<Content Include="Sdk.props" PackagePath="sdk\" />
-		<Content Include="Sdk.targets" PackagePath="sdk\" />
+		<Content Include="Sdk.props" PackagePath="sdk/" />
+		<Content Include="Sdk.targets" PackagePath="sdk/" />
 	</ItemGroup>
 
 	<Target Name="CollectPackageBuildOutput" DependsOnTargets="ResolveReferences">
 		<MSBuild Projects="$(BaluCompilerProject)"
 				 Targets="GetBaluCompilerPackageFiles"
 				 BuildInParallel="$(BuildInParallel)"
-				 Properties="Configuration=$(Configuration);Platform=$(Platform)"
+				 Properties="Configuration=$(Configuration);Platform=$(Platform);UseAppHost=false"
 				 RemoveProperties="TargetFramework">
 			<Output TaskParameter="TargetOutputs" ItemName="_BaluCompilerPackageFile" />
 		</MSBuild>
 		<ItemGroup>
 			<!-- The TargetPath is the path inside the package that the source file will be placed. This is already precomputed in the ReferenceCopyLocalPaths items' DestinationSubPath, so reuse it here. -->
 			<BuildOutputInPackage Include="@(ReferenceCopyLocalPaths)" TargetPath="%(ReferenceCopyLocalPaths.DestinationSubPath)" />
-			<_BaluCompilerEntryPoint Include="@(_BaluCompilerPackageFile)" Condition="'%(_BaluCompilerPackageFile.TargetPath)' == 'bc.exe'" />
+			<_BaluCompilerEntryPoint Include="@(_BaluCompilerPackageFile)" Condition="'%(_BaluCompilerPackageFile.TargetPath)' == 'bc.dll'" />
 			<_BaluCompilerDependencyFile Include="@(_BaluCompilerPackageFile)" Condition="'%(_BaluCompilerPackageFile.TargetPath)' == 'bc.deps.json'" />
 			<_BaluCompilerRuntimeConfig Include="@(_BaluCompilerPackageFile)" Condition="'%(_BaluCompilerPackageFile.TargetPath)' == 'bc.runtimeconfig.json'" />
-			<BuildOutputInPackage Include="@(_BaluCompilerPackageFile)" TargetPath="compiler\%(_BaluCompilerPackageFile.TargetPath)" />
+			<BuildOutputInPackage Include="@(_BaluCompilerPackageFile)" TargetPath="compiler/%(_BaluCompilerPackageFile.TargetPath)" />
 		</ItemGroup>
 		<Error Condition="'@(_BaluCompilerPackageFile)' == ''" Text="The Balu compiler produced no files to package." />
-		<Error Condition="'@(_BaluCompilerEntryPoint)' == ''" Text="The Balu compiler entry point bc.exe is missing from the package output." />
+		<Error Condition="'@(_BaluCompilerEntryPoint)' == ''" Text="The Balu compiler entry point bc.dll is missing from the package output." />
 		<Error Condition="'@(_BaluCompilerDependencyFile)' == ''" Text="The Balu compiler dependency file bc.deps.json is missing from the package output." />
 		<Error Condition="'@(_BaluCompilerRuntimeConfig)' == ''" Text="The Balu compiler runtime configuration bc.runtimeconfig.json is missing from the package output." />
 		<Error Condition="!Exists('%(_BaluCompilerPackageFile.Identity)')" Text="The Balu compiler package file '%(_BaluCompilerPackageFile.Identity)' does not exist." />
