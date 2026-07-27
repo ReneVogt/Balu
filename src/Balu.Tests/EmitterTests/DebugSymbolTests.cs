@@ -112,6 +112,10 @@ public partial class EmitterTests
             Assert.True(File.Exists(outputPath));
             Assert.True(File.Exists(symbolPath));
 
+            using var assemblyWithoutSymbols = AssemblyDefinition.ReadAssembly(outputPath);
+            var codeView = Assert.Single(assemblyWithoutSymbols.MainModule.GetDebugHeader().Entries.Where(entry => entry.Directory.Type == ImageDebugType.CodeView));
+            Assert.Equal(symbolPath, Encoding.UTF8.GetString(codeView.Data, 24, codeView.Data.Length - 25));
+
             using var assembly = AssemblyDefinition.ReadAssembly(outputPath, new ReaderParameters { ReadSymbols = true });
             Assert.True(assembly.MainModule.HasSymbols);
             var sequencePoints = assembly.MainModule.Types

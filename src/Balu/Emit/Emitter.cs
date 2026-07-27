@@ -738,7 +738,7 @@ sealed class Emitter : IDisposable
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
-    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
     {
         if (diagnostics.HasErrors()) return;
 
@@ -766,7 +766,7 @@ sealed class Emitter : IDisposable
             {
                 WriteSymbols = true,
                 SymbolStream = symbolStream,
-                SymbolWriterProvider = new PortablePdbWriterProvider()
+                SymbolWriterProvider = pdbPath is null ? new PortablePdbWriterProvider() : new PdbPathWriterProvider(pdbPath)
             };
             referencedMembers.Assembly.Write(outputStream, writerParameters);
         }
@@ -779,13 +779,13 @@ sealed class Emitter : IDisposable
         return Emit(program, moduleName, referenceSet, outputStream, symbolStream, initializedGlobalVariables);
     }
 
-    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
     {
         try
         {
             if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
             using var emitter = new Emitter(program, moduleName, references);
-            emitter.Emit(outputStream, symbolStream, initializedGlobalVariables);
+            emitter.Emit(outputStream, symbolStream, initializedGlobalVariables, pdbPath);
             return new(emitter.diagnostics.ToImmutableArray(), emitter.globalSymbolNames.ToImmutableDictionary());
         }
         catch (MissingReferencesException exception)

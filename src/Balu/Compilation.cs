@@ -148,7 +148,7 @@ public sealed class Compilation
                     result = EmitWithReferenceSet(moduleName, references, outputStream, null, initializedGlobalVariables);
                 else
                     using (var symbolStream = CreateTemporaryFile(symbolPath, out temporarySymbolPath))
-                        result = EmitWithReferenceSet(moduleName, references, outputStream, symbolStream, initializedGlobalVariables);
+                        result = Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, initializedGlobalVariables, symbolPath);
             }
 
             if (result.Diagnostics.HasErrors()) return result.Diagnostics;
