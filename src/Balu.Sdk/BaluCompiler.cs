@@ -1,5 +1,4 @@
 ﻿using System.IO;
-using System.Linq;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -7,10 +6,13 @@ namespace Balu.Sdk;
 
 public sealed class BaluCompiler : ToolTask
 {
-    protected override string ToolName => "bc";
+    protected override string ToolName => "dotnet";
 
     [Required]
-    public string BcPath { get; set; } = string.Empty;
+    public string DotNetPath { get; set; } = string.Empty;
+
+    [Required]
+    public string CompilerPath { get; set; } = string.Empty;
 
     [Required]
     public ITaskItem[] SourceFiles { get; set; } = [];
@@ -25,7 +27,24 @@ public sealed class BaluCompiler : ToolTask
 
     public bool Debug { get; set; }
 
-    protected override string GenerateFullPathToTool() => Path.GetFullPath(BcPath);
-    protected override string GenerateCommandLineCommands() =>
-        $"/o \"{OutputPath}\" {(string.IsNullOrWhiteSpace(SymbolPath) ? "" : $"/s \"{SymbolPath}\"")} {string.Join(" ", ReferencedAssemblies.Select(item => $"/r \"{item.GetMetadata("FullPath")}\""))} {string.Join(" ", SourceFiles.Select(item => $"\"{item.GetMetadata("FullPath")}\""))}";
+    protected override string GenerateFullPathToTool() => Path.GetFullPath(DotNetPath);
+
+    protected override string GenerateCommandLineCommands()
+    {
+        var builder = new CommandLineBuilder();
+        builder.AppendTextUnquoted("exec");
+        builder.AppendFileNameIfNotNull(Path.GetFullPath(CompilerPath));
+        builder.AppendSwitchIfNotNull("/o ", OutputPath);
+
+        if (!string.IsNullOrWhiteSpace(SymbolPath))
+            builder.AppendSwitchIfNotNull("/s ", SymbolPath);
+
+        foreach (var reference in ReferencedAssemblies)
+            builder.AppendSwitchIfNotNull("/r ", reference.GetMetadata("FullPath"));
+
+        foreach (var sourceFile in SourceFiles)
+            builder.AppendFileNameIfNotNull(sourceFile.GetMetadata("FullPath"));
+
+        return builder.ToString();
+    }
 }

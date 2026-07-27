@@ -17,6 +17,6 @@
 		<PropertyGroup>
 			<BaluSymbolPath Condition="'$(Configuration)' == 'Debug' AND '$(BaluSymbolPath)' == ''">@(IntermediateAssembly -> '%(RootDir)%(Directory)%(filename).pdb')</BaluSymbolPath>
 		</PropertyGroup>
-		<BaluCompiler BcPath="$(BaluCompilerPath)/bc.exe" SourceFiles="@(BaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" SymbolPath="$(BaluSymbolPath)"/>
+		<BaluCompiler DotNetPath="$(DOTNET_HOST_PATH)" CompilerPath="$(BaluCompilerPath)/bc.dll" SourceFiles="@(BaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" SymbolPath="$(BaluSymbolPath)"/>
 	</Target>
 </Project>
