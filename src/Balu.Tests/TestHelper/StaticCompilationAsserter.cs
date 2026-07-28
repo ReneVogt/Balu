@@ -27,6 +27,12 @@ static class StaticCompilationAsserter{
         var compilation = Compilation.Create([.. inputs.Select(x => SyntaxTree.Parse(SourceText.From(x.annotated.Text, x.hintName)))]);
         DiagnosticAsserter.AssertDiagnostics(inputs, compilation.Diagnostics, diagnostics);
     }
+    internal static void AssertScriptDiagnostics(this IEnumerable<(string hintName, string code)> files, string? diagnostics = null, bool ignoreWarnings = true)
+    {
+        var inputs = files.Select(x => (x.hintName, annotated: AnnotatedText.Parse(x.code))).OrderBy(x => x.hintName).ToArray();
+        var compilation = Compilation.CreateScript(null, [.. inputs.Select(x => SyntaxTree.Parse(SourceText.From(x.annotated.Text, x.hintName)))]);
+        DiagnosticAsserter.AssertDiagnostics(inputs, compilation.Diagnostics, diagnostics, ignoreWarnings);
+    }
     internal static void AssertLexerDiagnostics(this string code, string expected)
     {
         var annotatedText = AnnotatedText.Parse(code);

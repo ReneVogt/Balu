@@ -26,6 +26,17 @@ public sealed partial class BinderTests
     {
         code.AssertScriptEvaluation(expectedDiagnostics: "Unreachable code detected.", ignoreWarnings: false);
     }
+    [Fact]
+    public void Lowerer_ReportsUnreachableCodeInEachFile()
+    {
+        const string text1 = "while false [println(\"unreachable\")]";
+        const string text2 = "while false [println(\"unreachable\")]";
+        const string diagnostics = @"
+            Unreachable code detected.
+            Unreachable code detected.";
+
+        new[] { ("file1.b", text1), ("file2.b", text2) }.AssertScriptDiagnostics(diagnostics, ignoreWarnings: false);
+    }
     [Theory]
     [InlineData("while true { return 42 }", 42)]
     [InlineData("function test() { while true { return \r\n } }", null)]
