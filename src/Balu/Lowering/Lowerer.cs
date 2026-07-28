@@ -269,15 +269,16 @@ sealed class Lowerer : BoundTreeRewriter
                 builder.RemoveAt(i--);
         }
 
-        var list = unreachableStatements.Where(ShoudBeReported).ToList();
-        while (list.Count > 0)
-        {
-            var consecutive = list.Where(s => s.Syntax.FullSpan.OverlapsWithOrTouches(list[0].Syntax.FullSpan)).ToList();
-            foreach (var s in consecutive) list.Remove(s);
-            var start = consecutive.Min(s => s.Syntax.Span.Start);
-            var end = consecutive.Max(s => s.Syntax.Span.End);
-            diagnostics.ReportUnreachableCode(new(consecutive[0].Syntax.SyntaxTree.Text, new(start, end - start)));
-        }
+        var listPerFile = unreachableStatements.Where(ShoudBeReported).GroupBy(statement => statement.Syntax.SyntaxTree).Select(g => g.ToList()).ToList();
+        foreach(var list in listPerFile)
+            while (list.Count > 0)
+            {
+                var consecutive = list.Where(s => s.Syntax.FullSpan.OverlapsWithOrTouches(list[0].Syntax.FullSpan)).ToList();
+                foreach (var s in consecutive) list.Remove(s);
+                var start = consecutive.Min(s => s.Syntax.Span.Start);
+                var end = consecutive.Max(s => s.Syntax.Span.End);
+                diagnostics.ReportUnreachableCode(new(consecutive[0].Syntax.SyntaxTree.Text, new(start, end - start)));
+            }
 
         return new(statement.Syntax, builder.ToImmutable());
 
