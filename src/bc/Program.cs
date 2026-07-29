@@ -23,8 +23,8 @@ sealed class Program
 
     internal Program(TextWriter output, TextWriter error)
     {
-        this.output = output;
-        this.error = error;
+        this.output = TextWriter.Synchronized(output);
+        this.error = TextWriter.Synchronized(error);
     }
 
     public static int Main(string[] args) => new Program(Console.Out, Console.Error).Run(args);
@@ -90,7 +90,8 @@ sealed class Program
 
             outputPath = Path.GetFullPath(outputPath);
 
-            var syntaxTrees = sourcePaths.AsParallel().Select(Parse).ToArray();
+            // Keep command-line order for binding; parsing progress still reflects parallel execution.
+            var syntaxTrees = sourcePaths.AsParallel().AsOrdered().Select(Parse).ToArray();
             var compilation = Compilation.Create(syntaxTrees);
             LogInfo(
                 $"Emitting assembly '{outputPath}'{(string.IsNullOrWhiteSpace(symbolPath) ? string.Empty : $" and symbol file '{symbolPath}'")}.");
