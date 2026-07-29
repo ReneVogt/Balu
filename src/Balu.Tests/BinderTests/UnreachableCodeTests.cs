@@ -24,7 +24,7 @@ public sealed partial class BinderTests
         }")]
     public void Lowerer_ReportsUnreachableCode(string code)
     {
-        code.AssertScriptEvaluation(expectedDiagnostics: "Unreachable code detected.", ignoreWarnings: false);
+        code.AssertScriptEvaluation(expectedDiagnostics: "BL1031: Unreachable code detected.", ignoreWarnings: false);
     }
     [Fact]
     public void Lowerer_ReportsUnreachableCodeInEachFile()
@@ -32,8 +32,8 @@ public sealed partial class BinderTests
         const string text1 = "while false [println(\"unreachable\")]";
         const string text2 = "while false [println(\"unreachable\")]";
         const string diagnostics = @"
-            Unreachable code detected.
-            Unreachable code detected.";
+            BL1031: Unreachable code detected.
+            BL1031: Unreachable code detected.";
 
         new[] { ("file1.b", text1), ("file2.b", text2) }.AssertScriptDiagnostics(diagnostics, ignoreWarnings: false);
     }

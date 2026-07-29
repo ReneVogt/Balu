@@ -10,8 +10,8 @@ public partial class ExecutionTests
     {
         const string text = "{[)][]";
         var diagnostics = $@"
-            Unexpected ClosedParenthesisToken (')'), expected IdentifierToken.
-            Unexpected EndOfFileToken ('{'\0'}'), expected ClosedBraceToken.";
+            BL0001: Unexpected ClosedParenthesisToken (')'), expected IdentifierToken.
+            BL0001: Unexpected EndOfFileToken ('{'\0'}'), expected ClosedBraceToken.";
         text.AssertScriptEvaluation(diagnostics);
     }
 }

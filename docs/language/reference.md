@@ -539,7 +539,7 @@ known implementation limitation.
 `break` exits the innermost enclosing loop. `continue` begins the next
 iteration of the innermost enclosing loop. Both are invalid outside a loop.
 
-Known compiler issue: the binder currently records `BL1020` and then attempts
+Known compiler issue: the binder currently records `BL1021` and then attempts
 to access a missing loop context, which can terminate compilation instead of
 returning the diagnostic normally.
 

@@ -142,7 +142,7 @@ public sealed class InterpreterTests
     public void Interpreter_UsesOnlyErrorFreeCompilations()
     {
         using var asserter = new CompilationAsserter();
-        asserter.AssertScriptEvaluation("function a() { var x = [y] }", expectedDiagnostics: "Undefined name 'y'.");
+        asserter.AssertScriptEvaluation("function a() { var x = [y] }", expectedDiagnostics: "BL1005: Undefined name 'y'.");
         asserter.AssertScriptEvaluation("function c() : int { return 42 }");
         asserter.AssertScriptEvaluation("c()", value: 42);
     }

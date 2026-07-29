@@ -15,7 +15,7 @@ public partial class ExecutionTests
     {
         const string text = "{var a=0 while [(12 + 3)] a = a + 1 }";
         const string diagnostics = @"
-            Cannot convert 'int' to 'bool'.
+            BL1006: Cannot convert 'int' to 'bool'.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }

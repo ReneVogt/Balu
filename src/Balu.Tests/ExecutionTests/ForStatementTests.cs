@@ -13,8 +13,8 @@ public partial class ExecutionTests
     {
         const string text = "for i= [1>2] to [2>1] {}";
         const string diagnostics = @"
-            Cannot convert 'bool' to 'int'.
-            Cannot convert 'bool' to 'int'.
+            BL1006: Cannot convert 'bool' to 'int'.
+            BL1006: Cannot convert 'bool' to 'int'.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }

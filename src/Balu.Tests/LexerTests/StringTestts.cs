@@ -37,12 +37,12 @@ public partial class LexerTests
     [Fact]
     public void Lexer_String_Reports_InvalidEscapeSequence()
     {
-        "\"test\\[u]yeah\"".AssertLexerDiagnostics("Invalid escape sequence 'u'.");
+        "\"test\\[u]yeah\"".AssertLexerDiagnostics("BL0003: Invalid escape sequence 'u'.");
     }
     [Fact]
     public void Lexer_String_Reports_UnterminatedString()
     {
-        "var x = [\"test]".AssertLexerDiagnostics("String literal not terminated.");
+        "var x = [\"test]".AssertLexerDiagnostics("BL0004: String literal not terminated.");
     }
     [Fact]
     public void Lexer_String_Reports_UnterminatedStringForMultiline()
@@ -52,7 +52,7 @@ public partial class LexerTests
                 var x = [""test       ]
                 var z = 12
             }";
-        input.AssertLexerDiagnostics("String literal not terminated.");
+        input.AssertLexerDiagnostics("BL0004: String literal not terminated.");
     }
     [Fact]
     public void Lexer_String_AllowsEmbeddedNullCharacter()

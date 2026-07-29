@@ -10,8 +10,24 @@ public partial class ExecutionTests
     {
         const string text = "{ [unknown]() }";
         const string diagnostics = @"
-            Undefined function 'unknown'.
+            BL1018: Undefined function 'unknown'.
 ";
+        text.AssertScriptEvaluation(diagnostics);
+    }
+    [Fact]
+    public void Script_Call_ReportsWrongNumberOfArguments()
+    {
+        const string text = "function test(value: int) {} test([)]";
+        const string diagnostics = "BL1011: Function 'test' takes 1 parameters, but is invoked with 0 arguments.";
+
+        text.AssertScriptEvaluation(diagnostics);
+    }
+    [Fact]
+    public void Script_Call_ReportsWrongArgumentType()
+    {
+        const string text = "function test(value: int) {} test([true])";
+        const string diagnostics = "BL1012: Parameter 'value' of function 'test' requires a value of type 'int', but was given a value of type 'bool'.";
+
         text.AssertScriptEvaluation(diagnostics);
     }
     [Fact]
@@ -19,8 +35,8 @@ public partial class ExecutionTests
     {
         const string text = "{print([[}]]";
         const string diagnostics = @"
-            Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
-            Unexpected ClosedBraceToken ('}'), expected ClosedParenthesisToken.
+            BL0001: Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
+            BL0001: Unexpected ClosedBraceToken ('}'), expected ClosedParenthesisToken.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }

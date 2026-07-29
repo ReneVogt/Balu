@@ -250,7 +250,7 @@ sealed class Binder : SyntaxTreeVisitor
             Visit(node.Arguments[i]);
             if (IsError) return;
             var argument = (BoundExpression)boundNode!;
-            boundNode = BindConversion(node.Arguments[i], argument, function.Parameters[i].Type);
+            boundNode = BindConversion(node.Arguments[i], argument, function.Parameters[i].Type, reportDiagnostic: false);
             if (IsError)
             {
                 diagnostics.ReportWrongArgumentType(node.Arguments[i].Location, function.Name, function.Parameters[i].Name, function.Parameters[i].Type, argument.Type);
@@ -472,13 +472,14 @@ sealed class Binder : SyntaxTreeVisitor
         if (boundNode is BoundExpressionStatement { Expression.Kind : BoundNodeKind.ErrorExpression }) return;
         boundNode = Expression(node, Error(node));
     }
-    BoundExpression BindConversion(SyntaxNode node, BoundExpression expression, TypeSymbol targetType, bool allowExplicit = false)
+    BoundExpression BindConversion(SyntaxNode node, BoundExpression expression, TypeSymbol targetType, bool allowExplicit = false, bool reportDiagnostic = true)
     {
         if (expression.Type == TypeSymbol.Error) return expression;
         var conversion = Conversion.Classify(expression.Type, targetType);
         if (!conversion.Exists)
         {
-            diagnostics.ReportCannotConvert(node.Location, expression.Type, targetType);
+            if (reportDiagnostic)
+                diagnostics.ReportCannotConvert(node.Location, expression.Type, targetType);
             return Error(node);
         }
 
@@ -488,7 +489,8 @@ sealed class Binder : SyntaxTreeVisitor
         if (conversion.IsImplicit || allowExplicit)
             return Conversion(node, targetType, expression);
 
-        diagnostics.ReportCannotConvertImplicit(node.Location, expression.Type, targetType);
+        if (reportDiagnostic)
+            diagnostics.ReportCannotConvertImplicit(node.Location, expression.Type, targetType);
         return Error(node);
     }
     void BindFunctionDeclarations(IEnumerable<FunctionDeclarationSyntax> declarations)
