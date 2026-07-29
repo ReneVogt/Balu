@@ -20,7 +20,7 @@ public partial class ExecutionTests
     {
         const string text = "if [(12 + 3)] {} else {}";
         const string diagnostics = @"
-            Cannot convert 'int' to 'bool'.
+            BL1006: Cannot convert 'int' to 'bool'.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }
@@ -34,7 +34,7 @@ public partial class ExecutionTests
                     }
     ";
         const string diagnostics = @"
-                Unexpected ElseKeyword ('else'), expected IdentifierToken.
+                BL0001: Unexpected ElseKeyword ('else'), expected IdentifierToken.
     ";
         text.AssertScriptEvaluation(diagnostics);
     }

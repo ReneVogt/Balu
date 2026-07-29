@@ -6,17 +6,17 @@ namespace Balu.Tests.CompilationTests.ExecutionTests;
 public partial class ExecutionTests
 {
     [Fact]
-    public void Script_AssignmentExpression_ReportsUndefinedName() => " [abc] = 12".AssertScriptEvaluation("Undefined variable 'abc'.");
+    public void Script_AssignmentExpression_ReportsUndefinedName() => " [abc] = 12".AssertScriptEvaluation("BL1017: Undefined variable 'abc'.");
     [Fact]
     public void Script_AssignmentExpression_ReportsReadOnly() =>
-        "{ let abc = 12 [abc] = 10 }".AssertScriptEvaluation("Variable 'abc' is readonly and cannot be assigned to.");
+        "{ let abc = 12 [abc] = 10 }".AssertScriptEvaluation("BL1010: Variable 'abc' is readonly and cannot be assigned to.");
     [Theory]
-    [InlineData("{ var abc = 12 abc [=] false }", "Cannot convert 'bool' to 'int'.")]
-    [InlineData("{ var abc = true abc [=] 17 }", "Cannot convert 'int' to 'bool'.")]
-    [InlineData("var a = 12  a [+=] true", "Binary operator '+=' cannot be applied to types 'int' and 'bool'.")]
-    [InlineData("var a = 12  a [+=] \"\"", "Binary operator '+=' cannot be applied to types 'int' and 'string'.")]
-    [InlineData("var a = \"\"  a [+=] true", "Binary operator '+=' cannot be applied to types 'string' and 'bool'.")]
-    [InlineData("var a = 12  a [^=] true", "Binary operator '^=' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("{ var abc = 12 abc [=] false }", "BL1006: Cannot convert 'bool' to 'int'.")]
+    [InlineData("{ var abc = true abc [=] 17 }", "BL1006: Cannot convert 'int' to 'bool'.")]
+    [InlineData("var a = 12  a [+=] true", "BL1002: Binary operator '+=' cannot be applied to types 'int' and 'bool'.")]
+    [InlineData("var a = 12  a [+=] \"\"", "BL1002: Binary operator '+=' cannot be applied to types 'int' and 'string'.")]
+    [InlineData("var a = \"\"  a [+=] true", "BL1002: Binary operator '+=' cannot be applied to types 'string' and 'bool'.")]
+    [InlineData("var a = 12  a [^=] true", "BL1002: Binary operator '^=' cannot be applied to types 'int' and 'bool'.")]
     public void Script_AssignmentExpression_ReportsTypeMismatch(string code, string? diagnostics) => code.AssertScriptEvaluation(diagnostics);
 
     [Theory]

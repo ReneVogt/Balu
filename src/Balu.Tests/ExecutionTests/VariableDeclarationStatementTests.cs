@@ -19,7 +19,7 @@ public partial class ExecutionTests
                 }
 ";
         const string diagnostics = @"
-            Symbol 'x' is already declared.
+            BL1008: Symbol 'x' is already declared.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }
@@ -28,7 +28,7 @@ public partial class ExecutionTests
     {
         const string text = "var x : [unknown] = 10";
         const string diagnostics = @"
-            Undefined type 'unknown'.
+            BL1016: Undefined type 'unknown'.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }
@@ -37,7 +37,7 @@ public partial class ExecutionTests
     {
         const string text = "var x : int [=] true";
         const string diagnostics = @"
-            Cannot convert 'bool' to 'int'.
+            BL1006: Cannot convert 'bool' to 'int'.
 ";
         text.AssertScriptEvaluation(diagnostics);
     }

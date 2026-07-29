@@ -73,9 +73,9 @@ sealed class DiagnosticBag : List<Diagnostic>
                 location,
                 $"Function '{syntax.Identifier.Text}' takes {function.Parameters.Length} parameters, but is invoked with {syntax.Arguments.Count} arguments."));
     }
-    public void ReportWrongArgumentType(TextLocation location, string functionName, string parameterName, TypeSymbol expectedType, TypeSymbol actualType) => Add(
-        new(DiagnosticId.WrongNumberOfArguments, location,
-            $"Parameter '{parameterName}' of function '{functionName}' requires a value of type '{expectedType}', but was given a value of type '{actualType}'."));
+    public void ReportWrongArgumentType(TextLocation location, string functionName, string parameterName, TypeSymbol expectedType, TypeSymbol actualType) =>
+        Add(new(DiagnosticId.WrongArgumentType, location,
+                $"Parameter '{parameterName}' of function '{functionName}' requires a value of type '{expectedType}', but was given a value of type '{actualType}'."));
     public void ReportExpressionMustHaveValue(TextLocation location) => Add(new(DiagnosticId.ExpressionMustHaveValue, location, "Expression must return a value."));
     public void ReportSymbolNoVariable(SyntaxToken identifier, SymbolKind actual) => Add(new(DiagnosticId.SymbolNoVariable, identifier.Location, $"Unexpected symbol kind '{actual}', expected '{identifier.Text}' to be a variable or argument."));
     public void ReportSymbolNoFunction(SyntaxToken identifier, SymbolKind actual) => Add(new(DiagnosticId.SymbolNoFunction, identifier.Location, $"Unexpected symbol kind '{actual}', expected '{identifier.Text}' to be a function."));

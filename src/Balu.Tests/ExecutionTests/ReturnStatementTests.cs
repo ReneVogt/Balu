@@ -14,8 +14,8 @@ public partial class ExecutionTests
     public void Script_Return_ReportsUnexpectedExpression()
     {
         "function test() { return [[25]] }".AssertScriptEvaluation(@"
-            Cannot convert 'int' to 'void'.
-            'test' does not have a return type and cannot return a value of type 'int'.");
+            BL1006: Cannot convert 'int' to 'void'.
+            BL1024: 'test' does not have a return type and cannot return a value of type 'int'.");
     }
     [Fact]
     public void Script_Return_ReportsMissingExpression()
@@ -24,7 +24,7 @@ public partial class ExecutionTests
             function test() : int 
             { 
                 [return] 
-            }".AssertScriptEvaluation("'test' needs to return a value of type 'int'.");
+            }".AssertScriptEvaluation("BL1023: 'test' needs to return a value of type 'int'.");
     }
     [Fact]
     public void Script_Return_ReportsUnexpectedTokenIfEspressionIsMissing()
@@ -33,28 +33,28 @@ public partial class ExecutionTests
             function test() : int 
             { 
                 return [[}]]".AssertScriptEvaluation(@"
-                    Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
-                    'test' needs to return a value of type 'int', not '?'.
+                    BL0001: Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
+                    BL1024: 'test' needs to return a value of type 'int', not '?'.
 ");
     }
     [Fact]
     public void Script_Return_ReportsWrongExpressionType()
     {
         "function test() : int { return [[true]] }".AssertScriptEvaluation(@"
-                Cannot convert 'bool' to 'int'.
-                'test' needs to return a value of type 'int', not 'bool'.");
+                BL1006: Cannot convert 'bool' to 'int'.
+                BL1024: 'test' needs to return a value of type 'int', not 'bool'.");
     }
     [Fact]
     public void Script_Return_ReportsNotAllPathsReturn()
     {
         "function test() : int { if false [return 0] [}]".AssertScriptEvaluation(@"
-            Unreachable code detected.
-            Not all code paths of function 'test' return a value of type 'int'.", ignoreWarnings: false);
+            BL1031: Unreachable code detected.
+            BL1025: Not all code paths of function 'test' return a value of type 'int'.", ignoreWarnings: false);
     }
     [Fact]
     public void Script_Return_ReportsNotAllPathsReturnForEmptyFunction()
     {
-        "function test() : int { [}]".AssertScriptEvaluation("Not all code paths of function 'test' return a value of type 'int'.");
+        "function test() : int { [}]".AssertScriptEvaluation("BL1025: Not all code paths of function 'test' return a value of type 'int'.");
     }
     [Fact]
     public void Script_Return_DetectsDeadPaths()

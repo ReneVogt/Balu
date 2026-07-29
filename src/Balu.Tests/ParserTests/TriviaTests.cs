@@ -20,7 +20,7 @@ public partial class ParserTests
             call() 
             /* and a multiline before eof */
 ";
-        using var e = new SyntaxTreeAsserter(text, expectedDiagnostics: "Unexpected token '?'.", includeTrivia: true);
+        using var e = new SyntaxTreeAsserter(text, expectedDiagnostics: "BL0001: Unexpected token '?'.", includeTrivia: true);
         e.AssertNode(SyntaxKind.CompilationUnit);
 
         e.AssertNode(SyntaxKind.GlobalStatement);

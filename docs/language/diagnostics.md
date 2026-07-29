@@ -28,7 +28,7 @@ The current warnings are:
 | ID | Meaning |
 | --- | --- |
 | `BL1009` | A declaration hides a symbol from an outer scope |
-| `BL1030` | Code is unreachable |
+| `BL1031` | Code is unreachable |
 
 Warnings do not prevent emission or execution. `bc` exits successfully when a
 compilation contains warnings but no errors. There is currently no
@@ -85,31 +85,29 @@ more than one diagnostic.
 | `BL1008` | Error | A symbol is already declared in the same scope |
 | `BL1009` | Warning | A declaration hides a symbol in an outer scope |
 | `BL1010` | Error | An assignment targets a read-only `let` variable |
-| `BL1011` | Error | A function has the wrong number of arguments, or an argument has the wrong type |
-| `BL1012` | Error | An expression that must produce a value has no value |
-| `BL1013` | Error | A symbol used as a variable has another symbol kind |
-| `BL1014` | Error | A symbol called as a function has another symbol kind |
-| `BL1015` | Error | A type name is not defined |
-| `BL1016` | Error | A required variable is not defined |
-| `BL1017` | Error | A required function is not defined |
-| `BL1018` | Error | A parameter name is duplicated in a function declaration |
-| `BL1019` | Error | A function with the same name is already declared |
-| `BL1020` | Error | `break` or `continue` is used outside a loop |
-| `BL1021` | Error | A value-bearing `return` is used in global statements of a normal program |
-| `BL1022` | Error | A value-returning function uses `return` without a value |
-| `BL1023` | Error | A returned value has the wrong type, or a value is returned from a no-value function |
-| `BL1024` | Error | Not all reachable paths of a value-returning function return a value |
-| `BL1025` | Error | An unsupported expression is used as a statement |
-| `BL1026` | Error | Global statements are mixed with an explicit `main` function |
-| `BL1027` | Error | `main` has parameters or a return type |
-| `BL1028` | Error | Without an explicit `main`, global statements occur in more than one source file |
-| `BL1029` | Error | A normal program has neither `main` nor global statements |
-| `BL1030` | Warning | Control-flow analysis found unreachable code |
+| `BL1011` | Error | A function has the wrong number of arguments |
+| `BL1012` | Error | A function argument has the wrong type |
+| `BL1013` | Error | An expression that must produce a value has no value |
+| `BL1014` | Error | A symbol used as a variable has another symbol kind |
+| `BL1015` | Error | A symbol called as a function has another symbol kind |
+| `BL1016` | Error | A type name is not defined |
+| `BL1017` | Error | A required variable is not defined |
+| `BL1018` | Error | A required function is not defined |
+| `BL1019` | Error | A parameter name is duplicated in a function declaration |
+| `BL1020` | Error | A function with the same name is already declared |
+| `BL1021` | Error | `break` or `continue` is used outside a loop |
+| `BL1022` | Error | A value-bearing `return` is used in global statements of a normal program |
+| `BL1023` | Error | A value-returning function uses `return` without a value |
+| `BL1024` | Error | A returned value has the wrong type, or a value is returned from a no-value function |
+| `BL1025` | Error | Not all reachable paths of a value-returning function return a value |
+| `BL1026` | Error | An unsupported expression is used as a statement |
+| `BL1027` | Error | Global statements are mixed with an explicit `main` function |
+| `BL1028` | Error | `main` has parameters or a return type |
+| `BL1029` | Error | Without an explicit `main`, global statements occur in more than one source file |
+| `BL1030` | Error | A normal program has neither `main` nor global statements |
+| `BL1031` | Warning | Control-flow analysis found unreachable code |
 
-`BL1011` currently covers both argument-count and argument-type mismatches. A
-future compiler version may assign a separate ID to argument-type errors.
-
-The binder intends to report `BL1020` for `break` or `continue` outside a loop.
+The binder intends to report `BL1021` for `break` or `continue` outside a loop.
 It currently records the diagnostic and then can terminate unexpectedly while
 accessing the missing loop context. This is a known compiler issue.
 

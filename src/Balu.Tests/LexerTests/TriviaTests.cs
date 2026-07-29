@@ -86,7 +86,7 @@ public partial class LexerTests
     {
         const string code = @"[/*] hera starts some comment
 but it's not terminated";
-        code.AssertLexerDiagnostics("Unterminated multiline comment.");
+        code.AssertLexerDiagnostics("BL0005: Unterminated multiline comment.");
     }
     [Theory]
     [InlineData("\n")]
