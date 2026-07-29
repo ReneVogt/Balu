@@ -54,14 +54,14 @@ public sealed class Interpreter : IDisposable
             {
                 Out.WriteColoredText("Syntax:", ConsoleColor.Yellow);
                 Out.WriteLine();
-                compilation.WriteSyntaxTrees(Console.Out);
+                compilation.WriteSyntaxTrees(Out);
             }
 
             if (WriteProgram)
             {
                 Out.WriteColoredText("Program:", ConsoleColor.Yellow);
                 Out.WriteLine();
-                compilation.WriteBoundGlobalTree(Console.Out);
+                compilation.WriteBoundGlobalTree(Out);
             }
         }
 
