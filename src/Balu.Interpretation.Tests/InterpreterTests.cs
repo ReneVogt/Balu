@@ -5,12 +5,12 @@ using System.Security.Cryptography;
 using System.Text;
 using Balu.Diagnostics;
 using Balu.Interpretation;
-using Balu.Tests.TestHelper;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
+using TestHelpers;
 using Xunit;
 
-namespace Balu.Tests.InterpreterTests;
+namespace Balu.Interpretation.Tests;
 
 public sealed class InterpreterTests
 {

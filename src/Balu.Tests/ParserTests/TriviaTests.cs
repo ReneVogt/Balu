@@ -1,5 +1,5 @@
 using Balu.Syntax;
-using Balu.Tests.TestHelper;
+using TestHelpers;
 using Xunit;
 
 namespace Balu.Tests.CompilationTests.ParserTests;

@@ -4,7 +4,7 @@ using System.Linq;
 using Balu.Diagnostics;
 using Balu.Emit;
 using Balu.Syntax;
-using Balu.Tests.TestHelper;
+using TestHelpers;
 using Xunit;
 
 namespace Balu.Tests.EmitterTests;

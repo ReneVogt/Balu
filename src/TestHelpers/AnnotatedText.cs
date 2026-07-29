@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using Balu.Text;
 
-namespace Balu.Tests.TestHelper;
+namespace TestHelpers;
 
 sealed class AnnotatedText
 {

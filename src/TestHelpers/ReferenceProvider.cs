@@ -1,9 +1,9 @@
 ﻿using System;
 using System.IO;
 
-namespace Balu.Tests.TestHelper;
+namespace TestHelpers;
 
-static class ReferenceProvider
+public static class ReferenceProvider
 {
     static readonly string referenceDirectory = Path.Combine(AppContext.BaseDirectory, "reference-assemblies");
 
