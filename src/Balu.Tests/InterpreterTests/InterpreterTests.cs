@@ -15,6 +15,40 @@ namespace Balu.Tests.InterpreterTests;
 public sealed class InterpreterTests
 {
     [Fact]
+    public void Interpreter_WriteSyntax_WritesToOut()
+    {
+        using var output = new StringWriter();
+        using var interpreter = new Interpreter(ReferenceProvider.References)
+        {
+            Out = output,
+            WriteSyntax = true
+        };
+
+        var diagnostics = interpreter.Execute("1");
+
+        Assert.False(diagnostics.HasErrors());
+        Assert.Contains("Syntax:", output.ToString());
+        Assert.Contains("CompilationUnit", output.ToString());
+    }
+
+    [Fact]
+    public void Interpreter_WriteProgram_WritesToOut()
+    {
+        using var output = new StringWriter();
+        using var interpreter = new Interpreter(ReferenceProvider.References)
+        {
+            Out = output,
+            WriteProgram = true
+        };
+
+        var diagnostics = interpreter.Execute("1");
+
+        Assert.False(diagnostics.HasErrors());
+        Assert.Contains("Program:", output.ToString());
+        Assert.Contains("function <eval>()", output.ToString());
+    }
+
+    [Fact]
     public void Interpreter_CopiesReferences()
     {
         var references = ReferenceProvider.References.ToArray();
