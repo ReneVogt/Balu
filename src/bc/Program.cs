@@ -12,8 +12,24 @@ using Mono.Options;
 
 sealed class Program
 {
-    static bool quiet;
-    public static int Main(string[] args)
+    const int Success = 0;
+    const int CompilationError = 1;
+    const int InvocationError = 2;
+    const int ToolError = 3;
+
+    readonly TextWriter output;
+    readonly TextWriter error;
+    bool quiet;
+
+    internal Program(TextWriter output, TextWriter error)
+    {
+        this.output = output;
+        this.error = error;
+    }
+
+    public static int Main(string[] args) => new Program(Console.Out, Console.Error).Run(args);
+
+    internal int Run(string[] args)
     {
         List<string> references = [];
         string outputPath = string.Empty;
@@ -24,22 +40,36 @@ sealed class Program
 
         var options = new OptionSet
         {
-            "Usage: bc <soure-paths> [options]",
+            "Usage: bc <source-paths> [options]",
             { "r=", "The {path} of an assembly to reference.", v => references.Add(v) },
             { "o=", "The output {path} of the assembly to create.", v => outputPath = v },
             { "s=", "The optional symbol {path} of the pdb to create.", v => symbolPath = v },
             { "m=", "The module {name} of the assembly to create.", v => moduleName = v },
             { "q", _ => quiet = true },
-            { "<>", v => sourcePaths.Add(v) },
             { "?|h|help", "Shows help.", _ => helpRequested = true }
         };
 
-        options.Parse(args);
+        quiet = args.TakeWhile(argument => argument != "--").Any(IsQuietOption);
+        try
+        {
+            sourcePaths.AddRange(options.Parse(args));
+            var unknownOption = sourcePaths.FirstOrDefault(path => path.StartsWith('-'));
+            if (unknownOption is not null)
+            {
+                LogError($"Unknown option '{unknownOption}'.");
+                return InvocationError;
+            }
+        }
+        catch (OptionException parseError)
+        {
+            LogError(parseError.Message);
+            return InvocationError;
+        }
 
         if (helpRequested)
         {
-            options.WriteOptionDescriptions(Console.Out);
-            return 0;
+            options.WriteOptionDescriptions(output);
+            return Success;
         }
 
         LogInfo($"Balu compiler v{Assembly.GetExecutingAssembly().GetName().Version}");
@@ -49,7 +79,7 @@ sealed class Program
             if (sourcePaths.Count == 0)
             {
                 LogError("need at least one source file.");
-                return 1;
+                return InvocationError;
             }
 
             if (string.IsNullOrWhiteSpace(outputPath))
@@ -67,37 +97,39 @@ sealed class Program
             var diagnostics = compilation.Emit(moduleName, [.. references], outputPath, symbolPath);
             LogDiagnostics(diagnostics);
             LogInfo("Done.");
-            return diagnostics.HasErrors() ? 1 : 0;
+            return diagnostics.HasErrors() ? CompilationError : Success;
         }
         catch (Exception error)
         {
             LogError(error.Message);
-            return 1;
+            return ToolError;
         }
     }
 
-    static SyntaxTree Parse(string path)
+    static bool IsQuietOption(string argument) => argument is "-q" or "/q" or "--q";
+
+    SyntaxTree Parse(string path)
     {
         LogInfo($"Compiling '{path}'...");
         return SyntaxTree.Load(Path.GetFullPath(path));
     }
 
-    static void LogInfo(string message)
+    void LogInfo(string message)
     {
         if (!quiet)
-            Console.WriteLine(message);
+            output.WriteLine(message);
     }
 
-    static void LogError(string message)
+    void LogError(string message)
     {
         if (quiet) return;
-        Console.Error.WriteColoredText("error: ", ConsoleColor.Red);
-        Console.Error.WriteColoredText(message, ConsoleColor.Red);
-        Console.Error.WriteLine();
+        error.WriteColoredText("bc: error: ", ConsoleColor.Red);
+        error.WriteColoredText(message, ConsoleColor.Red);
+        error.WriteLine();
     }
-    static void LogDiagnostics(IEnumerable<Diagnostic> diagnostics)
+    void LogDiagnostics(IEnumerable<Diagnostic> diagnostics)
     {
-        if (!quiet) 
-            Console.Error.WriteDiagnostics(diagnostics);
+        if (!quiet)
+            error.WriteDiagnostics(diagnostics);
     }
 }

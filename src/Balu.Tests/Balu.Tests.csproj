@@ -24,6 +24,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Balu.Interpretation\Balu.Interpretation.csproj" />
 		<ProjectReference Include="..\Balu\Balu.csproj" />
+		<ProjectReference Include="..\bc\bc.csproj" />
 	</ItemGroup>
 
 	<Target Name="CopyReferenceAssembliesForEmitterTests" AfterTargets="CopyFilesToOutputDirectory">
