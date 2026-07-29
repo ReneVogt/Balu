@@ -121,7 +121,6 @@ sealed class BaluRepl : Repl, IDisposable
 
         var line = syntaxTree.Text.Lines[lineIndex];
         var classifiedSpans = Classifier.Classify(syntaxTree, line.Span);
-        int width = 0;
         foreach (var classifiedSpan in classifiedSpans)
         {
             var color = classifiedSpan.Classification switch
@@ -136,9 +135,7 @@ sealed class BaluRepl : Repl, IDisposable
             };
 
             Console.Out.WriteColoredText(syntaxTree.Text.ToString(classifiedSpan.Span), color);
-            width += classifiedSpan.Span.Length;
         }
-        Console.Out.Write(new string(' ', Console.WindowWidth-2-width));
         return syntaxTree;
     }
 
