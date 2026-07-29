@@ -5,17 +5,17 @@ using Balu.Diagnostics;
 using Balu.Interpretation;
 using Balu.Symbols;
 using Xunit;
-namespace Balu.Tests.TestHelper;
+namespace TestHelpers;
 
-class CompilationAsserter : IDisposable
+public sealed class CompilationAsserter : IDisposable
 {
     public Interpreter Interpreter { get; } = new(ReferenceProvider.References);
 
     public void Dispose() => Interpreter.Dispose();
 
-    internal void AssertScriptEvaluation(string code, string? expectedDiagnostics = null,
-                                         IDictionary<GlobalVariableSymbol, object>? expectedGlobalVariables = null, object? value = null,
-                                         bool ignoreWarnings = true)
+    public void AssertScriptEvaluation(string code, string? expectedDiagnostics = null,
+                                       IDictionary<GlobalVariableSymbol, object>? expectedGlobalVariables = null, object? value = null,
+                                       bool ignoreWarnings = true)
     {
         var annotatedText = AnnotatedText.Parse(code);
         var actualDiagnostics = Interpreter.Execute(annotatedText.Text, ignoreWarnings);

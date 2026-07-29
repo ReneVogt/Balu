@@ -1,5 +1,5 @@
 ﻿using Balu.Symbols;
-using Balu.Tests.TestHelper;
+using TestHelpers;
 using Xunit;
 
 namespace Balu.Tests.EmitterTests;

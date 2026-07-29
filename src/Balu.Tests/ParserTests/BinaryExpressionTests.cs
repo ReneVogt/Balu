@@ -1,7 +1,7 @@
 using Balu.Syntax;
 using System.Collections.Generic;
 using System.Linq;
-using Balu.Tests.TestHelper;
+using TestHelpers;
 using Xunit;
 
 namespace Balu.Tests.CompilationTests.ParserTests;

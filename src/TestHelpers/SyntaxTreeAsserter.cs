@@ -6,9 +6,9 @@ using Balu.Text;
 using Xunit;
 using Balu.Diagnostics;
 
-namespace Balu.Tests.TestHelper;
+namespace TestHelpers;
 
-sealed class SyntaxTreeAsserter : IDisposable
+public sealed class SyntaxTreeAsserter : IDisposable
 {
     readonly IEnumerator<object> enumerator;
     readonly bool includeTrivia, includeDiagnostics;

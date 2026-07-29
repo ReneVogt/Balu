@@ -1,7 +1,7 @@
 using System.IO;
 using Xunit;
 
-namespace Balu.Tests.CompilerTests;
+namespace Balu.Compiler.Tests;
 
 public sealed class CommandLineTests
 {

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Balu.Diagnostics;
 using Balu.Syntax;
-using Balu.Tests.TestHelper;
+using TestHelpers;
 using Balu.Text;
 using Mono.Cecil;
 using Mono.Cecil.Cil;

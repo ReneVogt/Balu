@@ -1,5 +1,5 @@
 using Balu.Syntax;
-using Balu.Tests.TestHelper;
+using TestHelpers;
 using Balu.Diagnostics;
 using Balu.Text;
 using Balu.Visualization;

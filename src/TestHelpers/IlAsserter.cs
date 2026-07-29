@@ -1,6 +1,7 @@
 ﻿using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using Balu;
 using Balu.Syntax;
 using System.IO;
 using System.Linq;
@@ -11,9 +12,9 @@ using Mono.Cecil.Cil;
 using Xunit;
 using Xunit.Abstractions;
 
-namespace Balu.Tests.TestHelper;
+namespace TestHelpers;
 
-static class IlAsserter
+public static class IlAsserter
 {
     public static void AssertIl(this string code, string methodToAssert, string expectedIL, bool script = false, bool debug = false, ITestOutputHelper? output = null)
     {

@@ -20,7 +20,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<InternalsVisibleTo Include="Balu.Tests" />
+		<InternalsVisibleTo Include="bc.Tests" />
 	</ItemGroup>
 
 	<Target Name="GetBaluCompilerPackageFiles"

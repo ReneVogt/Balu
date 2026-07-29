@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using Balu.Tests.TestHelper;
+using TestHelpers;
 using Xunit;
 
 namespace Balu.Tests.BinderTests;
