@@ -55,8 +55,7 @@ abstract class Repl
         }
 
         readonly LineRenderHandler lineRenderer;
-        readonly int cursorTop;
-        int renderedLinesCount, cursorX, cursorY, updatesInProgress;
+        int cursorTop, renderedLinesCount, cursorX, cursorY, updatesInProgress;
 
         public Document SubmissionDocument { get; }
         public int CursorX
@@ -98,21 +97,37 @@ abstract class Repl
         {
             if (updatesInProgress > 0) return;
             Console.CursorVisible = false;
-            Console.SetCursorPosition(0, cursorTop);
             object? state = null;
             for (int i = 0; i < SubmissionDocument.Count; i++)
             {
+                EnsureLineFitsInConsoleBuffer(i);
+                Console.SetCursorPosition(0, cursorTop + i);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.Write(i == 0 ? "» " : "· ");
                 Console.ResetColor();
                 state = lineRenderer(SubmissionDocument, i, state);
+                Console.Write(new string(' ', Console.WindowWidth - SubmissionDocument[i].Length - 2));
             }
 
             int blankLines = renderedLinesCount - SubmissionDocument.Count;
-            while (blankLines-- > 0) Console.WriteLine(new string(' ', Console.WindowWidth));
+            for (int i = 0; i < blankLines; i++)
+            {
+                int lineIndex = SubmissionDocument.Count + i;
+                EnsureLineFitsInConsoleBuffer(lineIndex);
+                Console.SetCursorPosition(0, cursorTop + lineIndex);
+                Console.Write(new string(' ', Console.WindowWidth));
+            }
             renderedLinesCount = SubmissionDocument.Count;
             Console.CursorVisible = true;
             UpdateCursorPosition();
+        }
+        void EnsureLineFitsInConsoleBuffer(int lineIndex)
+        {
+            if (cursorTop + lineIndex < Console.BufferHeight) return;
+
+            Console.SetCursorPosition(0, Console.BufferHeight - 1);
+            Console.WriteLine();
+            if (cursorTop > 0) cursorTop--;
         }
 
         void UpdateCursorPosition()
@@ -256,7 +271,7 @@ abstract class Repl
 
     protected virtual object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
     {
-        Console.WriteLine(lines[lineIndex]);
+        Console.Write(lines[lineIndex]);
         return state;
     }
 
