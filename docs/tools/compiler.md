@@ -143,15 +143,10 @@ Quiet mode suppresses all output produced by `bc`, including:
 - the compiler banner
 - compilation and emission progress
 - warnings and errors
-- caught exception messages
+- invocation and tool error messages
 
 The process exit code is the only success or failure indication in quiet mode.
 Use it only when the caller reliably checks the exit code.
-
-Malformed options are parsed before `bc` enters its normal error-handling path.
-For example, an option that is missing its required value can produce an
-unhandled Mono.Options error, output despite `-q`, and a platform-dependent
-failure exit code.
 
 ## Compile one source file
 
@@ -272,6 +267,13 @@ C:\work\program.b(3,5): error BL1005: Undefined name 'value'.
 
 See [Diagnostics](../language/diagnostics.md) for diagnostic IDs and severities.
 
+Invalid invocations and tool failures are not compiler diagnostics and have no
+`BLxxxx` ID or source location. They are written to standard error in this form:
+
+```text
+bc: error: Missing required value for option '-o'.
+```
+
 `Done.` currently indicates that the compiler completed its normal pipeline;
 it can still be printed when diagnostics contain errors. Always use the exit
 code to determine success.
@@ -281,12 +283,11 @@ code to determine success.
 | Exit code | Meaning |
 | ---: | --- |
 | `0` | Help was displayed, or compilation completed without errors |
-| `1` | No source was supplied, diagnostics contain errors, or a handled failure occurred |
+| `1` | Compilation completed with error diagnostics |
+| `2` | The command-line invocation is invalid, for example because an option value or source file argument is missing |
+| `3` | The compiler tool could not complete, for example because an input file could not be read |
 
 Warnings do not change a successful exit code.
-
-Malformed options can terminate before this normal exit-code handling and may
-produce a different nonzero process code.
 
 ## Running the result
 

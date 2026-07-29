@@ -19,6 +19,10 @@
 		<ProjectReference Include="..\Balu\Balu.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="Balu.Tests" />
+	</ItemGroup>
+
 	<Target Name="GetBaluCompilerPackageFiles"
 			DependsOnTargets="Build;ComputeFilesToPublish"
 			Returns="@(_BaluCompilerPackageFile)">

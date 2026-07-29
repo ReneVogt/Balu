@@ -4,6 +4,14 @@
 
 Balu is a from-scratch compiler and language project inspired by terrajobst's Minsk tutorial. The repository is a .NET/Visual Studio solution centered around `src/Balu.sln`.
 
+## GitHub Repository
+
+- The canonical GitHub repository is `ReneVogt/Balu`.
+- Unqualified issue and pull request numbers refer to `ReneVogt/Balu` unless the user explicitly names another repository.
+- The reference to terrajobst describes the project's inspiration; do not infer that GitHub issues or pull requests belong to terrajobst's repository.
+- Use the configured GitHub MCP for all remote GitHub queries and actions, including issues, pull requests, comments, branches, releases, and repository content. Do not use direct web requests for these operations.
+- Continue to use the local Git CLI for operations on the local worktree and local branches.
+
 ## Main Projects
 
 - `src/Balu`: Backend compiler library. Contains syntax trees, parser/lexer, binder, symbols, lowering, diagnostics, IL emission, visualization, source text handling, and editor-oriented classification.

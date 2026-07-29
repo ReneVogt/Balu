@@ -136,14 +136,17 @@ is:
 | Exit code | Meaning |
 | ---: | --- |
 | `0` | Help was displayed, or compilation succeeded, possibly with warnings |
-| `1` | An error occurred or no source file was supplied |
+| `1` | Compilation completed with error diagnostics |
+| `2` | The command-line invocation is invalid |
+| `3` | The compiler tool could not complete |
 
 The `bc` quiet option suppresses diagnostics as well as informational output;
 the exit code is then the only error indication. See the
 [compiler command-line reference](../tools/compiler.md) for details.
 
-Malformed options are parsed before normal error handling. They can produce
-output despite quiet mode and terminate with a different nonzero process code.
+Invocation and tool failures are reported without a `BLxxxx` diagnostic ID or
+source location. This lets callers distinguish them from source and emitter
+diagnostics.
 
 The REPL displays diagnostics and does not commit a submission that has errors.
 Warnings are displayed but do not prevent execution or persistence of the
