@@ -326,15 +326,11 @@ sealed class Binder : SyntaxTreeVisitor
         var condition = (BoundExpression)boundNode!;
         condition = BindConversion(node.Condition, condition, TypeSymbol.Boolean);
 
-        Visit(node.ThenStatement);
-        var thenStatement = (BoundStatement)boundNode!;
+        var thenStatement = BindEmbeddedStatement(node.ThenStatement);
 
         BoundStatement? elseStatement = null;
         if (node.ElseClause is { Statement: var elseNode })
-        {
-            Visit(elseNode);
-            elseStatement = (BoundStatement)boundNode!;
-        }
+            elseStatement = BindEmbeddedStatement(elseNode);
 
         boundNode = If(node, condition, thenStatement, elseStatement);
     }
@@ -457,9 +453,23 @@ sealed class Binder : SyntaxTreeVisitor
         continueLabel = new ($"continue{labelCounter}");
         labelCounter++;
         loopStack.Push((breakLabel, continueLabel));
-        Visit(statement);
+        var result = BindEmbeddedStatement(statement);
         loopStack.Pop();
-        return (BoundStatement)boundNode!;
+        return result;
+    }
+    BoundStatement BindEmbeddedStatement(StatementSyntax statement)
+    {
+        if (statement.Kind == SyntaxKind.BlockStatement)
+        {
+            Visit(statement);
+            return (BoundStatement)boundNode!;
+        }
+
+        scope = new(scope);
+        Visit(statement);
+        var result = (BoundStatement)boundNode!;
+        scope = scope.Parent!;
+        return result;
     }
 
     static TypeSymbol? LookupType(string name) => name == TypeSymbol.Integer.Name
