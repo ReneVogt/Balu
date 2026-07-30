@@ -1,8 +1,10 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using Balu.Diagnostics;
 using Balu.Interpretation;
 using Mono.Cecil;
@@ -14,6 +16,16 @@ namespace Balu.Interpretation.Tests;
 
 public sealed class InterpreterTests
 {
+    [Fact]
+    public void Interpreter_Execute_ThrowsIfCancellationRequested()
+    {
+        using var interpreter = new Interpreter(ReferenceProvider.References);
+        using var cancellation = new CancellationTokenSource();
+        cancellation.Cancel();
+
+        Assert.Throws<OperationCanceledException>(() => interpreter.Execute("1", cancellationToken: cancellation.Token));
+    }
+
     [Fact]
     public void Interpreter_WriteSyntax_WritesToOut()
     {

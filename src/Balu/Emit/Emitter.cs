@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using Balu.Binding;
 using Balu.Diagnostics;
 using Balu.Symbols;
@@ -18,6 +19,7 @@ namespace Balu.Emit;
 sealed class Emitter : IDisposable
 {
     readonly BoundProgram program;
+    readonly CancellationToken cancellationToken;
     readonly DiagnosticBag diagnostics = [];
 
     readonly ReferencedMembers referencedMembers;
@@ -36,11 +38,14 @@ sealed class Emitter : IDisposable
     bool emitSymbols;
     bool debug;
 
-    Emitter(BoundProgram program, string moduleName, EmitReferenceSet references)
+    Emitter(BoundProgram program, string moduleName, EmitReferenceSet references, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         this.program = program;
+        this.cancellationToken = cancellationToken;
 
         diagnostics.AddRange(program.Diagnostics);
+        cancellationToken.ThrowIfCancellationRequested();
         referencedMembers = references.CreateReferencedMembers(moduleName);
     }
     public void Dispose() => referencedMembers.Dispose();
@@ -95,6 +100,7 @@ sealed class Emitter : IDisposable
     }
     void EmitMethod(MethodDefinition method, FunctionSymbol function)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var processor = method.Body.GetILProcessor();
 
         gotosToFix.Clear();
@@ -126,7 +132,10 @@ sealed class Emitter : IDisposable
 
                 
         foreach (var statement in statements)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             EmitStatement(processor, statement);
+        }
 
         if (debug)
         {
@@ -148,7 +157,10 @@ sealed class Emitter : IDisposable
         }
 
         foreach ((int instrcutionIndex, BoundLabel? label) in gotosToFix)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             processor.Body.Instructions[instrcutionIndex].Operand = processor.Body.Instructions[labels[label]];
+        }
         
         method.Body.OptimizeMacros();
 
@@ -157,6 +169,7 @@ sealed class Emitter : IDisposable
     }
     void EmitStatement(ILProcessor processor, BoundStatement statement)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         switch (statement.Kind)
         {
             case BoundNodeKind.ExpressionStatement:
@@ -215,6 +228,7 @@ sealed class Emitter : IDisposable
     }
     void EmitExpression(ILProcessor processor, BoundExpression expression)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (expression is { Constant: {}, HasSideEffects: false })
         {
             EmitConstantExpression(processor, expression);
@@ -363,6 +377,7 @@ sealed class Emitter : IDisposable
         var current = expression;
         while (IsStringConcat(current.Left))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             stack.Push(current);
             current = (BoundBinaryExpression)current.Left;
         }
@@ -371,6 +386,7 @@ sealed class Emitter : IDisposable
         AddOperand(current.Right);
         while (stack.Count > 0)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             current = stack.Pop();
             AddOperand(current.Right);
         }
@@ -429,6 +445,7 @@ sealed class Emitter : IDisposable
 
                 for (var i = 0; i < operands.Length; i++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     processor.Emit(OpCodes.Dup);
                     processor.Emit(OpCodes.Ldc_I4, i);
                     EmitExpression(processor, operands[i]);
@@ -515,7 +532,10 @@ sealed class Emitter : IDisposable
             processor.Emit(OpCodes.Ldsfld, referencedMembers.RandomField);
 
         foreach (var argument in expression.Arguments)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             EmitExpression(processor, argument);
+        }
 
         if (expression.Function == BuiltInFunctions.Print)
             processor.Emit(OpCodes.Call, referencedMembers.ConsoleWrite);
@@ -687,6 +707,7 @@ sealed class Emitter : IDisposable
 
         foreach(var global in program.Symbols.OfType<GlobalVariableSymbol>())
         {
+            cancellationToken.ThrowIfCancellationRequested();
             EmitField(global);
             if (!initializedGlobalVariables.TryGetValue(global, out var value)) continue;
             TypeReference? boxingType;
@@ -747,6 +768,7 @@ sealed class Emitter : IDisposable
 
     void Emit(Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (diagnostics.HasErrors()) return;
 
         emitSymbols = symbolStream is not null;
@@ -756,20 +778,30 @@ sealed class Emitter : IDisposable
         EmitFields(initializedGlobalVariables);
 
         foreach (var function in program.Functions.Keys)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             methods.Add(function, CreateMethod(function));
+        }
 
         EmitMethod(methods[program.EntryPoint], program.EntryPoint);
         foreach (var x in methods.Where(x => x.Key != program.EntryPoint))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             EmitMethod(x.Value, x.Key);
+        }
 
         if (diagnostics.HasErrors()) return;
 
         referencedMembers.Assembly.EntryPoint = methods[program.EntryPoint];
 
         if (symbolStream is null)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             referencedMembers.Assembly.Write(outputStream);
+        }
         else
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var writerParameters = new WriterParameters
             {
                 WriteSymbols = true,
@@ -780,22 +812,24 @@ sealed class Emitter : IDisposable
         }
     }
 
-    public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
         using var referenceSet = new EmitReferenceSet(references);
-        return Emit(program, moduleName, referenceSet, outputStream, symbolStream, symbolStream is not null, initializedGlobalVariables);
+        return Emit(program, moduleName, referenceSet, outputStream, symbolStream, symbolStream is not null, initializedGlobalVariables, cancellationToken: cancellationToken);
     }
 
-    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
-        => Emit(program, moduleName, references, outputStream, symbolStream, symbolStream is not null, initializedGlobalVariables, pdbPath);
+    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null, CancellationToken cancellationToken = default)
+        => Emit(program, moduleName, references, outputStream, symbolStream, symbolStream is not null, initializedGlobalVariables, pdbPath, cancellationToken);
 
-    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
+    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null, CancellationToken cancellationToken = default)
     {
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
-            using var emitter = new Emitter(program, moduleName, references);
+            using var emitter = new Emitter(program, moduleName, references, cancellationToken);
             emitter.Emit(outputStream, symbolStream, debug, initializedGlobalVariables, pdbPath);
             return new(emitter.diagnostics.ToImmutableArray(), emitter.globalSymbolNames.ToImmutableDictionary());
         }

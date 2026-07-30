@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 
 namespace Balu.Text;
 
@@ -17,12 +18,13 @@ public sealed class SourceText
     public char this[int index] => text[index];
     public int Length => text.Length;
 
-    SourceText(string text, string fileName, ImmutableArray<byte> checksum)
+    SourceText(string text, string fileName, ImmutableArray<byte> checksum, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         this.text = text;
         FileName = fileName;
         Checksum = checksum;
-        Lines = ParseLines(this);
+        Lines = ParseLines(this, cancellationToken);
     }
 
     public int GetLineIndex(int position)
@@ -59,12 +61,13 @@ public sealed class SourceText
         return text[position] == '\n' ? 1 : 0;
     }
 
-    static ImmutableArray<TextLine> ParseLines(SourceText sourceText)
+    static ImmutableArray<TextLine> ParseLines(SourceText sourceText, CancellationToken cancellationToken)
     {
         int lineStart = 0, position = 0;
         var builder = ImmutableArray.CreateBuilder<TextLine>();
         while (position < sourceText.Length)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var endings = sourceText.GetLineBreakWidth(position);
             if (endings == 0)
             {
@@ -81,29 +84,39 @@ public sealed class SourceText
         return builder.ToImmutable();
     }
 
-    internal static SourceText Load(string fileName)
+    internal static SourceText Load(string fileName, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         using var stream = File.OpenRead(fileName ?? throw new ArgumentNullException(nameof(fileName)));
-        var checksum = ComputeChecksum(stream);
+        var checksum = ComputeChecksum(stream, cancellationToken);
         stream.Position = 0;
         using var reader = new StreamReader(stream, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
-        return new(reader.ReadToEnd(), fileName, checksum);
+        var text = reader.ReadToEnd();
+        cancellationToken.ThrowIfCancellationRequested();
+        return new(text, fileName, checksum, cancellationToken);
     }
-    public static SourceText From(string text, string fileName = "")
+    public static SourceText From(string text, string fileName = "", CancellationToken cancellationToken = default)
     {
         _ = text ?? throw new ArgumentNullException(nameof(text));
         _ = fileName ?? throw new ArgumentNullException(nameof(fileName));
-        return new(text, fileName, ComputeChecksum(Encoding.UTF8.GetBytes(text)));
+        cancellationToken.ThrowIfCancellationRequested();
+        return new(text, fileName, ComputeChecksum(Encoding.UTF8.GetBytes(text), cancellationToken), cancellationToken);
     }
 
-    static ImmutableArray<byte> ComputeChecksum(Stream stream)
+    static ImmutableArray<byte> ComputeChecksum(Stream stream, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         using var algorithm = SHA256.Create();
-        return ImmutableArray.CreateRange(algorithm.ComputeHash(stream));
+        var checksum = algorithm.ComputeHash(stream);
+        cancellationToken.ThrowIfCancellationRequested();
+        return ImmutableArray.CreateRange(checksum);
     }
-    static ImmutableArray<byte> ComputeChecksum(byte[] bytes)
+    static ImmutableArray<byte> ComputeChecksum(byte[] bytes, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         using var algorithm = SHA256.Create();
-        return ImmutableArray.CreateRange(algorithm.ComputeHash(bytes));
+        var checksum = algorithm.ComputeHash(bytes);
+        cancellationToken.ThrowIfCancellationRequested();
+        return ImmutableArray.CreateRange(checksum);
     }
 }

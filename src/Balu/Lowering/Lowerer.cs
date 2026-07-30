@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Balu.Binding;
 using Balu.Diagnostics;
 using Balu.Symbols;
@@ -11,9 +12,20 @@ namespace Balu.Lowering;
 
 sealed class Lowerer : BoundTreeRewriter
 {
+    readonly CancellationToken cancellationToken;
     int labelCount;
     BoundSequencePointStatement? currentSequencePointStatement;
-    
+
+    Lowerer(CancellationToken cancellationToken)
+    {
+        this.cancellationToken = cancellationToken;
+    }
+
+    public override BoundNode Visit(BoundNode node)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return base.Visit(node);
+    }
 
     BoundLabel GenerateNextLabel() => new($"Label{labelCount++}");
 
@@ -222,7 +234,7 @@ sealed class Lowerer : BoundTreeRewriter
             builder.Add(SequencePoint(Nop(closedBraceToken), closedBraceToken.Location));
     }
 
-    static BoundBlockStatement Flatten(BoundStatement statement)
+    static BoundBlockStatement Flatten(BoundStatement statement, CancellationToken cancellationToken)
     {
         var resultBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
         Stack<BoundStatement> stack = new();
@@ -230,6 +242,7 @@ sealed class Lowerer : BoundTreeRewriter
 
         while (stack.Count > 0)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var current = stack.Pop();
             if (current is BoundBlockStatement { Statements: var statements , Syntax: var syntax})
             {
@@ -242,7 +255,10 @@ sealed class Lowerer : BoundTreeRewriter
                 }
 
                 foreach (var s in statements.Reverse())
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
                     stack.Push(s);
+                }
 
                 if (blockSyntax is { })
                 {
@@ -256,14 +272,16 @@ sealed class Lowerer : BoundTreeRewriter
 
         return new (statement.Syntax, resultBuilder.ToImmutable());
     }
-    static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics)
+    static BoundBlockStatement RemoveDeadCode(BoundBlockStatement statement, ControlFlowGraph controlFlowGraph, DiagnosticBag diagnostics, CancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var unreachableStatements = new HashSet<BoundStatement>(
             controlFlowGraph.DeadBlocks.SelectMany(deadBlock => deadBlock.Statements.Where(CanBeRemoved)));
         if (unreachableStatements.Count == 0) return statement;
         var builder = statement.Statements.ToBuilder();
         for (int i = 0; i < builder.Count; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var current = builder[i];
             if (unreachableStatements.Contains(current))
                 builder.RemoveAt(i--);
@@ -273,8 +291,13 @@ sealed class Lowerer : BoundTreeRewriter
         foreach(var list in listPerFile)
             while (list.Count > 0)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var consecutive = list.Where(s => s.Syntax.FullSpan.OverlapsWithOrTouches(list[0].Syntax.FullSpan)).ToList();
-                foreach (var s in consecutive) list.Remove(s);
+                foreach (var s in consecutive)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    list.Remove(s);
+                }
                 var start = consecutive.Min(s => s.Syntax.Span.Start);
                 var end = consecutive.Max(s => s.Syntax.Span.End);
                 diagnostics.ReportUnreachableCode(new(consecutive[0].Syntax.SyntaxTree.Text, new(start, end - start)));
@@ -296,13 +319,14 @@ sealed class Lowerer : BoundTreeRewriter
                    (unwrapped.Kind != BoundNodeKind.ReturnStatement || unwrapped.Syntax.Kind == SyntaxKind.ReturnStatement);
         }
     }
-    static BoundBlockStatement RemoveDebris(BoundBlockStatement block)
+    static BoundBlockStatement RemoveDebris(BoundBlockStatement block, CancellationToken cancellationToken)
     {
         var builder = block.Statements.ToBuilder();
 
         // remove nops
         for (int i = 0; i < builder.Count; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (builder[i].Kind == BoundNodeKind.NopStatement)
                 builder.RemoveAt(i--);
         }
@@ -310,12 +334,14 @@ sealed class Lowerer : BoundTreeRewriter
         // remove redundant gotos
         for (int gotoIndex = 0; gotoIndex < builder.Count-1; gotoIndex++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var current = builder[gotoIndex].UnwrapSequencePoint();
             if (current.Kind != BoundNodeKind.GotoStatement) continue;
             var label = ((BoundGotoStatement)current).Label;
 
             for (int labelIndex = gotoIndex + 1; labelIndex < builder.Count; labelIndex++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var next = builder[labelIndex].UnwrapSequencePoint();
                 if (next.Kind == BoundNodeKind.LabelStatement && ((BoundLabelStatement)next).Label == label)
                 {
@@ -346,6 +372,7 @@ sealed class Lowerer : BoundTreeRewriter
                                                                        .Select(s => ((BoundConditionalGotoStatement)s).Label)));
         for (int i = 0; i < builder.Count; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var current = builder[i].UnwrapSequencePoint();
             if (current.Kind == BoundNodeKind.LabelStatement && !usedLabels.Contains(((BoundLabelStatement)current).Label))
                 builder.RemoveAt(i--);
@@ -364,17 +391,18 @@ sealed class Lowerer : BoundTreeRewriter
             lastStatement.Kind != BoundNodeKind.ReturnStatement &&
             lastStatement.Kind != BoundNodeKind.GotoStatement;
     }
-    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics)
+    public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
     {
-        var lowered = (BoundStatement)new Lowerer().Visit(statement);
-        var resultingBlock = Flatten(lowered);
+        cancellationToken.ThrowIfCancellationRequested();
+        var lowered = (BoundStatement)new Lowerer(cancellationToken).Visit(statement);
+        var resultingBlock = Flatten(lowered, cancellationToken);
 
-        var controlFlowGraph = ControlFlowGraph.Create(resultingBlock);
+        var controlFlowGraph = ControlFlowGraph.Create(resultingBlock, cancellationToken);
         if (containingFunction is not null && containingFunction.ReturnType != TypeSymbol.Void && !controlFlowGraph.AllPathsReturn())
             diagnostics.ReportNotAllPathsReturn(containingFunction);
 
-        resultingBlock = RemoveDeadCode(resultingBlock, controlFlowGraph, diagnostics);
-        resultingBlock = RemoveDebris(resultingBlock);
+        resultingBlock = RemoveDeadCode(resultingBlock, controlFlowGraph, diagnostics, cancellationToken);
+        resultingBlock = RemoveDebris(resultingBlock, cancellationToken);
         resultingBlock = AddMissingReturn(resultingBlock, containingFunction);
         return resultingBlock;
     }
