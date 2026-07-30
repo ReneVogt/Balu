@@ -7,6 +7,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
+		<PackageId>Balu.Sdk</PackageId>
 		<Version>0.3.1</Version>
 		<Title>Balu.Sdk</Title>
 		<Authors>René Vogt</Authors>
@@ -44,6 +45,18 @@
 		<Content Include="Sdk.props" PackagePath="sdk/" />
 		<Content Include="Sdk.targets" PackagePath="sdk/" />
 	</ItemGroup>
+	<Target Name="GetBaluSdkPackageIdentity" Returns="@(_BaluSdkPackageIdentity)">
+		<PropertyGroup>
+			<_BaluSdkPackageVersion Condition="'$(PackageVersion)' != ''">$(PackageVersion)</_BaluSdkPackageVersion>
+			<_BaluSdkPackageVersion Condition="'$(_BaluSdkPackageVersion)' == ''">$(Version)</_BaluSdkPackageVersion>
+			<_BaluSdkPackageOutputPath Condition="'$(PackageOutputPath)' != ''">$(PackageOutputPath)</_BaluSdkPackageOutputPath>
+			<_BaluSdkPackageOutputPath Condition="'$(_BaluSdkPackageOutputPath)' == ''">$(OutputPath)</_BaluSdkPackageOutputPath>
+			<_BaluSdkPackagePath>$([MSBuild]::NormalizePath($(MSBuildProjectDirectory), '$(_BaluSdkPackageOutputPath)', '$(PackageId).$(_BaluSdkPackageVersion).nupkg'))</_BaluSdkPackagePath>
+		</PropertyGroup>
+		<ItemGroup>
+			<_BaluSdkPackageIdentity Include="$(PackageId)" Version="$(_BaluSdkPackageVersion)" PackagePath="$(_BaluSdkPackagePath)" />
+		</ItemGroup>
+	</Target>
 
 	<Target Name="CollectPackageBuildOutput" DependsOnTargets="ResolveReferences">
 		<MSBuild Projects="$(BaluCompilerProject)"

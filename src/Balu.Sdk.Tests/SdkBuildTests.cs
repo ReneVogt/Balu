@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
@@ -13,6 +14,9 @@ namespace Balu.Sdk.Tests;
 
 public sealed class SdkBuildTests
 {
+    static readonly string SdkPackageId = GetAssemblyMetadata("BaluSdkPackageId");
+    static readonly string SdkPackageVersion = GetAssemblyMetadata("BaluSdkPackageVersion");
+
     [Fact]
     public void Sdk_DefaultConfigurations_HonorSymbolAndOptimizeProperties()
     {
@@ -197,7 +201,7 @@ public sealed class SdkBuildTests
         public string DescribePdbs() => string.Join(Environment.NewLine, Directory.GetFiles(directory, "*.pdb", SearchOption.AllDirectories)) + Environment.NewLine + lastBuildOutput;
         public void SetProperties(string properties) => File.WriteAllText(
             Path.Combine(directory, $"{ProjectName}.csproj"),
-            $"<Project Sdk=\"Balu.Sdk/0.3.1\"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType>{properties}</PropertyGroup></Project>");
+            $"<Project Sdk=\"{SdkPackageId}/{SdkPackageVersion}\"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType>{properties}</PropertyGroup></Project>");
         public void SetSource(string source) => File.WriteAllText(Path.Combine(directory, "main.b"), source);
 
         public void Build(string configuration, bool noRestore = false) => Run("build", configuration, noRestore);
@@ -248,4 +252,9 @@ public sealed class SdkBuildTests
 
         public void Dispose() => Directory.Delete(directory, recursive: true);
     }
+
+    static string GetAssemblyMetadata(string key) => Assembly.GetExecutingAssembly()
+                                                            .GetCustomAttributes<AssemblyMetadataAttribute>()
+                                                            .Single(attribute => attribute.Key == key)
+                                                            .Value!;
 }
