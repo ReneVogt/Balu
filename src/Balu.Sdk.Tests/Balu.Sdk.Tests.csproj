@@ -50,11 +50,7 @@
 		</ItemGroup>
 	</Target>
 
-	<Target Name="EnsureCurrentBaluSdkPackage"
-			BeforeTargets="CopyBaluSdkPackage"
-			DependsOnTargets="ResolveBaluSdkPackageIdentity"
-			Inputs="@(_BaluSdkPackageInput)"
-			Outputs="$(BaluSdkPackagePath)">
+	<Target Name="EnsureCurrentBaluSdkPackage" BeforeTargets="CopyBaluSdkPackage" DependsOnTargets="ResolveBaluSdkPackageIdentity" Inputs="@(_BaluSdkPackageInput)" Outputs="$(BaluSdkPackagePath)">
 		<Delete Files="$(BaluSdkPackagePath)" />
 		<MSBuild Projects="..\Balu.Sdk\Balu.Sdk.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
 	</Target>

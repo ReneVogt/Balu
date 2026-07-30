@@ -8,7 +8,8 @@
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
 		<PackageId>Balu.Sdk</PackageId>
-		<Version>0.3.1</Version>
+		<Version>0.4.0</Version>
+		<AssemblyVersion>0.4.0</AssemblyVersion>
 		<Title>Balu.Sdk</Title>
 		<Authors>René Vogt</Authors>
 		<Description>The Balu language SDK.</Description>
