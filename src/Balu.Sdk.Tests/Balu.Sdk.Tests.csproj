@@ -5,6 +5,8 @@
 		<LangVersion>latest</LangVersion>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
+		<BaluSdkPackageId>Balu.Sdk</BaluSdkPackageId>
+		<BaluSdkPackagePath>$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..\Balu.Sdk\bin\$(Configuration)', '$(BaluSdkPackageId).$(BaluVersion).nupkg'))</BaluSdkPackagePath>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -24,38 +26,16 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Balu.Sdk\Balu.Sdk.csproj" ReferenceOutputAssembly="false" />
 		<_BaluSdkPackageInput Include="..\Balu\**\*;..\Balu.SourceGenerator\**\*;..\Balu.Sdk\**\*;..\bc\**\*" Exclude="..\**\bin\**;..\**\obj\**" />
+		<AssemblyMetadata Include="BaluSdkPackageId" Value="$(BaluSdkPackageId)" />
+		<AssemblyMetadata Include="BaluSdkPackageVersion" Value="$(BaluVersion)" />
 	</ItemGroup>
 
-	<Target Name="ResolveBaluSdkPackageIdentity">
-		<MSBuild Projects="..\Balu.Sdk\Balu.Sdk.csproj" Targets="GetBaluSdkPackageIdentity" Properties="Configuration=$(Configuration)">
-			<Output TaskParameter="TargetOutputs" ItemName="_BaluSdkPackageIdentity" />
-		</MSBuild>
-		<PropertyGroup>
-			<BaluSdkPackageId>@(_BaluSdkPackageIdentity)</BaluSdkPackageId>
-			<BaluSdkPackageVersion>%(_BaluSdkPackageIdentity.Version)</BaluSdkPackageVersion>
-			<BaluSdkPackagePath>%(_BaluSdkPackageIdentity.PackagePath)</BaluSdkPackagePath>
-		</PropertyGroup>
-	</Target>
-
-	<Target Name="AddBaluSdkPackageMetadata" BeforeTargets="GetAssemblyAttributes" DependsOnTargets="ResolveBaluSdkPackageIdentity">
-		<ItemGroup>
-			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-				<_Parameter1>BaluSdkPackageId</_Parameter1>
-				<_Parameter2>$(BaluSdkPackageId)</_Parameter2>
-			</AssemblyAttribute>
-			<AssemblyAttribute Include="System.Reflection.AssemblyMetadataAttribute">
-				<_Parameter1>BaluSdkPackageVersion</_Parameter1>
-				<_Parameter2>$(BaluSdkPackageVersion)</_Parameter2>
-			</AssemblyAttribute>
-		</ItemGroup>
-	</Target>
-
-	<Target Name="EnsureCurrentBaluSdkPackage" BeforeTargets="CopyBaluSdkPackage" DependsOnTargets="ResolveBaluSdkPackageIdentity" Inputs="@(_BaluSdkPackageInput)" Outputs="$(BaluSdkPackagePath)">
+	<Target Name="EnsureCurrentBaluSdkPackage" BeforeTargets="CopyBaluSdkPackage" Inputs="@(_BaluSdkPackageInput)" Outputs="$(BaluSdkPackagePath)">
 		<Delete Files="$(BaluSdkPackagePath)" />
 		<MSBuild Projects="..\Balu.Sdk\Balu.Sdk.csproj" Targets="Build" Properties="Configuration=$(Configuration)" />
 	</Target>
 
-	<Target Name="CopyBaluSdkPackage" AfterTargets="Build" DependsOnTargets="ResolveBaluSdkPackageIdentity">
+	<Target Name="CopyBaluSdkPackage" AfterTargets="Build">
 		<ItemGroup>
 			<_BaluSdkPackage Include="$(BaluSdkPackagePath)" />
 		</ItemGroup>
