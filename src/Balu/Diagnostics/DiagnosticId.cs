@@ -42,6 +42,7 @@ public enum DiagnosticId
     NoEntryPointDefined = 1030,
     UnreachableCode = 1031,
     ConstantDivisionByZero = 1032,
+    ConstantIntegerOverflow = 1033,
 
     Emitter = 2000,
     InvalidAssemblyReference = 2001,

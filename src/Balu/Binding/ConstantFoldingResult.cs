@@ -4,7 +4,7 @@ enum ConstantFoldingError
 {
     None,
     DivisionByZero,
-    IntegerDivisionOverflow
+    IntegerOverflow
 }
 
 readonly struct ConstantFoldingResult
