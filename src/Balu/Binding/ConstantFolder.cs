@@ -29,7 +29,7 @@ static class ConstantFolder
             if (divisor == 0)
                 return new(null, ConstantFoldingError.DivisionByZero);
             if (dividend == int.MinValue && divisor == -1)
-                return new(null, ConstantFoldingError.IntegerDivisionOverflow);
+                return new(null, ConstantFoldingError.IntegerOverflow);
         }
 
         return operation.OperatorKind switch

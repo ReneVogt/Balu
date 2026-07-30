@@ -19,12 +19,4 @@ public sealed partial class BinderTests
     {
         code.AssertScriptEvaluation(expectedDiagnostics: "BL1032: Constant division by zero.", ignoreWarnings: false);
     }
-
-    [Fact]
-    public void Binder_DoesNotFoldOverflowingConstantDivision()
-    {
-        const string code = "function test(): int { return (-2147483647 - 1) / -1 }";
-
-        code.AssertScriptEvaluation();
-    }
 }

@@ -91,6 +91,11 @@ sealed class Binder : SyntaxTreeVisitor
                 diagnostics.ReportConstantDivisionByZero(node.Location);
                 SetErrorExpression(node);
             }
+            else if (expression.FoldingError == ConstantFoldingError.IntegerOverflow)
+            {
+                diagnostics.ReportConstantIntegerOverflow(node.Location);
+                SetErrorExpression(node);
+            }
             else
                 boundNode = expression;
         }

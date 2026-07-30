@@ -104,6 +104,8 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportUnreachableCode(TextLocation location) => Add(new(DiagnosticId.UnreachableCode, location, "Unreachable code detected.", DiagnosticSeverity.Warning));
     public void ReportConstantDivisionByZero(TextLocation location) =>
         Add(new(DiagnosticId.ConstantDivisionByZero, location, "Constant division by zero."));
+    public void ReportConstantIntegerOverflow(TextLocation location) =>
+        Add(new(DiagnosticId.ConstantIntegerOverflow, location, "Constant expression causes an integer overflow."));
 
     public void ReportInvalidAssemblyReference(string reference, string exceptionMessage) =>
         Add(new(DiagnosticId.InvalidAssemblyReference, default, $"Could not load referenced assembly '{reference}': {exceptionMessage}"));
