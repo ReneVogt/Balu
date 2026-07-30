@@ -9,7 +9,6 @@ public sealed class BaluSourceGenerator : ISourceGenerator
 {
     public const string BoundNodeTypeName = "Balu.Binding.BoundNode";
     public const string BoundNodeKindTypeName = "Balu.Binding.BoundNodeKind";
-    public const string BoundLoopStatementTypeName = "Balu.Binding.BoundLoopStatement";
     public const string SyntaxNodeTypeName = "Balu.Syntax.SyntaxNode";
     public const string SyntaxKindTypeName = "Balu.Syntax.SyntaxKind";
     public const string SeparatedSyntaxListTypeName = "Balu.Syntax.SeparatedSyntaxList`1";
@@ -30,13 +29,12 @@ public sealed class BaluSourceGenerator : ISourceGenerator
         var compilation = (CSharpCompilation)context.Compilation;
         var boundNodeType = FindType(context, BoundNodeTypeName);
         var boundNodeKindType = FindType(context, BoundNodeKindTypeName);
-        var boundLoopStatementType = FindType(context, BoundLoopStatementTypeName);
         var immutableArrayType = FindType(context, ImmutableArrayTypeName);
         var syntaxNodeType = FindType(context, SyntaxNodeTypeName);
         var syntaxNodeKindType = FindType(context, SyntaxKindTypeName);
         var separatedListType = FindType(context, SeparatedSyntaxListTypeName);
 
-        if (boundNodeType is null || boundNodeKindType is null || boundLoopStatementType is null || immutableArrayType is null || syntaxNodeType is null ||
+        if (boundNodeType is null || boundNodeKindType is null || immutableArrayType is null || syntaxNodeType is null ||
             syntaxNodeKindType is null || separatedListType is null) return;
 
         var generators = new BaseGenerator[]
@@ -45,7 +43,7 @@ public sealed class BaluSourceGenerator : ISourceGenerator
             new SyntaxTreeVisitorGenerator(compilation, syntaxNodeType, syntaxNodeKindType), 
             new BoundNodeChildrenGenerator(compilation, boundNodeType, immutableArrayType), 
             new BoundTreeVisitorGenerator(compilation, boundNodeType, boundNodeKindType),
-            new BoundTreeRewriterGenerator(compilation, boundNodeType, boundNodeKindType, boundLoopStatementType, immutableArrayType)
+            new BoundTreeRewriterGenerator(compilation, boundNodeType, boundNodeKindType, immutableArrayType)
         };
 
         foreach (var generator in generators.TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))

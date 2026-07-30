@@ -32,33 +32,35 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
         var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
 
         foreach (var type in boundNodeTypes.TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))
-                WriteType(type);
+                WriteType(type, context);
 
         context.AddSource(
             "BoundNodeChildren.g.cs",
             SourceText.From(Writer.InnerWriter.ToString(), Encoding.UTF8));
     }
-    void WriteType(INamedTypeSymbol type)
+    void WriteType(INamedTypeSymbol type, GeneratorExecutionContext context)
     {
+        var model = NodeModel.Create(type, context);
+        if (model is null) return;
+
+        var properties = model.Parameters
+                              .Select(parameter => parameter.Property)
+                              .Where(property => property.Type is INamedTypeSymbol propertyType &&
+                                                 (propertyType.IsDerivedFrom(boundNodeType) ||
+                                                  propertyType.IsGenericListOf(immutableArrayType, boundNodeType)))
+                              .ToImmutableArray();
         using(new CurlyIndenter(Writer, $"partial class {type.Name}"))
         {
-            WriteChildrenCount(type);
-            WriteGetChild(type);
+            WriteChildrenCount(properties);
+            WriteGetChild(properties);
         }
     }
-    void WriteChildrenCount(INamedTypeSymbol type)
+    void WriteChildrenCount(ImmutableArray<IPropertySymbol> properties)
     {
-        var properties = type.GetMembers()
-                             .OfType<IPropertySymbol>()
-                             .Where(property => property.Type is INamedTypeSymbol propertyType &&
-                                                propertyType.IsDerivedFrom(boundNodeType))
-                             .ToImmutableArray();
-        var nonNullableProperties = properties.Where(property => property.NullableAnnotation != NullableAnnotation.Annotated).ToImmutableArray();
-        var nullableProperties = properties.Where(property => property.NullableAnnotation == NullableAnnotation.Annotated).ToImmutableArray();
-        var collections = type.GetMembers()
-                              .OfType<IPropertySymbol>()
-                              .Where(property => property.Type is INamedTypeSymbol propertyType && propertyType.IsGenericListOf(immutableArrayType, boundNodeType))
-                              .ToImmutableArray();
+        var nodeProperties = properties.Where(property => ((INamedTypeSymbol)property.Type).IsDerivedFrom(boundNodeType)).ToImmutableArray();
+        var nonNullableProperties = nodeProperties.Where(property => property.NullableAnnotation != NullableAnnotation.Annotated).ToImmutableArray();
+        var nullableProperties = nodeProperties.Where(property => property.NullableAnnotation == NullableAnnotation.Annotated).ToImmutableArray();
+        var collections = properties.Where(property => ((INamedTypeSymbol)property.Type).IsGenericListOf(immutableArrayType, boundNodeType)).ToImmutableArray();
 
         if (nullableProperties.Length == 0)
         {
@@ -98,16 +100,10 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
             Writer.Write(string.Join(" + ", collections.Select(collection => $"{collection.Name}.Length")));
         }
     }
-    void WriteGetChild(INamedTypeSymbol type)
+    void WriteGetChild(ImmutableArray<IPropertySymbol> properties)
     {
         const string signature = "public override Balu.Binding.BoundNode GetChild(int index)";
         const string exception = "throw new ArgumentOutOfRangeException(\"index\")";
-
-        var properties = type.GetMembers()
-                             .OfType<IPropertySymbol>()
-                             .Where(property => property.Type is INamedTypeSymbol propertyType &&
-                                                (propertyType.IsDerivedFrom(boundNodeType) ||
-                                                 propertyType.IsGenericListOf(immutableArrayType, boundNodeType))).ToImmutableArray();
 
         if (properties.Length == 0)
         {

@@ -10,22 +10,14 @@ namespace Balu.SourceGenerator;
 sealed class BoundTreeRewriterGenerator : BaseGenerator
 {
 
-    static readonly DiagnosticDescriptor UnableToConstructBoundNode = new(id: "BLS0001",
-                                                                     title: "BoundNode construction failure",
-                                                                     messageFormat: "Cannot generate rewrite method for '{0}', constructor arguments do not match.",
-                                                                     category: "Balu source generation",
-                                                                     DiagnosticSeverity.Error,
-                                                                     isEnabledByDefault: true);
-
     readonly CSharpCompilation compilation;
-    readonly INamedTypeSymbol boundNodeType, boundNodeKindType, boundLoopStatementType, immutableArrayType;
+    readonly INamedTypeSymbol boundNodeType, boundNodeKindType, immutableArrayType;
 
-    internal BoundTreeRewriterGenerator(CSharpCompilation compilation, INamedTypeSymbol boundNodeType, INamedTypeSymbol boundNodeKindType, INamedTypeSymbol boundLoopStatementType, INamedTypeSymbol immutableArrayType)
+    internal BoundTreeRewriterGenerator(CSharpCompilation compilation, INamedTypeSymbol boundNodeType, INamedTypeSymbol boundNodeKindType, INamedTypeSymbol immutableArrayType)
     {
         this.compilation = compilation;
         this.boundNodeType = boundNodeType;
         this.boundNodeKindType = boundNodeKindType;
-        this.boundLoopStatementType = boundLoopStatementType;
         this.immutableArrayType = immutableArrayType;
     }
 
@@ -78,12 +70,15 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
 
             foreach (var (kind, type) in kindsToVisit)
             {
-                var propertiesToRewrite = type!.GetMembers()
-                                      .OfType<IPropertySymbol>()
-                                      .Where(property => property.Type is INamedTypeSymbol propertyType &&
-                                                         (propertyType.IsDerivedFrom(boundNodeType) ||
-                                                          propertyType.IsGenericListOf(immutableArrayType, boundNodeType)))
-                                      .ToImmutableArray();
+                var model = NodeModel.Create(type!, context);
+                if (model is null) continue;
+
+                var propertiesToRewrite = model.Parameters
+                                               .Select(parameter => parameter.Property)
+                                               .Where(property => property.Type is INamedTypeSymbol propertyType &&
+                                                                  (propertyType.IsDerivedFrom(boundNodeType) ||
+                                                                   propertyType.IsGenericListOf(immutableArrayType, boundNodeType)))
+                                               .ToImmutableArray();
 
                 if (propertiesToRewrite.Length == 0)
                 {
@@ -110,37 +105,16 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
                     Writer.WriteLine();
                     Writer.Write("return ");
                     Writer.Write(string.Join(" && ", propertiesToRewrite.Select(property => $"node.{property.Name} == rewritten{property.Name}")));
-                    Writer.Write($" ? node : new {type.Name}(node.Syntax");
-
-                    var allProperties = type.GetMembers()
-                                            .OfType<IPropertySymbol>()
-                                            .Where(property => property.Type is INamedTypeSymbol)
-                                            .ToImmutableArray();
-                    var constructorParameters = type.InstanceConstructors.First(ctor => !ctor.IsOverride).Parameters;
-                    int propertyIndex, argumentIndex;
-                    for (propertyIndex = 0, argumentIndex = 1;
-                         propertyIndex < allProperties.Length && argumentIndex < constructorParameters.Length; propertyIndex++)
+                    Writer.Write($" ? node : new {type.Name}(");
+                    for (int i = 0; i < model.Parameters.Length; i++)
                     {
-                        var property = allProperties[propertyIndex];
-                        if (!SymbolEqualityComparer.Default.Equals(property.Type, constructorParameters[argumentIndex].Type))
-                            continue;
-                        Writer.Write(", ");
+                        if (i > 0) Writer.Write(", ");
+                        var property = model.Parameters[i].Property;
                         if (propertiesToRewrite.Contains(property))
                             Writer.Write($"rewritten{property.Name}");
                         else
                             Writer.Write($"node.{property.Name}");
-                        argumentIndex++;
                     }
-
-                    if (type.IsDerivedFrom(boundLoopStatementType))
-                    {
-                        Writer.Write(", node.BreakLabel, node.ContinueLabel");
-                        argumentIndex += 2;
-                    }
-
-                    if (argumentIndex != constructorParameters.Length || allProperties.Skip(propertyIndex).Any(propertiesToRewrite.Contains))
-                        context.ReportDiagnostic(Diagnostic.Create(UnableToConstructBoundNode, null, DiagnosticSeverity.Error, null, null, type.Name));
-
                     Writer.WriteLine(");");
                 }
             }

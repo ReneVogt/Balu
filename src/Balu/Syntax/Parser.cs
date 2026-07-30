@@ -179,7 +179,7 @@ sealed class Parser
         var typeClause = ParseOptionalTypeClause();
         var equals = MatchToken(SyntaxKind.EqualsToken);
         var expression = ParseExpression();
-        return new(syntaxTree, keyword, identifier, equals, expression, typeClause);
+        return new(syntaxTree, keyword, identifier, typeClause, equals, expression);
     }
     ContinueStatementSyntax ParseContinueStatement()
     {

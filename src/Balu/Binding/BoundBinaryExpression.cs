@@ -14,12 +14,12 @@ sealed partial class BoundBinaryExpression : BoundExpression
     public BoundBinaryOperator Operator { get; }
     public BoundExpression Right { get; }
     
-    public BoundBinaryExpression(SyntaxNode syntax, BoundExpression left, BoundBinaryOperator op, BoundExpression right) : base(syntax)
+    public BoundBinaryExpression(SyntaxNode syntax, BoundExpression left, BoundBinaryOperator @operator, BoundExpression right) : base(syntax)
     {
         Left = left;
-        Operator = op;
+        Operator = @operator;
         Right = right;
-        Constant = ConstantFolder.ComputeConstant(left, op, right);
+        Constant = ConstantFolder.ComputeConstant(left, @operator, right);
         HasSideEffects = Left.HasSideEffects || Right.HasSideEffects;
     }
 
