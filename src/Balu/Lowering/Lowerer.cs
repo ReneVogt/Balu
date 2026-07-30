@@ -200,7 +200,7 @@ sealed class Lowerer : BoundTreeRewriter
         var seq = currentSequencePointStatement; currentSequencePointStatement = node;
         var result = (BoundSequencePointStatement)base.VisitBoundSequencePointStatement(node);
         currentSequencePointStatement = seq;
-        return result.Statement.Kind == BoundNodeKind.NopStatement ? result.Statement : result;
+        return result;
     }
 
     static void InsertBlockStatement(ImmutableArray<BoundStatement>.Builder builder, BoundStatement body)
@@ -319,8 +319,13 @@ sealed class Lowerer : BoundTreeRewriter
                 var next = builder[labelIndex].UnwrapSequencePoint();
                 if (next.Kind == BoundNodeKind.LabelStatement && ((BoundLabelStatement)next).Label == label)
                 {
-                    builder.RemoveAt(gotoIndex);
-                    gotoIndex--;
+                    if (builder[gotoIndex] is BoundSequencePointStatement sequencePoint)
+                        builder[gotoIndex] = SequencePoint(Nop(current.Syntax), sequencePoint.Location);
+                    else
+                    {
+                        builder.RemoveAt(gotoIndex);
+                        gotoIndex--;
+                    }
                     break;
                 }
 

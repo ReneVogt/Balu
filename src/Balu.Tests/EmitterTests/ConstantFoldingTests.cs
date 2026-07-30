@@ -13,7 +13,7 @@ public partial class EmitterTests
             function test() [{]
                 [let x = 4]
                 [let y = 5]
-                if (x < y)
+                [if (x < y)]
                     [call()]
             [}]
             test()
@@ -24,11 +24,12 @@ public partial class EmitterTests
             IL0002: stloc.0
             IL0003: ldc.i4.5
             IL0004: stloc.1
-            IL0005: call System.Void Program::call()
-            IL000A: nop
-            IL000B: ret
+            IL0005: nop
+            IL0006: call System.Void Program::call()
+            IL000B: nop
+            IL000C: ret
 ";
-        var offsets = new[] { 0, 1, 3, 5, 0xA };
+        var offsets = new[] { 0, 1, 3, 5, 6, 0xB };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
@@ -55,6 +56,30 @@ public partial class EmitterTests
         code.AssertIl("test", il, output: output);
     }
     [Fact]
+    public void Emitter_ConstantFolding_IfTrueOptimizedWithSymbols()
+    {
+        const string code = @"
+            function call() {}
+            function test() {
+                [let x = 4]
+                [let y = 5]
+                if (x < y)
+                    [call()]
+            }
+            test()
+";
+        const string il = @"
+            IL0000: ldc.i4.4
+            IL0001: stloc.0
+            IL0002: ldc.i4.5
+            IL0003: stloc.1
+            IL0004: call System.Void Program::call()
+            IL0009: ret
+";
+        var offsets = new[] { 0, 2, 4 };
+        code.AssertIlAndSymbols("test", il, offsets, debugFriendly: false, output: output);
+    }
+    [Fact]
     public void Emitter_ConstantFolding_IfFalseDebug()
     {
         const string code = @"
@@ -62,7 +87,7 @@ public partial class EmitterTests
             function test() [{]
                 [let x = 4]
                 [let y = 5]
-                if (x > y)
+                [if (x > y)]
                 {
                     call()
                 }
@@ -76,9 +101,10 @@ public partial class EmitterTests
             IL0003: ldc.i4.5
             IL0004: stloc.1
             IL0005: nop
-            IL0006: ret
+            IL0006: nop
+            IL0007: ret
 ";
-        var offsets = new[] { 0, 1, 3, 5 };
+        var offsets = new[] { 0, 1, 3, 5, 6 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
@@ -113,7 +139,7 @@ public partial class EmitterTests
             function test() [{]
                 [let x = 4]
                 [let y = 5]
-                if (x < y)
+                [if (x < y)]
                 [{]
                     [call()]
                 [}]
@@ -128,12 +154,13 @@ public partial class EmitterTests
             IL0003: ldc.i4.5
             IL0004: stloc.1
             IL0005: nop
-            IL0006: call System.Void Program::call()
-            IL000B: nop
+            IL0006: nop
+            IL0007: call System.Void Program::call()
             IL000C: nop
-            IL000D: ret
+            IL000D: nop
+            IL000E: ret
 ";
-        var offsets = new[] { 0, 1, 3, 5, 6, 0xB, 0xC };
+        var offsets = new[] { 0, 1, 3, 5, 6, 7, 0xC, 0xD };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
@@ -170,7 +197,7 @@ public partial class EmitterTests
             function test() [{]
                 [let x = 4]
                 [let y = 5]
-                if (x > y)
+                [if (x > y)]
                 {
                     call()
                 }
@@ -187,9 +214,10 @@ public partial class EmitterTests
             IL0005: nop
             IL0006: nop
             IL0007: nop
-            IL0008: ret
+            IL0008: nop
+            IL0009: ret
 ";
-        var offsets = new[] { 0, 1, 3, 5, 6, 7 };
+        var offsets = new[] { 0, 1, 3, 5, 6, 7, 8 };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
@@ -227,7 +255,7 @@ public partial class EmitterTests
             function test() [{]
                 [let x = true]
                 [let y = false]
-                while x || y
+                [while x || y]
                 [{]
                     [call()]
                 [}]
@@ -242,13 +270,14 @@ public partial class EmitterTests
             IL0003: ldc.i4.0
             IL0004: stloc.1
             IL0005: nop
-            IL0006: call System.Void Program::call()
-            IL000B: nop
-            IL000C: br.s IL_0005: nop
-            IL000E: nop
-            IL000F: ret
+            IL0006: nop
+            IL0007: call System.Void Program::call()
+            IL000C: nop
+            IL000D: br.s IL_0005: nop
+            IL000F: nop
+            IL0010: ret
 ";
-        var offsets = new[] { 0, 1, 3, 5, 6, 0xB, 0xE };
+        var offsets = new[] { 0, 1, 3, 5, 6, 7, 0xC, 0xF };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]
@@ -289,7 +318,7 @@ public partial class EmitterTests
             function test() [{]
                 [let x = false]
                 [let y = true]
-                while x && y
+                [while x && y]
                 {
                     call()
                 }
@@ -303,11 +332,12 @@ public partial class EmitterTests
             IL0002: stloc.0
             IL0003: ldc.i4.1
             IL0004: stloc.1
-            IL0005: call System.Void Program::call2()
-            IL000A: nop
-            IL000B: ret
+            IL0005: nop
+            IL0006: call System.Void Program::call2()
+            IL000B: nop
+            IL000C: ret
 ";
-        var offsets = new[] { 0, 1, 3, 5, 0xA };
+        var offsets = new[] { 0, 1, 3, 5, 6, 0xB };
         code.AssertIlAndSymbols("test", il, offsets, output: output);
     }
     [Fact]

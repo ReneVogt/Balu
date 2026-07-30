@@ -33,6 +33,7 @@ sealed class Emitter : IDisposable
 
 
     LocalVariableScope? locals;
+    bool emitSymbols;
     bool debug;
 
     Emitter(BoundProgram program, string moduleName, EmitReferenceSet references)
@@ -151,7 +152,7 @@ sealed class Emitter : IDisposable
         
         method.Body.OptimizeMacros();
 
-        if (debug)
+        if (emitSymbols)
             method.DebugInformation.Scope = EndScope(processor);
     }
     void EmitStatement(ILProcessor processor, BoundStatement statement)
@@ -617,7 +618,7 @@ sealed class Emitter : IDisposable
     }
     void EmitSequencePointStatement(ILProcessor processor, BoundSequencePointStatement statement)
     {
-        if (!debug)
+        if (!emitSymbols || !debug && statement.Statement.Kind == BoundNodeKind.NopStatement)
         {
             if (statement.Statement.Kind != BoundNodeKind.NopStatement)
                 EmitStatement(processor, statement.Statement);
@@ -744,11 +745,12 @@ sealed class Emitter : IDisposable
         referencedMembers.Assembly.MainModule.CustomAttributes.Add(attribute);
     }
 
-    void Emit(Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
+    void Emit(Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
     {
         if (diagnostics.HasErrors()) return;
 
-        debug = symbolStream is not null;
+        emitSymbols = symbolStream is not null;
+        this.debug = debug && emitSymbols;
         EmitDebuggableAttribute();
 
         EmitFields(initializedGlobalVariables);
@@ -782,16 +784,19 @@ sealed class Emitter : IDisposable
     {
         if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
         using var referenceSet = new EmitReferenceSet(references);
-        return Emit(program, moduleName, referenceSet, outputStream, symbolStream, initializedGlobalVariables);
+        return Emit(program, moduleName, referenceSet, outputStream, symbolStream, symbolStream is not null, initializedGlobalVariables);
     }
 
     public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
+        => Emit(program, moduleName, references, outputStream, symbolStream, symbolStream is not null, initializedGlobalVariables, pdbPath);
+
+    public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null)
     {
         try
         {
             if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
             using var emitter = new Emitter(program, moduleName, references);
-            emitter.Emit(outputStream, symbolStream, initializedGlobalVariables, pdbPath);
+            emitter.Emit(outputStream, symbolStream, debug, initializedGlobalVariables, pdbPath);
             return new(emitter.diagnostics.ToImmutableArray(), emitter.globalSymbolNames.ToImmutableDictionary());
         }
         catch (MissingReferencesException exception)
