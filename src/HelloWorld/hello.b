@@ -1,8 +1,6 @@
 function main()
 {
 	test()
-	continue
-	break
 }
 
 function test()

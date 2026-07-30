@@ -84,7 +84,16 @@ sealed class Binder : SyntaxTreeVisitor
             SetErrorExpression(node);
         }
         else
-            boundNode = Binary(node, left, op, right);
+        {
+            var expression = Binary(node, left, op, right);
+            if (expression.FoldingError == ConstantFoldingError.DivisionByZero)
+            {
+                diagnostics.ReportConstantDivisionByZero(node.Location);
+                SetErrorExpression(node);
+            }
+            else
+                boundNode = expression;
+        }
     }
     protected override void VisitNameExpression(NameExpressionSyntax node)
     {

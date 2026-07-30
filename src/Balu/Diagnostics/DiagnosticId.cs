@@ -41,6 +41,7 @@ public enum DiagnosticId
     OnlyOneFileCanHaveGlobalStatements = 1029,
     NoEntryPointDefined = 1030,
     UnreachableCode = 1031,
+    ConstantDivisionByZero = 1032,
 
     Emitter = 2000,
     InvalidAssemblyReference = 2001,

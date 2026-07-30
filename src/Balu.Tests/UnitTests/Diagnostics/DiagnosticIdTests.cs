@@ -49,6 +49,7 @@ public class DiagnosticIdTests
         (DiagnosticId.OnlyOneFileCanHaveGlobalStatements, 1029),
         (DiagnosticId.NoEntryPointDefined, 1030),
         (DiagnosticId.UnreachableCode, 1031),
+        (DiagnosticId.ConstantDivisionByZero, 1032),
 
         (DiagnosticId.Emitter, 2000),
         (DiagnosticId.InvalidAssemblyReference, 2001),
