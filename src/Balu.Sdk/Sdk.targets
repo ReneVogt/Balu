@@ -1,22 +1,52 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
 	<Import Project="sdk.targets" Sdk="Microsoft.NET.Sdk"/>
+	<PropertyGroup>
+		<_BaluSymbolsProduced>false</_BaluSymbolsProduced>
+		<_BaluSymbolsProduced Condition="'$(DebugSymbols)' == 'true'">true</_BaluSymbolsProduced>
+		<_BaluSymbolsProduced Condition="'$(DebugType)' == 'none'">false</_BaluSymbolsProduced>
+		<_BaluSymbolsProduced Condition="'$(DebugType)' == 'pdbonly' OR '$(DebugType)' == 'full' OR '$(DebugType)' == 'portable'">true</_BaluSymbolsProduced>
+		<_BaluSymbolsProduced Condition="'$(DebugType)' == 'embedded'">false</_BaluSymbolsProduced>
+		<_DebugSymbolsProduced>$(_BaluSymbolsProduced)</_DebugSymbolsProduced>
+		<BaluSymbolPath Condition="'$(_BaluSymbolsProduced)' == 'true' AND '$(BaluSymbolPath)' == ''">$(IntermediateOutputPath)$(TargetName).pdb</BaluSymbolPath>
+		<_BaluDebug Condition="'$(Optimize)' != 'true'">true</_BaluDebug>
+		<_BaluDebug Condition="'$(_BaluDebug)' == ''">false</_BaluDebug>
+		<_BaluCompilerOptionsFile>$(IntermediateOutputPath)BaluCompilerOptions.txt</_BaluCompilerOptionsFile>
+		<_BaluSymbolPathStateFile>$(IntermediateOutputPath)BaluSymbolPath.txt</_BaluSymbolPathStateFile>
+	</PropertyGroup>
+	<ItemGroup Condition="'$(_BaluSymbolsProduced)' == 'true'">
+		<_DebugSymbolsIntermediatePath Remove="@(_DebugSymbolsIntermediatePath)" />
+		<_DebugSymbolsIntermediatePath Include="$(BaluSymbolPath)" />
+		<_DebugSymbolsOutputPath Remove="@(_DebugSymbolsOutputPath)" />
+		<_DebugSymbolsOutputPath Include="@(_DebugSymbolsIntermediatePath -> '$(OutDir)%(Filename)%(Extension)')" />
+		<_BaluSymbolOutput Include="$(BaluSymbolPath)" />
+	</ItemGroup>
 	<Target Name="BaluCollectFiles" BeforeTargets="CoreCompile">
 		<ItemGroup>
 			<BaluFiles Include="**/*.b"/>
 			<UpToDateCheckInput Include="@(BaluFiles)"/>
 		</ItemGroup>
 	</Target>
-	<Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn);BaluCollectFiles" Inputs="@(BaluFiles -> '%(FullPath)')" Outputs="@(IntermediateAssembly -> '%(FullPath)')">
+	<Target Name="BaluPrepareCompilerOptions">
+		<Error Condition="'$(DebugType)' == 'embedded'" Text="Balu does not support embedded PDBs. Use DebugType 'portable' or 'none'." />
+		<ReadLinesFromFile File="$(_BaluSymbolPathStateFile)" Condition="Exists('$(_BaluSymbolPathStateFile)')">
+			<Output TaskParameter="Lines" ItemName="_PreviousBaluSymbolPath" />
+		</ReadLinesFromFile>
+		<WriteLinesToFile File="$(_BaluCompilerOptionsFile)" Lines="DebugSymbols=$(DebugSymbols);DebugType=$(DebugType);Optimize=$(Optimize);SymbolPath=$(BaluSymbolPath)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+		<WriteLinesToFile File="$(_BaluSymbolPathStateFile)" Lines="$(BaluSymbolPath)" Overwrite="true" WriteOnlyWhenDifferent="true" />
+		<ItemGroup>
+			<FileWrites Include="$(_BaluCompilerOptionsFile);$(_BaluSymbolPathStateFile)" />
+		</ItemGroup>
+	</Target>
+	<Target Name="CoreCompile" DependsOnTargets="$(CoreCompileDependsOn);BaluCollectFiles;BaluPrepareCompilerOptions" Inputs="@(BaluFiles -> '%(FullPath)');$(_BaluCompilerOptionsFile)" Outputs="@(IntermediateAssembly -> '%(FullPath)');@(_BaluSymbolOutput -> '%(FullPath)')">
 		<ItemGroup>
 			<ReferencePath Remove="@(ReferencePath)" Condition="
 						   '%(Filename)' != 'System.Runtime' AND 
 						   '%(Filename)' != 'System.Runtime.Extensions' AND 						   
 						   '%(Filename)' != 'System.Console'"/>
 		</ItemGroup>
-		<PropertyGroup>
-			<BaluSymbolPath Condition="'$(Configuration)' == 'Debug' AND '$(BaluSymbolPath)' == ''">@(IntermediateAssembly -> '%(RootDir)%(Directory)%(filename).pdb')</BaluSymbolPath>
-		</PropertyGroup>
-		<BaluCompiler DotNetPath="$(DOTNET_HOST_PATH)" CompilerPath="$(BaluCompilerPath)/bc.dll" SourceFiles="@(BaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" SymbolPath="$(BaluSymbolPath)"/>
+		<BaluCompiler DotNetPath="$(DOTNET_HOST_PATH)" CompilerPath="$(BaluCompilerPath)/bc.dll" SourceFiles="@(BaluFiles)" OutputPath="@(IntermediateAssembly)" ReferencedAssemblies="@(ReferencePath)" SymbolPath="$(BaluSymbolPath)" Debug="$(_BaluDebug)"/>
+		<Delete Files="@(_PreviousBaluSymbolPath);@(_PreviousBaluSymbolPath -> '$(OutDir)%(Filename)%(Extension)')" Condition="'$(_BaluSymbolsProduced)' != 'true' OR '@(_PreviousBaluSymbolPath)' != '$(BaluSymbolPath)'" />
+		<Delete Files="$(IntermediateOutputPath)$(TargetName).pdb;$(OutDir)$(TargetName).pdb" Condition="'$(_BaluSymbolsProduced)' != 'true'" />
 	</Target>
 </Project>

@@ -71,7 +71,11 @@ public sealed class Compilation
 
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath) =>
         Emit(moduleName, references, outputPath, symbolPath, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath, bool debug) =>
+        Emit(moduleName, references, outputPath, symbolPath, debug, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+        => Emit(moduleName, references, outputPath, symbolPath, symbolPath is not null, initializedGlobalVariables);
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, string outputPath, string? symbolPath, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
@@ -82,11 +86,15 @@ public sealed class Compilation
         if (Program.Diagnostics.HasErrors()) return Program.Diagnostics;
 
         using var referenceSet = new EmitReferenceSet(references);
-        return EmitToFiles(moduleName, referenceSet, canonicalOutputPath, canonicalSymbolPath, initializedGlobalVariables);
+        return EmitToFiles(moduleName, referenceSet, canonicalOutputPath, canonicalSymbolPath, debug, initializedGlobalVariables);
     }
     public ImmutableArray<Diagnostic> EmitWithReferenceSet(string moduleName, EmitReferenceSet references, string outputPath, string? symbolPath) =>
         EmitWithReferenceSet(moduleName, references, outputPath, symbolPath, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
+    public ImmutableArray<Diagnostic> EmitWithReferenceSet(string moduleName, EmitReferenceSet references, string outputPath, string? symbolPath, bool debug) =>
+        EmitWithReferenceSet(moduleName, references, outputPath, symbolPath, debug, ImmutableDictionary<GlobalVariableSymbol, object>.Empty);
     public ImmutableArray<Diagnostic> EmitWithReferenceSet(string moduleName, EmitReferenceSet references, string outputPath, string? symbolPath, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+        => EmitWithReferenceSet(moduleName, references, outputPath, symbolPath, symbolPath is not null, initializedGlobalVariables);
+    public ImmutableArray<Diagnostic> EmitWithReferenceSet(string moduleName, EmitReferenceSet references, string outputPath, string? symbolPath, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
@@ -95,7 +103,7 @@ public sealed class Compilation
         var pathDiagnostics = ValidateEmitPaths(outputPath, symbolPath, out var canonicalOutputPath, out var canonicalSymbolPath);
         if (pathDiagnostics.HasErrors()) return pathDiagnostics;
         if (Program.Diagnostics.HasErrors()) return Program.Diagnostics;
-        return EmitToFiles(moduleName, references, canonicalOutputPath, canonicalSymbolPath, initializedGlobalVariables);
+        return EmitToFiles(moduleName, references, canonicalOutputPath, canonicalSymbolPath, debug, initializedGlobalVariables);
     }
     public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, Stream outputStream, Stream? symbolStream)
     {
@@ -118,12 +126,29 @@ public sealed class Compilation
         _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
         return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, ImmutableDictionary<GlobalVariableSymbol, object>.Empty).Diagnostics;
     }
-    public EmitterResult EmitWithReferenceSet(string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    public ImmutableArray<Diagnostic> EmitWithReferenceSet(string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, bool debug)
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
         _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
-        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, initializedGlobalVariables);
+        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, debug, ImmutableDictionary<GlobalVariableSymbol, object>.Empty).Diagnostics;
+    }
+    public ImmutableArray<Diagnostic> Emit(string moduleName, string[] references, Stream outputStream, Stream? symbolStream, bool debug)
+    {
+        _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
+        _ = references ?? throw new ArgumentNullException(nameof(references));
+        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        using var referenceSet = new EmitReferenceSet(references);
+        return Emitter.Emit(Program, moduleName, referenceSet, outputStream, symbolStream, debug, ImmutableDictionary<GlobalVariableSymbol, object>.Empty).Diagnostics;
+    }
+    public EmitterResult EmitWithReferenceSet(string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+        => EmitWithReferenceSet(moduleName, references, outputStream, symbolStream, symbolStream is not null, initializedGlobalVariables);
+    public EmitterResult EmitWithReferenceSet(string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
+    {
+        _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
+        _ = references ?? throw new ArgumentNullException(nameof(references));
+        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        return Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, debug, initializedGlobalVariables);
     }
 
     ImmutableArray<Diagnostic> EmitToFiles(
@@ -131,6 +156,7 @@ public sealed class Compilation
         EmitReferenceSet references,
         string outputPath,
         string? symbolPath,
+        bool debug,
         ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables)
     {
         var referenceDiagnostics = references.GetDiagnostics();
@@ -148,7 +174,7 @@ public sealed class Compilation
                     result = EmitWithReferenceSet(moduleName, references, outputStream, null, initializedGlobalVariables);
                 else
                     using (var symbolStream = CreateTemporaryFile(symbolPath, out temporarySymbolPath))
-                        result = Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, initializedGlobalVariables, symbolPath);
+                        result = Emitter.Emit(Program, moduleName, references, outputStream, symbolStream, debug, initializedGlobalVariables, symbolPath);
             }
 
             if (result.Diagnostics.HasErrors()) return result.Diagnostics;

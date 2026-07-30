@@ -49,6 +49,7 @@ positional arguments. `bc` does not require the conventional `.b` extension.
 | `-r=PATH`, `/r PATH` | Assembly path | Add a .NET reference assembly; repeat for every reference |
 | `-o=PATH`, `/o PATH` | Assembly path | Set the emitted assembly path |
 | `-s=PATH`, `/s PATH` | PDB path | Emit a portable PDB at this path |
+| `-debug=BOOL`, `/debug BOOL` | Boolean | Control debugger-friendly IL when a PDB is emitted |
 | `-m=NAME`, `/m NAME` | Name | Set the emitted assembly/module name |
 | `-q`, `/q` | none | Suppress informational output and diagnostics |
 | `-?`, `-h`, `--help`, `/help` | none | Display help and exit |
@@ -128,6 +129,31 @@ The PDB contains source document names, SHA-256 source checksums, sequence
 points, and local-variable scopes. A document name must be non-empty and cannot
 identify sources with different checksums. Reusing a name is allowed when the
 checksums are identical.
+
+When `-s` is used without `-debug`, `bc` defaults to debugger-friendly IL. Use
+`-debug=false` to emit the PDB while keeping the method bodies closer to the
+symbol-free release shape.
+
+### Debugger-friendly IL: `-debug`
+
+`-debug` controls whether `bc` emits debugger-friendly IL. The option accepts a
+boolean value such as `true` or `false`.
+
+With `-debug=true`, the emitter adds debug-only NOPs, a shared return epilogue,
+local-variable scope information, and `DebuggableAttribute`. This is the default
+when `-s` is specified.
+
+With `-debug=false`, `bc` can still emit a portable PDB and sequence points for
+real emitted instructions, but optimized-away source locations do not receive
+debug-only NOPs. This is useful for builds that need symbols without changing
+the generated IL shape as much:
+
+```console
+bc program.b -s=out/program.pdb -debug=false
+```
+
+Specifying `-debug=true` without `-s` has no practical effect, because no symbol
+file or sequence points are emitted.
 
 ### Module name: `-m`
 

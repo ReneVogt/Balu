@@ -9,6 +9,7 @@
 	  <EnableNETAnalyzers>true</EnableNETAnalyzers>
 	  <AnalysisLevel>latest</AnalysisLevel>
 	  <AnalysisMode>AllEnabledByDefault</AnalysisMode>
+	  <AssemblyVersion>0.4.0</AssemblyVersion>
   </PropertyGroup>
 
   <ItemGroup>

@@ -38,6 +38,7 @@ public sealed class BaluCompiler : ToolTask
 
         if (!string.IsNullOrWhiteSpace(SymbolPath))
             builder.AppendSwitchIfNotNull("/s ", SymbolPath);
+        builder.AppendSwitchIfNotNull("/debug ", Debug.ToString());
 
         foreach (var reference in ReferencedAssemblies)
             builder.AppendSwitchIfNotNull("/r ", reference.GetMetadata("FullPath"));

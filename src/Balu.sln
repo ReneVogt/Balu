@@ -41,6 +41,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "bc.Tests", "bc.Tests\bc.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balu.Interpretation.Tests", "Balu.Interpretation.Tests\Balu.Interpretation.Tests.csproj", "{7C47C45E-FBEE-4F65-AB4A-B6BFEC4EF605}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Balu.Sdk.Tests", "Balu.Sdk.Tests\Balu.Sdk.Tests.csproj", "{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -195,6 +197,18 @@ Global
 		{7C47C45E-FBEE-4F65-AB4A-B6BFEC4EF605}.Release|arm64.Build.0 = Release|Any CPU
 		{7C47C45E-FBEE-4F65-AB4A-B6BFEC4EF605}.Release|x86.ActiveCfg = Release|Any CPU
 		{7C47C45E-FBEE-4F65-AB4A-B6BFEC4EF605}.Release|x86.Build.0 = Release|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Debug|arm64.ActiveCfg = Debug|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Debug|arm64.Build.0 = Debug|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Debug|x86.Build.0 = Debug|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Release|arm64.ActiveCfg = Release|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Release|arm64.Build.0 = Release|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Release|x86.ActiveCfg = Release|Any CPU
+		{D8B6A94F-0B65-471C-AA9B-880448B3AC1D}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

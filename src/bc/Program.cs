@@ -37,6 +37,7 @@ sealed class Program
         string moduleName = string.Empty;
         List<string> sourcePaths = [];
         bool helpRequested = false;
+        bool? debug = null;
 
         var options = new OptionSet
         {
@@ -44,6 +45,7 @@ sealed class Program
             { "r=", "The {path} of an assembly to reference.", v => references.Add(v) },
             { "o=", "The output {path} of the assembly to create.", v => outputPath = v },
             { "s=", "The optional symbol {path} of the pdb to create.", v => symbolPath = v },
+            { "debug=", "Whether to emit debugger-friendly IL.", (bool v) => debug = v },
             { "m=", "The module {name} of the assembly to create.", v => moduleName = v },
             { "q", _ => quiet = true },
             { "?|h|help", "Shows help.", _ => helpRequested = true }
@@ -95,7 +97,7 @@ sealed class Program
             var compilation = Compilation.Create(syntaxTrees);
             LogInfo(
                 $"Emitting assembly '{outputPath}'{(string.IsNullOrWhiteSpace(symbolPath) ? string.Empty : $" and symbol file '{symbolPath}'")}.");
-            var diagnostics = compilation.Emit(moduleName, [.. references], outputPath, symbolPath);
+            var diagnostics = compilation.Emit(moduleName, [.. references], outputPath, symbolPath, debug ?? !string.IsNullOrWhiteSpace(symbolPath));
             LogDiagnostics(diagnostics);
             LogInfo("Done.");
             return diagnostics.HasErrors() ? CompilationError : Success;

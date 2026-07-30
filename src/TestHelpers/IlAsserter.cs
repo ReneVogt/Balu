@@ -19,7 +19,7 @@ public static class IlAsserter
     public static void AssertIl(this string code, string methodToAssert, string expectedIL, bool script = false, bool debug = false, ITestOutputHelper? output = null)
     {
         var expected = string.Join(Environment.NewLine,
-                                   expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
+                                   expectedIL.ReplaceLineEndings().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
         var tree = SyntaxTree.Parse(SourceText.From(code, "IlAsserter.b"));
         var (il, _, _) = ExecuteEmitter(tree, methodToAssert, script, debug, output);
         Assert.Equal(expected, il);
@@ -38,10 +38,10 @@ public static class IlAsserter
         Assert.Equal(expectedSymbols, symbols);
         if (scopes is not null) Assert.Equal(AnnotatedText.Parse(scopes).Text, actualScopes);
     }
-    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, IEnumerable<int> sequencePointOffsets, string? scopes = null, bool script = false, ITestOutputHelper? output = null)
+    public static void AssertIlAndSymbols(this string code, string methodToAssert, string expectedIL, IEnumerable<int> sequencePointOffsets, string? scopes = null, bool script = false, bool debugFriendly = true, ITestOutputHelper? output = null)
     {
         var expected = string.Join(Environment.NewLine,
-                                   expectedIL.Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
+                                   expectedIL.ReplaceLineEndings().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
         var annotated = AnnotatedText.Parse(code);
         var tree = SyntaxTree.Parse(SourceText.From(annotated.Text, "IlAsserter.b"));
         var expectedSymbols = string.Join(Environment.NewLine,
@@ -50,12 +50,12 @@ public static class IlAsserter
                                                    .Zip(sequencePointOffsets,
                                                     (span, offset) => ToSymbolString(offset, new (tree.Text, span))));
 
-        var (il, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, output);
+        var (il, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, output, debugFriendly);
         Assert.Equal(expected, il);
         Assert.Equal(expectedSymbols, symbols);
         if (scopes is not null) Assert.Equal(AnnotatedText.Parse(scopes).Text.TrimEnd(), actualScopes);
     }
-    static (string il, string symbols, string locals) ExecuteEmitter(SyntaxTree syntaxTree, string methodToAssert, bool script, bool debug, ITestOutputHelper? output)
+    static (string il, string symbols, string locals) ExecuteEmitter(SyntaxTree syntaxTree, string methodToAssert, bool script, bool debug, ITestOutputHelper? output, bool debugFriendly = true)
     {
         var compilation = script
                               ? Compilation.CreateScript(null, syntaxTree)
@@ -65,7 +65,7 @@ public static class IlAsserter
         var outputStream = new MemoryStream();
         try
         {
-            var diagnostics = compilation.Emit("Balu", ReferenceProvider.References, outputStream, symbolStream);
+            var diagnostics = compilation.Emit("Balu", ReferenceProvider.References, outputStream, symbolStream, debug && debugFriendly);
             Assert.Empty(diagnostics.Where(diagnostic => diagnostic.Severity == DiagnosticSeverity.Error));
 
             outputStream.Seek(0, SeekOrigin.Begin);
