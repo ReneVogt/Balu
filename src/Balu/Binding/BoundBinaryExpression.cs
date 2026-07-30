@@ -9,6 +9,7 @@ sealed partial class BoundBinaryExpression : BoundExpression
     public override TypeSymbol Type => Operator.Type;
     public override BoundConstant? Constant { get; }
     public override bool HasSideEffects { get; }
+    internal ConstantFoldingError FoldingError { get; }
 
     public BoundExpression Left { get; }
     public BoundBinaryOperator Operator { get; }
@@ -19,7 +20,9 @@ sealed partial class BoundBinaryExpression : BoundExpression
         Left = left;
         Operator = @operator;
         Right = right;
-        Constant = ConstantFolder.ComputeConstant(left, @operator, right);
+        var foldingResult = ConstantFolder.Fold(left, @operator, right);
+        Constant = foldingResult.Constant;
+        FoldingError = foldingResult.Error;
         HasSideEffects = Left.HasSideEffects || Right.HasSideEffects;
     }
 
