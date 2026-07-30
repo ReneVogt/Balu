@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Text;
+using System.Threading;
 using Balu.Diagnostics;
 
 namespace Balu.Syntax;
@@ -10,6 +11,7 @@ sealed class Lexer
 {
     readonly SyntaxTree syntaxTree;
     readonly SourceText sourceText;
+    readonly CancellationToken cancellationToken;
     readonly DiagnosticBag diagnostics = [];
     readonly ImmutableArray<SyntaxTrivia>.Builder triviaBuilder = ImmutableArray.CreateBuilder<SyntaxTrivia>();
 
@@ -20,9 +22,10 @@ sealed class Lexer
     SyntaxKind kind;
     object? value;
 
-    internal Lexer(SyntaxTree syntaxTree)
+    internal Lexer(SyntaxTree syntaxTree, CancellationToken cancellationToken = default)
     {
         this.syntaxTree = syntaxTree;
+        this.cancellationToken = cancellationToken;
         sourceText = this.syntaxTree.Text;
     }
 
@@ -30,6 +33,7 @@ sealed class Lexer
     {
         do
         {
+            cancellationToken.ThrowIfCancellationRequested();
             ReadTrivia(true);
             var leadingTrivia = triviaBuilder.ToImmutable();
 
@@ -56,6 +60,7 @@ sealed class Lexer
 
         do
         {
+            cancellationToken.ThrowIfCancellationRequested();
             start = position;
             kind = CurrentKind();
             text = string.Empty;
@@ -172,7 +177,11 @@ sealed class Lexer
     void ReadNumberToken()
     {
         kind = SyntaxKind.NumberToken;
-        while (char.IsDigit(Current)) Next();
+        while (char.IsDigit(Current))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Next();
+        }
         text = sourceText.ToString(start, position - start);
         if (int.TryParse(text, out var v))
             value = v;
@@ -182,7 +191,11 @@ sealed class Lexer
     void ReadWhiteSpaces()
     {
         kind = SyntaxKind.WhiteSpaceTrivia;
-        while (!IsAtEnd && sourceText.GetLineBreakWidth(position) == 0 && char.IsWhiteSpace(Current)) Next();
+        while (!IsAtEnd && sourceText.GetLineBreakWidth(position) == 0 && char.IsWhiteSpace(Current))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Next();
+        }
         text = sourceText.ToString(start, position - start);
     }
     void ReadLineBreak()
@@ -193,7 +206,11 @@ sealed class Lexer
     }
     void ReadIdentifierOrKeywordToken()
     {
-        while (char.IsLetter(Current) || char.IsDigit(Current) || Current == '_') Next();
+        while (char.IsLetter(Current) || char.IsDigit(Current) || Current == '_')
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Next();
+        }
         text = sourceText.ToString(start, position - start);
         kind = text.KeywordKind();
         value = kind switch
@@ -210,6 +227,7 @@ sealed class Lexer
         var valueBuilder = new StringBuilder();
         while (!IsAtEnd && Current != '"')
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (sourceText.GetLineBreakWidth(position) > 0)
             {
                 diagnostics.ReportUnterminatedString(new(sourceText, new(start, position - start)));
@@ -261,7 +279,11 @@ sealed class Lexer
     {
         value = null;
         kind = SyntaxKind.SingleLineCommentTrivia;
-        while (!IsAtEnd && sourceText.GetLineBreakWidth(position) == 0) Next();
+        while (!IsAtEnd && sourceText.GetLineBreakWidth(position) == 0)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Next();
+        }
         position += sourceText.GetLineBreakWidth(position);
         text = sourceText.ToString(start, position - start);
     }
@@ -270,7 +292,11 @@ sealed class Lexer
         kind = SyntaxKind.MultiLineCommentTrivia;
         value = null;
         position += 2;
-        while (!IsAtEnd && (Current != '*' || Peek(1) != '/')) Next();
+        while (!IsAtEnd && (Current != '*' || Peek(1) != '/'))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Next();
+        }
 
         if (IsAtEnd)
             diagnostics.ReportUnterminatedMultiLineComment(new(sourceText, new(start, 2)));
@@ -282,7 +308,11 @@ sealed class Lexer
     {
         kind = SyntaxKind.BadToken;
         value = null;
-        while (CurrentKind() == SyntaxKind.BadToken) Next();
+        while (CurrentKind() == SyntaxKind.BadToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            Next();
+        }
         text = sourceText.ToString(start, position - start);
         diagnostics.ReportUnexpectedToken(new(sourceText, new(start, position - start)));
     }

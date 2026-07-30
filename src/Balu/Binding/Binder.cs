@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Balu.Diagnostics;
 using Balu.Lowering;
 using Balu.Symbols;
@@ -14,6 +15,7 @@ sealed class Binder : SyntaxTreeVisitor
 {
     readonly DiagnosticBag diagnostics = [];
     readonly FunctionSymbol? containingFunction;
+    readonly CancellationToken cancellationToken;
     readonly Stack<(BoundLabel breakLabel, BoundLabel continueLabel)> loopStack = new ();
     readonly bool isScript;
 
@@ -24,18 +26,23 @@ sealed class Binder : SyntaxTreeVisitor
 
     bool IsError => boundNode is BoundExpression { Type: var type } && type == TypeSymbol.Error;
 
-    Binder(bool isScript, BoundScope parent, FunctionSymbol? containingFunction = null)
+    Binder(bool isScript, BoundScope parent, FunctionSymbol? containingFunction = null, CancellationToken cancellationToken = default)
     {
         this.isScript = isScript;
         scope = new(parent);
         this.containingFunction = containingFunction;
+        this.cancellationToken = cancellationToken;
         if (this.containingFunction is not null)
             foreach (var parameter in this.containingFunction.Parameters)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 scope.TryDeclareSymbol(parameter);
+            }
     }
 
     public override void Visit(SyntaxNode node)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         isGlobal = false;
         base.Visit(node);
     }
@@ -247,6 +254,7 @@ sealed class Binder : SyntaxTreeVisitor
         bool errors = false;
         for(int i=0; i<node.Arguments.Count; i++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Visit(node.Arguments[i]);
             if (IsError) return;
             var argument = (BoundExpression)boundNode!;
@@ -270,6 +278,7 @@ sealed class Binder : SyntaxTreeVisitor
         scope = new (scope);
         foreach (var statement in node.Statements)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Visit(statement);
             statements.Add((BoundStatement)boundNode!);
         }
@@ -495,7 +504,11 @@ sealed class Binder : SyntaxTreeVisitor
     }
     void BindFunctionDeclarations(IEnumerable<FunctionDeclarationSyntax> declarations)
     {
-        foreach( var declaration in declarations) BindFunctionDeclaration(declaration);
+        foreach( var declaration in declarations)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            BindFunctionDeclaration(declaration);
+        }
     }
     void BindFunctionDeclaration(FunctionDeclarationSyntax declaration)
     {
@@ -503,6 +516,7 @@ sealed class Binder : SyntaxTreeVisitor
         var seenParameterNames = new HashSet<string>();
         for (int ordinal = 0; ordinal < declaration.Parameters.Count; ordinal++)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             ParameterSyntax parameter = declaration.Parameters[ordinal];
             var name = parameter.Identifier.Text;
             if (!seenParameterNames.Add(name))
@@ -521,13 +535,14 @@ sealed class Binder : SyntaxTreeVisitor
             diagnostics.ReportSymbolHidesSymbol(function, hidden, declaration.Identifier.Location);
     }
 
-    static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics) =>
-        Lowerer.Lower(statement, containingFunction, diagnostics);
+    static BoundBlockStatement Refactor(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics, CancellationToken cancellationToken) =>
+        Lowerer.Lower(statement, containingFunction, diagnostics, cancellationToken);
 
-    public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees)
+    public static BoundGlobalScope BindGlobalScope(bool isScript, BoundGlobalScope? previous, ImmutableArray<SyntaxTree> syntaxTrees, CancellationToken cancellationToken = default)
     {
-        var parentScope = CreateParentScope(isScript, previous);
-        var binder = new Binder(isScript, parentScope);
+        cancellationToken.ThrowIfCancellationRequested();
+        var parentScope = CreateParentScope(isScript, previous, cancellationToken);
+        var binder = new Binder(isScript, parentScope, cancellationToken: cancellationToken);
 
         //
         // Bind all (new) function declarations.
@@ -541,6 +556,7 @@ sealed class Binder : SyntaxTreeVisitor
         var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
         foreach (var globalStatement in globalStatements)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             binder.Visit(globalStatement);
             statementBuilder.Add((BoundStatement)binder.boundNode!);
         }
@@ -553,10 +569,14 @@ sealed class Binder : SyntaxTreeVisitor
                                              .Cast<FunctionSymbol>()
                                              .Where(function => function.Declaration is not null))
         {
+            cancellationToken.ThrowIfCancellationRequested();
             foreach (var parameterSymbol in functionSymbol.Parameters)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 if (binder.scope.TryLookupSymbol(parameterSymbol.Name, out var hidden))
                     binder.diagnostics.ReportSymbolHidesSymbol(parameterSymbol, hidden,
                                                                functionSymbol.Declaration!.Parameters[parameterSymbol.Ordinal].Identifier.Location);
+            }
         }
 
         // The newly created symbols in the current global scope.
@@ -586,7 +606,10 @@ sealed class Binder : SyntaxTreeVisitor
                 {
                     binder.diagnostics.ReportCannotMixMainAndGlobalStatements(main.Declaration!.Identifier.Location);
                     foreach (var globalStatement in firstGlobalStatements)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
                         binder.diagnostics.ReportCannotMixMainAndGlobalStatements(globalStatement.Location);
+                    }
                 }
 
                 entryPoint = main;
@@ -596,7 +619,10 @@ sealed class Binder : SyntaxTreeVisitor
                 if (firstGlobalStatements.Length > 1)
                 {
                     foreach (var globalStatement in firstGlobalStatements)
+                    {
+                        cancellationToken.ThrowIfCancellationRequested();
                         binder.diagnostics.ReportOnlyOneFileCanHaveGlobalStatements(globalStatement.Location);
+                    }
                 }
 
                 entryPoint = new (GlobalSymbolNames.Main, ImmutableArray<ParameterSymbol>.Empty, TypeSymbol.Void);
@@ -611,9 +637,15 @@ sealed class Binder : SyntaxTreeVisitor
         var previouslyVisibleSymbols = previous?.VisibleSymbols ?? parentScope.GetDeclaredSymbols();
         var combinedScope = new BoundScope(null);
         foreach (var createdSymbol in symbols)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             combinedScope.TryDeclareSymbol(createdSymbol);
+        }
         foreach (var previousSymbol in previouslyVisibleSymbols)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
             combinedScope.TryDeclareSymbol(previousSymbol);
+        }
         var visibleSymbols = combinedScope.GetDeclaredSymbols();
         var shadowedSymbols = (previous?.ShadowedSymbols ?? ImmutableArray<Symbol>.Empty).AddRange(previouslyVisibleSymbols.Except(visibleSymbols));
 
@@ -634,45 +666,53 @@ sealed class Binder : SyntaxTreeVisitor
         var diagnostics = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Diagnostics).Concat(binder.diagnostics).ToImmutableArray();
         return new(entryPoint, statement, shadowedSymbols, visibleSymbols, diagnostics);
     }
-    public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope)
+    public static BoundProgram BindProgram(bool isScript, BoundProgram? previous, BoundGlobalScope globalScope, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var diagnostics = new DiagnosticBag(globalScope.Diagnostics);
-        var parentScope = CreateParentScope(isScript, globalScope);
+        var parentScope = CreateParentScope(isScript, globalScope, cancellationToken);
 
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         if (previous is not null) functionBodyBuilder.AddRange(previous.Functions.Where(x => x.Key != previous.EntryPoint));
         
         foreach (var function in globalScope.VisibleSymbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null && !functionBodyBuilder.ContainsKey(function) && function != previous?.EntryPoint))
         {
-            var functionBinder = new Binder(isScript, parentScope, function);
+            cancellationToken.ThrowIfCancellationRequested();
+            var functionBinder = new Binder(isScript, parentScope, function, cancellationToken);
             functionBinder.Visit(function.Declaration!.Body);
             var body = (BoundStatement)functionBinder.boundNode!;
-            var refactoredBody = Refactor(body, function, diagnostics);
+            var refactoredBody = Refactor(body, function, diagnostics, cancellationToken);
             functionBodyBuilder.Add(function, refactoredBody);
             diagnostics.AddRange(functionBinder.diagnostics);
         }
 
         if (!functionBodyBuilder.ContainsKey(globalScope.EntryPoint))
         {
-            var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint, diagnostics);
+            var refactoredEntryPoint = Refactor(globalScope.Statement, globalScope.EntryPoint, diagnostics, cancellationToken);
             functionBodyBuilder.Add(globalScope.EntryPoint, refactoredEntryPoint);
         }
 
         return new(globalScope.EntryPoint, globalScope.AllSymbols, globalScope.VisibleSymbols, functionBodyBuilder.ToImmutable(), diagnostics.ToImmutableArray());
     }
-    static BoundScope CreateParentScope(bool isScript, BoundGlobalScope? previous)
+    static BoundScope CreateParentScope(bool isScript, BoundGlobalScope? previous, CancellationToken cancellationToken)
     {
         var parentScope = new BoundScope(null);
         if (previous is null)
         {
             foreach (var builtInFunction in BuiltInFunctions.GetBuiltInFunctions())
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 parentScope.TryDeclareSymbol(builtInFunction);
+            }
             if (isScript)
                 parentScope.TryDeclareSymbol(new GlobalVariableSymbol(GlobalSymbolNames.Result, false, TypeSymbol.Any, null));
         }
         else
             foreach (var symbol in previous.VisibleSymbols)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
                 parentScope.TryDeclareSymbol(symbol);
+            }
 
         return parentScope;
     }

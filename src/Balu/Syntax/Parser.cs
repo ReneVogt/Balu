@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Threading;
 using Balu.Diagnostics;
 using Balu.Text;
 
@@ -13,21 +14,24 @@ sealed class Parser
     readonly List<SyntaxToken> tokens = [];
     readonly SourceText sourceText;
     readonly SyntaxTree syntaxTree;
+    readonly CancellationToken cancellationToken;
 
     int position;
 
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
-    public Parser(SyntaxTree syntaxTree)
+    public Parser(SyntaxTree syntaxTree, CancellationToken cancellationToken = default)
     {
         this.syntaxTree = syntaxTree;
+        this.cancellationToken = cancellationToken;
         sourceText = this.syntaxTree.Text;
 
         var badTokens = new List<SyntaxToken>();
 
-        var lexer = new Lexer(syntaxTree);
+        var lexer = new Lexer(syntaxTree, cancellationToken);
         foreach (var token in lexer.Lex())
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (token.Kind == SyntaxKind.BadToken)
                 badTokens.Add(token);
             else
@@ -59,6 +63,7 @@ sealed class Parser
 
     public CompilationUnitSyntax ParseCompilationUnit()
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var members = ParseMembers();
         var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
         return new(syntaxTree, members, endOfFileToken);
@@ -72,6 +77,7 @@ sealed class Parser
     SyntaxToken Current => Peek(0);
     SyntaxToken NextToken()
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var current = Current;
         if (position < tokens.Count) position++;
         return current;
@@ -81,6 +87,7 @@ sealed class Parser
         var members = ImmutableArray.CreateBuilder<MemberSyntax>();
         while (Current.Kind != SyntaxKind.EndOfFileToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var currentToken = Current;
             members.Add(ParseMember());
             // Check if we consumend a token.
@@ -95,11 +102,15 @@ sealed class Parser
         return members.ToImmutable();
     }
 
-    MemberSyntax ParseMember() => Current.Kind switch
+    MemberSyntax ParseMember()
     {
-        SyntaxKind.FunctionKeyword => ParseFunctionDeclaration(),
-        _ => ParseGlobalStatement()
-    };
+        cancellationToken.ThrowIfCancellationRequested();
+        return Current.Kind switch
+        {
+            SyntaxKind.FunctionKeyword => ParseFunctionDeclaration(),
+            _ => ParseGlobalStatement()
+        };
+    }
     GlobalStatementSyntax ParseGlobalStatement() => new (syntaxTree, ParseStatement());
     FunctionDeclarationSyntax ParseFunctionDeclaration()
     {
@@ -119,26 +130,31 @@ sealed class Parser
         var type = ParseTypeClause();
         return new(syntaxTree, identifier, type);
     }
-    StatementSyntax ParseStatement() => Current.Kind switch
+    StatementSyntax ParseStatement()
     {
-        SyntaxKind.OpenBraceToken => ParseBlockStatement(), 
-        SyntaxKind.LetKeyword or
-            SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
-        SyntaxKind.IfKeyword => ParseIfStatement(),
-        SyntaxKind.WhileKeyword => ParseWhileStatement(),
-        SyntaxKind.DoKeyword => ParseDoWhileStatement(),
-        SyntaxKind.ForKeyword => ParseForStatement(),
-        SyntaxKind.ContinueKeyword => ParseContinueStatement(),
-        SyntaxKind.BreakKeyword=> ParseBreakStatement(),
-        SyntaxKind.ReturnKeyword => ParseReturnStatement(),
-        _ => ParseExpressionStatement()
-    };
+        cancellationToken.ThrowIfCancellationRequested();
+        return Current.Kind switch
+        {
+            SyntaxKind.OpenBraceToken => ParseBlockStatement(),
+            SyntaxKind.LetKeyword or
+                SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
+            SyntaxKind.IfKeyword => ParseIfStatement(),
+            SyntaxKind.WhileKeyword => ParseWhileStatement(),
+            SyntaxKind.DoKeyword => ParseDoWhileStatement(),
+            SyntaxKind.ForKeyword => ParseForStatement(),
+            SyntaxKind.ContinueKeyword => ParseContinueStatement(),
+            SyntaxKind.BreakKeyword=> ParseBreakStatement(),
+            SyntaxKind.ReturnKeyword => ParseReturnStatement(),
+            _ => ParseExpressionStatement()
+        };
+    }
     BlockStatementSyntax ParseBlockStatement()
     {
         var open = MatchToken(SyntaxKind.OpenBraceToken);
         var statementsBuilder = ImmutableArray.CreateBuilder<StatementSyntax>();
         while (Current.Kind != SyntaxKind.EndOfFileToken && Current.Kind != SyntaxKind.ClosedBraceToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var currentToken = Current;
             statementsBuilder.Add(ParseStatement());
 
@@ -241,7 +257,8 @@ sealed class Parser
 
     ExpressionSyntax ParseExpression()
     {
-        if (Current.Kind == SyntaxKind.IdentifierToken &&Peek(1).Kind.IsAssingmentToken()) 
+        cancellationToken.ThrowIfCancellationRequested();
+        if (Current.Kind == SyntaxKind.IdentifierToken &&Peek(1).Kind.IsAssingmentToken())
             return ParseAssignmentExpression();
         return ParseBinaryExpression();
     }
@@ -265,12 +282,14 @@ sealed class Parser
     }
     ExpressionSyntax ParseBinaryExpression(int parentprecedence = 0)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var unaryOperatorPrecedence = Current.Kind.UnaryOperatorPrecedence();
         var left = unaryOperatorPrecedence > 0 && unaryOperatorPrecedence >= parentprecedence
                        ? new UnaryExpressionSyntax(syntaxTree, NextToken(), ParseBinaryExpression(unaryOperatorPrecedence))
                        : ParsePrimaryExpression();
         for (; ; )
         {
+            cancellationToken.ThrowIfCancellationRequested();
             var precedence = Current.Kind.BinaryOperatorPrecedence();
             if (precedence <= parentprecedence) return left;
 
@@ -279,8 +298,10 @@ sealed class Parser
             left = new BinaryExpressionSyntax(syntaxTree, left, operatorToken, right);
         }
     }
-    ExpressionSyntax ParsePrimaryExpression() =>
-        Current.Kind switch
+    ExpressionSyntax ParsePrimaryExpression()
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        return Current.Kind switch
         {
             SyntaxKind.NumberToken => ParseNumberExpression(),
             SyntaxKind.StringToken => ParseStringExpression(),
@@ -288,10 +309,11 @@ sealed class Parser
             SyntaxKind.TrueKeyword or
                 SyntaxKind.FalseKeyword => ParseBooleanExpression(),
             SyntaxKind.IdentifierToken => ParseIdentifier(),
-            SyntaxKind.PlusPlusToken or 
+            SyntaxKind.PlusPlusToken or
                 SyntaxKind.MinusMinusToken => ParsePrefixExpression(),
             _ => ParseNameExpression()
         };
+    }
     LiteralExpressionSyntax ParseNumberExpression()
     {
         var numberToken = MatchToken(SyntaxKind.NumberToken);
@@ -343,6 +365,7 @@ sealed class Parser
         var parseNextElement = true;
         while (parseNextElement && Current.Kind != SyntaxKind.ClosedParenthesisToken && Current.Kind != SyntaxKind.EndOfFileToken)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             listBuilder.Add(parseMethod());
             if (Current.Kind == SyntaxKind.CommaToken)
             {

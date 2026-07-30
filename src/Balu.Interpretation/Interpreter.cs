@@ -1,6 +1,7 @@
 ﻿using System.Collections.Immutable;
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Threading;
 using Balu.Diagnostics;
 using Balu.Emit;
 using Balu.Symbols;
@@ -32,8 +33,8 @@ public sealed class Interpreter : IDisposable
     public bool WriteSyntax { get; set; }
     public bool WriteProgram { get; set; }
 
-    public ImmutableArray<Diagnostic> Emit(string path, string? symbolPath = null) => Compilation.EmitWithReferenceSet(
-        "BaluInterpreter", references, path ?? throw new ArgumentNullException(nameof(path)), symbolPath, GlobalVariables);
+    public ImmutableArray<Diagnostic> Emit(string path, string? symbolPath = null, CancellationToken cancellationToken = default) => Compilation.EmitWithReferenceSet(
+        "BaluInterpreter", references, path ?? throw new ArgumentNullException(nameof(path)), symbolPath, GlobalVariables, cancellationToken);
     public void Dispose() => references.Dispose();
     public void Reset()
     {
@@ -42,11 +43,12 @@ public sealed class Interpreter : IDisposable
         Result = null;
         GlobalVariables = [];
     }
-    public ImmutableArray<Diagnostic> Execute(string code, bool ignoreWarnings = true)
+    public ImmutableArray<Diagnostic> Execute(string code, bool ignoreWarnings = true, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         var submissionNumber = submissionCount + 1;
         var documentName = $"BaluInterpreter/submission-{submissionNumber:0000}.b";
-        var compilation = Compilation.CreateScript(Compilation, SyntaxTree.Parse(SourceText.From(code, documentName)));
+        var compilation = Compilation.CreateScript(Compilation, cancellationToken, SyntaxTree.Parse(SourceText.From(code, documentName, cancellationToken), cancellationToken));
 
         if (Out is not null)
         {
@@ -54,25 +56,26 @@ public sealed class Interpreter : IDisposable
             {
                 Out.WriteColoredText("Syntax:", ConsoleColor.Yellow);
                 Out.WriteLine();
-                compilation.WriteSyntaxTrees(Out);
+                compilation.WriteSyntaxTrees(Out, cancellationToken);
             }
 
             if (WriteProgram)
             {
                 Out.WriteColoredText("Program:", ConsoleColor.Yellow);
                 Out.WriteLine();
-                compilation.WriteBoundGlobalTree(Out);
+                compilation.WriteBoundGlobalTree(Out, cancellationToken);
             }
         }
 
         using var memoryStream = new MemoryStream();
-        var emitterResult = compilation.EmitWithReferenceSet("BaluInterpreter", references, memoryStream, null, GlobalVariables);
+        var emitterResult = compilation.EmitWithReferenceSet("BaluInterpreter", references, memoryStream, null, GlobalVariables, cancellationToken);
         Error?.WriteDiagnostics(emitterResult.Diagnostics);
 
         if (emitterResult.Diagnostics.HasErrors() || !ignoreWarnings && emitterResult.Diagnostics.Any())
             return emitterResult.Diagnostics;
 
         memoryStream.Seek(0, SeekOrigin.Begin);
+        cancellationToken.ThrowIfCancellationRequested();
         var context = new AssemblyLoadContext(null, true);
         object? result;
         ImmutableDictionary<GlobalVariableSymbol, object> globalVariables;

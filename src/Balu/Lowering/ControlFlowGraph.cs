@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Balu.Binding;
 using Balu.Symbols;
 using Balu.Syntax;
@@ -45,8 +46,14 @@ sealed class ControlFlowGraph
 
     sealed class BlockBuilder
     {
+        readonly CancellationToken cancellationToken;
         readonly List<BoundStatement> statements = [];
         readonly List<Block> blocks = [];
+
+        public BlockBuilder(CancellationToken cancellationToken)
+        {
+            this.cancellationToken = cancellationToken;
+        }
 
         public List<Block> Build(BoundBlockStatement blockStatement)
         {
@@ -54,6 +61,7 @@ sealed class ControlFlowGraph
             statements.Clear();
             foreach (var statement in blockStatement.Statements)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var unwrapped = statement.UnwrapSequencePoint();
                 switch (unwrapped.Kind)
                 {
@@ -100,10 +108,17 @@ sealed class ControlFlowGraph
 
     sealed class GraphBuilder
     {
+        readonly CancellationToken cancellationToken;
         readonly List<Edge> edges = [];
+
+        public GraphBuilder(CancellationToken cancellationToken)
+        {
+            this.cancellationToken = cancellationToken;
+        }
 
         public ControlFlowGraph Build(List<Block> blocks)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             Block start = new(true);
             Block end = new(false);
 
@@ -118,11 +133,13 @@ sealed class ControlFlowGraph
 
             for (int blockIndex = 0; blockIndex < blocks.Count; blockIndex++)
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var block = blocks[blockIndex];
                 var nextBlock = blockIndex < blocks.Count - 1 ? blocks[blockIndex + 1] : end;
 
                 for (int statementIndex = 0; statementIndex < block.Statements.Count; statementIndex++)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     var statement = block.Statements[statementIndex];
                     var unwrapped = statement.UnwrapSequencePoint();
                     var isLast = statementIndex == block.Statements.Count - 1;
@@ -160,21 +177,25 @@ sealed class ControlFlowGraph
             var deadBlockBuilder = ImmutableArray.CreateBuilder<Block>();
             do
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 var toRemove = blocks.Where(block => block.Incoming.Count == 0).ToArray();
                 deadBlockBuilder.AddRange(toRemove);
                 removed = toRemove.Length > 0;
 
                 foreach (var block in toRemove)
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     blocks.Remove(block);
                     foreach (var incomingEdge in block.Incoming)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         incomingEdge.From.Outgoing.Remove(incomingEdge);
                         edges.Remove(incomingEdge);
                     }
 
                     foreach (var outgoingEdge in block.Outgoing)
                     {
+                        cancellationToken.ThrowIfCancellationRequested();
                         outgoingEdge.To.Incoming.Remove(outgoingEdge);
                         edges.Remove(outgoingEdge);
                     }
@@ -258,10 +279,11 @@ sealed class ControlFlowGraph
         static string Quote(string s) => $"\"{s.Replace("\"", "\\\"")}\"";
     }
 
-    public static ControlFlowGraph Create(BoundBlockStatement statement)
+    public static ControlFlowGraph Create(BoundBlockStatement statement, CancellationToken cancellationToken = default)
     {
-        var blocks = new BlockBuilder().Build(statement);
-        return new GraphBuilder().Build(blocks);
+        cancellationToken.ThrowIfCancellationRequested();
+        var blocks = new BlockBuilder(cancellationToken).Build(statement);
+        return new GraphBuilder(cancellationToken).Build(blocks);
     }
 
     public bool AllPathsReturn() => End.Incoming
