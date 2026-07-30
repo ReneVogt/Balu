@@ -375,6 +375,7 @@ sealed class Binder : SyntaxTreeVisitor
         {
             diagnostics.ReportInvalidBreakOrContinue(node.ContinueKeyword);
             SetErrorStatement(node);
+            return;
         }
 
         boundNode = Goto(node, loopStack.Peek().continueLabel);
@@ -385,6 +386,7 @@ sealed class Binder : SyntaxTreeVisitor
         {
             diagnostics.ReportInvalidBreakOrContinue(node.BreakKeyword);
             SetErrorStatement(node);
+            return;
         }
 
         boundNode = Goto(node, loopStack.Peek().breakLabel);
