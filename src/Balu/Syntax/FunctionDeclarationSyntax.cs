@@ -14,7 +14,7 @@ public sealed partial class FunctionDeclarationSyntax : MemberSyntax
     public BlockStatementSyntax Body { get; }
 
     internal FunctionDeclarationSyntax(SyntaxTree syntaxTree, SyntaxToken functionKeyword, SyntaxToken identifier, SyntaxToken openParenthesis,
-                                       SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? type,
+                                        SeparatedSyntaxList<ParameterSyntax> parameters, SyntaxToken closedParenthesis, TypeClauseSyntax? typeClause,
                                        BlockStatementSyntax body)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
@@ -23,7 +23,7 @@ public sealed partial class FunctionDeclarationSyntax : MemberSyntax
         OpenParenthesis = openParenthesis ?? throw new ArgumentNullException(nameof(openParenthesis));
         Parameters = parameters ?? throw new ArgumentNullException(nameof(parameters));
         ClosedParenthesis = closedParenthesis ?? throw new ArgumentNullException(nameof(closedParenthesis));
-        TypeClause = type;
+        TypeClause = typeClause;
         Body = body ?? throw new ArgumentNullException(nameof(body));
     }
 

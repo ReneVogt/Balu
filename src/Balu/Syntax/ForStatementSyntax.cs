@@ -13,15 +13,15 @@ public sealed partial class ForStatementSyntax : StatementSyntax
     public ExpressionSyntax UpperBound { get; }
     public StatementSyntax Body { get; }
 
-    internal ForStatementSyntax(SyntaxTree syntaxTree, SyntaxToken forKeyword, SyntaxToken identifierToken, SyntaxToken equals,
-                                ExpressionSyntax lowerBound, SyntaxToken toKeyWord, ExpressionSyntax upperBound, StatementSyntax body)
+    internal ForStatementSyntax(SyntaxTree syntaxTree, SyntaxToken forKeyword, SyntaxToken identifierToken, SyntaxToken equalsToken,
+                                ExpressionSyntax lowerBound, SyntaxToken toKeyword, ExpressionSyntax upperBound, StatementSyntax body)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
         ForKeyword = forKeyword ?? throw new ArgumentNullException(nameof(forKeyword));
         IdentifierToken = identifierToken ?? throw new ArgumentNullException(nameof(identifierToken));
-        EqualsToken = equals ?? throw new ArgumentNullException(nameof(equals));
+        EqualsToken = equalsToken ?? throw new ArgumentNullException(nameof(equalsToken));
         LowerBound = lowerBound ?? throw new ArgumentNullException(nameof(lowerBound));
-        ToKeyword = toKeyWord ?? throw new ArgumentNullException(nameof(toKeyWord));
+        ToKeyword = toKeyword ?? throw new ArgumentNullException(nameof(toKeyword));
         UpperBound = upperBound ?? throw new ArgumentNullException(nameof(upperBound));
         Body = body ?? throw new ArgumentNullException(nameof(body));
     }

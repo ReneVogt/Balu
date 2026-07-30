@@ -9,10 +9,10 @@ public sealed partial class AssignmentExpressionSyntax : ExpressionSyntax
     public ExpressionSyntax Expression { get; }
     public override SyntaxKind Kind => SyntaxKind.AssignmentExpression;
 
-    internal AssignmentExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierrToken, SyntaxToken assignmentToken, ExpressionSyntax expression)
+    internal AssignmentExpressionSyntax(SyntaxTree syntaxTree, SyntaxToken identifierToken, SyntaxToken assignmentToken, ExpressionSyntax expression)
         : base(syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree)))
     {
-        IdentifierToken = identifierrToken;
+        IdentifierToken = identifierToken;
         AssignmentToken = assignmentToken;
         Expression = expression;
     }
