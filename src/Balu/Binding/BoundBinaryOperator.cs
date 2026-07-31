@@ -40,9 +40,9 @@ sealed class BoundBinaryOperator
         [(SyntaxKind.StarEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.StarEqualsToken, BoundBinaryOperatorKind.Multiplication, TypeSymbol.Integer),
         [(SyntaxKind.SlashEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.SlashEqualsToken, BoundBinaryOperatorKind.Division, TypeSymbol.Integer),
         [(SyntaxKind.AmpersandEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.AmpersandEqualsToken, BoundBinaryOperatorKind.BitwiseAnd, TypeSymbol.Integer),
-        [(SyntaxKind.AmpersandEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.AmpersandEqualsToken, BoundBinaryOperatorKind.LogicalAnd, TypeSymbol.Boolean),
+        [(SyntaxKind.AmpersandEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.AmpersandEqualsToken, BoundBinaryOperatorKind.BitwiseAnd, TypeSymbol.Boolean),
         [(SyntaxKind.PipeEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.PipeEqualsToken, BoundBinaryOperatorKind.BitwiseOr, TypeSymbol.Integer),
-        [(SyntaxKind.PipeEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.PipeEqualsToken, BoundBinaryOperatorKind.LogicalOr, TypeSymbol.Boolean),
+        [(SyntaxKind.PipeEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.PipeEqualsToken, BoundBinaryOperatorKind.BitwiseOr, TypeSymbol.Boolean),
         [(SyntaxKind.CircumflexEqualsToken, TypeSymbol.Integer, TypeSymbol.Integer)] = new(SyntaxKind.CircumflexEqualsToken, BoundBinaryOperatorKind.BitwiseXor, TypeSymbol.Integer),
         [(SyntaxKind.CircumflexEqualsToken, TypeSymbol.Boolean, TypeSymbol.Boolean)] = new(SyntaxKind.CircumflexEqualsToken, BoundBinaryOperatorKind.BitwiseXor, TypeSymbol.Boolean),
         

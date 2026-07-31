@@ -1,6 +1,6 @@
 <Project>
 	<PropertyGroup>
-		<BaluVersion Condition="'$(BaluVersion)' == ''">0.4.4</BaluVersion>
+		<BaluVersion Condition="'$(BaluVersion)' == ''">0.4.6</BaluVersion>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(MSBuildProjectName)' == 'Balu' Or

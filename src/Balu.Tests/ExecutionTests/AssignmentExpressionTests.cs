@@ -34,4 +34,20 @@ public partial class ExecutionTests
     [InlineData("var a = 5 a ^= 7 a", 2)]
     [InlineData("var a = \"eins\" a += \"zwei\" a", "einszwei")]
     public void Script_AssignmentExpression_AssignsCorrectly(string code, object result) => code.AssertScriptEvaluation(value: result);
+
+    [Theory]
+    [InlineData("&=", "false")]
+    [InlineData("|=", "true")]
+    public void Script_BooleanCompoundAssignment_EvaluatesRightHandSide(string operatorToken, string initialValue) =>
+        $@"
+            var calls = 0
+            function SideEffect() : bool
+            {{
+                calls += 1
+                return true
+            }}
+            var value = {initialValue}
+            value {operatorToken} SideEffect()
+            calls
+        ".AssertScriptEvaluation(value: 1);
 }
