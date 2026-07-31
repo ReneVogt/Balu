@@ -10,6 +10,11 @@ public partial class ExecutionTests
     [InlineData("var result = 1 var i = 0 while (i < 5) { i = i + 1 result = result * 2} result", 32)]
     [InlineData("var result = 0 var i = 0 while (i < 10) { i = i + 1 result = result + i} result", 55)]
     public void Script_WhileStatement_BasicallyWorks(string text, object? result) => text.AssertScriptEvaluation(value: result);
+    [Theory]
+    [InlineData("var condition = true while (condition = false) {} condition", false)]
+    [InlineData("var calls = 0 function condition(): bool { calls += 1 return true } while condition() && false {} calls", 1)]
+    public void Script_WhileStatement_EvaluatesSideEffectsInConditionWithConstantResult(string text, object? result) =>
+        text.AssertScriptEvaluation(value: result);
     [Fact]
     public void Script_WhileStatement_Reports_WrongConditionType()
     {
