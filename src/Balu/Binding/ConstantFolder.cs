@@ -8,14 +8,14 @@ static class ConstantFolder
     {
         if (operation.OperatorKind == BoundBinaryOperatorKind.LogicalAnd)
         {
-            if (left.Constant != null && !(bool)left.Constant.Value ||
-                right.Constant != null && !(bool)right.Constant.Value)
+            if (!right.HasSideEffects && left.Constant != null && !(bool)left.Constant.Value ||
+                !left.HasSideEffects && right.Constant != null && !(bool)right.Constant.Value)
                 return Constant(false);
         }
         if (operation.OperatorKind == BoundBinaryOperatorKind.LogicalOr)
         {
-            if (left.Constant != null && (bool)left.Constant.Value ||
-                right.Constant != null && (bool)right.Constant.Value)
+            if (!right.HasSideEffects && left.Constant != null && (bool)left.Constant.Value ||
+                !left.HasSideEffects && right.Constant != null && (bool)right.Constant.Value)
                 return Constant(true);
         }
 

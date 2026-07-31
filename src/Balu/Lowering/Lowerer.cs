@@ -36,7 +36,7 @@ sealed class Lowerer : BoundTreeRewriter
     }
     protected override BoundNode VisitBoundConditionalGotoStatement(BoundConditionalGotoStatement conditionalGotoStatement)
     {
-        if (conditionalGotoStatement.Condition.Constant is null) return conditionalGotoStatement;
+        if (conditionalGotoStatement.Condition.Constant is null || conditionalGotoStatement.Condition.HasSideEffects) return conditionalGotoStatement;
         return (bool)conditionalGotoStatement.Condition.Constant.Value == conditionalGotoStatement.JumpIfTrue
                    ? Visit(new BoundGotoStatement(conditionalGotoStatement.Syntax, conditionalGotoStatement.Label))
                    : Visit(new BoundNopStatement(conditionalGotoStatement.Syntax));

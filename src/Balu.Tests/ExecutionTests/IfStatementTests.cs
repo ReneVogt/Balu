@@ -15,6 +15,11 @@ public partial class ExecutionTests
     [InlineData("var a = 10 if a == 10 a = 5 else a = 20 a", 5)]
     [InlineData("var a = 10 if a != 10 a = 5 else a = 20 a", 20)]
     public void Script_IfStatement_BasicallyWorks(string text, object? result) => text.AssertScriptEvaluation(value: result);
+    [Theory]
+    [InlineData("var condition = true if (condition = false) {} condition", false)]
+    [InlineData("var calls = 0 function condition(): bool { calls += 1 return true } if condition() && false {} calls", 1)]
+    public void Script_IfStatement_EvaluatesSideEffectsInConditionWithConstantResult(string text, object? result) =>
+        text.AssertScriptEvaluation(value: result);
     [Fact]
     public void Script_IfStatement_Reports_WrongConditionType()
     {
