@@ -54,13 +54,18 @@ sealed class Program
         quiet = args.TakeWhile(argument => argument != "--").Any(IsQuietOption);
         try
         {
-            sourcePaths.AddRange(options.Parse(args));
-            var unknownOption = sourcePaths.FirstOrDefault(path => path.StartsWith('-'));
+            var optionTerminatorIndex = Array.IndexOf(args, "--");
+            var argumentsToParse = optionTerminatorIndex < 0 ? args : args[..optionTerminatorIndex];
+            sourcePaths.AddRange(options.Parse(argumentsToParse));
+            var unknownOption = sourcePaths.FirstOrDefault(IsUnknownOption);
             if (unknownOption is not null)
             {
                 LogError($"Unknown option '{unknownOption}'.");
                 return InvocationError;
             }
+
+            if (optionTerminatorIndex >= 0)
+                sourcePaths.AddRange(args[(optionTerminatorIndex + 1)..]);
         }
         catch (OptionException parseError)
         {
@@ -102,6 +107,12 @@ sealed class Program
             LogInfo("Done.");
             return diagnostics.HasErrors() ? CompilationError : Success;
         }
+        catch (AggregateException aggregateError)
+        {
+            foreach (var innerError in aggregateError.Flatten().InnerExceptions)
+                LogError(innerError.Message);
+            return ToolError;
+        }
         catch (Exception error)
         {
             LogError(error.Message);
@@ -110,6 +121,8 @@ sealed class Program
     }
 
     static bool IsQuietOption(string argument) => argument is "-q" or "/q" or "--q";
+    static bool IsUnknownOption(string argument) =>
+        argument.StartsWith('-') || OperatingSystem.IsWindows() && argument.StartsWith('/');
 
     SyntaxTree Parse(string path)
     {

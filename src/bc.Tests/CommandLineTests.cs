@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Xunit;
 
@@ -23,6 +24,35 @@ public sealed class CommandLineTests
         Assert.Equal(2, ExitCode);
         Assert.StartsWith("bc: error: ", Error);
         Assert.DoesNotContain("Compiling", Output);
+    }
+
+    [Fact]
+    public void Compiler_UnknownSlashOption_IsPlatformAppropriate()
+    {
+        var (ExitCode, Output, Error)= Run(["/bogus"]);
+
+        if (OperatingSystem.IsWindows())
+        {
+            Assert.Equal(2, ExitCode);
+            Assert.StartsWith("bc: error: Unknown option '/bogus'.", Error);
+            Assert.DoesNotContain("Compiling", Output);
+        }
+        else
+        {
+            Assert.Equal(3, ExitCode);
+            Assert.Contains("Compiling '/bogus'", Output);
+            Assert.DoesNotContain("Unknown option", Error);
+        }
+    }
+
+    [Fact]
+    public void Compiler_OptionTerminator_AllowsDashPrefixedSourcePath()
+    {
+        var (ExitCode, Output, Error)= Run(["--", "-program.b"]);
+
+        Assert.Equal(3, ExitCode);
+        Assert.Contains("Compiling '-program.b'", Output);
+        Assert.DoesNotContain("Unknown option", Error);
     }
 
     [Fact]
@@ -54,6 +84,20 @@ public sealed class CommandLineTests
         Assert.Equal(3, ExitCode);
         Assert.Empty(Output);
         Assert.Empty(Error);
+    }
+
+    [Fact]
+    public void Compiler_MultipleMissingSourceFiles_ReportsEachError()
+    {
+        var firstMissingPath = Path.Combine(Path.GetTempPath(), $"{Path.GetRandomFileName()}.b");
+        var secondMissingPath = Path.Combine(Path.GetTempPath(), $"{Path.GetRandomFileName()}.b");
+
+        var (ExitCode, _, Error)= Run([firstMissingPath, secondMissingPath]);
+
+        Assert.Equal(3, ExitCode);
+        Assert.Contains(firstMissingPath, Error);
+        Assert.Contains(secondMissingPath, Error);
+        Assert.DoesNotContain("One or more errors occurred", Error);
     }
 
     [Fact]
