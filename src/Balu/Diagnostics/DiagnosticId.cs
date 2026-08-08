@@ -51,5 +51,6 @@ public enum DiagnosticId
     RequiredMethodNotFound = 2004,
     SourceDocumentNameMissing = 2005,
     SourceDocumentNameCollision = 2006,
-    EmitPathCollision = 2007
+    EmitPathCollision = 2007,
+    RequiredMethodAmbiguous = 2008
 }

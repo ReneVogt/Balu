@@ -166,6 +166,40 @@ public sealed class SdkBuildTests
         Assert.False(File.Exists(outputPdb));
     }
 
+    [Fact]
+    public void Sdk_DefaultItems_IgnoreIntermediateSources()
+    {
+        using var project = new TestProject();
+        project.SetSource("obj/generated.b", "missing()");
+
+        project.Build("Debug");
+    }
+
+    [Fact]
+    public void Sdk_DefaultItems_HonorExplicitRemoves()
+    {
+        using var project = new TestProject(items: "<ItemGroup><BaluFiles Remove=\"excluded.b\" /></ItemGroup>");
+        project.SetSource("excluded.b", "missing()");
+
+        project.Build("Debug");
+    }
+
+    [Fact]
+    public void Sdk_DeletingSourceFile_InvalidatesCompilerOutput()
+    {
+        using var project = new TestProject();
+        project.SetSource("removed.b", "function removed(): int { return 42 }");
+        project.Build("Debug");
+        var assemblyPath = project.IntermediateAssembly("Debug");
+        AssertProgramMethod(assemblyPath, "removed", expected: true);
+
+        Thread.Sleep(1100);
+        project.DeleteSource("removed.b");
+        project.Build("Debug", noRestore: true);
+
+        AssertProgramMethod(assemblyPath, "removed", expected: false);
+    }
+
     static void AssertDebuggerFriendly(string assemblyPath, bool expected, string? details = null)
     {
         using var assembly = AssemblyDefinition.ReadAssembly(assemblyPath);
@@ -175,6 +209,13 @@ public sealed class SdkBuildTests
         Assert.True(hasNop == expected, details);
     }
 
+    static void AssertProgramMethod(string assemblyPath, string methodName, bool expected)
+    {
+        using var assembly = AssemblyDefinition.ReadAssembly(assemblyPath);
+        var program = assembly.MainModule.Types.Single(type => type.Name == "Program");
+        Assert.True(program.Methods.Any(method => method.Name == methodName) == expected);
+    }
+
     sealed class TestProject : IDisposable
     {
         const string ProjectName = "TestProject";
@@ -182,7 +223,7 @@ public sealed class SdkBuildTests
         readonly string packageCache;
         string lastBuildOutput = string.Empty;
 
-        public TestProject(string properties = "")
+        public TestProject(string properties = "", string items = "")
         {
             directory = Directory.CreateTempSubdirectory("BaluSdkTests-").FullName;
             packageCache = Path.Combine(directory, "packages-cache");
@@ -190,7 +231,7 @@ public sealed class SdkBuildTests
             File.WriteAllText(
                 Path.Combine(directory, "NuGet.config"),
                 $"<configuration><packageSources><clear/><add key=\"BaluSdk\" value=\"{SecurityElement.Escape(packageSource)}\"/></packageSources></configuration>");
-            SetProperties(properties);
+            SetProperties(properties, items);
             SetSource("println(\"hello\")");
         }
 
@@ -199,10 +240,17 @@ public sealed class SdkBuildTests
         public string OutputPdb(string configuration) => Path.Combine(directory, "bin", configuration, "net10.0", $"{ProjectName}.pdb");
         public string PathFromProject(string relativePath) => Path.GetFullPath(relativePath, directory);
         public string DescribePdbs() => string.Join(Environment.NewLine, Directory.GetFiles(directory, "*.pdb", SearchOption.AllDirectories)) + Environment.NewLine + lastBuildOutput;
-        public void SetProperties(string properties) => File.WriteAllText(
+        public void SetProperties(string properties, string items = "") => File.WriteAllText(
             Path.Combine(directory, $"{ProjectName}.csproj"),
-            $"<Project Sdk=\"{SdkPackageId}/{SdkPackageVersion}\"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType>{properties}</PropertyGroup></Project>");
+            $"<Project Sdk=\"{SdkPackageId}/{SdkPackageVersion}\"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType>{properties}</PropertyGroup>{items}</Project>");
         public void SetSource(string source) => File.WriteAllText(Path.Combine(directory, "main.b"), source);
+        public void SetSource(string relativePath, string source)
+        {
+            var path = PathFromProject(relativePath);
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            File.WriteAllText(path, source);
+        }
+        public void DeleteSource(string relativePath) => File.Delete(PathFromProject(relativePath));
 
         public void Build(string configuration, bool noRestore = false) => Run("build", configuration, noRestore);
         public void Clean(string configuration) => Run("clean", configuration, noRestore: false);

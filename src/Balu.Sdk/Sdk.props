@@ -19,4 +19,7 @@
 	<UsingTask TaskName="Balu.Sdk.BaluCompiler" AssemblyFile="$(CustomTasksAssembly)"/>
 
 	<Import Project="sdk.props" Sdk="Microsoft.NET.Sdk"/>
+	<ItemGroup Condition="'$(EnableDefaultItems)' != 'false' AND '$(EnableDefaultCompileItems)' != 'false'">
+		<BaluFiles Include="$(MSBuildProjectDirectory)/**/*.b" Exclude="$(DefaultItemExcludes);$(DefaultExcludesInProjectFolder)" />
+	</ItemGroup>
 </Project>

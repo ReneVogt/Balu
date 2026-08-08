@@ -119,7 +119,9 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportRequiredTypeAmbiguous(string name, TypeDefinition[] typeDefinitions) =>
         Add(new(DiagnosticId.RequiredTypeAmbiguous, default, $"The required type '{name}' is ambiguous among these referenced assemblies: {string.Join(", ", typeDefinitions.Select(t => t.Module.Assembly.Name.Name).OrderBy(n => n))}."));
     public void ReportRequiredMethodNotFound(string type, string name, string[] parameterTypeNames) =>
-        Add(new(DiagnosticId.RequiredMethodNotFound, default, $"The required method'{type}.{name}({string.Join(", ", parameterTypeNames)})' could not be found in the referenced assemblies."));
+        Add(new(DiagnosticId.RequiredMethodNotFound, default, $"The required method '{type}.{name}({string.Join(", ", parameterTypeNames)})' could not be found in the referenced assemblies."));
+    public void ReportRequiredMethodAmbiguous(string type, string name, string[] parameterTypeNames) =>
+        Add(new(DiagnosticId.RequiredMethodAmbiguous, default, $"The required method '{type}.{name}({string.Join(", ", parameterTypeNames)})' is ambiguous in the referenced assemblies."));
     public void ReportSourceDocumentNameMissing(TextLocation location) =>
         Add(new(DiagnosticId.SourceDocumentNameMissing, location, "Cannot emit debug symbols for a source document without a name."));
     public void ReportSourceDocumentNameCollision(TextLocation location, string documentName) =>
