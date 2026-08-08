@@ -58,6 +58,16 @@ Mono.Options accepts both dash-style and slash-style options. The repository's
 MSBuild task uses slash-style options, while the development launch profile
 uses dash-style options with `=`.
 
+Use `--` to stop option processing when a source path begins with a dash:
+
+```console
+bc -- -program.b
+```
+
+On Windows, an unrecognized slash-prefixed argument is reported as an unknown
+option. On Unix, it remains a source path so that absolute paths continue to
+work.
+
 ### References: `-r`
 
 `bc` does not add default runtime references. Every required reference assembly
