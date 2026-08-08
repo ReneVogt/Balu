@@ -21,6 +21,16 @@ public partial class LexerTests
         Assert.Empty(untestedTokenKinds);
     }
     [Fact]
+    public void Lexer_TestData_HasNoDuplicateSingleTokens()
+    {
+        var duplicateTokens = GetSingleTokens()
+                              .GroupBy(token => token)
+                              .Where(group => group.Count() > 1)
+                              .Select(group => group.Key);
+
+        Assert.Empty(duplicateTokens);
+    }
+    [Fact]
     public void Lexer_Lexes_EmptyInput()
     {
         Assert.Empty(SyntaxTree.ParseTokens(string.Empty));

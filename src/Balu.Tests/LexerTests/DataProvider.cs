@@ -23,8 +23,6 @@ public partial class LexerTests
                     ("_my123", kind: SyntaxKind.IdentifierToken),
                     ("my_123_NameIs", kind: SyntaxKind.IdentifierToken),
                     ("x", kind: SyntaxKind.IdentifierToken),
-                    ("true", kind: SyntaxKind.TrueKeyword),
-                    ("false", kind: SyntaxKind.FalseKeyword),
                     ("\"Escaped\\\"String with even \\r and \\n, \\t and \\v\"", SyntaxKind.StringToken)
                 });
     static IEnumerable<(string text, SyntaxKind kind)> GetSeparators() => new (string text, SyntaxKind kind)[]
