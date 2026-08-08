@@ -10,25 +10,32 @@ namespace Balu.Emit;
 
 public sealed class EmitReferenceSet : IDisposable
 {
-    static class RequiredMethodParameters
+    readonly record struct RequiredMethod(
+        string Name,
+        string ReturnTypeName,
+        bool IsStatic,
+        bool IsConstructor,
+        string[] ParameterTypeNames);
+
+    static class RequiredMethods
     {
         static readonly string[] SingleObject = ["System.Object"];
         static readonly string[] Empty = [];
 
-        public static readonly string[] ConsoleWrite = SingleObject;
-        public static readonly string[] ConsoleWriteLine = SingleObject;
-        public static readonly string[] ConsoleReadLine = Empty;
-        public static readonly string[] StringConcat2 = ["System.String", "System.String"];
-        public static readonly string[] StringConcat3 = ["System.String", "System.String", "System.String"];
-        public static readonly string[] StringConcat4 = ["System.String", "System.String", "System.String", "System.String"];
-        public static readonly string[] StringConcatArray = ["System.String[]"];
-        public static readonly string[] ConvertToBool = SingleObject;
-        public static readonly string[] ConvertToInt = SingleObject;
-        public static readonly string[] ConvertToString = SingleObject;
-        public static readonly string[] ObjectEquals = ["System.Object", "System.Object"];
-        public static readonly string[] RandomCtor = Empty;
-        public static readonly string[] RandomNext = ["System.Int32"];
-        public static readonly string[] DebuggableCtor = ["System.Boolean", "System.Boolean"];
+        public static readonly RequiredMethod ConsoleWrite = new("Write", "System.Void", true, false, SingleObject);
+        public static readonly RequiredMethod ConsoleWriteLine = new("WriteLine", "System.Void", true, false, SingleObject);
+        public static readonly RequiredMethod ConsoleReadLine = new("ReadLine", "System.String", true, false, Empty);
+        public static readonly RequiredMethod StringConcat2 = new("Concat", "System.String", true, false, ["System.String", "System.String"]);
+        public static readonly RequiredMethod StringConcat3 = new("Concat", "System.String", true, false, ["System.String", "System.String", "System.String"]);
+        public static readonly RequiredMethod StringConcat4 = new("Concat", "System.String", true, false, ["System.String", "System.String", "System.String", "System.String"]);
+        public static readonly RequiredMethod StringConcatArray = new("Concat", "System.String", true, false, ["System.String[]"]);
+        public static readonly RequiredMethod ConvertToBool = new("ToBoolean", "System.Boolean", true, false, SingleObject);
+        public static readonly RequiredMethod ConvertToInt = new("ToInt32", "System.Int32", true, false, SingleObject);
+        public static readonly RequiredMethod ConvertToString = new("ToString", "System.String", true, false, SingleObject);
+        public static readonly RequiredMethod ObjectEquals = new("Equals", "System.Boolean", true, false, ["System.Object", "System.Object"]);
+        public static readonly RequiredMethod RandomCtor = new(".ctor", "System.Void", false, true, Empty);
+        public static readonly RequiredMethod RandomNext = new("Next", "System.Int32", false, false, ["System.Int32"]);
+        public static readonly RequiredMethod DebuggableCtor = new(".ctor", "System.Void", false, true, ["System.Boolean", "System.Boolean"]);
     }
 
     static readonly string[] requiredTypeNames =
@@ -155,20 +162,20 @@ public sealed class EmitReferenceSet : IDisposable
         var randomType = types["System.Random"]!;
         var debuggableAttributeType = types["System.Diagnostics.DebuggableAttribute"]!;
 
-        var consoleWrite = ResolveMethod(consoleType, "Write", RequiredMethodParameters.ConsoleWrite, diagnosticBag);
-        var consoleWriteLine = ResolveMethod(consoleType, "WriteLine", RequiredMethodParameters.ConsoleWriteLine, diagnosticBag);
-        var consoleReadLine = ResolveMethod(consoleType, "ReadLine", RequiredMethodParameters.ConsoleReadLine, diagnosticBag);
-        var stringConcat2 = ResolveMethod(stringType, "Concat", RequiredMethodParameters.StringConcat2, diagnosticBag);
-        var stringConcat3 = ResolveMethod(stringType, "Concat", RequiredMethodParameters.StringConcat3, diagnosticBag);
-        var stringConcat4 = ResolveMethod(stringType, "Concat", RequiredMethodParameters.StringConcat4, diagnosticBag);
-        var stringConcatArray = ResolveMethod(stringType, "Concat", RequiredMethodParameters.StringConcatArray, diagnosticBag);
-        var convertToBool = ResolveMethod(convertType, "ToBoolean", RequiredMethodParameters.ConvertToBool, diagnosticBag);
-        var convertToInt = ResolveMethod(convertType, "ToInt32", RequiredMethodParameters.ConvertToInt, diagnosticBag);
-        var convertToString = ResolveMethod(convertType, "ToString", RequiredMethodParameters.ConvertToString, diagnosticBag);
-        var objectEquals = ResolveMethod(objectType, "Equals", RequiredMethodParameters.ObjectEquals, diagnosticBag);
-        var randomCtor = ResolveMethod(randomType, ".ctor", RequiredMethodParameters.RandomCtor, diagnosticBag);
-        var randomNext = ResolveMethod(randomType, "Next", RequiredMethodParameters.RandomNext, diagnosticBag);
-        var debuggableCtor = ResolveMethod(debuggableAttributeType, ".ctor", RequiredMethodParameters.DebuggableCtor, diagnosticBag);
+        var consoleWrite = ResolveMethod(consoleType, RequiredMethods.ConsoleWrite, diagnosticBag);
+        var consoleWriteLine = ResolveMethod(consoleType, RequiredMethods.ConsoleWriteLine, diagnosticBag);
+        var consoleReadLine = ResolveMethod(consoleType, RequiredMethods.ConsoleReadLine, diagnosticBag);
+        var stringConcat2 = ResolveMethod(stringType, RequiredMethods.StringConcat2, diagnosticBag);
+        var stringConcat3 = ResolveMethod(stringType, RequiredMethods.StringConcat3, diagnosticBag);
+        var stringConcat4 = ResolveMethod(stringType, RequiredMethods.StringConcat4, diagnosticBag);
+        var stringConcatArray = ResolveMethod(stringType, RequiredMethods.StringConcatArray, diagnosticBag);
+        var convertToBool = ResolveMethod(convertType, RequiredMethods.ConvertToBool, diagnosticBag);
+        var convertToInt = ResolveMethod(convertType, RequiredMethods.ConvertToInt, diagnosticBag);
+        var convertToString = ResolveMethod(convertType, RequiredMethods.ConvertToString, diagnosticBag);
+        var objectEquals = ResolveMethod(objectType, RequiredMethods.ObjectEquals, diagnosticBag);
+        var randomCtor = ResolveMethod(randomType, RequiredMethods.RandomCtor, diagnosticBag);
+        var randomNext = ResolveMethod(randomType, RequiredMethods.RandomNext, diagnosticBag);
+        var debuggableCtor = ResolveMethod(debuggableAttributeType, RequiredMethods.DebuggableCtor, diagnosticBag);
         if (diagnosticBag.HasErrors()) return null;
 
         return new(
@@ -194,13 +201,24 @@ public sealed class EmitReferenceSet : IDisposable
             debuggableCtor!);
     }
 
-    static MethodDefinition? ResolveMethod(TypeDefinition type, string name, string[] parameterTypeNames, DiagnosticBag diagnosticBag)
+    static MethodDefinition? ResolveMethod(TypeDefinition type, RequiredMethod requiredMethod, DiagnosticBag diagnosticBag)
     {
-        var method = type.Methods.FirstOrDefault(candidate =>
-            candidate.Name == name && candidate.Parameters.Select(parameter => parameter.ParameterType.FullName).SequenceEqual(parameterTypeNames));
-        if (method is null)
-            diagnosticBag.ReportRequiredMethodNotFound(type.FullName, name, parameterTypeNames);
-        return method;
+        var methods = type.Methods.Where(candidate =>
+            candidate.Name == requiredMethod.Name &&
+            candidate.ReturnType.FullName == requiredMethod.ReturnTypeName &&
+            candidate.IsPublic &&
+            candidate.IsStatic == requiredMethod.IsStatic &&
+            candidate.HasThis == !requiredMethod.IsStatic &&
+            !candidate.ExplicitThis &&
+            candidate.IsConstructor == requiredMethod.IsConstructor &&
+            !candidate.HasGenericParameters &&
+            candidate.CallingConvention == MethodCallingConvention.Default &&
+            candidate.Parameters.Select(parameter => parameter.ParameterType.FullName).SequenceEqual(requiredMethod.ParameterTypeNames)).ToArray();
+        if (methods.Length == 0)
+            diagnosticBag.ReportRequiredMethodNotFound(type.FullName, requiredMethod.Name, requiredMethod.ParameterTypeNames);
+        else if (methods.Length > 1)
+            diagnosticBag.ReportRequiredMethodAmbiguous(type.FullName, requiredMethod.Name, requiredMethod.ParameterTypeNames);
+        return methods.Length == 1 ? methods[0] : null;
     }
 
     void DisposeAssemblies()

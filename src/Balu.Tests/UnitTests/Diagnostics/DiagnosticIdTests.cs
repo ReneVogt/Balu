@@ -59,7 +59,8 @@ public class DiagnosticIdTests
         (DiagnosticId.RequiredMethodNotFound, 2004),
         (DiagnosticId.SourceDocumentNameMissing, 2005),
         (DiagnosticId.SourceDocumentNameCollision, 2006),
-        (DiagnosticId.EmitPathCollision, 2007)
+        (DiagnosticId.EmitPathCollision, 2007),
+        (DiagnosticId.RequiredMethodAmbiguous, 2008)
     };
 
     [Theory]
