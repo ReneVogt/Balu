@@ -1,10 +1,11 @@
 function main()
 {
-	test()
+	var a = bool(test()) && false
+	println(a)
 }
 
-function test()
+function test() : any
 {
-	var s = input()
-	println("Hallo " + s)
+	println("test called.")
+	return true
 }

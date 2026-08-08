@@ -9,5 +9,7 @@ sealed partial class BoundConversionExpression(SyntaxNode syntax, TypeSymbol typ
     public BoundExpression Expression { get; } = expression;
     public override BoundNodeKind Kind => BoundNodeKind.ConversionExpression;
 
+    public override bool HasSideEffects => Expression.HasSideEffects;
+
     public override string ToString() => $"{Type}({Expression})";
 }

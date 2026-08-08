@@ -109,4 +109,38 @@ public partial class ExecutionTests
             result
         ".AssertScriptEvaluation(value: true);
     }
+
+    [Theory]
+    [InlineData("bool(SideEffect()) && false", 1)]
+    [InlineData("false && bool(SideEffect())", 0)]
+    [InlineData("bool(SideEffect()) || true", 1)]
+    [InlineData("true || bool(SideEffect())", 0)]
+    public void Script_ConstantFolding_DoesNotRemoveExplicitlyConvertedCallSideEffects(string expression, int expectedCalls)
+    {
+        $@"
+            var calls = 0
+            function SideEffect() : any
+            {{
+                calls += 1
+                return true
+            }}
+            var test = {expression}
+            calls
+        ".AssertScriptEvaluation(value: expectedCalls);
+    }
+
+    [Theory]
+    [InlineData("bool(value = (calls += 1)) && false", 1)]
+    [InlineData("false && bool(value = (calls += 1))", 0)]
+    [InlineData("bool(value = (calls += 1)) || true", 1)]
+    [InlineData("true || bool(value = (calls += 1))", 0)]
+    public void Script_ConstantFolding_DoesNotRemoveExplicitlyConvertedAssignmentSideEffects(string expression, int expectedCalls)
+    {
+        $@"
+            var calls = 0
+            var value : any = false
+            var test = {expression}
+            calls
+        ".AssertScriptEvaluation(value: expectedCalls);
+    }
 }
