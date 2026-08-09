@@ -32,7 +32,7 @@ public partial class EmitterTests
              <END 0006>
             <END 0006>
 ";
-        var offsets = new[] { 0, 1, 3, 5};
+        var offsets = new[] { 0, 1, 3, 5 };
 
         code.AssertIlAndSymbols("test", il, offsets, scopes, output: output);
     }
@@ -63,42 +63,48 @@ public partial class EmitterTests
             IL0002: stloc.0
             IL0003: ldc.i4.s 10
             IL0005: stloc.1
-            IL0006: br.s IL_000c: ldloc.0
-            IL0008: ldloc.0
-            IL0009: ldc.i4.1
-            IL000A: add
-            IL000B: stloc.0
-            IL000C: ldloc.0
-            IL000D: ldc.i4.s 10
-            IL000F: cgt
-            IL0011: ldc.i4.0
-            IL0012: ceq
-            IL0014: brfalse.s IL_002b: ldc.i4.1
-            IL0016: nop
-            IL0017: ldc.i4.1
-            IL0018: stloc.2
-            IL0019: ldloc.2
-            IL001A: ldloc.0
-            IL001B: cgt
-            IL001D: brfalse.s IL_0023: ldc.i4.2
-            IL001F: nop
-            IL0020: ldloc.2
-            IL0021: stloc.3
-            IL0022: nop
-            IL0023: ldc.i4.2
-            IL0024: ldloc.2
-            IL0025: mul
-            IL0026: stloc.s V_4
-            IL0028: nop
-            IL0029: br.s IL_0008: ldloc.0
-            IL002B: ldc.i4.1
-            IL002C: stloc.s V_5
-            IL002E: ldloc.s V_5
-            IL0030: brfalse.s IL_0035: nop
-            IL0032: ldc.i4.0
-            IL0033: stloc.s V_6
-            IL0035: nop
-            IL0036: ret
+            IL0006: br.s IL_0016: ldloc.0
+            IL0008: ldc.i4.s 10
+            IL000A: ldloc.0
+            IL000B: cgt
+            IL000D: ldc.i4.0
+            IL000E: ceq
+            IL0010: brtrue.s IL_0035: ldc.i4.1
+            IL0012: ldloc.0
+            IL0013: ldc.i4.1
+            IL0014: add
+            IL0015: stloc.0
+            IL0016: ldloc.0
+            IL0017: ldc.i4.s 10
+            IL0019: cgt
+            IL001B: ldc.i4.0
+            IL001C: ceq
+            IL001E: brfalse.s IL_0035: ldc.i4.1
+            IL0020: nop
+            IL0021: ldc.i4.1
+            IL0022: stloc.2
+            IL0023: ldloc.2
+            IL0024: ldloc.0
+            IL0025: cgt
+            IL0027: brfalse.s IL_002d: ldc.i4.2
+            IL0029: nop
+            IL002A: ldloc.2
+            IL002B: stloc.3
+            IL002C: nop
+            IL002D: ldc.i4.2
+            IL002E: ldloc.2
+            IL002F: mul
+            IL0030: stloc.s V_4
+            IL0032: nop
+            IL0033: br.s IL_0008: ldc.i4.s 10
+            IL0035: ldc.i4.1
+            IL0036: stloc.s V_5
+            IL0038: ldloc.s V_5
+            IL003A: brfalse.s IL_003f: nop
+            IL003C: ldc.i4.0
+            IL003D: stloc.s V_6
+            IL003F: nop
+            IL0040: ret
 ";
         const string scopes = @"
             <BEGIN 0000>
@@ -106,33 +112,33 @@ public partial class EmitterTests
               <BEGIN 0002>
               loopVariable
                <BEGIN 0005>
-                <BEGIN 0016>
-                 <BEGIN 0018>
+                <BEGIN 0020>
+                 <BEGIN 0022>
                  x
-                  <BEGIN 001F>
-                   <BEGIN 0021>
+                  <BEGIN 0029>
+                   <BEGIN 002B>
                    y
-                   <END 0023>
-                  <END 0023>
-                  <BEGIN 0026>
+                   <END 002D>
+                  <END 002D>
+                  <BEGIN 0030>
                   z
-                  <END 0029>
-                 <END 0029>
-                <END 0029>
-               <END 002B>
-              <END 002B>
-             <END 002B>
-             <BEGIN 002C>
-             ende
-              <BEGIN 0032>
-               <BEGIN 0033>
-               schluss
+                  <END 0033>
+                 <END 0033>
+                <END 0033>
                <END 0035>
               <END 0035>
-             <END 0036>
-            <END 0036>
+             <END 0035>
+             <BEGIN 0036>
+             ende
+              <BEGIN 003C>
+               <BEGIN 003D>
+               schluss
+               <END 003F>
+              <END 003F>
+             <END 0040>
+            <END 0040>
 ";
-        var offsets = new[] { 0, 1, 3, 8, 0xC, 0x16, 0x17, 0x19, 0x1F, 0x20, 0x22, 0x23, 0x28, 0x2B, 0x2E, 0x32, 0x35 };
+        var offsets = new[] { 0, 1, 3, 0x12, 0x16, 0x20, 0x21, 0x23, 0x29, 0x2A, 0x2C, 0x2D, 0x32, 0x35, 0x38, 0x3C, 0x3F };
 
         code.AssertIlAndSymbols("test", il, offsets, scopes, output: output);
 

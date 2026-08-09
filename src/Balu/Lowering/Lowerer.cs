@@ -85,6 +85,7 @@ sealed class Lowerer : BoundTreeRewriter
          *  gotofalse <var> <= <tmp> -> <break>
          *  <body>
          *  <continue>:
+         *  gototrue <tmp> <= <var> -> <break>
          *  <var>++
          *  goto <start>
          *  <break>:
@@ -95,10 +96,14 @@ sealed class Lowerer : BoundTreeRewriter
         var startLabel = new BoundLabel("<start>");
         var lowerVariableDeclaration =VariableDeclaration(syntax.LowerBound, forStatement.Variable, forStatement.LowerBound);
         var upperVariableDeclaration = ConstantDeclaration(syntax.UpperBound, "<upperBound>", forStatement.UpperBound);
-        var checkStatement = GotoFalse(syntax.ToKeyword, forStatement.BreakLabel, 
-                                       LessOrEqual(syntax.ToKeyword, 
+        var checkStatement = GotoFalse(syntax.ToKeyword, forStatement.BreakLabel,
+                                       LessOrEqual(syntax.ToKeyword,
                                                    Variable(syntax.IdentifierToken, forStatement.Variable),
                                                    Variable(syntax.UpperBound, upperVariableDeclaration.Variable)));
+        var exitBeforeIncrement = GotoTrue(syntax.ToKeyword, forStatement.BreakLabel,
+                                           LessOrEqual(syntax.ToKeyword,
+                                                       Variable(syntax.UpperBound, upperVariableDeclaration.Variable),
+                                                       Variable(syntax.IdentifierToken, forStatement.Variable)));
         var increment = Increment(syntax.ToKeyword, Variable(syntax.IdentifierToken, forStatement.Variable));
 
         var builder = ImmutableArray.CreateBuilder<BoundStatement>();
@@ -107,6 +112,7 @@ sealed class Lowerer : BoundTreeRewriter
         builder.Add(SequencePoint(upperVariableDeclaration, syntax.ToKeyword.Location + syntax.UpperBound.Location));
         builder.Add(Goto(syntax.ToKeyword, startLabel));
         builder.Add(Label(syntax.ToKeyword, forStatement.ContinueLabel));
+        builder.Add(exitBeforeIncrement);
         builder.Add(SequencePoint(increment, syntax.ToKeyword.Location));
         builder.Add(Label(syntax.ToKeyword, startLabel));
         builder.Add(SequencePoint(checkStatement, syntax.UpperBound.Location));
