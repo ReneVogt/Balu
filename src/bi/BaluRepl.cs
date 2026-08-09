@@ -8,6 +8,7 @@ using Balu.Diagnostics;
 using Balu.Interpretation;
 using Balu.Symbols;
 using Balu.Syntax;
+using Balu.Text;
 using Balu.Visualization;
 
 #pragma warning disable CA1303
@@ -66,12 +67,12 @@ sealed class BaluRepl : Repl, IDisposable
         Console.ResetColor();
     }
 
-    protected override object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
+    protected override object? RenderLine(IReadOnlyList<string> lines, int lineIndex, int start, int length, TextWriter writer, object? state)
     {
         var syntaxTree = state as SyntaxTree ?? SyntaxTree.Parse(string.Join(Environment.NewLine, lines));
 
         var line = syntaxTree.Text.Lines[lineIndex];
-        var classifiedSpans = Classifier.Classify(syntaxTree, line.Span);
+        var classifiedSpans = Classifier.Classify(syntaxTree, new TextSpan(line.Start + start, length));
         foreach (var classifiedSpan in classifiedSpans)
         {
             var color = classifiedSpan.Classification switch
@@ -85,7 +86,7 @@ sealed class BaluRepl : Repl, IDisposable
                 _ => ConsoleColor.DarkGray
             };
 
-            Console.Out.WriteColoredText(syntaxTree.Text.ToString(classifiedSpan.Span), color);
+            writer.WriteColoredText(syntaxTree.Text.ToString(classifiedSpan.Span), color);
         }
         return syntaxTree;
     }

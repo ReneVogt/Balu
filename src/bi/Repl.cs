@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Collections.ObjectModel;
-using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -27,118 +27,6 @@ abstract class Repl
         public string Description { get; } = description;
         public MethodInfo Method { get; } = method;
     }
-    sealed class Document : ObservableCollection<string>
-    {
-        public Document()
-            : base(new[] { string.Empty }) { }
-    }
-
-    delegate object? LineRenderHandler(IReadOnlyList<string> lines, int lineIndex, object? state);
-
-    sealed class SubmissionView
-    {
-        sealed class UpdateDisposable : IDisposable
-        {
-            readonly SubmissionView parent;
-            public UpdateDisposable(SubmissionView parent)
-            {
-                this.parent = parent;
-                Console.CursorVisible = false;
-                parent.updatesInProgress++;
-            }
-            public void Dispose()
-            {
-                parent.updatesInProgress--;
-                if (parent.updatesInProgress != 0) return;
-                parent.Render();
-            }
-        }
-
-        readonly LineRenderHandler lineRenderer;
-        int cursorTop, renderedLinesCount, cursorX, cursorY, updatesInProgress;
-
-        public Document SubmissionDocument { get; }
-        public int CursorX
-        {
-            get => cursorX;
-            set
-            {
-                if (value == cursorX) return;
-                cursorX = value;
-                UpdateCursorPosition();
-            }
-        }
-        public int CursorY
-        {
-            get => cursorY;
-            set
-            {
-                if (value == cursorY) return;
-                cursorY = value;
-                if (cursorX > SubmissionDocument[cursorY].Length) cursorX = SubmissionDocument[cursorY].Length;
-                UpdateCursorPosition();
-            }
-        }
-
-        public SubmissionView(Document submissionDocument, LineRenderHandler lineRenderer)
-        {
-            SubmissionDocument = submissionDocument;
-            this.lineRenderer = lineRenderer;
-            SubmissionDocument.CollectionChanged += OnSubmissionDocumentChanged;
-            cursorTop = Console.CursorTop;
-            Render();
-        }
-        void OnSubmissionDocumentChanged(object? sender, NotifyCollectionChangedEventArgs e)
-        {
-            Render();
-        }
-
-        void Render()
-        {
-            if (updatesInProgress > 0) return;
-            Console.CursorVisible = false;
-            object? state = null;
-            for (int i = 0; i < SubmissionDocument.Count; i++)
-            {
-                EnsureLineFitsInConsoleBuffer(i);
-                Console.SetCursorPosition(0, cursorTop + i);
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.Write(i == 0 ? "» " : "· ");
-                Console.ResetColor();
-                state = lineRenderer(SubmissionDocument, i, state);
-                Console.Write(new string(' ', Console.WindowWidth - SubmissionDocument[i].Length - 2));
-            }
-
-            int blankLines = renderedLinesCount - SubmissionDocument.Count;
-            for (int i = 0; i < blankLines; i++)
-            {
-                int lineIndex = SubmissionDocument.Count + i;
-                EnsureLineFitsInConsoleBuffer(lineIndex);
-                Console.SetCursorPosition(0, cursorTop + lineIndex);
-                Console.Write(new string(' ', Console.WindowWidth));
-            }
-            renderedLinesCount = SubmissionDocument.Count;
-            Console.CursorVisible = true;
-            UpdateCursorPosition();
-        }
-        void EnsureLineFitsInConsoleBuffer(int lineIndex)
-        {
-            if (cursorTop + lineIndex < Console.BufferHeight) return;
-
-            Console.SetCursorPosition(0, Console.BufferHeight - 1);
-            Console.WriteLine();
-            if (cursorTop > 0) cursorTop--;
-        }
-
-        void UpdateCursorPosition()
-        {
-            if (updatesInProgress > 0) return;
-            Console.CursorTop = cursorTop + CursorY;
-            Console.CursorLeft = 2 + CursorX;
-        }
-        public IDisposable CreateUpdateContext() => new UpdateDisposable(this);
-    }
-
     readonly ImmutableDictionary<string, MetaCommand> metaCommands;
     readonly List<string> history = [];
 
@@ -269,9 +157,9 @@ abstract class Repl
         }
     }
 
-    protected virtual object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
+    protected virtual object? RenderLine(IReadOnlyList<string> lines, int lineIndex, int start, int length, TextWriter writer, object? state)
     {
-        Console.Write(lines[lineIndex]);
+        writer.Write(lines[lineIndex].AsSpan(start, length));
         return state;
     }
 
@@ -287,7 +175,7 @@ abstract class Repl
     string EditSubmission()
     {
         editDone = false;
-        var view = new SubmissionView(new (), RenderLine);
+        var view = new SubmissionView(new ObservableCollection<string>([string.Empty]), RenderLine);
 
         while (!editDone)
             HandleKey(Console.ReadKey(true), view);

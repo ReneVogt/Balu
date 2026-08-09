@@ -16,6 +16,10 @@
 	  <ProjectReference Include="..\Balu.Interpretation\Balu.Interpretation.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="bi.Tests" />
+	</ItemGroup>
+
 	<Target Name="CollectInterpreterReferenceAssemblies" DependsOnTargets="ResolveReferences">
 		<ItemGroup>
 			<_InterpreterReferenceAssembly Include="@(ReferencePath)" Condition="'%(Filename)' == 'System.Runtime' OR '%(Filename)' == 'System.Runtime.Extensions' OR '%(Filename)' == 'System.Console'" />
