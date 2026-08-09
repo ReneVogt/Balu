@@ -24,19 +24,6 @@ sealed class BaluRepl : Repl, IDisposable
         Path.Combine(AppContext.BaseDirectory, "reference-assemblies", "System.Console.dll")
     ]) {Out = Console.Out, Error = Console.Error};
 
-
-    public BaluRepl()
-    {
-        try
-        {
-            LoadSubmissions();
-        }
-        catch
-        {
-            interpreter.Dispose();
-            throw;
-        }
-    }
     public void Dispose() => interpreter.Dispose();
 
     protected override bool IsCompleteSubmission(string text) => string.IsNullOrWhiteSpace(text) || text.EndsWith(Environment.NewLine+Environment.NewLine, StringComparison.InvariantCultureIgnoreCase) || !SyntaxTree.Parse(text).IsLastTokenMissing;
@@ -58,7 +45,6 @@ sealed class BaluRepl : Repl, IDisposable
             Console.Out.WriteLine();
         }
 
-        SaveSubmission(text);
         if (showVars)
         {
             Console.Out.WriteColoredText("Variables:", ConsoleColor.Yellow);
@@ -78,41 +64,6 @@ sealed class BaluRepl : Repl, IDisposable
         }
 
         Console.ResetColor();
-    }
-
-    bool loadingSubmission;
-    void LoadSubmissions()
-    {
-        var submissionsPath = GetSubmissionsPath();
-        if (!Directory.Exists(submissionsPath)) return;
-        var files = Directory.GetFiles(submissionsPath).OrderBy(f => f).ToArray();
-        if (files.Length == 0) return;
-        loadingSubmission = true;
-        Console.Out.WritePunctuation($"Loading {files.Length} submissions...{Environment.NewLine}");
-        foreach (var text in files.Select(File.ReadAllText)) { AddToHistory(text); EvaluateSubmission(text);}
-        loadingSubmission = false;
-    }
-    void SaveSubmission(string text)
-    {
-        if (loadingSubmission) return;
-        var submissionFolder = GetSubmissionsPath();
-        Directory.CreateDirectory(submissionFolder);
-        var existingCount = Directory.GetFiles(submissionFolder).Length;
-        var name = $"submission{existingCount:0000}";
-        var fileName = Path.Combine(submissionFolder, name);
-        File.WriteAllText(fileName, text);
-    }
-    static void ClearSubmissions()
-    {
-        var path = GetSubmissionsPath();
-        if (Directory.Exists(path))
-            Directory.Delete(path, true);
-    }
-    static string GetSubmissionsPath()
-    {
-        var localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var submissionFolder = Path.Combine(localAppData, "Balu", "Submissions");
-        return submissionFolder;
     }
 
     protected override object? RenderLine(IReadOnlyList<string> lines, int lineIndex, object? state)
@@ -159,12 +110,8 @@ sealed class BaluRepl : Repl, IDisposable
     }
     [MetaCommand("cls", "Clears the screen.")]
     static void ClearScreen() => Console.Clear();
-    [MetaCommand("reset", "Resets the submission cache.")]
-    void Reset()
-    {
-        interpreter.Reset();
-        ClearSubmissions();
-    }
+    [MetaCommand("reset", "Resets the current interpreter session.")]
+    void Reset() => interpreter.Reset();
     [MetaCommand("load", "Loads a script file.")]
     void Load(string path)
     {

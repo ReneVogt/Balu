@@ -145,18 +145,16 @@ REPL commands start with `#` and are case-sensitive:
 | `#showSyntax` | Toggle syntax-tree output |
 | `#showProgram` | Toggle bound-program output |
 | `#showVars` | Toggle global-variable output after evaluation |
-| `#reset` | Reset the interpreter and delete persisted submissions |
+| `#load <path>` | Execute a script file in the current session |
+| `#reset` | Reset the current interpreter session |
 | `#exit` | Exit the REPL |
 
-On Windows, successful submissions are stored below
-`%LOCALAPPDATA%\Balu\Submissions`. On other platforms, they are stored below the
-platform's local application-data directory. They are loaded again when the
-REPL starts. Loading means executing the submissions again, so previous console
-output, calls to `input()`, and other side effects can occur again. Use
-`#reset` when you want to discard that state.
+Interpreter state is kept only for the current REPL process. Restarting the REPL
+starts a fresh session. Use `#load <path>` to explicitly execute a script file
+in the current session.
 
-`#clearHistory` only clears the in-memory editor history. It does not reset the
-interpreter and does not delete persisted submissions.
+`#clearHistory` clears the in-memory editor history without resetting the
+interpreter.
 
 ## Next steps
 
