@@ -423,7 +423,7 @@ sealed class Binder : SyntaxTreeVisitor
 
         var returnType = containingFunction?.ReturnType ?? (isScript ? TypeSymbol.Any : TypeSymbol.Void);
         var functionName = containingFunction?.Name ?? (isScript ? GlobalSymbolNames.Eval : GlobalSymbolNames.Main);
-        
+
         if (expression is null)
         {
             if (returnType != TypeSymbol.Void)
@@ -438,7 +438,7 @@ sealed class Binder : SyntaxTreeVisitor
             if (expression.Type == TypeSymbol.Error)
                 diagnostics.ReportReturnTypeMismatch(node.Expression!.Location, returnType, functionName, ((BoundExpression)boundNode!).Type);
         }
-        
+
         boundNode = Return(node, expression);
     }
 
@@ -556,6 +556,8 @@ sealed class Binder : SyntaxTreeVisitor
         var returnType = declaration.TypeClause is null ? TypeSymbol.Void : BindTypeClause(declaration.TypeClause) ?? TypeSymbol.Error;
         var function = new FunctionSymbol(declaration.Identifier.Text, parameters.ToImmutable(), returnType, declaration);
         if (!scope.TryDeclareSymbol(function))
+            diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
+        else if (LookupType(function.Name) is not null || BuiltInFunctions.IsBuiltInName(function.Name))
             diagnostics.ReportFunctionAlreadyDeclared(declaration.Identifier);
         else if (scope.Parent?.TryLookupSymbol(function.Name, out var hidden) == true)
             diagnostics.ReportSymbolHidesSymbol(function, hidden, declaration.Identifier.Location);
@@ -700,7 +702,7 @@ sealed class Binder : SyntaxTreeVisitor
 
         var functionBodyBuilder = ImmutableDictionary.CreateBuilder<FunctionSymbol, BoundBlockStatement>();
         if (previous is not null) functionBodyBuilder.AddRange(previous.Functions.Where(x => x.Key != previous.EntryPoint));
-        
+
         foreach (var function in globalScope.VisibleSymbols.OfType<FunctionSymbol>().Where(function => function.Declaration is not null && !functionBodyBuilder.ContainsKey(function) && function != previous?.EntryPoint))
         {
             cancellationToken.ThrowIfCancellationRequested();

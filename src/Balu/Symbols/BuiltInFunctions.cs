@@ -29,4 +29,6 @@ static class BuiltInFunctions
         builtInFunctions = builder.ToImmutable();
         return builder;
     }
+
+    public static bool IsBuiltInName(string name) => GetBuiltInFunctions().Any(function => function.Name == name);
 }
