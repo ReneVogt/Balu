@@ -825,6 +825,7 @@ sealed class Emitter : IDisposable
 
     public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null, CancellationToken cancellationToken = default)
     {
+        ValidateInitializedGlobalVariables(program, initializedGlobalVariables, cancellationToken);
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -836,6 +837,34 @@ sealed class Emitter : IDisposable
         catch (MissingReferencesException exception)
         {
             return new (exception.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
+        }
+    }
+
+    static void ValidateInitializedGlobalVariables(BoundProgram program, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, CancellationToken cancellationToken)
+    {
+        if (initializedGlobalVariables is null) throw new ArgumentNullException(nameof(initializedGlobalVariables));
+        if (initializedGlobalVariables.Count == 0) return;
+        var programGlobals = new HashSet<GlobalVariableSymbol>(program.Symbols.OfType<GlobalVariableSymbol>());
+
+        foreach (var pair in initializedGlobalVariables)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            var global = pair.Key;
+            var value = pair.Value;
+            if (!programGlobals.Contains(global))
+                throw new ArgumentException($"Global variable '{global.Name}' does not belong to the emitted program.", nameof(initializedGlobalVariables));
+            if (value is null)
+                throw new ArgumentException($"The value of global variable '{global.Name}' cannot be null.", nameof(initializedGlobalVariables));
+
+            var isValid = value switch
+            {
+                bool => global.Type == TypeSymbol.Boolean || global.Type == TypeSymbol.Any,
+                int => global.Type == TypeSymbol.Integer || global.Type == TypeSymbol.Any,
+                string => global.Type == TypeSymbol.String || global.Type == TypeSymbol.Any,
+                _ => false
+            };
+            if (!isValid)
+                throw new ArgumentException($"Value of type '{value.GetType().Name}' is not valid for global variable '{global.Name}' of type '{global.Type.Name}'.", nameof(initializedGlobalVariables));
         }
     }
 }
