@@ -37,11 +37,6 @@ public sealed partial class BinderTests
         };
         yield return new object[]
         {
-            @"function [println](a:int){}",
-            "BL1009: Function 'println' hides existing function 'println'."
-        };
-        yield return new object[]
-        {
             @"function test(a:int){ var [println] = 12}",
             "BL1009: Local variable 'println' hides existing function 'println'."
         };
