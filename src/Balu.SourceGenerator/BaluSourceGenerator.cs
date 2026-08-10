@@ -20,6 +20,12 @@ public sealed class BaluSourceGenerator : ISourceGenerator
                                                                      category: "Balu source generation",
                                                                      DiagnosticSeverity.Error,
                                                                      isEnabledByDefault: true);
+    static readonly DiagnosticDescriptor UnsupportedNodeTypeDiagnostic = new(id: "BLS0002",
+                                                                              title: "Unsupported node type",
+                                                                              messageFormat: "The node type '{0}' must be non-generic and declared at namespace scope.",
+                                                                              category: "Balu source generation",
+                                                                              DiagnosticSeverity.Error,
+                                                                              isEnabledByDefault: true);
 
     public void Initialize(GeneratorInitializationContext context)
     {
@@ -36,6 +42,14 @@ public sealed class BaluSourceGenerator : ISourceGenerator
 
         if (boundNodeType is null || boundNodeKindType is null || immutableArrayType is null || syntaxNodeType is null ||
             syntaxNodeKindType is null || separatedListType is null) return;
+
+        var types = compilation.Assembly.GetAllTypes();
+        foreach (var type in types.Where(type => !type.IsSupportedNodeType() &&
+                                                (type.IsDerivedFrom(syntaxNodeType) || type.IsDerivedFrom(boundNodeType))))
+        {
+            var location = type.Locations.FirstOrDefault(candidate => candidate.IsInSource);
+            context.ReportDiagnostic(Diagnostic.Create(UnsupportedNodeTypeDiagnostic, location, type.ToDisplayString()));
+        }
 
         var generators = new BaseGenerator[]
         {

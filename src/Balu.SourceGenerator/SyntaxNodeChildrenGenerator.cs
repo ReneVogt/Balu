@@ -30,7 +30,7 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
         Writer.WriteLine("namespace Balu.Syntax;");
 
         var types = compilation.Assembly.GetAllTypes();
-        var syntaxNodeTypes = types.Where(t => !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(syntaxNodeType) &&
+        var syntaxNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(syntaxNodeType) &&
                                                SymbolEqualityComparer.Default.Equals(syntaxNodeType.ContainingNamespace, t.ContainingNamespace));
 
         foreach (var type in syntaxNodeTypes.TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))

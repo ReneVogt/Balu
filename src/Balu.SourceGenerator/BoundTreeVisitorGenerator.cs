@@ -23,7 +23,7 @@ sealed class BoundTreeVisitorGenerator : BaseGenerator
     {
         var kindNames = boundNodeKindType.MemberNames.ToImmutableArray();
         var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
+        var boundNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
         var kindsToVisit = kindNames.Where(kindName => boundNodeTypes.Any(nodeType => nodeType.Name == $"Bound{kindName}")).ToImmutableArray();
 
         Writer.WriteLine("using System;");

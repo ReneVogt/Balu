@@ -24,7 +24,7 @@ sealed class SyntaxTreeVisitorGenerator : BaseGenerator
     {
         var kindNames = syntaxNodeKindType.MemberNames.Where(name => !(name.EndsWith("Token", StringComparison.InvariantCulture) || name.EndsWith("Keyword", StringComparison.InvariantCulture))).ToImmutableArray();
         var types = compilation.Assembly.GetAllTypes();
-        var syntaxNodeTypes = types.Where(t => !t.IsAbstract && t.IsDerivedFrom(syntaxNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, syntaxNodeType.ContainingNamespace));
+        var syntaxNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsDerivedFrom(syntaxNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, syntaxNodeType.ContainingNamespace));
         var kindsToVisit = kindNames.Where(kindName => syntaxNodeTypes.Any(nodeType => nodeType.Name == $"{kindName}Syntax")).ToImmutableArray();
 
         Writer.WriteLine("using System;");

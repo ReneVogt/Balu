@@ -25,7 +25,7 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
     {
         var kindNames = boundNodeKindType.MemberNames.ToImmutableArray();
         var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, boundNodeType.ContainingNamespace));
+        var boundNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, boundNodeType.ContainingNamespace));
         var kindsToVisit = kindNames
                            .Select(kindName => (kind: kindName,
                                                    type: boundNodeTypes.SingleOrDefault(nodeType => nodeType.Name == $"Bound{kindName}")))

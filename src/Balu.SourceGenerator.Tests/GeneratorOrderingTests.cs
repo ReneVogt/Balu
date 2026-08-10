@@ -41,6 +41,173 @@ public sealed class GeneratorOrderingTests
         Assert.True(diagnostic.Location.IsInSource);
     }
 
+    [Fact]
+    public void Generator_RejectsNestedSyntaxAndBoundNodes()
+    {
+        const string syntaxNodes = """
+    public partial class SyntaxContainer
+    {
+        public sealed partial class NestedSyntax : SyntaxNode
+        {
+            public override SyntaxKind Kind => SyntaxKind.Ordered;
+            public override int ChildrenCount => 0;
+            public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
+""";
+        const string boundNodes = """
+    partial class BoundContainer
+    {
+        sealed partial class NestedBoundNode : BoundNode
+        {
+            public override BoundNodeKind Kind => BoundNodeKind.Pair;
+            public override int ChildrenCount => 0;
+            public override BoundNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+            public NestedBoundNode(SyntaxNode syntax) : base(syntax) { }
+        }
+    }
+""";
+
+        AssertUnsupportedNodeTypes(AddNodes(syntaxNodes, boundNodes),
+                                   "Balu.Syntax.SyntaxContainer.NestedSyntax",
+                                   "Balu.Binding.BoundContainer.NestedBoundNode");
+    }
+
+    [Fact]
+    public void Generator_RejectsGenericSyntaxAndBoundNodes()
+    {
+        const string syntaxNodes = """
+    public sealed partial class GenericSyntax<T> : SyntaxNode
+    {
+        public override SyntaxKind Kind => SyntaxKind.Ordered;
+        public override int ChildrenCount => 0;
+        public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+    }
+""";
+        const string boundNodes = """
+    sealed partial class GenericBoundNode<T> : BoundNode
+    {
+        public override BoundNodeKind Kind => BoundNodeKind.Pair;
+        public override int ChildrenCount => 0;
+        public override BoundNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+        public GenericBoundNode(SyntaxNode syntax) : base(syntax) { }
+    }
+""";
+
+        AssertUnsupportedNodeTypes(AddNodes(syntaxNodes, boundNodes),
+                                   "Balu.Syntax.GenericSyntax<T>",
+                                   "Balu.Binding.GenericBoundNode<T>");
+    }
+
+    [Fact]
+    public void Generator_RejectsNodesInGenericContainers()
+    {
+        const string syntaxNodes = """
+    public partial class GenericContainer<T>
+    {
+        public sealed partial class NestedSyntax : SyntaxNode
+        {
+            public override SyntaxKind Kind => SyntaxKind.Ordered;
+            public override int ChildrenCount => 0;
+            public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
+""";
+        const string boundNodes = """
+    partial class GenericContainer<T>
+    {
+        sealed partial class NestedBoundNode : BoundNode
+        {
+            public override BoundNodeKind Kind => BoundNodeKind.Pair;
+            public override int ChildrenCount => 0;
+            public override BoundNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+            public NestedBoundNode(SyntaxNode syntax) : base(syntax) { }
+        }
+    }
+""";
+
+        AssertUnsupportedNodeTypes(AddNodes(syntaxNodes, boundNodes),
+                                   "Balu.Syntax.GenericContainer<T>.NestedSyntax",
+                                   "Balu.Binding.GenericContainer<T>.NestedBoundNode");
+    }
+
+    [Fact]
+    public void Generator_RejectsDuplicateSimpleNamesWithoutCrashing()
+    {
+        const string syntaxNodes = """
+    public partial class FirstContainer
+    {
+        public sealed partial class OrderedSyntax : SyntaxNode
+        {
+            public override SyntaxKind Kind => SyntaxKind.Ordered;
+            public override int ChildrenCount => 0;
+            public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
+
+    public partial class SecondContainer
+    {
+        public sealed partial class OrderedSyntax : SyntaxNode
+        {
+            public override SyntaxKind Kind => SyntaxKind.Ordered;
+            public override int ChildrenCount => 0;
+            public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+        }
+    }
+""";
+        const string boundNodes = """
+    partial class FirstContainer
+    {
+        sealed partial class BoundPair : BoundNode
+        {
+            public override BoundNodeKind Kind => BoundNodeKind.Pair;
+            public override int ChildrenCount => 0;
+            public override BoundNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+            public BoundPair(SyntaxNode syntax) : base(syntax) { }
+        }
+    }
+
+    partial class SecondContainer
+    {
+        sealed partial class BoundPair : BoundNode
+        {
+            public override BoundNodeKind Kind => BoundNodeKind.Pair;
+            public override int ChildrenCount => 0;
+            public override BoundNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+            public BoundPair(SyntaxNode syntax) : base(syntax) { }
+        }
+    }
+""";
+        var source = AddNodes(syntaxNodes, boundNodes);
+
+        AssertUnsupportedNodeTypes(source,
+                                   "Balu.Syntax.FirstContainer.OrderedSyntax",
+                                   "Balu.Syntax.SecondContainer.OrderedSyntax",
+                                   "Balu.Binding.FirstContainer.BoundPair",
+                                   "Balu.Binding.SecondContainer.BoundPair");
+    }
+
+    static void AssertUnsupportedNodeTypes(string source, params string[] typeNames)
+    {
+        var (result, compilationDiagnostics) = RunGenerator(source);
+        var generatorResult = Assert.Single(result.Results);
+
+        Assert.Null(generatorResult.Exception);
+        var diagnostics = result.Diagnostics.Where(candidate => candidate.Id == "BLS0002").ToImmutableArray();
+        Assert.Equal(typeNames.Length, diagnostics.Length);
+        foreach (var typeName in typeNames)
+        {
+            var diagnostic = Assert.Single(diagnostics.Where(candidate => candidate.GetMessage().Contains($"'{typeName}'", StringComparison.Ordinal)));
+            Assert.True(diagnostic.Location.IsInSource);
+        }
+        Assert.DoesNotContain(compilationDiagnostics,
+                              diagnostic => diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Id != "BLS0002");
+    }
+
+    static string AddNodes(string syntaxNodes, string boundNodes) =>
+        ValidSource.Replace("    // Additional syntax nodes", syntaxNodes, StringComparison.Ordinal)
+                   .Replace("    // Additional bound nodes", boundNodes, StringComparison.Ordinal);
+
     static (GeneratorDriverRunResult Result, ImmutableArray<Diagnostic> CompilationDiagnostics) RunGenerator(string source)
     {
         var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp10);
@@ -109,6 +276,8 @@ namespace Balu.Syntax
 
         public OrderedSyntax(string value, int count) : this(new SyntaxToken(), new SyntaxToken()) { }
     }
+
+    // Additional syntax nodes
 }
 
 namespace Balu.Binding
@@ -143,6 +312,8 @@ namespace Balu.Binding
             Right = right;
         }
     }
+
+    // Additional bound nodes
 }
 """;
 }
