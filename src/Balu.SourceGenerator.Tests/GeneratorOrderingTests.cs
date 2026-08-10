@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using Balu.SourceGenerator;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
@@ -15,7 +16,7 @@ public sealed class GeneratorOrderingTests
     [Fact]
     public void Generator_UsesConstructorOrderForChildrenAndRewriterArguments()
     {
-        var (result, compilationDiagnostics) = RunGenerator(ValidSource);
+        var (result, compilationDiagnostics, _) = RunGenerator(ValidSource);
 
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
@@ -34,11 +35,60 @@ public sealed class GeneratorOrderingTests
     [Fact]
     public void Generator_ReportsParameterWithoutMatchingProperty()
     {
-        var (result, _) = RunGenerator(ValidSource.Replace("public SyntaxNode First { get; }", "public SyntaxNode Other { get; }", StringComparison.Ordinal));
+        var (result, _, _) = RunGenerator(ValidSource.Replace("public SyntaxNode First { get; }", "public SyntaxNode Other { get; }", StringComparison.Ordinal));
 
         var diagnostic = Assert.Single(result.Diagnostics.Where(candidate => candidate.Id == "BLS0001"));
         Assert.Contains("parameter 'first' has no property with the same name and type", diagnostic.GetMessage());
         Assert.True(diagnostic.Location.IsInSource);
+    }
+
+    [Fact]
+    public void Generator_TraversesSingleSeparatedListWithSeparators()
+    {
+        const string syntaxNodes = """
+    public sealed partial class SeparatedOnlySyntax : SyntaxNode
+    {
+        public SeparatedSyntaxList<SyntaxToken> Items { get; }
+        public override SyntaxKind Kind => SyntaxKind.Ordered;
+
+        public SeparatedOnlySyntax(SeparatedSyntaxList<SyntaxToken> items)
+        {
+            Items = items;
+        }
+    }
+
+    public static class SeparatedOnlySyntaxProbe
+    {
+        public static int ChildrenCount => CreateNode().ChildrenCount;
+        public static int GetChildId(int index) => ((SyntaxToken)CreateNode().GetChild(index)).Id;
+
+        static SeparatedOnlySyntax CreateNode()
+        {
+            var children = ImmutableArray.Create<SyntaxNode>(new SyntaxToken(1), new SyntaxToken(2), new SyntaxToken(3));
+            return new SeparatedOnlySyntax(new SeparatedSyntaxList<SyntaxToken>(children));
+        }
+    }
+""";
+        var (_, compilationDiagnostics, outputCompilation) = RunGenerator(AddNodes(syntaxNodes, string.Empty));
+
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        using var stream = new MemoryStream();
+        var emitResult = outputCompilation.Emit(stream);
+        Assert.True(emitResult.Success, string.Join(Environment.NewLine, emitResult.Diagnostics));
+
+        var assembly = Assembly.Load(stream.ToArray());
+        var probe = assembly.GetType("Balu.Syntax.SeparatedOnlySyntaxProbe", throwOnError: true)!;
+        var childrenCount = probe.GetProperty("ChildrenCount")!;
+        var getChildId = probe.GetMethod("GetChildId")!;
+
+        Assert.Equal(3, childrenCount.GetValue(null));
+        Assert.Equal(1, InvokeGetChildId(0));
+        Assert.Equal(2, InvokeGetChildId(1));
+        Assert.Equal(3, InvokeGetChildId(2));
+        Assert.IsType<IndexOutOfRangeException>(Assert.Throws<TargetInvocationException>(() => InvokeGetChildId(-1)).InnerException);
+        Assert.IsType<IndexOutOfRangeException>(Assert.Throws<TargetInvocationException>(() => InvokeGetChildId(3)).InnerException);
+
+        int InvokeGetChildId(int index) => (int)getChildId.Invoke(null, new object[] { index })!;
     }
 
     [Fact]
@@ -189,7 +239,7 @@ public sealed class GeneratorOrderingTests
 
     static void AssertUnsupportedNodeTypes(string source, params string[] typeNames)
     {
-        var (result, compilationDiagnostics) = RunGenerator(source);
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
         var generatorResult = Assert.Single(result.Results);
 
         Assert.Null(generatorResult.Exception);
@@ -208,7 +258,7 @@ public sealed class GeneratorOrderingTests
         ValidSource.Replace("    // Additional syntax nodes", syntaxNodes, StringComparison.Ordinal)
                    .Replace("    // Additional bound nodes", boundNodes, StringComparison.Ordinal);
 
-    static (GeneratorDriverRunResult Result, ImmutableArray<Diagnostic> CompilationDiagnostics) RunGenerator(string source)
+    static (GeneratorDriverRunResult Result, ImmutableArray<Diagnostic> CompilationDiagnostics, CSharpCompilation OutputCompilation) RunGenerator(string source)
     {
         var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp10);
         var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
@@ -218,7 +268,7 @@ public sealed class GeneratorOrderingTests
                                                    new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
         GeneratorDriver driver = CSharpGeneratorDriver.Create(new[] { new BaluSourceGenerator() }, parseOptions: parseOptions);
         driver = driver.RunGeneratorsAndUpdateCompilation(compilation, out var outputCompilation, out _);
-        return (driver.GetRunResult(), outputCompilation.GetDiagnostics());
+        return (driver.GetRunResult(), outputCompilation.GetDiagnostics(), (CSharpCompilation)outputCompilation);
     }
 
     static string GetGeneratedSource(GeneratorDriverRunResult result, string hintName) =>
@@ -249,15 +299,26 @@ namespace Balu.Syntax
 
     public sealed class SyntaxToken : SyntaxNode
     {
+        public int Id { get; }
         public override SyntaxKind Kind => default;
         public override int ChildrenCount => 0;
         public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+
+        public SyntaxToken(int id = 0)
+        {
+            Id = id;
+        }
     }
 
-    sealed class SeparatedSyntaxList<T> where T : SyntaxNode
+    public sealed class SeparatedSyntaxList<T> where T : SyntaxNode
     {
-        public ImmutableArray<SyntaxNode> ElementsWithSeparators { get; } = ImmutableArray<SyntaxNode>.Empty;
-        public SyntaxNode this[int index] => ElementsWithSeparators[index];
+        public ImmutableArray<SyntaxNode> ElementsWithSeparators { get; }
+        public T this[int index] => (T)ElementsWithSeparators[index * 2];
+
+        public SeparatedSyntaxList(ImmutableArray<SyntaxNode> elementsWithSeparators)
+        {
+            ElementsWithSeparators = elementsWithSeparators;
+        }
     }
 
     public sealed partial class OrderedSyntax : SyntaxNode

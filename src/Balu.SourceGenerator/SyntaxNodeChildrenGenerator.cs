@@ -134,6 +134,8 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
                     Writer.Write($"{property.Name} is not null && ");
                 Writer.WriteLine($"index == 0 ? {property.Name} : {exception};");
             }
+            else if (((INamedTypeSymbol)property.Type).IsGenericListOf(separatedListType, syntaxNodeType))
+                Writer.WriteLine($"{signature} => {property.Name}.ElementsWithSeparators[index];");
             else
                 Writer.WriteLine($"{signature} => {property.Name}[index];");
 
