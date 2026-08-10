@@ -29,7 +29,7 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
         Writer.WriteLine("namespace Balu.Binding;");
 
         var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
+        var boundNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
 
         foreach (var type in boundNodeTypes.TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))
                 WriteType(type, context);

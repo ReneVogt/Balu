@@ -39,6 +39,7 @@ static class TypeExtensions
     public static bool IsPartial(this INamedTypeSymbol type) => type.DeclaringSyntaxReferences.Select(declaration => declaration.GetSyntax())
                                                         .OfType<TypeDeclarationSyntax>()
                                                         .Any(syntax => syntax.Modifiers.Any(modifier => modifier.ValueText == "partial"));
+    public static bool IsSupportedNodeType(this INamedTypeSymbol type) => type.ContainingType is null && type.Arity == 0;
     public static bool IsGenericListOf(this INamedTypeSymbol type, INamedTypeSymbol listType, INamedTypeSymbol elementBaseType) =>
         type.TypeArguments.Length == 1 && type.TypeArguments[0].IsDerivedFrom(elementBaseType) &&
         SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, listType);
