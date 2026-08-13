@@ -326,9 +326,12 @@ public sealed class Compilation
     }
     public void WriteControlFlowGraph(TextWriter writer, FunctionSymbol function, CancellationToken cancellationToken = default)
     {
+        _ = function ?? throw new ArgumentNullException(nameof(function));
         _ = writer ?? throw new ArgumentNullException(nameof(writer));
         cancellationToken.ThrowIfCancellationRequested();
-        var cfg = ControlFlowGraph.Create(GetProgram(cancellationToken).Functions[function], cancellationToken);
+        if (!GetProgram(cancellationToken).Functions.TryGetValue(function, out var body))
+            throw new ArgumentException($"Function '{function.Name}' does not have a body in this compilation.", nameof(function));
+        var cfg = ControlFlowGraph.Create(body, cancellationToken);
         cfg.WriteTo(writer);
     }
     public static Compilation Create(params SyntaxTree[] syntaxTrees) => new (false, null, default, syntaxTrees);
