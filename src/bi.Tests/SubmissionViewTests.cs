@@ -201,6 +201,12 @@ public sealed class SubmissionViewTests
         public int WrapCount { get; private set; }
         public int CursorMoveFailuresRemaining { get; set; }
 
+        public bool TryGetWindowWidth(out int width)
+        {
+            width = WindowWidth;
+            return true;
+        }
+
         public bool TrySetCursorPosition(int left, int top)
         {
             if (CursorMoveFailuresRemaining > 0)

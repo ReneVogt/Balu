@@ -131,22 +131,26 @@ abstract class Repl
     [MetaCommand("exit", "Closes Balu interpreter.")]
     protected static void EvaluateExit() => Environment.Exit(0);
     [MetaCommand("help", "Shows this help.")]
-    protected void EvaluateHelp()
+    protected void EvaluateHelp() => EvaluateHelp(SystemConsole.Instance);
+    internal void EvaluateHelp(IConsole console)
     {
+        const int DefaultWindowWidth = 80;
+        int windowWidth = console.TryGetWindowWidth(out var width) ? width : DefaultWindowWidth;
+        int chunkSize = Math.Max(1, windowWidth - 3);
+
         foreach (var command in metaCommands.Values.OrderBy(mc => mc.Name))
         {
-            Console.Out.WritePunctuation("#");
-            Console.Out.WriteIdentifier(command.Name);
-            Console.Out.WriteSpace();
-            Console.Out.WritePunctuation(string.Join(" ", command.Method.GetParameters().Select(parameter => $"<{parameter.Name}>")));
-            Console.Out.WriteLine();
-            Console.Out.WritePunctuation(string.Join(Environment.NewLine, Chunks(command.Description)));
-            Console.Out.WriteLine();
+            console.Out.WritePunctuation("#");
+            console.Out.WriteIdentifier(command.Name);
+            console.Out.WriteSpace();
+            console.Out.WritePunctuation(string.Join(" ", command.Method.GetParameters().Select(parameter => $"<{parameter.Name}>")));
+            console.Out.WriteLine();
+            console.Out.WritePunctuation(string.Join(Environment.NewLine, Chunks(command.Description, chunkSize)));
+            console.Out.WriteLine();
         }
 
-        static IEnumerable<string> Chunks(string s)
+        static IEnumerable<string> Chunks(string s, int chunkSize)
         {
-            int chunkSize = Console.WindowWidth - 3;
             int position = 0;
             while (position < s.Length)
             {

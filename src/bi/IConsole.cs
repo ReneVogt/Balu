@@ -17,6 +17,7 @@ interface IConsole
     ConsoleColor BackgroundColor { get; set; }
     TextWriter Out { get; }
 
+    bool TryGetWindowWidth(out int width);
     bool TrySetCursorPosition(int left, int top);
     void WriteLine();
 }
@@ -38,6 +39,20 @@ sealed class SystemConsole : IConsole
     public ConsoleColor ForegroundColor { get => Console.ForegroundColor; set => Console.ForegroundColor = value; }
     public ConsoleColor BackgroundColor { get => Console.BackgroundColor; set => Console.BackgroundColor = value; }
     public TextWriter Out => Console.Out;
+
+    public bool TryGetWindowWidth(out int width)
+    {
+        try
+        {
+            width = Console.WindowWidth;
+            return true;
+        }
+        catch (IOException)
+        {
+            width = 0;
+            return false;
+        }
+    }
 
     public bool TrySetCursorPosition(int left, int top)
     {
