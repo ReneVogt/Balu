@@ -89,7 +89,7 @@ sealed class DiagnosticBag : List<Diagnostic>
         returnType == TypeSymbol.Void
             ? $"'{functionName}' does not have a return type and cannot return a value of type '{actualType}'."
             : $"'{functionName}' needs to return a value of type '{returnType}', not '{actualType}'."));
-    public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(DiagnosticId.NotAllPathsReturn, function.Declaration?.Body.ClosedBraceToken.Location ?? default, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
+    public void ReportNotAllPathsReturn(FunctionSymbol function) => Add(new(DiagnosticId.NotAllPathsReturn, function.Declaration?.Body.ClosedBraceToken.Location ?? TextLocation.None, $"Not all code paths of function '{function.Name}' return a value of type '{function.ReturnType}'."));
     public void ReportInvalidExpressionStatement(TextLocation location) => Add(new(DiagnosticId.InvalidExpressionStatement, location, "Only assignment, call increment or decrement expressions can be used as a statement."));
     public void ReportCannotMixMainAndGlobalStatements(TextLocation location) =>
         Add(new(DiagnosticId.CannotMixMainANdGlobalStatements, location, $"Global statements cannot be mixed with a '{GlobalSymbolNames.Main}' function."));
@@ -98,7 +98,7 @@ sealed class DiagnosticBag : List<Diagnostic>
     public void ReportOnlyOneFileCanHaveGlobalStatements(TextLocation location) =>
         Add(new(DiagnosticId.OnlyOneFileCanHaveGlobalStatements, location, "At most one file can contain global statements."));
     public void ReportNoEntryPointDefined() =>
-        Add(new(DiagnosticId.NoEntryPointDefined, default, $"No entry point found (neither a '{GlobalSymbolNames.Main}' function nor global statements)."));
+        Add(new(DiagnosticId.NoEntryPointDefined, TextLocation.None, $"No entry point found (neither a '{GlobalSymbolNames.Main}' function nor global statements)."));
     public void ReportUnreachableCode(TextLocation location) => Add(new(DiagnosticId.UnreachableCode, location, "Unreachable code detected.", DiagnosticSeverity.Warning));
     public void ReportConstantDivisionByZero(TextLocation location) =>
         Add(new(DiagnosticId.ConstantDivisionByZero, location, "Constant division by zero."));
@@ -106,24 +106,24 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(DiagnosticId.ConstantIntegerOverflow, location, "Constant expression causes an integer overflow."));
 
     public void ReportInvalidAssemblyReference(string reference, string exceptionMessage) =>
-        Add(new(DiagnosticId.InvalidAssemblyReference, default, $"Could not load referenced assembly '{reference}': {exceptionMessage}"));
+        Add(new(DiagnosticId.InvalidAssemblyReference, TextLocation.None, $"Could not load referenced assembly '{reference}': {exceptionMessage}"));
     public void ReportRequiredTypeNotFound(string metaDataname, TypeSymbol? type = null) =>
         Add(new(
                 DiagnosticId.RequiredTypeNotFound,
-                default,
+                TextLocation.None,
                 type is null
                     ? $"The required type '{metaDataname}' could not be resolved among the referenced assemblies."
                     : $"The required type '{type.Name}' ('{metaDataname}') could not be resolved among the referenced assemblies."));
     public void ReportRequiredTypeAmbiguous(string name, TypeDefinition[] typeDefinitions) =>
-        Add(new(DiagnosticId.RequiredTypeAmbiguous, default, $"The required type '{name}' is ambiguous among these referenced assemblies: {string.Join(", ", typeDefinitions.Select(t => t.Module.Assembly.Name.Name).OrderBy(n => n))}."));
+        Add(new(DiagnosticId.RequiredTypeAmbiguous, TextLocation.None, $"The required type '{name}' is ambiguous among these referenced assemblies: {string.Join(", ", typeDefinitions.Select(t => t.Module.Assembly.Name.Name).OrderBy(n => n))}."));
     public void ReportRequiredMethodNotFound(string type, string name, string[] parameterTypeNames) =>
-        Add(new(DiagnosticId.RequiredMethodNotFound, default, $"The required method '{type}.{name}({string.Join(", ", parameterTypeNames)})' could not be found in the referenced assemblies."));
+        Add(new(DiagnosticId.RequiredMethodNotFound, TextLocation.None, $"The required method '{type}.{name}({string.Join(", ", parameterTypeNames)})' could not be found in the referenced assemblies."));
     public void ReportRequiredMethodAmbiguous(string type, string name, string[] parameterTypeNames) =>
-        Add(new(DiagnosticId.RequiredMethodAmbiguous, default, $"The required method '{type}.{name}({string.Join(", ", parameterTypeNames)})' is ambiguous in the referenced assemblies."));
+        Add(new(DiagnosticId.RequiredMethodAmbiguous, TextLocation.None, $"The required method '{type}.{name}({string.Join(", ", parameterTypeNames)})' is ambiguous in the referenced assemblies."));
     public void ReportSourceDocumentNameMissing(TextLocation location) =>
         Add(new(DiagnosticId.SourceDocumentNameMissing, location, "Cannot emit debug symbols for a source document without a name."));
     public void ReportSourceDocumentNameCollision(TextLocation location, string documentName) =>
         Add(new(DiagnosticId.SourceDocumentNameCollision, location, $"Cannot emit debug symbols because document name '{documentName}' identifies different source texts."));
     public void ReportEmitPathCollision(string pathKind, string path, string conflictingPathKind, string conflictingPath) =>
-        Add(new(DiagnosticId.EmitPathCollision, default, $"The {pathKind} path '{path}' conflicts with the {conflictingPathKind} path '{conflictingPath}'."));
+        Add(new(DiagnosticId.EmitPathCollision, TextLocation.None, $"The {pathKind} path '{path}' conflicts with the {conflictingPathKind} path '{conflictingPath}'."));
 }

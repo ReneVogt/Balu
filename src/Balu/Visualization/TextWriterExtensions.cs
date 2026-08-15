@@ -38,7 +38,7 @@ public static class TextWriterExtensions
         _ = textWriter ?? throw new ArgumentNullException(nameof(textWriter));
         var diags = (diagnostics ?? throw new ArgumentNullException(nameof(diagnostics))).ToArray();
 
-        foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text != null).OrderBy(diagnostic => diagnostic.Location.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length))
+        foreach (var diagnostic in diags.Where(diagnostic => diagnostic.HasLocation).OrderBy(diagnostic => diagnostic.Location.FileName).ThenBy(diagnostic => diagnostic.Location.Span.Start).ThenByDescending(diagnostic => diagnostic.Location.Span.Length))
         {
             var sourceText = diagnostic.Location.Text;
             var startLine = sourceText.Lines[diagnostic.Location.StartLine];
@@ -70,7 +70,7 @@ public static class TextWriterExtensions
                 textWriter.WriteLine();
             }
         }
-        foreach (var diagnostic in diags.Where(diagnostic => diagnostic.Location.Text is null))
+        foreach (var diagnostic in diags.Where(diagnostic => !diagnostic.HasLocation))
         {
             WriteColoredText(textWriter, $"[{diagnostic.IdString}]: {diagnostic.Message}",
                              diagnostic.Severity == DiagnosticSeverity.Error ? ConsoleColor.Red : ConsoleColor.Yellow);
