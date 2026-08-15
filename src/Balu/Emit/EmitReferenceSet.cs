@@ -116,11 +116,7 @@ public sealed class EmitReferenceSet : IDisposable
             {
                 assemblies.Add(AssemblyDefinition.ReadAssembly(reference, new ReaderParameters { InMemory = true }));
             }
-            catch (BadImageFormatException exception)
-            {
-                diagnosticBag.ReportInvalidAssemblyReference(reference, exception.Message);
-            }
-            catch (IOException exception)
+            catch (Exception exception) when (exception is ArgumentException or BadImageFormatException or IOException or UnauthorizedAccessException)
             {
                 diagnosticBag.ReportInvalidAssemblyReference(reference, exception.Message);
             }

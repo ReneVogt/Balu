@@ -58,6 +58,74 @@ public partial class EmitterTests
     }
 
     [Fact]
+    public void Emitter_EmptyReferencePathProducesDiagnostic()
+    {
+        var compilation = Compilation.Create(SyntaxTree.Parse("function main() {}"));
+        using var output = new MemoryStream();
+
+        var diagnostics = compilation.Emit("InvalidReference", [string.Empty], output, null);
+
+        Assert.Contains(diagnostics, diagnostic => diagnostic.Id == DiagnosticId.InvalidAssemblyReference);
+    }
+
+    [Fact]
+    public void Emitter_DirectoryReferenceProducesDiagnosticAndReleasesLoadedReferences()
+    {
+        var directory = Directory.CreateTempSubdirectory("BaluEmitterReferences-");
+        try
+        {
+            var validReference = Path.Combine(directory.FullName, Path.GetFileName(ReferenceProvider.References[0]));
+            File.Copy(ReferenceProvider.References[0], validReference);
+            var compilation = Compilation.Create(SyntaxTree.Parse("function main() {}"));
+            using var output = new MemoryStream();
+
+            var diagnostics = compilation.Emit("InvalidReference", [validReference, directory.FullName], output, null);
+
+            Assert.Contains(diagnostics, diagnostic => diagnostic.Id == DiagnosticId.InvalidAssemblyReference);
+            AssertCanOpenExclusively([validReference]);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Emitter_PermissionDeniedReferenceProducesDiagnosticWhereSupported()
+    {
+        if (OperatingSystem.IsWindows()) return;
+
+        var directory = Directory.CreateTempSubdirectory("BaluEmitterReferences-");
+        var reference = Path.Combine(directory.FullName, "denied.dll");
+        File.Copy(ReferenceProvider.References[0], reference);
+        var originalMode = File.GetUnixFileMode(reference);
+        try
+        {
+            File.SetUnixFileMode(reference, UnixFileMode.None);
+            try
+            {
+                using var _ = File.OpenRead(reference);
+                return;
+            }
+            catch (UnauthorizedAccessException)
+            {
+            }
+
+            var compilation = Compilation.Create(SyntaxTree.Parse("function main() {}"));
+            using var output = new MemoryStream();
+
+            var diagnostics = compilation.Emit("InvalidReference", [reference], output, null);
+
+            Assert.Contains(diagnostics, diagnostic => diagnostic.Id == DiagnosticId.InvalidAssemblyReference);
+        }
+        finally
+        {
+            File.SetUnixFileMode(reference, originalMode);
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
     public void Emitter_ReleasesReferencesAfterValidationFailure()
     {
         var directory = Directory.CreateTempSubdirectory("BaluEmitterReferences-");
