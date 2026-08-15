@@ -160,7 +160,15 @@ sealed class Binder : SyntaxTreeVisitor
             return;
         }
 
-        boundNode = Assignment(node, variable, Binary(node, Variable(node.IdentifierToken, variable), op, right));
+        var binaryExpression = Binary(node, Variable(node.IdentifierToken, variable), op, right);
+        if (binaryExpression.FoldingError == ConstantFoldingError.DivisionByZero)
+        {
+            diagnostics.ReportConstantDivisionByZero(node.Location);
+            SetErrorExpression(node);
+            return;
+        }
+
+        boundNode = Assignment(node, variable, binaryExpression);
     }
     protected override void VisitPostfixExpression(PostfixExpressionSyntax node)
     {

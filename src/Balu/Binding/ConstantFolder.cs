@@ -19,18 +19,17 @@ static class ConstantFolder
                 return Constant(true);
         }
 
-        if (left.Constant is null || right.Constant is null)
-            return default;
-
+        if (right.Constant is null) return default;
         if (operation.OperatorKind == BoundBinaryOperatorKind.Division)
         {
-            var dividend = (int)left.Constant.Value;
             var divisor = (int)right.Constant.Value;
             if (divisor == 0)
                 return new(null, ConstantFoldingError.DivisionByZero);
-            if (dividend == int.MinValue && divisor == -1)
+            if (divisor == -1 && left.Constant is { Value: int.MinValue })
                 return new(null, ConstantFoldingError.IntegerOverflow);
         }
+
+        if (left.Constant is null) return default;
 
         return operation.OperatorKind switch
         {
