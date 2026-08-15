@@ -8,6 +8,7 @@ public sealed class Diagnostic
     public string IdString { get; }
     public DiagnosticSeverity Severity { get; }
     public TextLocation Location { get; }
+    public bool HasLocation => !Location.IsNone;
     public string Message { get; }
 
     internal Diagnostic(DiagnosticId id, TextLocation location, string message, DiagnosticSeverity severity = DiagnosticSeverity.Error)
@@ -19,5 +20,8 @@ public sealed class Diagnostic
         Severity = severity;
     }
 
-    public override string ToString() => $"{Location}: [{IdString}] {Message}";
+    public override string ToString() =>
+        HasLocation
+            ? $"{Location}: [{IdString}] {Message}"
+            : $"[{IdString}] {Message}";
 }

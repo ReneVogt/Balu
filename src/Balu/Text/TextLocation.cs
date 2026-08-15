@@ -2,6 +2,9 @@
 
 public readonly record struct TextLocation(SourceText Text, TextSpan Span)
 {
+    public static TextLocation None => default;
+    public bool IsNone => Text is null;
+
     public string FileName => Text.FileName;
     public int StartLine => Text.GetLineIndex(Span.Start);
     public int EndLine => Text.GetLineIndex(Span.End);
@@ -10,6 +13,8 @@ public readonly record struct TextLocation(SourceText Text, TextSpan Span)
 
     public override string ToString()
     {
+        if (IsNone) return string.Empty;
+
         var line = Text.GetLineIndex(Span.Start);
         return $"{Text.FileName}({line + 1},{Span.Start - Text.Lines[line].Start + 1})";
     }
