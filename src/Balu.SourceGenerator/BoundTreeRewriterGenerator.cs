@@ -26,11 +26,31 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
         var kindNames = boundNodeKindType.MemberNames.ToImmutableArray();
         var types = compilation.Assembly.GetAllTypes();
         var boundNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, boundNodeType.ContainingNamespace));
-        var kindsToVisit = kindNames
-                           .Select(kindName => (kind: kindName,
-                                                   type: boundNodeTypes.SingleOrDefault(nodeType => nodeType.Name == $"Bound{kindName}")))
-                           .Where(x => x.type is not null)
-                           .ToImmutableArray();
+        var kindsToVisit = ImmutableArray.CreateBuilder<(string Kind, INamedTypeSymbol Type, NodeModel Model, ImmutableArray<IPropertySymbol> PropertiesToRewrite)>();
+        foreach (var kind in kindNames)
+        {
+            var type = boundNodeTypes.SingleOrDefault(nodeType => nodeType.Name == $"Bound{kind}");
+            if (type is null) continue;
+
+            var model = NodeModel.Create(type, context);
+            if (model is null) continue;
+
+            var propertiesToRewrite = model.Parameters
+                                           .Select(parameter => parameter.Property)
+                                           .Where(property => property.Type is INamedTypeSymbol propertyType &&
+                                                              (propertyType.IsDerivedFrom(boundNodeType) ||
+                                                               propertyType.IsGenericListOf(immutableArrayType, boundNodeType)))
+                                           .ToImmutableArray();
+            if (propertiesToRewrite.Length > 0 &&
+                !model.ValidateAccessibility(context,
+                                             boundNodeKindType,
+                                             constructorRequired: true,
+                                             model.Parameters.Select(parameter => parameter.Property).ToImmutableArray(),
+                                             "the generated bound tree rewriter"))
+                continue;
+
+            kindsToVisit.Add((kind, type, model, propertiesToRewrite));
+        }
 
         Writer.WriteLine("using System;");
         Writer.WriteLine("using System.Collections.Immutable;");
@@ -43,8 +63,8 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
         {
             using(new CurlyIndenter(Writer, "public virtual BoundNode Visit(BoundNode node) => node.Kind switch", semicolon: true))
             {
-                foreach (var (kind, type) in kindsToVisit)
-                    Writer.WriteLine($"BoundNodeKind.{kind} => VisitBound{kind}(({type!.Name})node),");
+                foreach (var (kind, type, _, _) in kindsToVisit)
+                    Writer.WriteLine($"BoundNodeKind.{kind.ToIdentifier()} => {$"VisitBound{kind}".ToIdentifier()}(({type.Name.ToIdentifier()})node),");
 
                 Writer.WriteLine("_ => throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\")");
             }
@@ -68,52 +88,44 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
     }
 ");
 
-            foreach (var (kind, type) in kindsToVisit)
+            foreach (var (kind, type, model, propertiesToRewrite) in kindsToVisit)
             {
-                var model = NodeModel.Create(type!, context);
-                if (model is null) continue;
-
-                var propertiesToRewrite = model.Parameters
-                                               .Select(parameter => parameter.Property)
-                                               .Where(property => property.Type is INamedTypeSymbol propertyType &&
-                                                                  (propertyType.IsDerivedFrom(boundNodeType) ||
-                                                                   propertyType.IsGenericListOf(immutableArrayType, boundNodeType)))
-                                               .ToImmutableArray();
-
                 if (propertiesToRewrite.Length == 0)
                 {
-                    Writer.WriteLine($"protected virtual BoundNode VisitBound{kind}({type.Name} node) => node;");
+                    Writer.WriteLine($"protected virtual BoundNode {$"VisitBound{kind}".ToIdentifier()}({type.Name.ToIdentifier()} node) => node;");
                     continue;
                 }
 
-                using(new CurlyIndenter(Writer, $"protected virtual BoundNode VisitBound{kind}({type.Name} node)"))
+                using(new CurlyIndenter(Writer, $"protected virtual BoundNode {$"VisitBound{kind}".ToIdentifier()}({type.Name.ToIdentifier()} node)"))
                 {
                     foreach (var property in propertiesToRewrite)
                     {
+                        var propertyName = property.Name.ToIdentifier();
+                        var rewrittenName = $"rewritten{property.Name}".ToIdentifier();
                         if (((INamedTypeSymbol)property.Type).IsDerivedFrom(boundNodeType))
                         {
                             if (property.NullableAnnotation == NullableAnnotation.Annotated)
                                 Writer.WriteLine(
-                                    $"var rewritten{property.Name} = node.{property.Name} is null ? null : ({property.Type.Name})Visit(node.{property.Name});");
+                                    $"var {rewrittenName} = node.{propertyName} is null ? null : ({property.Type.Name.ToIdentifier()})Visit(node.{propertyName});");
                             else
-                                Writer.WriteLine($"var rewritten{property.Name} = ({property.Type.Name})Visit(node.{property.Name});");
+                                Writer.WriteLine($"var {rewrittenName} = ({property.Type.Name.ToIdentifier()})Visit(node.{propertyName});");
                         }
                         else
-                            Writer.WriteLine($"var rewritten{property.Name} = RewriteList(node.{property.Name});");
+                            Writer.WriteLine($"var {rewrittenName} = RewriteList(node.{propertyName});");
                     }
 
                     Writer.WriteLine();
                     Writer.Write("return ");
-                    Writer.Write(string.Join(" && ", propertiesToRewrite.Select(property => $"node.{property.Name} == rewritten{property.Name}")));
-                    Writer.Write($" ? node : new {type.Name}(");
+                    Writer.Write(string.Join(" && ", propertiesToRewrite.Select(property => $"node.{property.Name.ToIdentifier()} == {$"rewritten{property.Name}".ToIdentifier()}")));
+                    Writer.Write($" ? node : new {type.Name.ToIdentifier()}(");
                     for (int i = 0; i < model.Parameters.Length; i++)
                     {
                         if (i > 0) Writer.Write(", ");
                         var property = model.Parameters[i].Property;
                         if (propertiesToRewrite.Contains(property))
-                            Writer.Write($"rewritten{property.Name}");
+                            Writer.Write($"rewritten{property.Name}".ToIdentifier());
                         else
-                            Writer.Write($"node.{property.Name}");
+                            Writer.Write($"node.{property.Name.ToIdentifier()}");
                     }
                     Writer.WriteLine(");");
                 }

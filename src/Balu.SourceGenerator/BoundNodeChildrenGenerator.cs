@@ -49,7 +49,9 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
                                                  (propertyType.IsDerivedFrom(boundNodeType) ||
                                                   propertyType.IsGenericListOf(immutableArrayType, boundNodeType)))
                               .ToImmutableArray();
-        using(new CurlyIndenter(Writer, $"partial class {type.Name}"))
+        if (!model.ValidateAccessibility(context, type, constructorRequired: false, properties, "the generated bound node members")) return;
+
+        using(new CurlyIndenter(Writer, $"partial class {type.ToIdentifier()}"))
         {
             WriteChildrenCount(properties);
             WriteGetChild(properties);
@@ -72,7 +74,7 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
 
         if (nonNullableProperties.Length + collections.Length == 0 && nullableProperties.Length == 1)
         {
-            Writer.WriteLine($"public override int ChildrenCount => {nullableProperties[0].Name} is null ? 0 : 1;");
+            Writer.WriteLine($"public override int ChildrenCount => {nullableProperties[0].ToIdentifier()} is null ? 0 : 1;");
             return;
         }
 
@@ -84,7 +86,7 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
                 WriteNonNullableSum();
                 Writer.WriteLine(";");
                 Writer.WriteLine(
-                    string.Join(Environment.NewLine, nullableProperties.Select(property => $"if ({property.Name} is not null) count++;")));
+                    string.Join(Environment.NewLine, nullableProperties.Select(property => $"if ({property.ToIdentifier()} is not null) count++;")));
                 Writer.WriteLine("return count;");
             }
         }
@@ -97,7 +99,7 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
                 if (collections.Length > 0) Writer.Write(" + ");
             }
             else if (collections.Length == 0) Writer.Write("0");
-            Writer.Write(string.Join(" + ", collections.Select(collection => $"{collection.Name}.Length")));
+            Writer.Write(string.Join(" + ", collections.Select(collection => $"{collection.ToIdentifier()}.Length")));
         }
     }
     void WriteGetChild(ImmutableArray<IPropertySymbol> properties)
@@ -118,11 +120,11 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
             {
                 Writer.Write(signature + " => ");
                 if (property.NullableAnnotation == NullableAnnotation.Annotated)
-                    Writer.Write($"{property.Name} is not null && ");
-                Writer.WriteLine($"index == 0 ? {property.Name} : {exception};");
+                    Writer.Write($"{property.ToIdentifier()} is not null && ");
+                Writer.WriteLine($"index == 0 ? {property.ToIdentifier()} : {exception};");
             }
             else
-                Writer.WriteLine($"{signature} => {property.Name}[index];");
+                Writer.WriteLine($"{signature} => {property.ToIdentifier()}[index];");
 
             return;
         }
@@ -140,7 +142,7 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
 
             if (leadingNonNullableProperties.Length == 1)
             {
-                Writer.WriteLine($"if (index == 0) return {leadingNonNullableProperties[0].Name};");
+                Writer.WriteLine($"if (index == 0) return {leadingNonNullableProperties[0].ToIdentifier()};");
                 propIndex++;
             }
             else if (leadingNonNullableProperties.Length > 1)
@@ -148,7 +150,7 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
                 using(new CurlyIndenter(Writer, "switch(index)"))
                 {
                     foreach (var property in leadingNonNullableProperties)
-                        Writer.WriteLine($"case {propIndex++}: return {property.Name};");
+                        Writer.WriteLine($"case {propIndex++}: return {property.ToIdentifier()};");
                 }
             }
 
@@ -162,18 +164,18 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
                 {
                     if (propertyType.NullableAnnotation == NullableAnnotation.Annotated)
                     {
-                        Writer.WriteLine($"if ({property.Name} is null) adjustedIndex++;");
-                        Writer.WriteLine($"else if (adjustedIndex == propIndex) return {property.Name};");
+                        Writer.WriteLine($"if ({property.ToIdentifier()} is null) adjustedIndex++;");
+                        Writer.WriteLine($"else if (adjustedIndex == propIndex) return {property.ToIdentifier()};");
                     }
                     else
-                        Writer.WriteLine($"if (adjustedIndex == propIndex) return {property.Name};");
+                        Writer.WriteLine($"if (adjustedIndex == propIndex) return {property.ToIdentifier()};");
 
                     if (i < properties.Length - 1) Writer.WriteLine("propIndex++;");
                 }
                 else
                 {
-                    Writer.WriteLine($"if (adjustedIndex - propIndex < {property.Name}.Length) return {property.Name}[adjustedIndex-propIndex];");
-                    if (i < properties.Length - 1) Writer.WriteLine($"propIndex += {property.Name}.Length;");
+                    Writer.WriteLine($"if (adjustedIndex - propIndex < {property.ToIdentifier()}.Length) return {property.ToIdentifier()}[adjustedIndex-propIndex];");
+                    if (i < properties.Length - 1) Writer.WriteLine($"propIndex += {property.ToIdentifier()}.Length;");
                 }
             }
 

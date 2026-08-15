@@ -43,6 +43,139 @@ public sealed class GeneratorOrderingTests
     }
 
     [Fact]
+    public void Generator_ReportsInaccessibleRewriterConstructor()
+    {
+        var source = ValidSource.Replace("public BoundPair(SyntaxNode syntax, BoundNode left, BoundNode right)",
+                                         "private BoundPair(SyntaxNode syntax, BoundNode left, BoundNode right)",
+                                         StringComparison.Ordinal);
+
+        AssertInvalidNodeModel(source, "constructor with 3 parameters is not accessible from the generated bound tree rewriter");
+    }
+
+    [Fact]
+    public void Generator_ReportsInaccessiblePropertyGetter()
+    {
+        var source = ValidSource.Replace("public BoundNode Left { get; }", "public BoundNode Left { private get; set; }", StringComparison.Ordinal);
+
+        AssertInvalidNodeModel(source, "property 'Left' has no getter accessible from the generated bound tree rewriter");
+    }
+
+    [Fact]
+    public void Generator_ReportsInheritedGetterInaccessibleFromGeneratedNodeMembers()
+    {
+        var source = ValidSource.Replace("public abstract int ChildrenCount { get; }",
+                                         "protected SyntaxNode First { private get; set; } = null!;\n        public abstract int ChildrenCount { get; }",
+                                         StringComparison.Ordinal)
+                                .Replace("public SyntaxNode First { get; }",
+                                         "public override int ChildrenCount => 0;\n        public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));",
+                                         StringComparison.Ordinal);
+
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        var diagnostic = Assert.Single(result.Diagnostics.Where(candidate => candidate.Id == "BLS0001"));
+        Assert.Contains("property 'First' has no getter accessible from the generated syntax node members", diagnostic.GetMessage());
+        Assert.DoesNotContain(compilationDiagnostics,
+                              candidate => candidate.Severity == DiagnosticSeverity.Error && candidate.Id != "BLS0001");
+    }
+
+    [Fact]
+    public void Generator_AllowsInaccessibleConstructorWhenRewriterDoesNotReconstructNode()
+    {
+        const string boundNode = """
+    sealed partial class BoundLeaf : BoundNode
+    {
+        public int Value { get; }
+        public override BoundNodeKind Kind => BoundNodeKind.Leaf;
+
+        private BoundLeaf(SyntaxNode syntax, int value) : base(syntax)
+        {
+            Value = value;
+        }
+    }
+""";
+        var source = AddNodes(string.Empty, boundNode)
+                    .Replace("enum BoundNodeKind { Pair }", "enum BoundNodeKind { Pair, Leaf }", StringComparison.Ordinal);
+
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains("VisitBoundLeaf", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
+    [Fact]
+    public void Generator_RejectsRecordNodes()
+    {
+        var (result, compilationDiagnostics, _) = RunGenerator(RecordSource);
+
+        var diagnostics = result.Diagnostics.Where(candidate => candidate.Id == "BLS0002").ToImmutableArray();
+        Assert.Equal(5, diagnostics.Length);
+        Assert.Contains(diagnostics, diagnostic => diagnostic.GetMessage().Contains("'Balu.Syntax.RecordSyntax'", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, diagnostic => diagnostic.GetMessage().Contains("'Balu.Binding.BoundRecord'", StringComparison.Ordinal));
+        Assert.All(diagnostics, diagnostic => Assert.Contains("must be a non-record, non-generic class", diagnostic.GetMessage()));
+        Assert.DoesNotContain(compilationDiagnostics,
+                              diagnostic => diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Id != "BLS0002");
+    }
+
+    [Fact]
+    public void Generator_EscapesKeywordPropertyIdentifiers()
+    {
+        var source = ValidSource.Replace("public SyntaxNode First { get; }", "public SyntaxNode @event { get; }", StringComparison.Ordinal)
+                                .Replace("public OrderedSyntax(SyntaxNode first, SyntaxNode second)", "public OrderedSyntax(SyntaxNode @event, SyntaxNode second)", StringComparison.Ordinal)
+                                .Replace("First = first;", "@event = @event;", StringComparison.Ordinal)
+                                .Replace("public BoundNode Left { get; }", "public BoundNode @event { get; }", StringComparison.Ordinal)
+                                .Replace("BoundNode left, BoundNode right", "BoundNode @event, BoundNode right", StringComparison.Ordinal)
+                                .Replace("Left = left;", "@event = @event;", StringComparison.Ordinal);
+
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains("return @event;", GetGeneratedSource(result, "SyntaxNodeChildren.g.cs"));
+        Assert.Contains("return @event;", GetGeneratedSource(result, "BoundNodeChildren.g.cs"));
+        Assert.Contains("node.@event", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
+    [Fact]
+    public void Generator_EscapesKeywordKindIdentifiers()
+    {
+        var source = ValidSource.Replace("public enum SyntaxKind { Ordered }", "public enum SyntaxKind { @class }", StringComparison.Ordinal)
+                                .Replace("OrderedSyntax", "classSyntax", StringComparison.Ordinal)
+                                .Replace("SyntaxKind.Ordered", "SyntaxKind.@class", StringComparison.Ordinal)
+                                .Replace("enum BoundNodeKind { Pair }", "enum BoundNodeKind { @event }", StringComparison.Ordinal)
+                                .Replace("BoundPair", "Boundevent", StringComparison.Ordinal)
+                                .Replace("BoundNodeKind.Pair", "BoundNodeKind.@event", StringComparison.Ordinal);
+
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains("case SyntaxKind.@class:", GetGeneratedSource(result, "SyntaxTreeVisitor.g.cs"));
+        Assert.Contains("case BoundNodeKind.@event:", GetGeneratedSource(result, "BoundTreeVisitor.g.cs"));
+        Assert.Contains("BoundNodeKind.@event =>", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
+    [Fact]
+    public void Generator_SupportsProductionStylePrimaryConstructors()
+    {
+        const string primaryConstructorNode = """
+    sealed partial class BoundPair(SyntaxNode syntax, BoundNode left, BoundNode right) : BoundNode(syntax)
+    {
+        public BoundNode Right { get; } = right;
+        public BoundNode Left { get; } = left;
+        public override BoundNodeKind Kind => BoundNodeKind.Pair;
+    }
+""";
+        var source = ValidSource.Replace(BoundPairSource, primaryConstructorNode, StringComparison.Ordinal);
+
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains("new BoundPair(node.Syntax, rewrittenLeft, rewrittenRight)", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
+    [Fact]
     public void Generator_TraversesSingleSeparatedListWithSeparators()
     {
         const string syntaxNodes = """
@@ -254,13 +387,25 @@ public sealed class GeneratorOrderingTests
                               diagnostic => diagnostic.Severity == DiagnosticSeverity.Error && diagnostic.Id != "BLS0002");
     }
 
+    static void AssertInvalidNodeModel(string source, string expectedReason)
+    {
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        var diagnostic = Assert.Single(result.Diagnostics.Where(candidate => candidate.Id == "BLS0001"));
+        Assert.Contains(expectedReason, diagnostic.GetMessage());
+        Assert.True(diagnostic.Location.IsInSource);
+        Assert.DoesNotContain(compilationDiagnostics,
+                              candidate => candidate.Severity == DiagnosticSeverity.Error && candidate.Id != "BLS0001");
+        Assert.DoesNotContain("VisitBoundPair", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
     static string AddNodes(string syntaxNodes, string boundNodes) =>
         ValidSource.Replace("    // Additional syntax nodes", syntaxNodes, StringComparison.Ordinal)
                    .Replace("    // Additional bound nodes", boundNodes, StringComparison.Ordinal);
 
     static (GeneratorDriverRunResult Result, ImmutableArray<Diagnostic> CompilationDiagnostics, CSharpCompilation OutputCompilation) RunGenerator(string source)
     {
-        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp10);
+        var parseOptions = new CSharpParseOptions(LanguageVersion.CSharp12);
         var syntaxTree = CSharpSyntaxTree.ParseText(source, parseOptions);
         var compilation = CSharpCompilation.Create("GeneratorTests",
                                                    new[] { syntaxTree },
@@ -375,6 +520,78 @@ namespace Balu.Binding
     }
 
     // Additional bound nodes
+}
+""";
+
+    const string BoundPairSource = """
+    sealed partial class BoundPair : BoundNode
+    {
+        public BoundNode Right { get; }
+        public BoundNode Left { get; }
+        public override BoundNodeKind Kind => BoundNodeKind.Pair;
+
+        public BoundPair(SyntaxNode syntax, BoundNode left, BoundNode right) : base(syntax)
+        {
+            Left = left;
+            Right = right;
+        }
+    }
+""";
+
+    const string RecordSource = """
+using System;
+using System.Collections.Immutable;
+
+namespace Balu.Syntax
+{
+    public enum SyntaxKind { Record }
+
+    public abstract record SyntaxNode
+    {
+        public abstract SyntaxKind Kind { get; }
+        public abstract int ChildrenCount { get; }
+        public abstract SyntaxNode GetChild(int index);
+    }
+
+    public sealed record SyntaxToken : SyntaxNode
+    {
+        public override SyntaxKind Kind => default;
+        public override int ChildrenCount => 0;
+        public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+    }
+
+    public sealed class SeparatedSyntaxList<T> where T : SyntaxNode
+    {
+        public ImmutableArray<SyntaxNode> ElementsWithSeparators { get; } = ImmutableArray<SyntaxNode>.Empty;
+    }
+
+    public sealed partial record RecordSyntax : SyntaxNode
+    {
+        public override SyntaxKind Kind => SyntaxKind.Record;
+        public override int ChildrenCount => 0;
+        public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+    }
+}
+
+namespace Balu.Binding
+{
+    using Balu.Syntax;
+
+    enum BoundNodeKind { Record }
+
+    abstract record BoundNode(SyntaxNode Syntax)
+    {
+        public abstract BoundNodeKind Kind { get; }
+        public abstract int ChildrenCount { get; }
+        public abstract BoundNode GetChild(int index);
+    }
+
+    sealed partial record BoundRecord(SyntaxNode Syntax) : BoundNode(Syntax)
+    {
+        public override BoundNodeKind Kind => BoundNodeKind.Record;
+        public override int ChildrenCount => 0;
+        public override BoundNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+    }
 }
 """;
 }
