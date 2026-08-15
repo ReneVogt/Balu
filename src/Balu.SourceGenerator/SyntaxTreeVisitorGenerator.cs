@@ -39,9 +39,9 @@ sealed class SyntaxTreeVisitorGenerator : BaseGenerator
                 {
                     foreach (var kind in kindsToVisit)
                     {
-                        Writer.WriteLine($"case SyntaxKind.{kind}:");
+                        Writer.WriteLine($"case SyntaxKind.{kind.ToIdentifier()}:");
                         Writer.Indent++;
-                        Writer.WriteLine($"Visit{kind}(({kind}Syntax)node);");
+                        Writer.WriteLine($"{$"Visit{kind}".ToIdentifier()}(({$"{kind}Syntax".ToIdentifier()})node);");
                         Writer.WriteLine("break;");
                         Writer.Indent--;
                     }
@@ -64,7 +64,7 @@ sealed class SyntaxTreeVisitorGenerator : BaseGenerator
             Writer.WriteLine();
 
             foreach (var kind in kindsToVisit)
-                Writer.WriteLine($"protected virtual void Visit{kind}({kind}Syntax node) => VisitChildren(node);");
+                Writer.WriteLine($"protected virtual void {$"Visit{kind}".ToIdentifier()}({$"{kind}Syntax".ToIdentifier()} node) => VisitChildren(node);");
             Writer.WriteLine("protected virtual void VisitToken(SyntaxToken node) => VisitChildren(node);");
         }
 

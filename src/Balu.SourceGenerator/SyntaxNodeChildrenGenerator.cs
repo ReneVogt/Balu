@@ -52,7 +52,9 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
                                                   propertyType.IsGenericListOf(separatedListType, syntaxNodeType) ||
                                                   propertyType.IsGenericListOf(immutableArrayType, syntaxNodeType)))
                               .ToImmutableArray();
-        using(new CurlyIndenter(Writer, $"partial class {type.Name}"))
+        if (!model.ValidateAccessibility(context, type, constructorRequired: false, properties, "the generated syntax node members")) return;
+
+        using(new CurlyIndenter(Writer, $"partial class {type.ToIdentifier()}"))
         {
             WriteChildrenCount(properties);
             WriteGetChild(properties);
@@ -76,7 +78,7 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
 
         if (nonNullableProperties.Length + separatedLists.Length + immutableArrays.Length == 0 && nullableProperties.Length == 1)
         {
-            Writer.WriteLine($"public override int ChildrenCount => {nullableProperties[0].Name} is null ? 0 : 1;");
+            Writer.WriteLine($"public override int ChildrenCount => {nullableProperties[0].ToIdentifier()} is null ? 0 : 1;");
             return;
         }
 
@@ -88,7 +90,7 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
                 WriteNonNullableSum();
                 Writer.WriteLine(";");
                 Writer.WriteLine(
-                    string.Join(Environment.NewLine, nullableProperties.Select(property => $"if ({property.Name} is not null) count++;")));
+                    string.Join(Environment.NewLine, nullableProperties.Select(property => $"if ({property.ToIdentifier()} is not null) count++;")));
                 Writer.WriteLine("return count;");
             }
         }
@@ -101,12 +103,12 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
             if (immutableArrays.Length > 0)
             {
                 if (builder.Length > 0) builder.Append(" + ");
-                builder.Append(string.Join(" + ", immutableArrays.Select(prop => $"{prop.Name}.Length")));
+                builder.Append(string.Join(" + ", immutableArrays.Select(prop => $"{prop.ToIdentifier()}.Length")));
             }
             if (separatedLists.Length > 0)
             {
                 if (builder.Length > 0) builder.Append(" + ");
-                builder.Append(string.Join(" + ", separatedLists.Select(prop => $"{prop.Name}.ElementsWithSeparators.Length")));
+                builder.Append(string.Join(" + ", separatedLists.Select(prop => $"{prop.ToIdentifier()}.ElementsWithSeparators.Length")));
             }
 
             if (builder.Length == 0) builder.Append('0');
@@ -131,13 +133,13 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
             {
                 Writer.Write(signature + " => ");
                 if (property.NullableAnnotation == NullableAnnotation.Annotated)
-                    Writer.Write($"{property.Name} is not null && ");
-                Writer.WriteLine($"index == 0 ? {property.Name} : {exception};");
+                    Writer.Write($"{property.ToIdentifier()} is not null && ");
+                Writer.WriteLine($"index == 0 ? {property.ToIdentifier()} : {exception};");
             }
             else if (((INamedTypeSymbol)property.Type).IsGenericListOf(separatedListType, syntaxNodeType))
-                Writer.WriteLine($"{signature} => {property.Name}.ElementsWithSeparators[index];");
+                Writer.WriteLine($"{signature} => {property.ToIdentifier()}.ElementsWithSeparators[index];");
             else
-                Writer.WriteLine($"{signature} => {property.Name}[index];");
+                Writer.WriteLine($"{signature} => {property.ToIdentifier()}[index];");
 
             return;
         }
@@ -155,7 +157,7 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
 
             if (leadingNonNullableProperties.Length == 1)
             {
-                Writer.WriteLine($"if (index == 0) return {leadingNonNullableProperties[0].Name};");
+                Writer.WriteLine($"if (index == 0) return {leadingNonNullableProperties[0].ToIdentifier()};");
                 propIndex = 1;
             }
             else if (leadingNonNullableProperties.Length > 1)
@@ -163,7 +165,7 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
                 using(new CurlyIndenter(Writer, "switch(index)"))
                 {
                     foreach (var property in leadingNonNullableProperties)
-                        Writer.WriteLine($"case {propIndex++}: return {property.Name};");
+                        Writer.WriteLine($"case {propIndex++}: return {property.ToIdentifier()};");
                 }
             }
 
@@ -177,23 +179,23 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
                 {
                     if (propertyType.NullableAnnotation == NullableAnnotation.Annotated)
                     {
-                        Writer.WriteLine($"if ({property.Name} is null) adjustedIndex++;");
-                        Writer.WriteLine($"else if (adjustedIndex == propIndex) return {property.Name};");
+                        Writer.WriteLine($"if ({property.ToIdentifier()} is null) adjustedIndex++;");
+                        Writer.WriteLine($"else if (adjustedIndex == propIndex) return {property.ToIdentifier()};");
                     }
                     else
-                        Writer.WriteLine($"if (adjustedIndex == propIndex) return {property.Name};");
+                        Writer.WriteLine($"if (adjustedIndex == propIndex) return {property.ToIdentifier()};");
 
                     if (i < properties.Length - 1) Writer.WriteLine("propIndex++;");
                 }
                 else if (propertyType.IsGenericListOf(immutableArrayType, syntaxNodeType))
                 {
-                    Writer.WriteLine($"if (adjustedIndex - propIndex < {property.Name}.Length) return {property.Name}[adjustedIndex-propIndex];");
-                    if (i < properties.Length - 1) Writer.WriteLine($"propIndex += {property.Name}.Length;");
+                    Writer.WriteLine($"if (adjustedIndex - propIndex < {property.ToIdentifier()}.Length) return {property.ToIdentifier()}[adjustedIndex-propIndex];");
+                    if (i < properties.Length - 1) Writer.WriteLine($"propIndex += {property.ToIdentifier()}.Length;");
                 }
                 else
                 {
-                    Writer.WriteLine($"if (adjustedIndex - propIndex < {property.Name}.ElementsWithSeparators.Length) return {property.Name}.ElementsWithSeparators[adjustedIndex-propIndex];");
-                    if (i < properties.Length - 1) Writer.WriteLine($"propIndex += {property.Name}.ElementsWithSeparators.Length;");
+                    Writer.WriteLine($"if (adjustedIndex - propIndex < {property.ToIdentifier()}.ElementsWithSeparators.Length) return {property.ToIdentifier()}.ElementsWithSeparators[adjustedIndex-propIndex];");
+                    if (i < properties.Length - 1) Writer.WriteLine($"propIndex += {property.ToIdentifier()}.ElementsWithSeparators.Length;");
                 }
             }
 

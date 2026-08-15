@@ -22,7 +22,7 @@ public sealed class BaluSourceGenerator : ISourceGenerator
                                                                      isEnabledByDefault: true);
     static readonly DiagnosticDescriptor UnsupportedNodeTypeDiagnostic = new(id: "BLS0002",
                                                                               title: "Unsupported node type",
-                                                                              messageFormat: "The node type '{0}' must be non-generic and declared at namespace scope.",
+                                                                               messageFormat: "The node type '{0}' must be a non-record, non-generic class declared at namespace scope.",
                                                                               category: "Balu source generation",
                                                                               DiagnosticSeverity.Error,
                                                                               isEnabledByDefault: true);

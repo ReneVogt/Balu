@@ -1,6 +1,7 @@
 ﻿
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -39,7 +40,12 @@ static class TypeExtensions
     public static bool IsPartial(this INamedTypeSymbol type) => type.DeclaringSyntaxReferences.Select(declaration => declaration.GetSyntax())
                                                         .OfType<TypeDeclarationSyntax>()
                                                         .Any(syntax => syntax.Modifiers.Any(modifier => modifier.ValueText == "partial"));
-    public static bool IsSupportedNodeType(this INamedTypeSymbol type) => type.ContainingType is null && type.Arity == 0;
+    public static bool IsSupportedNodeType(this INamedTypeSymbol type) => type.ContainingType is null && type.Arity == 0 && !type.IsRecord;
+    public static string ToIdentifier(this string name) =>
+        SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(name) != SyntaxKind.None
+            ? $"@{name}"
+            : name;
+    public static string ToIdentifier(this ISymbol symbol) => symbol.Name.ToIdentifier();
     public static bool IsGenericListOf(this INamedTypeSymbol type, INamedTypeSymbol listType, INamedTypeSymbol elementBaseType) =>
         type.TypeArguments.Length == 1 && type.TypeArguments[0].IsDerivedFrom(elementBaseType) &&
         SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, listType);
@@ -50,9 +56,9 @@ static class TypeExtensions
         while (!string.IsNullOrWhiteSpace(current.Name))
         {
             if (builder.Length == 0)
-                builder.Append(current.Name);
+                builder.Append(current.Name.ToIdentifier());
             else
-                builder.Insert(0, $"{current.Name}.");
+                builder.Insert(0, $"{current.Name.ToIdentifier()}.");
             current = current.ContainingNamespace;
         }
         return builder.ToString();

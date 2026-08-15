@@ -38,9 +38,9 @@ sealed class BoundTreeVisitorGenerator : BaseGenerator
                 {
                     foreach (var kind in kindsToVisit)
                     {
-                        Writer.WriteLine($"case BoundNodeKind.{kind}:");
+                        Writer.WriteLine($"case BoundNodeKind.{kind.ToIdentifier()}:");
                         Writer.Indent++;
-                        Writer.WriteLine($"VisitBound{kind}((Bound{kind})node);");
+                        Writer.WriteLine($"{$"VisitBound{kind}".ToIdentifier()}(({$"Bound{kind}".ToIdentifier()})node);");
                         Writer.WriteLine("break;");
                         Writer.Indent--;
                     }
@@ -62,7 +62,7 @@ sealed class BoundTreeVisitorGenerator : BaseGenerator
             Writer.WriteLine();
 
             foreach (var kind in kindsToVisit)
-                Writer.WriteLine($"protected virtual void VisitBound{kind}(Bound{kind} node) => VisitChildren(node);");
+                Writer.WriteLine($"protected virtual void {$"VisitBound{kind}".ToIdentifier()}({$"Bound{kind}".ToIdentifier()} node) => VisitChildren(node);");
         }
 
         context.AddSource(

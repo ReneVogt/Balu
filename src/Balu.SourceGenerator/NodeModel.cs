@@ -15,10 +15,15 @@ sealed class NodeModel
                                                                           DiagnosticSeverity.Error,
                                                                           isEnabledByDefault: true);
 
+    readonly INamedTypeSymbol type;
+    readonly IMethodSymbol constructor;
+
     internal ImmutableArray<(IParameterSymbol Parameter, IPropertySymbol Property)> Parameters { get; }
 
-    NodeModel(ImmutableArray<(IParameterSymbol Parameter, IPropertySymbol Property)> parameters)
+    NodeModel(INamedTypeSymbol type, IMethodSymbol constructor, ImmutableArray<(IParameterSymbol Parameter, IPropertySymbol Property)> parameters)
     {
+        this.type = type;
+        this.constructor = constructor;
         Parameters = parameters;
     }
 
@@ -46,7 +51,8 @@ sealed class NodeModel
         if (longestCandidates.Length != 1)
             return ReportError($"{longestCandidates.Length} constructors with {maximumParameterCount} parameters match the node properties");
 
-        return new NodeModel(longestCandidates[0].Parameters!.Value);
+        var selectedCandidate = longestCandidates[0];
+        return new NodeModel(type, selectedCandidate.Constructor, selectedCandidate.Parameters!.Value);
 
         ImmutableArray<(IParameterSymbol, IPropertySymbol)>? MapParameters(IMethodSymbol constructor) =>
             TryMapParameters(constructor, out _);
@@ -80,6 +86,29 @@ sealed class NodeModel
             var location = type.Locations.FirstOrDefault(candidate => candidate.IsInSource);
             context.ReportDiagnostic(Diagnostic.Create(InvalidNodeModel, location, type.Name, reason));
             return null;
+        }
+    }
+
+    internal bool ValidateAccessibility(GeneratorExecutionContext context,
+                                        INamedTypeSymbol accessibleWithin,
+                                        bool constructorRequired,
+                                        ImmutableArray<IPropertySymbol> properties,
+                                        string generatedContext)
+    {
+        if (constructorRequired && !context.Compilation.IsSymbolAccessibleWithin(constructor, accessibleWithin))
+            return ReportError($"constructor with {constructor.Parameters.Length} parameters is not accessible from {generatedContext}");
+
+        foreach (var property in properties)
+            if (property.GetMethod is null || !context.Compilation.IsSymbolAccessibleWithin(property.GetMethod, accessibleWithin))
+                return ReportError($"property '{property.Name}' has no getter accessible from {generatedContext}");
+
+        return true;
+
+        bool ReportError(string reason)
+        {
+            var location = type.Locations.FirstOrDefault(candidate => candidate.IsInSource);
+            context.ReportDiagnostic(Diagnostic.Create(InvalidNodeModel, location, type.Name, reason));
+            return false;
         }
     }
 
