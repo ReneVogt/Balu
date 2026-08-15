@@ -134,7 +134,7 @@ public sealed class Compilation
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
-        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        Emitter.ValidateEmitStreams(outputStream, symbolStream);
         cancellationToken.ThrowIfCancellationRequested();
         return Emitter.Emit(GetProgram(cancellationToken), moduleName, references, outputStream, symbolStream, ImmutableDictionary<GlobalVariableSymbol, object>.Empty, cancellationToken: cancellationToken).Diagnostics;
     }
@@ -142,7 +142,7 @@ public sealed class Compilation
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
-        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        Emitter.ValidateEmitStreams(outputStream, symbolStream);
         cancellationToken.ThrowIfCancellationRequested();
         return Emitter.Emit(GetProgram(cancellationToken), moduleName, references, outputStream, symbolStream, initializedGlobalVariables, cancellationToken);
     }
@@ -150,7 +150,7 @@ public sealed class Compilation
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
-        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        Emitter.ValidateEmitStreams(outputStream, symbolStream);
         cancellationToken.ThrowIfCancellationRequested();
         return Emitter.Emit(GetProgram(cancellationToken), moduleName, references, outputStream, symbolStream, ImmutableDictionary<GlobalVariableSymbol, object>.Empty, cancellationToken: cancellationToken).Diagnostics;
     }
@@ -158,7 +158,7 @@ public sealed class Compilation
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
-        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        Emitter.ValidateEmitStreams(outputStream, symbolStream);
         cancellationToken.ThrowIfCancellationRequested();
         return Emitter.Emit(GetProgram(cancellationToken), moduleName, references, outputStream, symbolStream, debug, ImmutableDictionary<GlobalVariableSymbol, object>.Empty, cancellationToken: cancellationToken).Diagnostics;
     }
@@ -166,7 +166,7 @@ public sealed class Compilation
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
-        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        Emitter.ValidateEmitStreams(outputStream, symbolStream);
         cancellationToken.ThrowIfCancellationRequested();
         using var referenceSet = new EmitReferenceSet(references);
         return Emitter.Emit(GetProgram(cancellationToken), moduleName, referenceSet, outputStream, symbolStream, debug, ImmutableDictionary<GlobalVariableSymbol, object>.Empty, cancellationToken: cancellationToken).Diagnostics;
@@ -177,7 +177,7 @@ public sealed class Compilation
     {
         _ = moduleName ?? throw new ArgumentNullException(nameof(moduleName));
         _ = references ?? throw new ArgumentNullException(nameof(references));
-        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        Emitter.ValidateEmitStreams(outputStream, symbolStream);
         cancellationToken.ThrowIfCancellationRequested();
         return Emitter.Emit(GetProgram(cancellationToken), moduleName, references, outputStream, symbolStream, debug, initializedGlobalVariables, cancellationToken: cancellationToken);
     }

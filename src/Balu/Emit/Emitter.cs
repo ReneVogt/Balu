@@ -814,6 +814,7 @@ sealed class Emitter : IDisposable
 
     public static EmitterResult Emit(BoundProgram program, string moduleName, string[] references, Stream outputStream, Stream? symbolStream, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, CancellationToken cancellationToken = default)
     {
+        ValidateEmitStreams(outputStream, symbolStream);
         cancellationToken.ThrowIfCancellationRequested();
         if (program.Diagnostics.HasErrors()) return new(program.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
         using var referenceSet = new EmitReferenceSet(references);
@@ -825,6 +826,7 @@ sealed class Emitter : IDisposable
 
     public static EmitterResult Emit(BoundProgram program, string moduleName, EmitReferenceSet references, Stream outputStream, Stream? symbolStream, bool debug, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, string? pdbPath = null, CancellationToken cancellationToken = default)
     {
+        ValidateEmitStreams(outputStream, symbolStream);
         ValidateInitializedGlobalVariables(program, initializedGlobalVariables, cancellationToken);
         try
         {
@@ -838,6 +840,13 @@ sealed class Emitter : IDisposable
         {
             return new (exception.Diagnostics, ImmutableDictionary<Symbol, string>.Empty);
         }
+    }
+
+    internal static void ValidateEmitStreams(Stream outputStream, Stream? symbolStream)
+    {
+        _ = outputStream ?? throw new ArgumentNullException(nameof(outputStream));
+        if (ReferenceEquals(outputStream, symbolStream))
+            throw new ArgumentException("The symbol stream must be a different instance than the output stream.", nameof(symbolStream));
     }
 
     static void ValidateInitializedGlobalVariables(BoundProgram program, ImmutableDictionary<GlobalVariableSymbol, object> initializedGlobalVariables, CancellationToken cancellationToken)
