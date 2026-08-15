@@ -10,6 +10,10 @@ public sealed partial class BinderTests
     [InlineData("[(12 + 1) / (3 - 3)]")]
     [InlineData("var y = 7 + [3/0]")]
     [InlineData("let zero = 2 - 2 [10 / zero]")]
+    [InlineData("var value = 10 [value / 0]")]
+    [InlineData("var value = 10 let zero = 0 [value / zero]")]
+    [InlineData("var value = 10 [value /= 0]")]
+    [InlineData("var value = 10 let zero = 0 [value /= zero]")]
     [InlineData(@"
         function test()
         {
