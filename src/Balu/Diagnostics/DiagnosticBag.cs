@@ -64,10 +64,8 @@ sealed class DiagnosticBag : List<Diagnostic>
         var location = syntax.Arguments.Count < function.Parameters.Length
                            ? syntax.ClosedParenthesis.Location
                            : new(syntax.SyntaxTree.Text,
-                                 new(
-                                     syntax.Arguments.ElementsWithSeparators[Math.Max(0, function.Parameters.Length * 2 - 1)].Span.Start,
-                                     syntax.Arguments.ElementsWithSeparators.Skip(function.Parameters.Length * 2 - 1)
-                                           .Aggregate(0, (acc, token) => acc + token.Span.Length)));
+                                 syntax.Arguments.ElementsWithSeparators[Math.Max(0, function.Parameters.Length * 2 - 1)].Span
+                               + syntax.Arguments[syntax.Arguments.Count - 1].Span);
         Add(
             new(DiagnosticId.WrongNumberOfArguments,
                 location,
