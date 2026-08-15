@@ -15,7 +15,7 @@ static class TypeExtensions
     {
         var result = new List<INamedTypeSymbol>();
         GetAllTypes(result, assembly.GlobalNamespace);
-        return result.OrderBy(type => type.MetadataName).ToImmutableArray();
+        return result.OrderBy(type => type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat)).ToImmutableArray();
     }
     static void GetAllTypes(List<INamedTypeSymbol> result, INamespaceOrTypeSymbol symbol)
     {
@@ -40,12 +40,18 @@ static class TypeExtensions
     public static bool IsPartial(this INamedTypeSymbol type) => type.DeclaringSyntaxReferences.Select(declaration => declaration.GetSyntax())
                                                         .OfType<TypeDeclarationSyntax>()
                                                         .Any(syntax => syntax.Modifiers.Any(modifier => modifier.ValueText == "partial"));
-    public static bool IsSupportedNodeType(this INamedTypeSymbol type) => type.ContainingType is null && type.Arity == 0 && !type.IsRecord;
+    public static bool IsSupportedNodeType(this INamedTypeSymbol type) =>
+        type.ContainingType is null && type.Arity == 0 && !type.IsRecord &&
+        !type.DeclaringSyntaxReferences.Select(reference => reference.GetSyntax())
+             .OfType<TypeDeclarationSyntax>()
+             .Any(syntax => syntax.Modifiers.Any(modifier => modifier.ValueText == "file"));
     public static string ToIdentifier(this string name) =>
         SyntaxFacts.GetKeywordKind(name) != SyntaxKind.None || SyntaxFacts.GetContextualKeywordKind(name) != SyntaxKind.None
             ? $"@{name}"
             : name;
     public static string ToIdentifier(this ISymbol symbol) => symbol.Name.ToIdentifier();
+    public static string ToFullyQualifiedName(this ITypeSymbol type) =>
+        type.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
     public static bool IsGenericListOf(this INamedTypeSymbol type, INamedTypeSymbol listType, INamedTypeSymbol elementBaseType) =>
         type.TypeArguments.Length == 1 && type.TypeArguments[0].IsDerivedFrom(elementBaseType) &&
         SymbolEqualityComparer.Default.Equals(type.OriginalDefinition, listType);

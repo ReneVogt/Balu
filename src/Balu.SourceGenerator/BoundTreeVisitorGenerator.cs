@@ -1,31 +1,20 @@
-﻿using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Balu.SourceGenerator;
 
 sealed class BoundTreeVisitorGenerator : BaseGenerator
 {
-    readonly CSharpCompilation compilation;
-    readonly INamedTypeSymbol boundNodeType, boundNodeKindType;
+    readonly NodeKindMapping mapping;
 
-    internal BoundTreeVisitorGenerator(CSharpCompilation compilation, INamedTypeSymbol boundNodeType, INamedTypeSymbol boundNodeKindType)
+    internal BoundTreeVisitorGenerator(NodeKindMapping mapping)
     {
-        this.compilation = compilation;
-        this.boundNodeType = boundNodeType;
-        this.boundNodeKindType = boundNodeKindType;
+        this.mapping = mapping;
     }
 
     public override void Generate(GeneratorExecutionContext context)
     {
-        var kindNames = boundNodeKindType.MemberNames.ToImmutableArray();
-        var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
-        var kindsToVisit = kindNames.Where(kindName => boundNodeTypes.Any(nodeType => nodeType.Name == $"Bound{kindName}")).ToImmutableArray();
-
         Writer.WriteLine("using System;");
         Writer.WriteLine();
         Writer.WriteLine("namespace Balu.Binding;");
@@ -36,11 +25,11 @@ sealed class BoundTreeVisitorGenerator : BaseGenerator
             {
                 using(new CurlyIndenter(Writer, "switch (node.Kind)"))
                 {
-                    foreach (var kind in kindsToVisit)
+                    foreach (var (kind, node) in mapping.Mappings)
                     {
                         Writer.WriteLine($"case BoundNodeKind.{kind.ToIdentifier()}:");
                         Writer.Indent++;
-                        Writer.WriteLine($"{$"VisitBound{kind}".ToIdentifier()}(({$"Bound{kind}".ToIdentifier()})node);");
+                        Writer.WriteLine($"{$"VisitBound{kind.Name}".ToIdentifier()}(({node.ToFullyQualifiedName()})node);");
                         Writer.WriteLine("break;");
                         Writer.Indent--;
                     }
@@ -61,8 +50,8 @@ sealed class BoundTreeVisitorGenerator : BaseGenerator
 
             Writer.WriteLine();
 
-            foreach (var kind in kindsToVisit)
-                Writer.WriteLine($"protected virtual void {$"VisitBound{kind}".ToIdentifier()}({$"Bound{kind}".ToIdentifier()} node) => VisitChildren(node);");
+            foreach (var (kind, node) in mapping.Mappings)
+                Writer.WriteLine($"protected virtual void {$"VisitBound{kind.Name}".ToIdentifier()}({node.ToFullyQualifiedName()} node) => VisitChildren(node);");
         }
 
         context.AddSource(
