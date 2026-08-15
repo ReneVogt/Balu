@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Balu.SourceGenerator;
@@ -10,12 +9,12 @@ namespace Balu.SourceGenerator;
 sealed class BoundTreeRewriterGenerator : BaseGenerator
 {
 
-    readonly CSharpCompilation compilation;
+    readonly NodeKindMapping mapping;
     readonly INamedTypeSymbol boundNodeType, boundNodeKindType, immutableArrayType;
 
-    internal BoundTreeRewriterGenerator(CSharpCompilation compilation, INamedTypeSymbol boundNodeType, INamedTypeSymbol boundNodeKindType, INamedTypeSymbol immutableArrayType)
+    internal BoundTreeRewriterGenerator(NodeKindMapping mapping, INamedTypeSymbol boundNodeType, INamedTypeSymbol boundNodeKindType, INamedTypeSymbol immutableArrayType)
     {
-        this.compilation = compilation;
+        this.mapping = mapping;
         this.boundNodeType = boundNodeType;
         this.boundNodeKindType = boundNodeKindType;
         this.immutableArrayType = immutableArrayType;
@@ -23,15 +22,9 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
 
     public override void Generate(GeneratorExecutionContext context)
     {
-        var kindNames = boundNodeKindType.MemberNames.ToImmutableArray();
-        var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, boundNodeType.ContainingNamespace));
-        var kindsToVisit = ImmutableArray.CreateBuilder<(string Kind, INamedTypeSymbol Type, NodeModel Model, ImmutableArray<IPropertySymbol> PropertiesToRewrite)>();
-        foreach (var kind in kindNames)
+        var kindsToVisit = ImmutableArray.CreateBuilder<(IFieldSymbol Kind, INamedTypeSymbol Type, NodeModel Model, ImmutableArray<IPropertySymbol> PropertiesToRewrite)>();
+        foreach (var (kind, type) in mapping.Mappings)
         {
-            var type = boundNodeTypes.SingleOrDefault(nodeType => nodeType.Name == $"Bound{kind}");
-            if (type is null) continue;
-
             var model = NodeModel.Create(type, context);
             if (model is null) continue;
 
@@ -64,7 +57,7 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
             using(new CurlyIndenter(Writer, "public virtual BoundNode Visit(BoundNode node) => node.Kind switch", semicolon: true))
             {
                 foreach (var (kind, type, _, _) in kindsToVisit)
-                    Writer.WriteLine($"BoundNodeKind.{kind.ToIdentifier()} => {$"VisitBound{kind}".ToIdentifier()}(({type.Name.ToIdentifier()})node),");
+                    Writer.WriteLine($"BoundNodeKind.{kind.ToIdentifier()} => {$"VisitBound{kind.Name}".ToIdentifier()}(({type.ToFullyQualifiedName()})node),");
 
                 Writer.WriteLine("_ => throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\")");
             }
@@ -92,11 +85,11 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
             {
                 if (propertiesToRewrite.Length == 0)
                 {
-                    Writer.WriteLine($"protected virtual BoundNode {$"VisitBound{kind}".ToIdentifier()}({type.Name.ToIdentifier()} node) => node;");
+                    Writer.WriteLine($"protected virtual BoundNode {$"VisitBound{kind.Name}".ToIdentifier()}({type.ToFullyQualifiedName()} node) => node;");
                     continue;
                 }
 
-                using(new CurlyIndenter(Writer, $"protected virtual BoundNode {$"VisitBound{kind}".ToIdentifier()}({type.Name.ToIdentifier()} node)"))
+                using(new CurlyIndenter(Writer, $"protected virtual BoundNode {$"VisitBound{kind.Name}".ToIdentifier()}({type.ToFullyQualifiedName()} node)"))
                 {
                     foreach (var property in propertiesToRewrite)
                     {
@@ -106,9 +99,9 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
                         {
                             if (property.NullableAnnotation == NullableAnnotation.Annotated)
                                 Writer.WriteLine(
-                                    $"var {rewrittenName} = node.{propertyName} is null ? null : ({property.Type.Name.ToIdentifier()})Visit(node.{propertyName});");
+                                    $"var {rewrittenName} = node.{propertyName} is null ? null : ({property.Type.ToFullyQualifiedName()})Visit(node.{propertyName});");
                             else
-                                Writer.WriteLine($"var {rewrittenName} = ({property.Type.Name.ToIdentifier()})Visit(node.{propertyName});");
+                                Writer.WriteLine($"var {rewrittenName} = ({property.Type.ToFullyQualifiedName()})Visit(node.{propertyName});");
                         }
                         else
                             Writer.WriteLine($"var {rewrittenName} = RewriteList(node.{propertyName});");
@@ -117,7 +110,7 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
                     Writer.WriteLine();
                     Writer.Write("return ");
                     Writer.Write(string.Join(" && ", propertiesToRewrite.Select(property => $"node.{property.Name.ToIdentifier()} == {$"rewritten{property.Name}".ToIdentifier()}")));
-                    Writer.Write($" ? node : new {type.Name.ToIdentifier()}(");
+                    Writer.Write($" ? node : new {type.ToFullyQualifiedName()}(");
                     for (int i = 0; i < model.Parameters.Length; i++)
                     {
                         if (i > 0) Writer.Write(", ");

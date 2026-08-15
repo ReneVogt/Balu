@@ -1,32 +1,20 @@
-﻿using System;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Text;
+﻿using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Balu.SourceGenerator;
 
 sealed class SyntaxTreeVisitorGenerator : BaseGenerator
 {
-    readonly CSharpCompilation compilation;
-    readonly INamedTypeSymbol syntaxNodeType, syntaxNodeKindType;
+    readonly NodeKindMapping mapping;
 
-    internal SyntaxTreeVisitorGenerator(CSharpCompilation compilation, INamedTypeSymbol syntaxNodeType, INamedTypeSymbol syntaxNodeKindType)
+    internal SyntaxTreeVisitorGenerator(NodeKindMapping mapping)
     {
-        this.compilation = compilation;
-        this.syntaxNodeType = syntaxNodeType;
-        this.syntaxNodeKindType = syntaxNodeKindType;
+        this.mapping = mapping;
     }
 
     public override void Generate(GeneratorExecutionContext context)
     {
-        var kindNames = syntaxNodeKindType.MemberNames.Where(name => !(name.EndsWith("Token", StringComparison.InvariantCulture) || name.EndsWith("Keyword", StringComparison.InvariantCulture))).ToImmutableArray();
-        var types = compilation.Assembly.GetAllTypes();
-        var syntaxNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsDerivedFrom(syntaxNodeType) && SymbolEqualityComparer.Default.Equals(t.ContainingNamespace, syntaxNodeType.ContainingNamespace));
-        var kindsToVisit = kindNames.Where(kindName => syntaxNodeTypes.Any(nodeType => nodeType.Name == $"{kindName}Syntax")).ToImmutableArray();
-
         Writer.WriteLine("using System;");
         Writer.WriteLine();
         Writer.WriteLine("namespace Balu.Syntax;");
@@ -37,11 +25,11 @@ sealed class SyntaxTreeVisitorGenerator : BaseGenerator
             {
                 using(new CurlyIndenter(Writer, "switch (node.Kind)"))
                 {
-                    foreach (var kind in kindsToVisit)
+                    foreach (var (kind, node) in mapping.Mappings)
                     {
                         Writer.WriteLine($"case SyntaxKind.{kind.ToIdentifier()}:");
                         Writer.Indent++;
-                        Writer.WriteLine($"{$"Visit{kind}".ToIdentifier()}(({$"{kind}Syntax".ToIdentifier()})node);");
+                        Writer.WriteLine($"{$"Visit{kind.Name}".ToIdentifier()}(({node.ToFullyQualifiedName()})node);");
                         Writer.WriteLine("break;");
                         Writer.Indent--;
                     }
@@ -63,8 +51,11 @@ sealed class SyntaxTreeVisitorGenerator : BaseGenerator
 
             Writer.WriteLine();
 
-            foreach (var kind in kindsToVisit)
-                Writer.WriteLine($"protected virtual void {$"Visit{kind}".ToIdentifier()}({$"{kind}Syntax".ToIdentifier()} node) => VisitChildren(node);");
+            foreach (var (kind, node) in mapping.Mappings)
+            {
+                var accessibility = node.DeclaredAccessibility == Accessibility.Public ? "protected" : "private protected";
+                Writer.WriteLine($"{accessibility} virtual void {$"Visit{kind.Name}".ToIdentifier()}({node.ToFullyQualifiedName()} node) => VisitChildren(node);");
+            }
             Writer.WriteLine("protected virtual void VisitToken(SyntaxToken node) => VisitChildren(node);");
         }
 

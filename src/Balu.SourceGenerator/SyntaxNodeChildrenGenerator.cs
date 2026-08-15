@@ -3,19 +3,18 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Balu.SourceGenerator;
 
 sealed class SyntaxNodeChildrenGenerator : BaseGenerator
 {
-    readonly CSharpCompilation compilation;
+    readonly ImmutableArray<INamedTypeSymbol> nodes;
     readonly INamedTypeSymbol syntaxNodeType, separatedListType, immutableArrayType;
 
-    internal SyntaxNodeChildrenGenerator(CSharpCompilation compilation, INamedTypeSymbol syntaxNodeType, INamedTypeSymbol separatedListType, INamedTypeSymbol immutableArrayType)
+    internal SyntaxNodeChildrenGenerator(ImmutableArray<INamedTypeSymbol> nodes, INamedTypeSymbol syntaxNodeType, INamedTypeSymbol separatedListType, INamedTypeSymbol immutableArrayType)
     {
-        this.compilation = compilation;
+        this.nodes = nodes;
         this.syntaxNodeType = syntaxNodeType;
         this.separatedListType = separatedListType;
         this.immutableArrayType = immutableArrayType;
@@ -27,14 +26,23 @@ sealed class SyntaxNodeChildrenGenerator : BaseGenerator
         Writer.WriteLine("using System.Collections.Generic;");
         Writer.WriteLine("using System.Collections.Immutable;");
         Writer.WriteLine();
-        Writer.WriteLine("namespace Balu.Syntax;");
-
-        var types = compilation.Assembly.GetAllTypes();
-        var syntaxNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(syntaxNodeType) &&
-                                               SymbolEqualityComparer.Default.Equals(syntaxNodeType.ContainingNamespace, t.ContainingNamespace));
-
-        foreach (var type in syntaxNodeTypes.TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))
-            WriteType(type, context);
+        foreach (var namespaceGroup in nodes.Where(type => type.IsPartial())
+                                            .GroupBy(type => type.ContainingNamespace.GetFullName())
+                                            .TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))
+        {
+            if (namespaceGroup.Key.Length > 0)
+            {
+                Writer.WriteLine($"namespace {namespaceGroup.Key}");
+                using (new CurlyIndenter(Writer))
+                    foreach (var type in namespaceGroup)
+                        WriteType(type, context);
+            }
+            else
+            {
+                foreach (var type in namespaceGroup)
+                    WriteType(type, context);
+            }
+        }
 
         context.AddSource(
             "SyntaxNodeChildren.g.cs",

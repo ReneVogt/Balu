@@ -3,19 +3,18 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Balu.SourceGenerator;
 
 sealed class BoundNodeChildrenGenerator : BaseGenerator
 {
-    readonly CSharpCompilation compilation;
+    readonly ImmutableArray<INamedTypeSymbol> nodes;
     readonly INamedTypeSymbol boundNodeType, immutableArrayType;
 
-    internal BoundNodeChildrenGenerator(CSharpCompilation compilation, INamedTypeSymbol boundNodeType, INamedTypeSymbol immutableArrayType)
+    internal BoundNodeChildrenGenerator(ImmutableArray<INamedTypeSymbol> nodes, INamedTypeSymbol boundNodeType, INamedTypeSymbol immutableArrayType)
     {
-        this.compilation = compilation;
+        this.nodes = nodes;
         this.boundNodeType = boundNodeType;
         this.immutableArrayType = immutableArrayType;
     }
@@ -26,13 +25,23 @@ sealed class BoundNodeChildrenGenerator : BaseGenerator
         Writer.WriteLine("using System.Collections.Generic;");
         Writer.WriteLine("using System.Collections.Immutable;");
         Writer.WriteLine();
-        Writer.WriteLine("namespace Balu.Binding;");
-
-        var types = compilation.Assembly.GetAllTypes();
-        var boundNodeTypes = types.Where(t => t.IsSupportedNodeType() && !t.IsAbstract && t.IsPartial() && t.IsDerivedFrom(boundNodeType) && SymbolEqualityComparer.Default.Equals(boundNodeType.ContainingNamespace, t.ContainingNamespace));
-
-        foreach (var type in boundNodeTypes.TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))
-                WriteType(type, context);
+        foreach (var namespaceGroup in nodes.Where(type => type.IsPartial())
+                                            .GroupBy(type => type.ContainingNamespace.GetFullName())
+                                            .TakeWhile(_ => !context.CancellationToken.IsCancellationRequested))
+        {
+            if (namespaceGroup.Key.Length > 0)
+            {
+                Writer.WriteLine($"namespace {namespaceGroup.Key}");
+                using (new CurlyIndenter(Writer))
+                    foreach (var type in namespaceGroup)
+                        WriteType(type, context);
+            }
+            else
+            {
+                foreach (var type in namespaceGroup)
+                    WriteType(type, context);
+            }
+        }
 
         context.AddSource(
             "BoundNodeChildren.g.cs",

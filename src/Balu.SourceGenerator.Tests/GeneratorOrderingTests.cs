@@ -29,7 +29,7 @@ public sealed class GeneratorOrderingTests
                     boundChildren.IndexOf("case 1: return Right;", StringComparison.Ordinal));
 
         var rewriter = GetGeneratedSource(result, "BoundTreeRewriter.g.cs");
-        Assert.Contains("new BoundPair(node.Syntax, rewrittenLeft, rewrittenRight)", rewriter);
+        Assert.Contains("new global::Balu.Binding.BoundPair(node.Syntax, rewrittenLeft, rewrittenRight)", rewriter);
     }
 
     [Fact]
@@ -172,7 +172,7 @@ public sealed class GeneratorOrderingTests
 
         Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
-        Assert.Contains("new BoundPair(node.Syntax, rewrittenLeft, rewrittenRight)", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+        Assert.Contains("new global::Balu.Binding.BoundPair(node.Syntax, rewrittenLeft, rewrittenRight)", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
     }
 
     [Fact]
@@ -182,7 +182,7 @@ public sealed class GeneratorOrderingTests
     public sealed partial class SeparatedOnlySyntax : SyntaxNode
     {
         public SeparatedSyntaxList<SyntaxToken> Items { get; }
-        public override SyntaxKind Kind => SyntaxKind.Ordered;
+        public override SyntaxKind Kind => SyntaxKind.SeparatedOnly;
 
         public SeparatedOnlySyntax(SeparatedSyntaxList<SyntaxToken> items)
         {
@@ -202,8 +202,11 @@ public sealed class GeneratorOrderingTests
         }
     }
 """;
-        var (_, compilationDiagnostics, outputCompilation) = RunGenerator(AddNodes(syntaxNodes, string.Empty));
+        var source = AddNodes(syntaxNodes, string.Empty)
+                    .Replace("public enum SyntaxKind { Ordered }", "public enum SyntaxKind { Ordered, SeparatedOnly }", StringComparison.Ordinal);
+        var (result, compilationDiagnostics, outputCompilation) = RunGenerator(source);
 
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
         using var stream = new MemoryStream();
         var emitResult = outputCompilation.Emit(stream);
@@ -280,6 +283,32 @@ public sealed class GeneratorOrderingTests
         AssertUnsupportedNodeTypes(AddNodes(syntaxNodes, boundNodes),
                                    "Balu.Syntax.GenericSyntax<T>",
                                    "Balu.Binding.GenericBoundNode<T>");
+    }
+
+    [Fact]
+    public void Generator_RejectsFileLocalSyntaxAndBoundNodes()
+    {
+        const string syntaxNodes = """
+    file sealed partial class FileSyntax : SyntaxNode
+    {
+        public override SyntaxKind Kind => SyntaxKind.Ordered;
+        public override int ChildrenCount => 0;
+        public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+    }
+""";
+        const string boundNodes = """
+    file sealed partial class BoundFile : BoundNode
+    {
+        public override BoundNodeKind Kind => BoundNodeKind.Pair;
+        public override int ChildrenCount => 0;
+        public override BoundNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+        public BoundFile(SyntaxNode syntax) : base(syntax) { }
+    }
+""";
+
+        AssertUnsupportedNodeTypes(AddNodes(syntaxNodes, boundNodes),
+                                   "Balu.Syntax.FileSyntax",
+                                   "Balu.Binding.BoundFile");
     }
 
     [Fact]
@@ -368,6 +397,167 @@ public sealed class GeneratorOrderingTests
                                    "Balu.Syntax.SecondContainer.OrderedSyntax",
                                    "Balu.Binding.FirstContainer.BoundPair",
                                    "Balu.Binding.SecondContainer.BoundPair");
+    }
+
+    [Fact]
+    public void Generator_SupportsNodesOutsideBaseNamespaces()
+    {
+        const string additionalSource = """
+
+namespace Other.Syntax
+{
+    internal sealed partial class RemoteSyntax : Balu.Syntax.SyntaxNode
+    {
+        public override Balu.Syntax.SyntaxKind Kind => Balu.Syntax.SyntaxKind.Remote;
+    }
+}
+
+namespace Other.Binding
+{
+    sealed partial class BoundRemote : Balu.Binding.BoundNode
+    {
+        public override Balu.Binding.BoundNodeKind Kind => Balu.Binding.BoundNodeKind.Remote;
+        public BoundRemote(Balu.Syntax.SyntaxNode syntax) : base(syntax) { }
+    }
+}
+""";
+        var source = ValidSource.Replace("public enum SyntaxKind { Ordered }", "public enum SyntaxKind { Ordered, Remote }", StringComparison.Ordinal)
+                                .Replace("enum BoundNodeKind { Pair }", "enum BoundNodeKind { Pair, Remote }", StringComparison.Ordinal) +
+                     additionalSource;
+
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains("namespace Other.Syntax", GetGeneratedSource(result, "SyntaxNodeChildren.g.cs"));
+        Assert.Contains("private protected virtual void VisitRemote(global::Other.Syntax.RemoteSyntax", GetGeneratedSource(result, "SyntaxTreeVisitor.g.cs"));
+        Assert.Contains("namespace Other.Binding", GetGeneratedSource(result, "BoundNodeChildren.g.cs"));
+        Assert.Contains("global::Other.Binding.BoundRemote", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
+    [Fact]
+    public void Generator_ReportsConcreteNodeWithoutMatchingKind()
+    {
+        const string syntaxNode = """
+    public sealed class OrphanSyntax : SyntaxNode
+    {
+        public override SyntaxKind Kind => SyntaxKind.Ordered;
+        public override int ChildrenCount => 0;
+        public override SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+    }
+""";
+
+        var (result, _, _) = RunGenerator(AddNodes(syntaxNode, string.Empty));
+
+        var diagnostic = Assert.Single(result.Diagnostics.Where(candidate => candidate.Id == "BLS0003"));
+        Assert.Contains("Balu.Syntax.OrphanSyntax", diagnostic.GetMessage());
+        Assert.True(diagnostic.Location.IsInSource);
+    }
+
+    [Fact]
+    public void Generator_ReportsKindWithoutMatchingNode()
+    {
+        var source = ValidSource.Replace("public enum SyntaxKind { Ordered }", "public enum SyntaxKind { Ordered, Missing }", StringComparison.Ordinal);
+
+        var (result, _, _) = RunGenerator(source);
+
+        var diagnostic = Assert.Single(result.Diagnostics.Where(candidate => candidate.Id == "BLS0004"));
+        Assert.Contains("SyntaxKind.Missing", diagnostic.GetMessage());
+        Assert.Contains("MissingSyntax", diagnostic.GetMessage());
+        Assert.True(diagnostic.Location.IsInSource);
+    }
+
+    [Fact]
+    public void Generator_ReportsMultipleNodesForOneKindWithoutGeneratingCast()
+    {
+        const string duplicateNode = """
+
+namespace Other.Syntax
+{
+    public sealed class OrderedSyntax : Balu.Syntax.SyntaxNode
+    {
+        public override Balu.Syntax.SyntaxKind Kind => Balu.Syntax.SyntaxKind.Ordered;
+        public override int ChildrenCount => 0;
+        public override Balu.Syntax.SyntaxNode GetChild(int index) => throw new ArgumentOutOfRangeException(nameof(index));
+    }
+}
+""";
+
+        var (result, _, _) = RunGenerator(ValidSource + duplicateNode);
+
+        var diagnostic = Assert.Single(result.Diagnostics.Where(candidate => candidate.Id == "BLS0005"));
+        Assert.Contains("Balu.Syntax.OrderedSyntax", diagnostic.GetMessage());
+        Assert.Contains("Other.Syntax.OrderedSyntax", diagnostic.GetMessage());
+        Assert.DoesNotContain("case SyntaxKind.Ordered:", GetGeneratedSource(result, "SyntaxTreeVisitor.g.cs"));
+    }
+
+    [Fact]
+    public void Generator_ReportsDetectableSyntaxAndBoundKindMismatchesWithoutGeneratingCasts()
+    {
+        const string syntaxNode = """
+    public sealed partial class OtherSyntax : SyntaxNode
+    {
+        public override SyntaxKind Kind => SyntaxKind.Other;
+    }
+""";
+        const string boundNode = """
+    sealed partial class BoundOther : BoundNode
+    {
+        public override BoundNodeKind Kind => BoundNodeKind.Other;
+        public BoundOther(SyntaxNode syntax) : base(syntax) { }
+    }
+""";
+        var source = AddNodes(syntaxNode, boundNode)
+                    .Replace("public enum SyntaxKind { Ordered }", "public enum SyntaxKind { Ordered, Other }", StringComparison.Ordinal)
+                    .Replace("public override SyntaxKind Kind => SyntaxKind.Ordered;", "public override SyntaxKind Kind => (SyntaxKind)(1);", StringComparison.Ordinal)
+                    .Replace("enum BoundNodeKind { Pair }", "enum BoundNodeKind { Pair, Other }", StringComparison.Ordinal)
+                    .Replace("public override BoundNodeKind Kind => BoundNodeKind.Pair;",
+                             "public override BoundNodeKind Kind { get { return BoundNodeKind.Other; } }",
+                             StringComparison.Ordinal);
+
+        var (result, _, _) = RunGenerator(source);
+
+        var diagnostics = result.Diagnostics.Where(candidate => candidate.Id == "BLS0006").ToImmutableArray();
+        Assert.Equal(2, diagnostics.Length);
+        Assert.Contains(diagnostics, diagnostic => diagnostic.GetMessage().Contains("OrderedSyntax", StringComparison.Ordinal));
+        Assert.Contains(diagnostics, diagnostic => diagnostic.GetMessage().Contains("BoundPair", StringComparison.Ordinal));
+        Assert.DoesNotContain("case SyntaxKind.Ordered:", GetGeneratedSource(result, "SyntaxTreeVisitor.g.cs"));
+        Assert.DoesNotContain("BoundNodeKind.Pair =>", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
+    [Fact]
+    public void Generator_ReportsDuplicateKindValuesBeforeGeneratingSwitchCases()
+    {
+        const string syntaxNode = """
+    public sealed partial class AliasSyntax : SyntaxNode
+    {
+        public override SyntaxKind Kind => SyntaxKind.Alias;
+    }
+""";
+        var source = AddNodes(syntaxNode, string.Empty)
+                    .Replace("public enum SyntaxKind { Ordered }", "public enum SyntaxKind { Ordered = 0, Alias = 0 }", StringComparison.Ordinal);
+
+        var (result, _, _) = RunGenerator(source);
+
+        var diagnostic = Assert.Single(result.Diagnostics.Where(candidate => candidate.Id == "BLS0007"));
+        Assert.Contains("SyntaxKind.Ordered", diagnostic.GetMessage());
+        Assert.Contains("SyntaxKind.Alias", diagnostic.GetMessage());
+        var visitor = GetGeneratedSource(result, "SyntaxTreeVisitor.g.cs");
+        Assert.DoesNotContain("case SyntaxKind.Ordered:", visitor);
+        Assert.DoesNotContain("case SyntaxKind.Alias:", visitor);
+    }
+
+    [Fact]
+    public void Generator_ExemptsTokenKeywordAndTriviaKindsFromNodeMappings()
+    {
+        var source = ValidSource.Replace("public enum SyntaxKind { Ordered }",
+                                         "public enum SyntaxKind { Ordered, BadToken, TrueKeyword, WhiteSpaceTrivia }",
+                                         StringComparison.Ordinal);
+
+        var (result, compilationDiagnostics, _) = RunGenerator(source);
+
+        Assert.DoesNotContain(result.Diagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
     static void AssertUnsupportedNodeTypes(string source, params string[] typeNames)
