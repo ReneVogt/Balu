@@ -1,4 +1,7 @@
-﻿using TestHelpers;
+﻿using Balu.Diagnostics;
+using Balu.Syntax;
+using Balu.Text;
+using TestHelpers;
 using Xunit;
 
 namespace Balu.Tests.CompilationTests.ExecutionTests;
@@ -29,13 +32,20 @@ public partial class ExecutionTests
     [Fact]
     public void Script_Return_ReportsUnexpectedTokenIfEspressionIsMissing()
     {
-        @"
-            function test() : int 
-            { 
-                return [[}]]".AssertScriptEvaluation(@"
-                    BL0001: Unexpected ClosedBraceToken ('}'), expected IdentifierToken.
-                    BL1024: 'test' needs to return a value of type 'int', not '?'.
-");
+        var compilation = Compilation.CreateScript(null, SyntaxTree.Parse("function test() : int { return }"));
+
+        Assert.Collection(
+            compilation.Diagnostics,
+            diagnostic =>
+            {
+                Assert.Equal(DiagnosticId.UnexpectedToken, diagnostic.Id);
+                Assert.Equal(new TextSpan(31, 1), diagnostic.Location.Span);
+            },
+            diagnostic =>
+            {
+                Assert.Equal(DiagnosticId.ReturnTypeMismatch, diagnostic.Id);
+                Assert.Equal(new TextSpan(31, 0), diagnostic.Location.Span);
+            });
     }
     [Fact]
     public void Script_Return_ReportsWrongExpressionType()
