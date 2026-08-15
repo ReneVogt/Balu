@@ -22,6 +22,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\bi\bi.csproj" />
+		<AssemblyMetadata Include="BiAssemblyPath" Value="$([MSBuild]::NormalizePath('$(MSBuildThisFileDirectory)', '..\bi\bin\$(Configuration)\$(TargetFramework)\bi.dll'))" />
 	</ItemGroup>
 
 </Project>

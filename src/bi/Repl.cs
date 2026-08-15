@@ -404,14 +404,30 @@ abstract class Repl
     }
 
     [SuppressMessage("Design", "CA1031", Justification = "This is the application's main method.")]
-    public void Run()
+    public int Run()
     {
+        if (Console.IsInputRedirected)
+            return ReportUnavailableConsole();
+
         Console.ResetColor();
         while (true)
         {
+            string text;
             try
             {
-                var text = EditSubmission();
+                text = EditSubmission();
+            }
+            catch (IOException)
+            {
+                return ReportUnavailableConsole();
+            }
+            catch (InvalidOperationException)
+            {
+                return ReportUnavailableConsole();
+            }
+
+            try
+            {
                 if (string.IsNullOrWhiteSpace(text)) continue;
                 AddToHistory(text);
                 if (text.StartsWith('#'))
@@ -427,5 +443,11 @@ abstract class Repl
             }
         }
         // ReSharper disable once FunctionNeverReturns
+    }
+
+    static int ReportUnavailableConsole()
+    {
+        Console.Error.WriteLine("Error: Interactive console input is unavailable.");
+        return 1;
     }
 }
