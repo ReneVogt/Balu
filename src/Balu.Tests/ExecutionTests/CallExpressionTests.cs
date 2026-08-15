@@ -22,6 +22,15 @@ public partial class ExecutionTests
 
         text.AssertScriptEvaluation(diagnostics);
     }
+    [Theory]
+    [InlineData("function test(value: int) {} test(1[,     2])")]
+    [InlineData("function test(value: int) {} test(1[,\r\n/* comment */\r\n2])")]
+    public void Script_Call_ReportsWrongNumberOfArgumentsIncludingTrivia(string text)
+    {
+        const string diagnostics = "BL1011: Function 'test' takes 1 parameters, but is invoked with 2 arguments.";
+
+        text.AssertScriptEvaluation(diagnostics);
+    }
     [Fact]
     public void Script_Call_ReportsWrongArgumentType()
     {
