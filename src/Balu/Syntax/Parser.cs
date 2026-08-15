@@ -385,7 +385,7 @@ sealed class Parser
             return NextToken();
 
         diagnostics.ReportUnexpectedToken(Current, kind);
-        return new(syntaxTree, kind, Current.Span, null, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
+        return new(syntaxTree, kind, new(Current.Span.Start, 0), null, null, ImmutableArray<SyntaxTrivia>.Empty, ImmutableArray<SyntaxTrivia>.Empty);
     }
     void SkipToken()
     {
