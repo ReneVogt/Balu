@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Text;
 using Xunit;
 
 namespace Balu.Compiler.Tests;
@@ -53,6 +54,43 @@ public sealed class CommandLineTests
         Assert.Equal(3, ExitCode);
         Assert.Contains("Compiling '-program.b'", Output);
         Assert.DoesNotContain("Unknown option", Error);
+    }
+
+    [Fact]
+    public void Compiler_ResponseFile_ReadsQuotedUtf8SourcePath()
+    {
+        var directory = Directory.CreateTempSubdirectory("BaluCompilerTests-");
+        try
+        {
+            var sourceDirectory = Directory.CreateDirectory(Path.Combine(directory.FullName, "source files-\u00E4"));
+            var sourcePath = Path.Combine(sourceDirectory.FullName, "program.b");
+            var responsePath = Path.Combine(directory.FullName, "arguments.rsp");
+            File.WriteAllText(sourcePath, "missing()");
+            File.WriteAllText(responsePath, $"\"{sourcePath}\"", new UTF8Encoding(encoderShouldEmitUTF8Identifier: false));
+
+            var (ExitCode, Output, Error)= Run([$"@{responsePath}"]);
+
+            Assert.Equal(1, ExitCode);
+            Assert.Contains($"Compiling '{sourcePath}'", Output);
+            Assert.DoesNotContain("bc: error:", Error);
+        }
+        finally
+        {
+            directory.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Compiler_MissingResponseFile_ReturnsInvocationError()
+    {
+        var missingPath = Path.Combine(Path.GetTempPath(), $"{Path.GetRandomFileName()}.rsp");
+
+        var (ExitCode, Output, Error)= Run([$"@{missingPath}"]);
+
+        Assert.Equal(2, ExitCode);
+        Assert.Empty(Output);
+        Assert.StartsWith("bc: error: ", Error);
+        Assert.Contains(missingPath, Error);
     }
 
     [Fact]

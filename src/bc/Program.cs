@@ -48,7 +48,8 @@ sealed class Program
             { "debug=", "Whether to emit debugger-friendly IL.", (bool v) => debug = v },
             { "m=", "The module {name} of the assembly to create.", v => moduleName = v },
             { "q", _ => quiet = true },
-            { "?|h|help", "Shows help.", _ => helpRequested = true }
+            { "?|h|help", "Shows help.", _ => helpRequested = true },
+            new ResponseFileSource()
         };
 
         quiet = args.TakeWhile(argument => argument != "--").Any(IsQuietOption);
@@ -68,6 +69,11 @@ sealed class Program
                 sourcePaths.AddRange(args[(optionTerminatorIndex + 1)..]);
         }
         catch (OptionException parseError)
+        {
+            LogError(parseError.Message);
+            return InvocationError;
+        }
+        catch (Exception parseError) when (parseError is IOException or UnauthorizedAccessException)
         {
             LogError(parseError.Message);
             return InvocationError;

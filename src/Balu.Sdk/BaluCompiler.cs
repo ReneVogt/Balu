@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Text;
 using Microsoft.Build.Framework;
 using Microsoft.Build.Utilities;
 
@@ -27,6 +28,8 @@ public sealed class BaluCompiler : ToolTask
 
     public bool Debug { get; set; }
 
+    protected override Encoding ResponseFileEncoding { get; } = new UTF8Encoding(encoderShouldEmitUTF8Identifier: false);
+
     protected override string GenerateFullPathToTool() => Path.GetFullPath(DotNetPath);
 
     protected override string GenerateCommandLineCommands()
@@ -34,6 +37,13 @@ public sealed class BaluCompiler : ToolTask
         var builder = new CommandLineBuilder();
         builder.AppendTextUnquoted("exec");
         builder.AppendFileNameIfNotNull(Path.GetFullPath(CompilerPath));
+
+        return builder.ToString();
+    }
+
+    protected override string GenerateResponseFileCommands()
+    {
+        var builder = new CommandLineBuilder(quoteHyphensOnCommandLine: false, useNewLineSeparator: true);
         builder.AppendSwitchIfNotNull("/o ", OutputPath);
 
         if (!string.IsNullOrWhiteSpace(SymbolPath))

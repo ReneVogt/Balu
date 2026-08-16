@@ -42,6 +42,27 @@ dotnet run --project src/bc -- --help
 At least one source path is required unless help is requested. Source paths are
 positional arguments. `bc` does not require the conventional `.b` extension.
 
+### Response files
+
+Prefix a UTF-8 response-file path with `@` to read additional arguments from
+that file:
+
+```console
+bc @arguments.rsp
+```
+
+Response files accept the same options and positional source paths as the
+direct command line. Quote paths that contain spaces:
+
+```text
+/o "build output/program.dll"
+/r "reference assemblies/System.Runtime.dll"
+"source files/program.b"
+```
+
+`Balu.Sdk` uses a temporary response file automatically so projects with many
+sources or long paths do not exceed operating-system command-line limits.
+
 ## Options
 
 | Option | Value | Description |
