@@ -7,6 +7,7 @@
 	</PropertyGroup>
 	<PropertyGroup>
 		<IsPackable>true</IsPackable>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
 		<PackageId>Balu.Sdk</PackageId>
 		<Title>Balu.Sdk</Title>
 		<Authors>René Vogt</Authors>
@@ -38,6 +39,7 @@
 					  GlobalPropertiesToRemove="TargetFramework" />
 	</ItemGroup>
 	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="\" />
 		<!-- these lines pack the build props/targets files to the `build` folder in the generated package.
  		by convention, the .NET SDK will look for build\<Package Id>.props and build\<Package Id>.targets
  		for automatic inclusion in the build. -->
