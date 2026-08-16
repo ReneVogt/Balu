@@ -28,11 +28,14 @@ public static class IlAsserter
     {
         var annotated = AnnotatedText.Parse(code);
         var tree = SyntaxTree.Parse(SourceText.From(annotated.Text, "IlAsserter.b"));
+        var spans = annotated.Spans.OrderBy(span => span.Start)
+                             .ThenByDescending(span => span.Length)
+                             .ToArray();
+        var offsets = sequencePointOffsets.ToArray();
+        AssertMatchingSequencePointCounts(spans.Length, offsets.Length);
 
         var expectedSymbols = string.Join(Environment.NewLine,
-                                        annotated.Spans.OrderBy(span => span.Start)
-                                                 .ThenByDescending(span => span.Length)
-                                                 .Zip(sequencePointOffsets, (span, offset) => ToSymbolString(offset, new (tree.Text, span))));
+                                          spans.Zip(offsets, (span, offset) => ToSymbolString(offset, new (tree.Text, span))));
         
         var (_, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, null);
         Assert.Equal(expectedSymbols, symbols);
@@ -44,11 +47,13 @@ public static class IlAsserter
                                    expectedIL.ReplaceLineEndings().Split(Environment.NewLine, StringSplitOptions.RemoveEmptyEntries).Select(line => line.Trim()));
         var annotated = AnnotatedText.Parse(code);
         var tree = SyntaxTree.Parse(SourceText.From(annotated.Text, "IlAsserter.b"));
+        var spans = annotated.Spans.OrderBy(span => span.Start)
+                             .ThenByDescending(span => span.Length)
+                             .ToArray();
+        var offsets = sequencePointOffsets.ToArray();
+        AssertMatchingSequencePointCounts(spans.Length, offsets.Length);
         var expectedSymbols = string.Join(Environment.NewLine,
-                                          annotated.Spans.OrderBy(span => span.Start)
-                                                   .ThenByDescending(span => span.Length)
-                                                   .Zip(sequencePointOffsets,
-                                                    (span, offset) => ToSymbolString(offset, new (tree.Text, span))));
+                                          spans.Zip(offsets, (span, offset) => ToSymbolString(offset, new (tree.Text, span))));
 
         var (il, symbols, actualScopes) = ExecuteEmitter(tree, methodToAssert, script, true, output, debugFriendly);
         Assert.Equal(expected, il);
@@ -127,4 +132,7 @@ public static class IlAsserter
         ToSymbolString(offset, location.StartLine + 1, location.StartCharacter + 1, location.EndLine + 1, location.EndCharacter + 1);
     static string ToSymbolString(int offset, int startLine, int startColumn, int endLine, int endColumn) =>
         $"{offset:X04}: ({startLine}, {startColumn}) - ({endLine}, {endColumn})";
+    static void AssertMatchingSequencePointCounts(int spanCount, int offsetCount) =>
+        Assert.True(spanCount == offsetCount,
+                    $"Annotated span count ({spanCount}) does not match supplied sequence-point offset count ({offsetCount}).");
 }
