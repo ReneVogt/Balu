@@ -86,8 +86,8 @@ sealed class Emitter : IDisposable
 
     MethodDefinition CreateMethod(FunctionSymbol function)
     {
-        bool isVisilbe = function == program.EntryPoint || program.VisibleSymbols.Contains(function);
-        var name = isVisilbe ? function.Name : $"<{function.Name}{globals.Count}>";
+        bool isVisible = function == program.EntryPoint || program.VisibleSymbols.Contains(function);
+        var name = isVisible ? function.Name : $"<{function.Name}{GetFunctionGeneration(function)}>";
         var attributes = MethodAttributes.Static | MethodAttributes.Private;
         if (name.IsBaluSpecialName()) attributes |= MethodAttributes.SpecialName;
         var method = new MethodDefinition(name, attributes, MapType(function.ReturnType));
@@ -97,6 +97,17 @@ sealed class Emitter : IDisposable
         referencedMembers.ProgramType.Methods.Add(method);
         globalSymbolNames[function] = name;
         return method;
+    }
+    int GetFunctionGeneration(FunctionSymbol function)
+    {
+        int generation = 0;
+        foreach (var symbol in program.Symbols.OfType<FunctionSymbol>())
+        {
+            if (symbol == function) return generation;
+            if (symbol.Name == function.Name) generation++;
+        }
+
+        throw new EmitterException($"Function symbol '{function.Name}' is not part of the program symbols.");
     }
     void EmitMethod(MethodDefinition method, FunctionSymbol function)
     {
