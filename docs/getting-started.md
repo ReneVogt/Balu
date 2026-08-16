@@ -153,6 +153,9 @@ Interpreter state is kept only for the current REPL process. Restarting the REPL
 starts a fresh session. Use `#load <path>` to explicitly execute a script file
 in the current session.
 
+Submitted programs run in the REPL host process and are not sandboxed. If a
+program hangs, terminate the REPL with Ctrl+C; the current session is lost.
+
 `#clearHistory` clears the in-memory editor history without resetting the
 interpreter.
 
