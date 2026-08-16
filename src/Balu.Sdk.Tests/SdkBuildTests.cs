@@ -185,6 +185,28 @@ public sealed class SdkBuildTests
     }
 
     [Fact]
+    public void Sdk_CompilerArgumentsExceedingWindowsLimit_Builds()
+    {
+        const int windowsCommandLineLimit = 32_767;
+        using var project = new TestProject();
+        var expandedArgumentsLength = 0;
+
+        for (var index = 0; expandedArgumentsLength <= windowsCommandLineLimit; index++)
+        {
+            var relativePath = $"sources with spaces-\u00E4/source-{index:D4}-{new string('x', 64)}.b";
+            var sourcePath = project.PathFromProject(relativePath);
+            project.SetSource(relativePath, string.Empty);
+            expandedArgumentsLength += sourcePath.Length + 3;
+        }
+
+        Assert.True(expandedArgumentsLength > windowsCommandLineLimit);
+
+        project.Build("Debug");
+
+        Assert.True(File.Exists(project.IntermediateAssembly("Debug")));
+    }
+
+    [Fact]
     public void Sdk_DeletingSourceFile_InvalidatesCompilerOutput()
     {
         using var project = new TestProject();
