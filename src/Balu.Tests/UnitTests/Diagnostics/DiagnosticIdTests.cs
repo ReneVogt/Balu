@@ -51,6 +51,7 @@ public class DiagnosticIdTests
         (DiagnosticId.UnreachableCode, 1031),
         (DiagnosticId.ConstantDivisionByZero, 1032),
         (DiagnosticId.ConstantIntegerOverflow, 1033),
+        (DiagnosticId.InsufficientExecutionStack, 1034),
 
         (DiagnosticId.Emitter, 2000),
         (DiagnosticId.InvalidAssemblyReference, 2001),

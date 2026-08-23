@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
@@ -590,11 +591,23 @@ sealed class Binder : SyntaxTreeVisitor
         //
         var globalStatements = syntaxTrees.SelectMany(syntaxTree => syntaxTree.Root.Members.OfType<GlobalStatementSyntax>()).ToArray();
         var statementBuilder = ImmutableArray.CreateBuilder<BoundStatement>();
+        var globalBinderScope = binder.scope;
         foreach (var globalStatement in globalStatements)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            binder.Visit(globalStatement);
-            statementBuilder.Add((BoundStatement)binder.boundNode!);
+            try
+            {
+                binder.Visit(globalStatement);
+                statementBuilder.Add((BoundStatement)binder.boundNode!);
+            }
+            catch (InsufficientExecutionStackException)
+            {
+                binder.scope = globalBinderScope;
+                binder.loopStack.Clear();
+                binder.diagnostics.ReportInsufficientExecutionStack(Balu.Text.TextLocation.None);
+                statementBuilder.Add(Nop(globalStatement));
+                break;
+            }
         }
 
         //
@@ -715,8 +728,19 @@ sealed class Binder : SyntaxTreeVisitor
         {
             cancellationToken.ThrowIfCancellationRequested();
             var functionBinder = new Binder(isScript, parentScope, function, cancellationToken);
-            functionBinder.Visit(function.Declaration!.Body);
-            var body = (BoundStatement)functionBinder.boundNode!;
+            BoundStatement body;
+            try
+            {
+                functionBinder.Visit(function.Declaration!.Body);
+                body = (BoundStatement)functionBinder.boundNode!;
+            }
+            catch (InsufficientExecutionStackException)
+            {
+                diagnostics.AddRange(functionBinder.diagnostics);
+                diagnostics.ReportInsufficientExecutionStack(Balu.Text.TextLocation.None);
+                functionBodyBuilder.Add(function, Block(function.Declaration!.Body, ImmutableArray<BoundStatement>.Empty));
+                continue;
+            }
             var refactoredBody = Refactor(body, function, diagnostics, cancellationToken);
             functionBodyBuilder.Add(function, refactoredBody);
             diagnostics.AddRange(functionBinder.diagnostics);

@@ -21,23 +21,34 @@ sealed class BoundTreeVisitorGenerator : BaseGenerator
         Writer.WriteLine();
         using(new CurlyIndenter(Writer, "abstract class BoundTreeVisitor"))
         {
+            Writer.WriteLine("int recursionDepth;");
+            Writer.WriteLine();
             using(new CurlyIndenter(Writer, "public virtual void Visit(BoundNode node)"))
             {
-                using(new CurlyIndenter(Writer, "switch (node.Kind)"))
+                Writer.WriteLine("recursionDepth++;");
+                using(new CurlyIndenter(Writer, "try"))
                 {
-                    foreach (var (kind, node) in mapping.Mappings)
+                    Writer.WriteLine("global::Balu.StackGuard.EnsureSufficientExecutionStack(recursionDepth);");
+                    using(new CurlyIndenter(Writer, "switch (node.Kind)"))
                     {
-                        Writer.WriteLine($"case BoundNodeKind.{kind.ToIdentifier()}:");
+                        foreach (var (kind, node) in mapping.Mappings)
+                        {
+                            Writer.WriteLine($"case BoundNodeKind.{kind.ToIdentifier()}:");
+                            Writer.Indent++;
+                            Writer.WriteLine($"{$"VisitBound{kind.Name}".ToIdentifier()}(({node.ToFullyQualifiedName()})node);");
+                            Writer.WriteLine("break;");
+                            Writer.Indent--;
+                        }
+
+                        Writer.WriteLine("default:");
                         Writer.Indent++;
-                        Writer.WriteLine($"{$"VisitBound{kind.Name}".ToIdentifier()}(({node.ToFullyQualifiedName()})node);");
-                        Writer.WriteLine("break;");
+                        Writer.WriteLine("throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\");");
                         Writer.Indent--;
                     }
-
-                    Writer.WriteLine("default:");
-                    Writer.Indent++;
-                    Writer.WriteLine("throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\");");
-                    Writer.Indent--;
+                }
+                using(new CurlyIndenter(Writer, "finally"))
+                {
+                    Writer.WriteLine("recursionDepth--;");
                 }
             }
 
