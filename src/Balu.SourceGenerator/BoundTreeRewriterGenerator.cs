@@ -54,12 +54,26 @@ sealed class BoundTreeRewriterGenerator : BaseGenerator
         Writer.WriteLine();
         using(new CurlyIndenter(Writer, "abstract class BoundTreeRewriter"))
         {
-            using(new CurlyIndenter(Writer, "public virtual BoundNode Visit(BoundNode node) => node.Kind switch", semicolon: true))
+            Writer.WriteLine("int recursionDepth;");
+            Writer.WriteLine();
+            using(new CurlyIndenter(Writer, "public virtual BoundNode Visit(BoundNode node)"))
             {
-                foreach (var (kind, type, _, _) in kindsToVisit)
-                    Writer.WriteLine($"BoundNodeKind.{kind.ToIdentifier()} => {$"VisitBound{kind.Name}".ToIdentifier()}(({type.ToFullyQualifiedName()})node),");
+                Writer.WriteLine("recursionDepth++;");
+                using(new CurlyIndenter(Writer, "try"))
+                {
+                    Writer.WriteLine("global::Balu.StackGuard.EnsureSufficientExecutionStack(recursionDepth);");
+                    using(new CurlyIndenter(Writer, "return node.Kind switch", semicolon: true))
+                    {
+                        foreach (var (kind, type, _, _) in kindsToVisit)
+                            Writer.WriteLine($"BoundNodeKind.{kind.ToIdentifier()} => {$"VisitBound{kind.Name}".ToIdentifier()}(({type.ToFullyQualifiedName()})node),");
 
-                Writer.WriteLine("_ => throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\")");
+                        Writer.WriteLine("_ => throw new ArgumentException($\"Unexpected bound node kind '{node.Kind}'.\")");
+                    }
+                }
+                using(new CurlyIndenter(Writer, "finally"))
+                {
+                    Writer.WriteLine("recursionDepth--;");
+                }
             }
 
             Writer.WriteLine(@"

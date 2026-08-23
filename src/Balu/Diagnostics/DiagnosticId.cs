@@ -43,6 +43,7 @@ public enum DiagnosticId
     UnreachableCode = 1031,
     ConstantDivisionByZero = 1032,
     ConstantIntegerOverflow = 1033,
+    InsufficientExecutionStack = 1034,
 
     Emitter = 2000,
     InvalidAssemblyReference = 2001,

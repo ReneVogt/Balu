@@ -21,24 +21,35 @@ sealed class SyntaxTreeVisitorGenerator : BaseGenerator
         Writer.WriteLine();
         using(new CurlyIndenter(Writer, "public abstract class SyntaxTreeVisitor"))
         {
+            Writer.WriteLine("int recursionDepth;");
+            Writer.WriteLine();
             using(new CurlyIndenter(Writer, "public virtual void Visit(SyntaxNode node)"))
             {
-                using(new CurlyIndenter(Writer, "switch (node.Kind)"))
+                Writer.WriteLine("recursionDepth++;");
+                using(new CurlyIndenter(Writer, "try"))
                 {
-                    foreach (var (kind, node) in mapping.Mappings)
+                    Writer.WriteLine("global::Balu.StackGuard.EnsureSufficientExecutionStack(recursionDepth);");
+                    using(new CurlyIndenter(Writer, "switch (node.Kind)"))
                     {
-                        Writer.WriteLine($"case SyntaxKind.{kind.ToIdentifier()}:");
+                        foreach (var (kind, node) in mapping.Mappings)
+                        {
+                            Writer.WriteLine($"case SyntaxKind.{kind.ToIdentifier()}:");
+                            Writer.Indent++;
+                            Writer.WriteLine($"{$"Visit{kind.Name}".ToIdentifier()}(({node.ToFullyQualifiedName()})node);");
+                            Writer.WriteLine("break;");
+                            Writer.Indent--;
+                        }
+
+                        Writer.WriteLine("default:");
                         Writer.Indent++;
-                        Writer.WriteLine($"{$"Visit{kind.Name}".ToIdentifier()}(({node.ToFullyQualifiedName()})node);");
+                        Writer.WriteLine("VisitToken(node as SyntaxToken ??  throw new ArgumentException($\"Unknown syntax kind '{node.Kind}'.\"));");
                         Writer.WriteLine("break;");
                         Writer.Indent--;
                     }
-
-                    Writer.WriteLine("default:");
-                    Writer.Indent++;
-                    Writer.WriteLine("VisitToken(node as SyntaxToken ??  throw new ArgumentException($\"Unknown syntax kind '{node.Kind}'.\"));");
-                    Writer.WriteLine("break;");
-                    Writer.Indent--;
+                }
+                using(new CurlyIndenter(Writer, "finally"))
+                {
+                    Writer.WriteLine("recursionDepth--;");
                 }
             }
 

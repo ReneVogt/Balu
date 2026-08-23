@@ -26,15 +26,15 @@ public abstract class SyntaxNode
         span = new(() =>
         {
             if (ChildrenCount == 0) return default;
-            var first = GetChild(0);
-            var last = GetChild(ChildrenCount - 1);
+            var first = GetFirstToken();
+            var last = GetLastToken();
             return first.Span + last.Span;
         });
         fullSpan = new(() =>
         {
             if (ChildrenCount == 0) return default;
-            var first = GetChild(0);
-            var last = GetChild(ChildrenCount - 1);
+            var first = GetFirstToken();
+            var last = GetLastToken();
             return first.FullSpan + last.FullSpan;
         });
     }
@@ -52,8 +52,18 @@ public abstract class SyntaxNode
 
     public abstract SyntaxNode GetChild(int index);
 
-    SyntaxToken GetLastToken() => this as SyntaxToken ?? GetChild(ChildrenCount - 1).GetLastToken();
-    SyntaxToken GetFirstToken() => this as SyntaxToken ?? GetChild(0).GetFirstToken();
+    SyntaxToken GetLastToken() => GetLastToken(1);
+    SyntaxToken GetLastToken(int recursionDepth)
+    {
+        StackGuard.EnsureSufficientExecutionStack(recursionDepth);
+        return this as SyntaxToken ?? GetChild(ChildrenCount - 1).GetLastToken(recursionDepth + 1);
+    }
+    SyntaxToken GetFirstToken() => GetFirstToken(1);
+    SyntaxToken GetFirstToken(int recursionDepth)
+    {
+        StackGuard.EnsureSufficientExecutionStack(recursionDepth);
+        return this as SyntaxToken ?? GetChild(0).GetFirstToken(recursionDepth + 1);
+    }
 
     public override string ToString() => $"{Kind}{Span}";
 }

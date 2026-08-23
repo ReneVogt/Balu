@@ -11,18 +11,19 @@ public static class Classifier
     {
         _ = syntaxTree ?? throw new ArgumentNullException(nameof(syntaxTree));
         var resultBuilder = ImmutableArray.CreateBuilder<ClassifiedSpan>();
-        ClassifyNode(syntaxTree.Root, span, resultBuilder);
+        ClassifyNode(syntaxTree.Root, span, resultBuilder, 1);
         return resultBuilder.ToImmutable();
     }
 
-    static void ClassifyNode(SyntaxNode node, TextSpan span, ImmutableArray<ClassifiedSpan>.Builder resultBuilder)
+    static void ClassifyNode(SyntaxNode node, TextSpan span, ImmutableArray<ClassifiedSpan>.Builder resultBuilder, int recursionDepth)
     {
+        StackGuard.EnsureSufficientExecutionStack(recursionDepth);
         if (!node.FullSpan.OverlapsWith(span)) return;
         if (node is SyntaxToken token)
             ClassifyToken(token, span, resultBuilder);
 
         for(int i=0; i<node.ChildrenCount; i++)
-            ClassifyNode(node.GetChild(i), span, resultBuilder);
+            ClassifyNode(node.GetChild(i), span, resultBuilder, recursionDepth + 1);
     }
     static void ClassifyToken(SyntaxToken token, TextSpan span, ImmutableArray<ClassifiedSpan>.Builder resultBuilder)
     {

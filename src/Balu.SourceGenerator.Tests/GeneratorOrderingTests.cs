@@ -560,6 +560,17 @@ namespace Other.Syntax
         Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
     }
 
+    [Fact]
+    public void Generator_GuardsRecursiveVisitorsAndRewriter()
+    {
+        var (result, compilationDiagnostics, _) = RunGenerator(ValidSource);
+
+        Assert.DoesNotContain(compilationDiagnostics, diagnostic => diagnostic.Severity == DiagnosticSeverity.Error);
+        Assert.Contains("StackGuard.EnsureSufficientExecutionStack", GetGeneratedSource(result, "SyntaxTreeVisitor.g.cs"));
+        Assert.Contains("StackGuard.EnsureSufficientExecutionStack", GetGeneratedSource(result, "BoundTreeVisitor.g.cs"));
+        Assert.Contains("StackGuard.EnsureSufficientExecutionStack", GetGeneratedSource(result, "BoundTreeRewriter.g.cs"));
+    }
+
     static void AssertUnsupportedNodeTypes(string source, params string[] typeNames)
     {
         var (result, compilationDiagnostics, _) = RunGenerator(source);
@@ -620,6 +631,14 @@ namespace Other.Syntax
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+
+namespace Balu
+{
+    static class StackGuard
+    {
+        public static void EnsureSufficientExecutionStack(int recursionDepth) { }
+    }
+}
 
 namespace Balu.Syntax
 {
@@ -731,6 +750,14 @@ namespace Balu.Binding
     const string RecordSource = """
 using System;
 using System.Collections.Immutable;
+
+namespace Balu
+{
+    static class StackGuard
+    {
+        public static void EnsureSufficientExecutionStack(int recursionDepth) { }
+    }
+}
 
 namespace Balu.Syntax
 {

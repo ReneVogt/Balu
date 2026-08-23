@@ -104,6 +104,8 @@ sealed class DiagnosticBag : List<Diagnostic>
         Add(new(DiagnosticId.ConstantDivisionByZero, location, "Constant division by zero."));
     public void ReportConstantIntegerOverflow(TextLocation location) =>
         Add(new(DiagnosticId.ConstantIntegerOverflow, location, "Constant expression causes an integer overflow."));
+    public void ReportInsufficientExecutionStack(TextLocation location) =>
+        Add(new(DiagnosticId.InsufficientExecutionStack, location, "The program is too deeply nested or complex to compile."));
 
     public void ReportInvalidAssemblyReference(string reference, string exceptionMessage) =>
         Add(new(DiagnosticId.InvalidAssemblyReference, TextLocation.None, $"Could not load referenced assembly '{reference}': {exceptionMessage}"));

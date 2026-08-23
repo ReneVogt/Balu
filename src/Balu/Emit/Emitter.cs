@@ -37,6 +37,7 @@ sealed class Emitter : IDisposable
     LocalVariableScope? locals;
     bool emitSymbols;
     bool debug;
+    int recursionDepth;
 
     Emitter(BoundProgram program, string moduleName, EmitReferenceSet references, CancellationToken cancellationToken)
     {
@@ -239,41 +240,50 @@ sealed class Emitter : IDisposable
     }
     void EmitExpression(ILProcessor processor, BoundExpression expression)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        if (expression is { Constant: {}, HasSideEffects: false })
+        recursionDepth++;
+        try
         {
-            EmitConstantExpression(processor, expression);
-            return;
-        }
+            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (expression is { Constant: {}, HasSideEffects: false })
+            {
+                EmitConstantExpression(processor, expression);
+                return;
+            }
 
-        switch (expression.Kind)
+            switch (expression.Kind)
+            {
+                case BoundNodeKind.UnaryExpression:
+                    EmitUnaryExpression(processor, (BoundUnaryExpression)expression);
+                    break;
+                case BoundNodeKind.BinaryExpression:
+                    EmitBinaryExpression(processor, (BoundBinaryExpression)expression);
+                    break;
+                case BoundNodeKind.VariableExpression:
+                    EmitVariableExpression(processor, (BoundVariableExpression)expression);
+                    break;
+                case BoundNodeKind.AssignmentExpression:
+                    EmitAssignmentExpression(processor, (BoundAssignmentExpression)expression);
+                    break;
+                case BoundNodeKind.CallExpression:
+                    EmitCallExpression(processor, (BoundCallExpression)expression);
+                    break;
+                case BoundNodeKind.ConversionExpression:
+                    EmitConversionExpression(processor, (BoundConversionExpression)expression);
+                    break;
+                case BoundNodeKind.PrefixExpression:
+                    EmitPrefixExpression(processor, (BoundPrefixExpression)expression);
+                    break;
+                case BoundNodeKind.PostfixExpression:
+                    EmitPostfixExpression(processor, (BoundPostfixExpression)expression);
+                    break;
+                default:
+                    throw new EmitterException($"Invalid expression kind '{expression.Kind}'.");
+            }
+        }
+        finally
         {
-            case BoundNodeKind.UnaryExpression:
-                EmitUnaryExpression(processor, (BoundUnaryExpression)expression);
-                break;
-            case BoundNodeKind.BinaryExpression:
-                EmitBinaryExpression(processor, (BoundBinaryExpression)expression);
-                break;
-            case BoundNodeKind.VariableExpression:
-                EmitVariableExpression(processor, (BoundVariableExpression)expression);
-                break;
-            case BoundNodeKind.AssignmentExpression:
-                EmitAssignmentExpression(processor, (BoundAssignmentExpression)expression);
-                break;
-            case BoundNodeKind.CallExpression:
-                EmitCallExpression(processor, (BoundCallExpression)expression);
-                break;
-            case BoundNodeKind.ConversionExpression:
-                EmitConversionExpression(processor, (BoundConversionExpression)expression);
-                break;
-            case BoundNodeKind.PrefixExpression:
-                EmitPrefixExpression(processor, (BoundPrefixExpression)expression);
-                break;
-            case BoundNodeKind.PostfixExpression:
-                EmitPostfixExpression(processor, (BoundPostfixExpression)expression);
-                break;
-            default:
-                throw new EmitterException($"Invalid expression kind '{expression.Kind}'.");
+            recursionDepth--;
         }
     }
     void EmitUnaryExpression(ILProcessor processor, BoundUnaryExpression expression)
@@ -794,11 +804,19 @@ sealed class Emitter : IDisposable
             methods.Add(function, CreateMethod(function));
         }
 
-        EmitMethod(methods[program.EntryPoint], program.EntryPoint);
-        foreach (var x in methods.Where(x => x.Key != program.EntryPoint))
+        try
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            EmitMethod(x.Value, x.Key);
+            EmitMethod(methods[program.EntryPoint], program.EntryPoint);
+            foreach (var x in methods.Where(x => x.Key != program.EntryPoint))
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                EmitMethod(x.Value, x.Key);
+            }
+        }
+        catch (InsufficientExecutionStackException)
+        {
+            diagnostics.ReportInsufficientExecutionStack(TextLocation.None);
+            return;
         }
 
         if (diagnostics.HasErrors()) return;

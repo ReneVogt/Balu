@@ -400,16 +400,24 @@ sealed class Lowerer : BoundTreeRewriter
     public static BoundBlockStatement Lower(BoundStatement statement, FunctionSymbol? containingFunction, DiagnosticBag diagnostics, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        var lowered = (BoundStatement)new Lowerer(cancellationToken).Visit(statement);
-        var resultingBlock = Flatten(lowered, cancellationToken);
+        try
+        {
+            var lowered = (BoundStatement)new Lowerer(cancellationToken).Visit(statement);
+            var resultingBlock = Flatten(lowered, cancellationToken);
 
-        var controlFlowGraph = ControlFlowGraph.Create(resultingBlock, cancellationToken);
-        if (containingFunction is not null && containingFunction.ReturnType != TypeSymbol.Void && !controlFlowGraph.AllPathsReturn())
-            diagnostics.ReportNotAllPathsReturn(containingFunction);
+            var controlFlowGraph = ControlFlowGraph.Create(resultingBlock, cancellationToken);
+            if (containingFunction is not null && containingFunction.ReturnType != TypeSymbol.Void && !controlFlowGraph.AllPathsReturn())
+                diagnostics.ReportNotAllPathsReturn(containingFunction);
 
-        resultingBlock = RemoveDeadCode(resultingBlock, controlFlowGraph, diagnostics, cancellationToken);
-        resultingBlock = RemoveDebris(resultingBlock, cancellationToken);
-        resultingBlock = AddMissingReturn(resultingBlock, containingFunction);
-        return resultingBlock;
+            resultingBlock = RemoveDeadCode(resultingBlock, controlFlowGraph, diagnostics, cancellationToken);
+            resultingBlock = RemoveDebris(resultingBlock, cancellationToken);
+            resultingBlock = AddMissingReturn(resultingBlock, containingFunction);
+            return resultingBlock;
+        }
+        catch (System.InsufficientExecutionStackException)
+        {
+            diagnostics.ReportInsufficientExecutionStack(Balu.Text.TextLocation.None);
+            return Block(statement.Syntax, ImmutableArray<BoundStatement>.Empty);
+        }
     }
 }

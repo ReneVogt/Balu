@@ -42,16 +42,17 @@ public sealed class SyntaxTree
     static Dictionary<SyntaxNode, SyntaxNode?> CreateParentsDictionary(CompilationUnitSyntax root)
     {
         var result = new Dictionary<SyntaxNode, SyntaxNode?> { { root, null } };
-        CreateParentsDictionary(result, root);
+        CreateParentsDictionary(result, root, 1);
         return result;
     }
-    static void CreateParentsDictionary(Dictionary<SyntaxNode, SyntaxNode?> result, SyntaxNode node)
+    static void CreateParentsDictionary(Dictionary<SyntaxNode, SyntaxNode?> result, SyntaxNode node, int recursionDepth)
     {
+        StackGuard.EnsureSufficientExecutionStack(recursionDepth);
         for (int i = 0; i < node.ChildrenCount; i++)
         {
             var child = node.GetChild(i);
             result.Add(child, node);
-            CreateParentsDictionary(result, child);
+            CreateParentsDictionary(result, child, recursionDepth + 1);
         }
     }
 
@@ -90,7 +91,14 @@ public sealed class SyntaxTree
     static void Parse(SyntaxTree syntaxTree, CancellationToken cancellationToken, out CompilationUnitSyntax root, out ImmutableArray<Diagnostic> diagnostics)
     {
         var parser = new Parser(syntaxTree, cancellationToken);
-        root = parser.ParseCompilationUnit();
+        try
+        {
+            root = parser.ParseCompilationUnit();
+        }
+        catch (InsufficientExecutionStackException)
+        {
+            root = parser.CreateInsufficientStackCompilationUnit();
+        }
         diagnostics = parser.Diagnostics.ToImmutableArray();
     }
 }

@@ -17,6 +17,7 @@ sealed class Parser
     readonly CancellationToken cancellationToken;
 
     int position;
+    int recursionDepth;
 
     public IEnumerable<Diagnostic> Diagnostics => diagnostics;
 
@@ -67,6 +68,12 @@ sealed class Parser
         var members = ParseMembers();
         var endOfFileToken = MatchToken(SyntaxKind.EndOfFileToken);
         return new(syntaxTree, members, endOfFileToken);
+    }
+
+    public CompilationUnitSyntax CreateInsufficientStackCompilationUnit()
+    {
+        diagnostics.ReportInsufficientExecutionStack(Current.Location);
+        return new(syntaxTree, ImmutableArray<MemberSyntax>.Empty, tokens[tokens.Count - 1]);
     }
 
     SyntaxToken Peek(int offset)
@@ -132,21 +139,30 @@ sealed class Parser
     }
     StatementSyntax ParseStatement()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        return Current.Kind switch
+        recursionDepth++;
+        try
         {
-            SyntaxKind.OpenBraceToken => ParseBlockStatement(),
-            SyntaxKind.LetKeyword or
-                SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
-            SyntaxKind.IfKeyword => ParseIfStatement(),
-            SyntaxKind.WhileKeyword => ParseWhileStatement(),
-            SyntaxKind.DoKeyword => ParseDoWhileStatement(),
-            SyntaxKind.ForKeyword => ParseForStatement(),
-            SyntaxKind.ContinueKeyword => ParseContinueStatement(),
-            SyntaxKind.BreakKeyword=> ParseBreakStatement(),
-            SyntaxKind.ReturnKeyword => ParseReturnStatement(),
-            _ => ParseExpressionStatement()
-        };
+            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
+            cancellationToken.ThrowIfCancellationRequested();
+            return Current.Kind switch
+            {
+                SyntaxKind.OpenBraceToken => ParseBlockStatement(),
+                SyntaxKind.LetKeyword or
+                    SyntaxKind.VarKeyword => ParseVariableDeclarationStatement(),
+                SyntaxKind.IfKeyword => ParseIfStatement(),
+                SyntaxKind.WhileKeyword => ParseWhileStatement(),
+                SyntaxKind.DoKeyword => ParseDoWhileStatement(),
+                SyntaxKind.ForKeyword => ParseForStatement(),
+                SyntaxKind.ContinueKeyword => ParseContinueStatement(),
+                SyntaxKind.BreakKeyword=> ParseBreakStatement(),
+                SyntaxKind.ReturnKeyword => ParseReturnStatement(),
+                _ => ParseExpressionStatement()
+            };
+        }
+        finally
+        {
+            recursionDepth--;
+        }
     }
     BlockStatementSyntax ParseBlockStatement()
     {
@@ -257,10 +273,19 @@ sealed class Parser
 
     ExpressionSyntax ParseExpression()
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        if (Current.Kind == SyntaxKind.IdentifierToken &&Peek(1).Kind.IsAssingmentToken())
-            return ParseAssignmentExpression();
-        return ParseBinaryExpression();
+        recursionDepth++;
+        try
+        {
+            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (Current.Kind == SyntaxKind.IdentifierToken &&Peek(1).Kind.IsAssingmentToken())
+                return ParseAssignmentExpression();
+            return ParseBinaryExpression();
+        }
+        finally
+        {
+            recursionDepth--;
+        }
     }
     AssignmentExpressionSyntax ParseAssignmentExpression() => new(syntaxTree, NextToken(), NextToken(),
                                                                                          ParseExpression());
@@ -282,20 +307,29 @@ sealed class Parser
     }
     ExpressionSyntax ParseBinaryExpression(int parentprecedence = 0)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-        var unaryOperatorPrecedence = Current.Kind.UnaryOperatorPrecedence();
-        var left = unaryOperatorPrecedence > 0 && unaryOperatorPrecedence >= parentprecedence
-                       ? new UnaryExpressionSyntax(syntaxTree, NextToken(), ParseBinaryExpression(unaryOperatorPrecedence))
-                       : ParsePrimaryExpression();
-        for (; ; )
+        recursionDepth++;
+        try
         {
+            StackGuard.EnsureSufficientExecutionStack(recursionDepth);
             cancellationToken.ThrowIfCancellationRequested();
-            var precedence = Current.Kind.BinaryOperatorPrecedence();
-            if (precedence <= parentprecedence) return left;
+            var unaryOperatorPrecedence = Current.Kind.UnaryOperatorPrecedence();
+            var left = unaryOperatorPrecedence > 0 && unaryOperatorPrecedence >= parentprecedence
+                           ? new UnaryExpressionSyntax(syntaxTree, NextToken(), ParseBinaryExpression(unaryOperatorPrecedence))
+                           : ParsePrimaryExpression();
+            for (; ; )
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var precedence = Current.Kind.BinaryOperatorPrecedence();
+                if (precedence <= parentprecedence) return left;
 
-            var operatorToken = NextToken();
-            var right = ParseBinaryExpression(precedence);
-            left = new BinaryExpressionSyntax(syntaxTree, left, operatorToken, right);
+                var operatorToken = NextToken();
+                var right = ParseBinaryExpression(precedence);
+                left = new BinaryExpressionSyntax(syntaxTree, left, operatorToken, right);
+            }
+        }
+        finally
+        {
+            recursionDepth--;
         }
     }
     ExpressionSyntax ParsePrimaryExpression()
